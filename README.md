@@ -1,2 +1,0 @@
-# huet
-Created with CodeSandbox
