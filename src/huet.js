@@ -237,20 +237,6 @@ function _createRampWithChromaScale(scale) {
   };
 }
 
-function _createRampWithChromaScale2(scale) {
-  // const darkL = scale(0).luminance() * 100;
-  // const lightL = scale(1).luminance() * 100;
-  const darkL = Math.round(getLightness(scale(0)));
-  const lightL = Math.round(getLightness(scale(1)));
-  return {
-    mode: "chroma",
-    dark: { l: darkL },
-    light: { l: lightL },
-    colors: [scale(0), scale(1)],
-    normalScale: scale
-  };
-}
-
 function createRamp(colors) {
   return {
     ..._createRampWithChromaScale(chroma.scale(colors)),
@@ -265,7 +251,6 @@ function getLightness(color) {
 export default {
   createRamp,
   _createRampWithChromaScale,
-  _createRampWithChromaScale2,
   getLightness,
   // funcs for context
   // createTheme,
