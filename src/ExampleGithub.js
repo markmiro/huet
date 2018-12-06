@@ -11,7 +11,7 @@ export default function Github() {
       <div className="flex-auto">
         <H bg={10}>
           <H bg={85} className="pa3">
-            🚀 Pull requests | Issues | Marketplace | Explore
+            Pull requests | Issues | Marketplace | Explore
           </H>
           <H border={20} className="ph2 ph5-ns bb">
             <div className="db pv3">loremperson/some-crazy-project</div>

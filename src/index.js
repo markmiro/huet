@@ -40,7 +40,7 @@ function Switch({ on, ...cases }) {
 function App() {
   const [tab, setTab] = useState("youtube");
   return (
-    <Themer themes={themes} initialThemeKey="crazy">
+    <Themer themes={themes} initialThemeKey="basic">
       <div className="flex-auto">
         <Contrast bg={50} style={{ position: "relative", zIndex: 2 }}>
           <Select

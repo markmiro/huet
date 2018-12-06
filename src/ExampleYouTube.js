@@ -1,11 +1,9 @@
-import React, { useContext } from "react";
+import React from "react";
 import huet from "./huet";
 import Contrast from "./Contrast";
 import Icon from "./Icon";
 import YouTubeLogo from "./ExampleYouTubeLogo";
 import styled from "styled-components";
-
-const { ThemeContext } = huet;
 
 export default function YouTube() {
   return (
@@ -51,19 +49,9 @@ export default function YouTube() {
           </div>
           <div className="flex items-center">
             <Contrast bg={60} className="w2 h2 br-100 mr2" />{" "}
-            <ThemeContext.Consumer>
-              {ctx => (
-                <Contrast
-                  text={60}
-                  className="bb pb1 f6 flex-auto"
-                  style={{
-                    borderColor: huet.relativeColor(ctx, ctx.ramps.gray, 10)
-                  }}
-                >
-                  Add a public comment
-                </Contrast>
-              )}
-            </ThemeContext.Consumer>
+            <Contrast text={60} border={10} className="bb pb1 f6 flex-auto">
+              Add a public comment
+            </Contrast>
           </div>
           <Comment />
           <Comment />
@@ -80,13 +68,13 @@ export default function YouTube() {
 }
 
 function Header({ className, style }) {
-  const ctx = useContext(ThemeContext);
+  const { plainColor } = huet.useTheme();
   return (
     <Contrast
       bg={5}
       className={`pa3 flex justify-between ${className}`}
       style={{
-        boxShadow: `0 0 10px ${huet.color(ctx, ctx.ramps.gray.colors[0], 0.3)}`,
+        boxShadow: `0 0 10px ${plainColor({ alpha: 0.3 })}`,
         position: "sticky",
         top: 0,
         zIndex: 1,
@@ -95,11 +83,7 @@ function Header({ className, style }) {
     >
       <div className="flex items-center">
         <Icon name="burger/12" contrast={40} className="mr3" />
-        <YouTubeLogo
-          style={{
-            height: "1.5em"
-          }}
-        />
+        <YouTubeLogo style={{ height: "1.5em" }} />
       </div>
       <div className="flex-ns w-40 dn flex-auto-m mh4">
         <SearchInput />
@@ -159,6 +143,7 @@ function SearchInput() {
 }
 
 function Sidebar() {
+  const { plainColor } = huet.useTheme();
   return (
     <div>
       <div className="flex justify-between mb3">
@@ -167,39 +152,28 @@ function Sidebar() {
           <Contrast text={40} className="f7 mr1">
             AUTOPLAY
           </Contrast>
-          <ThemeContext.Consumer>
-            {ctx => {
-              const col1 = huet.relativeColor(ctx, ctx.ramps.gray, 15);
-              const col2 = huet.relativeColor(ctx, ctx.ramps.blue, 60);
-              return (
-                <div
-                  className="br-pill relative"
-                  style={{
-                    background: col1,
-                    width: "2.4em",
-                    height: "1em"
-                  }}
-                >
-                  <div
-                    className="br-pill"
-                    style={{
-                      background: col2,
-                      width: "1.3em",
-                      height: "1.3em",
-                      position: "absolute",
-                      top: "50%",
-                      transform: "translate(85%,-50%)",
-                      boxShadow: `0px 2px 4px ${huet.color(
-                        ctx,
-                        ctx.ramps.gray.colors[0],
-                        0.3
-                      )}`
-                    }}
-                  />
-                </div>
-              );
+          <Contrast
+            bg={15}
+            className="br-pill relative"
+            style={{
+              width: "2.4em",
+              height: "1em"
             }}
-          </ThemeContext.Consumer>
+          >
+            <Contrast
+              bg={45}
+              bgRamp="blue"
+              className="br-pill"
+              style={{
+                width: "1.3em",
+                height: "1.3em",
+                position: "absolute",
+                top: "50%",
+                transform: "translate(85%,-50%)",
+                boxShadow: `0px 2px 4px ${plainColor({ alpha: 0.3 })}`
+              }}
+            />
+          </Contrast>
         </b>
       </div>
       <VideoPreview />

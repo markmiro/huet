@@ -42,6 +42,11 @@ const colors = {
     hsluvToHex([285, 65, min]),
     hsluvToHex([285, 65, medium]),
     hsluvToHex([285, 65, max])
+  ]),
+  bronze: huet.createRamp([
+    hsluvToHex([20, 65, medium]),
+    hsluvToHex([20, 65, 20]),
+    hsluvToHex([20, 65, medium])
   ])
 };
 

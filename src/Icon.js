@@ -1,21 +1,23 @@
-import React, { useContext } from "react";
+import React from "react";
 import huet from "./huet";
 
-const { ThemeContext } = huet;
+const Icon = React.memo(
+  ({ name, contrast, ramp, className, style, alt = "icon" }) => {
+    const ctx = huet.useTheme();
+    const color = ctx
+      .contrast(contrast, { ramp })
+      .toString()
+      .substring(1);
 
-const Icon = React.memo(({ name, contrast, ramp = null, className, style }) => {
-  const ctx = useContext(ThemeContext);
-  const color = huet
-    .relativeColor(ctx, ramp || ctx.ramps.gray, contrast)
-    .toString()
-    .substring(1);
-  return (
-    <img
-      src={`https://icon.now.sh/${name}/${color}`}
-      className={className}
-      style={style}
-    />
-  );
-});
+    return (
+      <img
+        src={`https://icon.now.sh/${name}/${color}`}
+        className={className}
+        style={style}
+        alt={alt}
+      />
+    );
+  }
+);
 
 export default Icon;

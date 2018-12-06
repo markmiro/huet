@@ -1,4 +1,5 @@
 import React from "react";
+import chroma from "chroma-js";
 import huet from "./huet";
 import Contrast from "./Contrast";
 
@@ -51,6 +52,7 @@ export default function ColorRamp({
       <div className="flex flex-row w-30 justify-between">
         {theRamp.colors.map((color, i) => (
           <ThemeContext.Provider
+            key={i}
             value={{
               ...themeContext,
               bgLightness: huet.getLightness(color)
@@ -106,7 +108,7 @@ export default function ColorRamp({
                 95,
                 100
               ]
-                .map(i => theRamp.normalScale(i))
+                .map(i => theRamp.scale(i))
                 .join(",")})`
             }}
           />
