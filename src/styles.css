@@ -21,6 +21,7 @@ body {
   opacity: 1;
 } */
 
+.input,
 input,
 select,
 button {
@@ -39,8 +40,6 @@ input[type="range"] {
   /* Style */
   display: block;
   max-width: 400px;
-  margin-top: 0.5em;
-  margin-bottom: 0.5em;
 }
 input[type="range"]:focus {
   outline: none;
@@ -51,7 +50,7 @@ input[type="range"]::-webkit-slider-thumb {
   -webkit-appearance: none;
   /* Style */
   background: currentColor;
-  width: 0.3em;
+  width: 1px;
   height: 1em;
 }
 input::-webkit-color-swatch {

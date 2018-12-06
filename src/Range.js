@@ -16,13 +16,12 @@ const Range = React.memo(
   }) => {
     const step = 1 / Math.pow(10, decimals);
     const { contrast } = huet.useTheme();
-    const inputTextColor = contrast(100);
 
     return (
       <div className={`flex flex-column ${className}`} style={{ style }}>
         {label && (
-          <Contrast text={50} className="mb1">
-            {label}{" "}
+          <Contrast text={100} className="mb1 flex justify-between">
+            {label}
             <Contrast className="di" text={30}>
               ({min.toFixed(decimals)}-{max.toFixed(decimals)})
             </Contrast>
@@ -30,15 +29,17 @@ const Range = React.memo(
         )}
         <div className="flex items-center">
           {!hideInput && (
-            <input
+            <Contrast
+              bg={5}
+              text={50}
+              as="input"
               type="number"
-              className="mr2 ba br1"
+              className="mr1"
               style={{
                 width: "5em",
-                fontSize: "inherit",
-                color: inputTextColor,
-                borderColor: contrast(10),
-                background: "transparent"
+                fontSize: "inherit"
+                // borderColor: contrast(10)
+                // background: "transparent"
               }}
               value={value.toFixed(decimals)}
               step={step}
@@ -47,11 +48,10 @@ const Range = React.memo(
           )}
           <input
             type="range"
+            className="self-stretch"
             style={{
-              color: contrast(20),
-              backgroundColor: contrast(10),
-              padding: 0,
-              height: 1
+              color: contrast(100),
+              backgroundColor: contrast(5)
             }}
             min={min}
             max={max}

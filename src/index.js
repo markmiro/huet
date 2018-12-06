@@ -39,7 +39,7 @@ function App() {
   return (
     <Themer themes={themes} initialThemeKey="basic">
       <div className="flex-auto">
-        <Contrast bg={50} style={{ position: "relative", zIndex: 2 }}>
+        <Contrast bg={10} style={{ position: "relative", zIndex: 2 }}>
           <Select
             label="Example Demos"
             className="pa2 pb3"

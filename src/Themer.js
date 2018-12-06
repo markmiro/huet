@@ -1,6 +1,4 @@
 import React, { useState } from "react";
-// import chroma from "chroma-js";
-// import _ from "lodash";
 import huet from "./huet";
 import Range from "./Range";
 import Contrast from "./Contrast";
@@ -91,7 +89,7 @@ export default function Themer({ children, themes, initialThemeKey }) {
   const [shouldThemeSelf, setShouldThemeSelf] = useState(false);
 
   const themerContext = shouldThemeSelf
-    ? { ...ctx, bgLightness: ctx.ramps.gray.light.l }
+    ? ctx
     : {
         ...themes.tintedBlue,
         contrastMultiplier: 1.5,
@@ -114,11 +112,9 @@ export default function Themer({ children, themes, initialThemeKey }) {
       <ThemeContext.Provider value={themerContext}>
         <Contrast
           className="Themer f7 measure flex flex-column"
-          outline={0}
-          outlineAlpha={0.2}
+          outline={20}
           bg={0}
           style={{
-            outlineOffset: -1,
             outlineWidth: 1,
             outlineStyle: "solid",
             boxShadow: `0 5px 30px ${themerContext.ramps.gray.normalScale(0)}`,
@@ -147,7 +143,7 @@ export default function Themer({ children, themes, initialThemeKey }) {
             </Contrast>
           </Contrast>
           <div className="overflow-y-scroll overflow-x-hidden">
-            <Contrast bg={10} className="pa3">
+            <Contrast bg={5} className="pa2">
               <Button
                 className="mb2 db"
                 isActive={isPicking}
@@ -191,7 +187,7 @@ export default function Themer({ children, themes, initialThemeKey }) {
                 decimals={2}
                 value={contrastMultiplier}
                 onChange={multiplier => setContrastMultiplier(multiplier)}
-                className="mt3"
+                className="mt2"
               />
               <Range
                 label="Saturation multiplier"
@@ -202,10 +198,10 @@ export default function Themer({ children, themes, initialThemeKey }) {
                 onChange={multiplier =>
                   setSaturationContrastMultiplier(multiplier)
                 }
-                className="mt3"
+                className="mt2"
               />
             </Contrast>
-            <div className="pa3">
+            <Contrast border={10} className="pa2 bb">
               <div className="flex justify-between items-end flex-wrap">
                 <Select label="Theme" value={themeKey} onChange={setTheme}>
                   {Object.keys(themes).map(key => (
@@ -214,18 +210,19 @@ export default function Themer({ children, themes, initialThemeKey }) {
                     </option>
                   ))}
                 </Select>
-                <ButtonGroup className="mt1">
+                {/* <ButtonGroup className="mt1">
                   <Button>Save</Button>
                   <Button>Save As</Button>
                   <Button>Export</Button>
                   <Button>Import</Button>
-                </ButtonGroup>
+                </ButtonGroup> */}
               </div>
+            </Contrast>
+            <div className="pa2">
               <Select
                 label="Contrast pattern"
                 value={contrastDirection}
                 onChange={setContrastDirection}
-                className="mt2"
               >
                 <option value="zigzag">Zigzag</option>
                 <option value="flipflop">Flipflop</option>
@@ -254,9 +251,9 @@ export default function Themer({ children, themes, initialThemeKey }) {
                   />
                 ))}
                 <div className="w-30">
-                  <Button className="w-100 br--bottom">+ Ramp</Button>
+                  {/* <Button className="w-100 br--bottom">+ Ramp</Button> */}
                 </div>
-                <Contrast className="w-70 bt pt3" border={20}>
+                <Contrast className="w-70 bt" border={20}>
                   <Range
                     label="Dark color minimum lightness"
                     min={0}
@@ -264,7 +261,7 @@ export default function Themer({ children, themes, initialThemeKey }) {
                     value={minColorLightness}
                     onChange={setMinColorLightness}
                     hideInput
-                    className="mt3"
+                    className="mt2"
                   />
                   <Range
                     label="Light color maximum lightness"
@@ -277,13 +274,14 @@ export default function Themer({ children, themes, initialThemeKey }) {
                   />
                 </Contrast>
               </div>
+            </div>
+            <Contrast className="bt pa2" border={5}>
               <Checkbox
-                className="mv2"
                 label="Theme the themer"
                 isChecked={shouldThemeSelf}
                 onChange={setShouldThemeSelf}
               />
-            </div>
+            </Contrast>
           </div>
         </Contrast>
       </ThemeContext.Provider>

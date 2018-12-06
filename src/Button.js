@@ -1,22 +1,12 @@
 import React from "react";
-import huet from "./huet";
+import Contrast from "./Contrast";
 
 export function ButtonGroup({ children, className, style }) {
   const items = React.Children.map(children, (child, i) => {
-    const maybeLeftBorder = i === 0 ? "br--left" : "";
-    const maybeRightBorder = i === children.length - 1 ? "br--right" : "";
+    const isFirst = i === 0;
     return (
-      <div style={{ ...style, marginRight: -1 }} className={className}>
-        <child.type
-          {...child.props}
-          className={`${
-            child.props.className
-          } ${maybeLeftBorder} ${maybeRightBorder}`}
-          style={{
-            ...child.props.style,
-            borderRadius: !maybeLeftBorder && !maybeRightBorder ? 0 : null
-          }}
-        />
+      <div style={style} className={`${className} ${isFirst ? "" : "ml1"}`}>
+        {child}
       </div>
     );
   });
@@ -35,19 +25,17 @@ export default function Button({
   isActive,
   ...rest
 }) {
-  const { contrast } = huet.useTheme();
   return (
-    <button
+    <Contrast
+      as="button"
+      bgRamp={isActive ? "blue" : "gray"}
+      bg={5}
+      text={50}
       {...rest}
-      className={`ba br1 ${className}`}
-      style={{
-        backgroundColor: isActive ? contrast(10, { ramp: "blue" }) : null,
-        borderColor: contrast(10),
-        color: contrast(100),
-        ...style
-      }}
+      className={className}
+      style={style}
     >
       {children}
-    </button>
+    </Contrast>
   );
 }
