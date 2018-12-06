@@ -67,8 +67,8 @@ export default {
       green: gray,
       blue: gray
     },
-    bgLightness: gray.light.l,
-    bgLightnessAbove: gray.light.l,
+    bgLightness: gray.lightL,
+    bgLightnessAbove: gray.lightL,
     ...shared
   },
   tintedBlue: {
@@ -77,8 +77,8 @@ export default {
       gray: tintedBlueGray,
       ...colors
     },
-    bgLightness: tintedBlueGray.light.l,
-    bgLightnessAbove: tintedBlueGray.light.l,
+    bgLightness: tintedBlueGray.lightL,
+    bgLightnessAbove: tintedBlueGray.lightL,
     ...shared
   },
   basic: {
@@ -87,8 +87,8 @@ export default {
       gray,
       ...colors
     },
-    bgLightness: gray.light.l,
-    bgLightnessAbove: gray.light.l,
+    bgLightness: gray.lightL,
+    bgLightnessAbove: gray.lightL,
     ...shared
   },
   cubehelix: {
@@ -97,8 +97,8 @@ export default {
       gray: cubeHelixGray,
       ...colors
     },
-    bgLightness: gray.dark.l,
-    bgLightnessAbove: gray.dark.l,
+    bgLightness: gray.darkL,
+    bgLightnessAbove: gray.darkL,
     ...shared
   },
   crazy: {
@@ -112,8 +112,8 @@ export default {
       yellow: huet.createRamp(["#010100", "#ffff00", "#fffffe"]),
       magenta: huet.createRamp(["#010001", "#ff00ff", "#fffeff"])
     },
-    bgLightness: gray.dark.l,
-    bgLightnessAbove: gray.dark.l,
+    bgLightness: gray.darkL,
+    bgLightnessAbove: gray.darkL,
     ...shared
   },
   crazy2: {
@@ -127,8 +127,8 @@ export default {
       yellow: huet.createRamp(["#000000", "#ffff00", "#ffffff"]),
       magenta: huet.createRamp(["#000000", "#ff00ff", "#ffffff"])
     },
-    bgLightness: gray.light.l,
-    bgLightnessAbove: gray.light.l,
+    bgLightness: gray.lightL,
+    bgLightnessAbove: gray.lightL,
     ...shared
   },
   youtube: {
@@ -139,8 +139,8 @@ export default {
       blue: huet.createRamp(["#104892", "#065fd4", "#73b0ff"]),
       red: huet.createRamp(["#cc0000", "#ff0000", "#ff767f"])
     },
-    bgLightness: youtubeGray.light.l,
-    bgLightnessAbove: youtubeGray.light.l,
+    bgLightness: youtubeGray.lightL,
+    bgLightnessAbove: youtubeGray.lightL,
     ...shared,
     contrastDirection: "lighter"
   }

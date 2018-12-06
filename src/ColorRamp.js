@@ -82,8 +82,8 @@ export default function ColorRamp({
           <div
             className="h-100 w-100 bl br"
             style={{
-              marginLeft: `${theRamp.dark.l}%`,
-              marginRight: `${100 - theRamp.light.l}%`,
+              // marginLeft: `${theRamp.darkL}%`,
+              // marginRight: `${100 - theRamp.lightL}%`,
               background: `linear-gradient(to right, ${[
                 0,
                 5,

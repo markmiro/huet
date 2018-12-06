@@ -63,12 +63,12 @@ export default function Themer({ children, themes, initialThemeKey }) {
     ...theme,
     ramps,
     bgLightness: Math.min(
-      Math.max(bgLightness, ramps.gray.dark.l),
-      ramps.gray.light.l
+      Math.max(bgLightness, ramps.gray.darkL),
+      ramps.gray.lightL
     ),
     bgLightnessAbove: Math.min(
-      Math.max(bgLightness, ramps.gray.dark.l),
-      ramps.gray.light.l
+      Math.max(bgLightness, ramps.gray.darkL),
+      ramps.gray.lightL
     ),
     contrastMultiplier,
     saturationContrastMultiplier,
@@ -93,8 +93,8 @@ export default function Themer({ children, themes, initialThemeKey }) {
     : {
         ...themes.tintedBlue,
         contrastMultiplier: 1.5,
-        bgLightness: themes.tintedBlue.ramps.gray.light.l,
-        bgLightnessAbove: themes.tintedBlue.ramps.gray.light.l
+        bgLightness: themes.tintedBlue.ramps.gray.lightL,
+        bgLightnessAbove: themes.tintedBlue.ramps.gray.lightL
       };
 
   return (
@@ -175,8 +175,8 @@ export default function Themer({ children, themes, initialThemeKey }) {
               )}
               <Range
                 label="Page background lightness"
-                min={ctx.ramps.gray.dark.l}
-                max={ctx.ramps.gray.light.l}
+                min={ctx.ramps.gray.darkL}
+                max={ctx.ramps.gray.lightL}
                 value={bgLightness}
                 onChange={lightness => setBgLightness(lightness)}
               />

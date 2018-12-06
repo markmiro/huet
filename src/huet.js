@@ -126,7 +126,7 @@ export function contrastLightnessAgainst({
 
 function rescaledContrast(ctx, contrast) {
   const rescaled =
-    (contrast / 100) * (ctx.ramps.gray.light.l - ctx.ramps.gray.dark.l);
+    (contrast / 100) * (ctx.ramps.gray.lightL - ctx.ramps.gray.darkL);
   return clamp(rescaled * ctx.contrastMultiplier);
 }
 
@@ -138,12 +138,12 @@ function relativeLightness(ctx, ramp, desiredContrast) {
     contrastDirection: ctx.contrastDirection,
     min:
       ramp === ctx.ramps.gray
-        ? ramp.dark.l
-        : Math.max(ctx.minColorLightness, ramp.dark.l),
+        ? ramp.darkL
+        : Math.max(ctx.minColorLightness, ramp.darkL),
     max:
       ramp === ctx.ramps.gray
-        ? ramp.light.l
-        : Math.min(ctx.maxColorLightness, ramp.light.l)
+        ? ramp.lightL
+        : Math.min(ctx.maxColorLightness, ramp.lightL)
   });
 }
 
@@ -177,7 +177,8 @@ function color(ctx, col, a) {
     .alpha(a * ctx.contrastMultiplier);
 }
 
-function createTheme(ctx) {
+function useTheme() {
+  const ctx = useContext(ThemeContext);
   return {
     value: ctx,
     plainColor({ ramp = "gray", at = 0, alpha }) {
@@ -214,11 +215,6 @@ function createTheme(ctx) {
   };
 }
 
-function useTheme() {
-  const ctx = useContext(ThemeContext);
-  return createTheme(ctx);
-}
-
 function _createRampWithChromaScale(scale) {
   // const darkL = scale(0).luminance() * 100;
   // const lightL = scale(1).luminance() * 100;
@@ -226,13 +222,10 @@ function _createRampWithChromaScale(scale) {
   const lightL = Math.round(getLightness(scale(1)));
   return {
     mode: "chroma",
-    dark: { l: darkL },
-    light: { l: lightL },
+    darkL,
+    lightL,
     colors: [scale(0), scale(1)],
-    scale: scale
-      .mode("hcl")
-      .domain([darkL, lightL])
-      .correctLightness(),
+    scale: scale.mode("hcl").domain([darkL, lightL]),
     normalScale: scale
   };
 }
@@ -253,7 +246,6 @@ export default {
   _createRampWithChromaScale,
   getLightness,
   // funcs for context
-  // createTheme,
   useTheme,
   ThemeContext
 };
