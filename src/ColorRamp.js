@@ -54,6 +54,7 @@ export default function ColorRamp({
             key={i}
             value={{
               ...themeContext,
+              bgLightnessAbove: huet.getLightness(color),
               bgLightness: huet.getLightness(color)
             }}
           >
@@ -78,12 +79,12 @@ export default function ColorRamp({
         ))}
       </div>
       <div className="w-70 relative flex">
-        {theRamp.normalScale && (
+        {theRamp.scale && (
           <div
             className="h-100 w-100 bl br"
             style={{
-              // marginLeft: `${theRamp.darkL}%`,
-              // marginRight: `${100 - theRamp.lightL}%`,
+              marginLeft: `${theRamp.darkL}%`,
+              marginRight: `${100 - theRamp.lightL}%`,
               background: `linear-gradient(to right, ${[
                 0,
                 5,

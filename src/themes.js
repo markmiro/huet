@@ -6,7 +6,9 @@ const min = 0;
 const medium = 55;
 const max = 100;
 
-let gray = huet.createRamp(["#000000", "#ffffff"]);
+let gray = huet._createRampWithChromaScale(
+  chroma.scale(["#000000", "#ffffff"]).gamma(0.5)
+);
 const youtubeGray = huet.createRamp(["#121212", "#ffffff"]);
 const tintedBlueGray = huet.createRamp(["#414753", "#ffffff"]);
 const cubeHelixGray = huet._createRampWithChromaScale(
@@ -16,6 +18,11 @@ const cubeHelixGray = huet._createRampWithChromaScale(
     .scale()
     .padding(0.1)
 );
+
+const youtubeColors = {
+  youtubeRed: huet.createRamp(["#ff0000", "#ff9999", "#ff0000"]),
+  youtubeBlue: huet.createRamp(["#104892", "#065fd4", "#73b0ff"])
+};
 
 const colors = {
   red: huet.createRamp([
@@ -42,11 +49,6 @@ const colors = {
     hsluvToHex([285, 65, min]),
     hsluvToHex([285, 65, medium]),
     hsluvToHex([285, 65, max])
-  ]),
-  bronze: huet.createRamp([
-    hsluvToHex([20, 65, medium]),
-    hsluvToHex([20, 65, 20]),
-    hsluvToHex([20, 65, medium])
   ])
 };
 
@@ -63,6 +65,7 @@ export default {
     name: "Grayscale",
     ramps: {
       gray,
+      ...youtubeColors,
       red: gray,
       green: gray,
       blue: gray
@@ -75,6 +78,7 @@ export default {
     name: "Tinted Blue",
     ramps: {
       gray: tintedBlueGray,
+      ...youtubeColors,
       ...colors
     },
     bgLightness: tintedBlueGray.lightL,
@@ -85,6 +89,7 @@ export default {
     name: "Basic Muted",
     ramps: {
       gray,
+      ...youtubeColors,
       ...colors
     },
     bgLightness: gray.lightL,
@@ -95,6 +100,7 @@ export default {
     name: "Cubehelix",
     ramps: {
       gray: cubeHelixGray,
+      ...youtubeColors,
       ...colors
     },
     bgLightness: gray.darkL,
@@ -105,6 +111,7 @@ export default {
     name: "RGB / CMYK Boundaries",
     ramps: {
       gray: gray,
+      ...youtubeColors,
       red: huet.createRamp(["#010000", "#ff0000", "#fffefe"]),
       green: huet.createRamp(["#000100", "#00ff00", "#fefffe"]),
       blue: huet.createRamp(["#000001", "#0000ff", "#fefeff"]),
@@ -120,6 +127,7 @@ export default {
     name: "RGB / CMYK Boundaries 2",
     ramps: {
       gray: gray,
+      ...youtubeColors,
       red: huet.createRamp(["#000000", "#ff0000", "#ffffff"]),
       green: huet.createRamp(["#000000", "#00ff00", "#ffffff"]),
       blue: huet.createRamp(["#000000", "#0000ff", "#ffffff"]),
@@ -135,9 +143,8 @@ export default {
     name: "YouTube",
     ramps: {
       gray: youtubeGray,
-      ...colors,
-      blue: huet.createRamp(["#104892", "#065fd4", "#73b0ff"]),
-      red: huet.createRamp(["#cc0000", "#ff0000", "#ff767f"])
+      ...youtubeColors,
+      ...colors
     },
     bgLightness: youtubeGray.lightL,
     bgLightnessAbove: youtubeGray.lightL,

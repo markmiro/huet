@@ -39,6 +39,14 @@ export function contrastLightnessAgainst({
   min = 0,
   max = 100
 }) {
+  if (min === max) {
+    if (bgLightness < 33.3 || bgLightness > 66.7) {
+      return 100;
+    } else {
+      return 50;
+    }
+  }
+
   // Map contrast scale to gray scale range and contrast multiplier
   // Check if can can go darker
   // Check if can go lighter
@@ -182,7 +190,7 @@ function useTheme() {
   return {
     value: ctx,
     plainColor({ ramp = "gray", at = 0, alpha }) {
-      return color(ctx, ctx.ramps[ramp].normalScale(at * 100), alpha);
+      return color(ctx, ctx.ramps[ramp].scale.domain([0, 100])(at), alpha);
     },
     contrast(contrast = 100, { ramp = "gray", alpha } = {}) {
       const theRamp = ctx.ramps[ramp];
@@ -216,17 +224,24 @@ function useTheme() {
 }
 
 function _createRampWithChromaScale(scale) {
-  // const darkL = scale(0).luminance() * 100;
-  // const lightL = scale(1).luminance() * 100;
-  const darkL = Math.round(getLightness(scale(0)));
-  const lightL = Math.round(getLightness(scale(1)));
+  let darkL = Math.round(getLightness(scale(0)));
+  let lightL = Math.round(getLightness(scale(1)));
+  if (Math.round(darkL) === Math.round(lightL)) {
+    scale.domain([0, 100]).classes(3);
+    darkL = 0;
+    lightL = 100;
+  } else {
+    scale
+      .domain([darkL, lightL])
+      .mode("hcl")
+      .correctLightness();
+  }
   return {
     mode: "chroma",
     darkL,
     lightL,
-    colors: [scale(0), scale(1)],
-    scale: scale.mode("hcl").domain([darkL, lightL]),
-    normalScale: scale
+    colors: [scale(0), scale(100)],
+    scale
   };
 }
 

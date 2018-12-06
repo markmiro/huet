@@ -117,7 +117,7 @@ export default function Themer({ children, themes, initialThemeKey }) {
           style={{
             outlineWidth: 1,
             outlineStyle: "solid",
-            boxShadow: `0 5px 30px ${themerContext.ramps.gray.normalScale(0)}`,
+            boxShadow: `0 5px 30px ${themerContext.ramps.gray.scale(0)}`,
             position: "fixed",
             bottom: 0,
             right: 0,

@@ -28,13 +28,14 @@ export default function YouTube() {
           </Contrast>
           <Contrast border={10} className="bt mv3" />
           <div className="flex justify-between">
-            <Contrast text={60} textRamp="blue">
+            <Contrast text={60} textRamp="youtubeBlue">
               https://2018.jsconf.is/speakers/dan-a...
             </Contrast>
             <Contrast
+              debug
               as="button"
               bg={100}
-              bgRamp="red"
+              bgRamp="youtubeRed"
               className="pv2 ph3 f6 br1"
             >
               <b>SUBSCRIBE</b> 108K
@@ -162,7 +163,7 @@ function Sidebar() {
           >
             <Contrast
               bg={45}
-              bgRamp="blue"
+              bgRamp="youtubeBlue"
               className="br-pill"
               style={{
                 width: "1.3em",
