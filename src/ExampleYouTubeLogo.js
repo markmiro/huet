@@ -1,10 +1,10 @@
 import React from "react";
 import huet from "./huet";
 
-const YouTubeLogo = React.memo(({ className, style, contrast = 100 }) => {
+const YouTubeLogo = React.memo(({ className, style }) => {
   const theme = huet.useTheme();
-  const textColor = theme.contrast(contrast);
-  const redColor = theme.contrast(contrast, { ramp: "red" });
+  const textColor = theme.contrast(100);
+  const redColor = theme.contrast(100, { ramp: "red" });
   const playButtonColor = theme.contrast(0);
   return (
     <svg
