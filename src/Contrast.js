@@ -75,12 +75,12 @@ const Contrast = props => {
       context.value.pickedObject.currentRef === ref.current)
   ) {
     isPickingStyle = {
-      outlineColor: (backgroundColor || context).contrast(50, {
+      outlineColor: (backgroundColor || context).contrast(100, {
         ramp: "blue"
       }),
       outlineWidth: 1,
-      outlineStyle: "solid",
-      outlineOffset: -5
+      outlineStyle: "dotted",
+      outlineOffset: -1
     };
     isPickingProps = {
       onClick: e => {
@@ -97,12 +97,14 @@ const Contrast = props => {
   const finalStyle = {
     backgroundColor,
     color: textColor,
-    borderColor: border !== null
-      ? context.contrast(border, { ramp: borderRamp, alpha: borderAlpha })
-      : null,
-    outlineColor: outline !== null
-      ? context.contrast(outline, { ramp: outlineRamp, alpha: outlineAlpha })
-      : null,
+    borderColor:
+      border !== null
+        ? context.contrast(border, { ramp: borderRamp, alpha: borderAlpha })
+        : null,
+    outlineColor:
+      outline !== null
+        ? context.contrast(outline, { ramp: outlineRamp, alpha: outlineAlpha })
+        : null,
     ...style,
     ...isPickingStyle
   };

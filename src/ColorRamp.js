@@ -1,5 +1,4 @@
 import React from "react";
-import chroma from "chroma-js";
 import huet from "./huet";
 import Contrast from "./Contrast";
 
@@ -115,15 +114,6 @@ export default function ColorRamp({
         )}
         {pickedObject && (
           <>
-            <Star
-              lightness={huet.relativeLightness(
-                pickedObject.contextValue,
-                pickedObject.contextValue.ramps[
-                  pickedObject.props.bgRamp || "gray"
-                ],
-                pickedObject.props.bg || 0
-              )}
-            />
             <Star lightness={pickedObject.contextValue.bgLightness} />
             <TheRange pickedObject={pickedObject} />
           </>

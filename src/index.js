@@ -26,9 +26,6 @@ function Basic() {
       <pre>minColorLightness: {ctx.minColorLightness}</pre>
       <pre>maxColorLightness: {ctx.maxColorLightness}</pre>
       <pre>bgLightness: {ctx.bgLightness}</pre>
-      <pre>
-        relativeLightness: {huet.relativeLightness(ctx, ctx.ramps.red, 10)}
-      </pre>
     </div>
   );
 }
