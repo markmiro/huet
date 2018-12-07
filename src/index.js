@@ -10,7 +10,7 @@ import Contrast from "./Contrast";
 import Select from "./Select";
 import YouTube from "./ExampleYouTube";
 import ContrastPattern from "./ExampleContrastPattern";
-// import ColorContrast from "./ExampleColorContrast";
+import ColorContrast from "./ExampleColorContrast";
 import Github from "./ExampleGithub";
 
 function Basic() {
@@ -27,40 +27,6 @@ function Basic() {
       <pre>minColorLightness: {ctx.minColorLightness}</pre>
       <pre>maxColorLightness: {ctx.maxColorLightness}</pre>
       <pre>bgLightness: {ctx.bgLightness}</pre>
-    </div>
-  );
-}
-
-function ColorContrast() {
-  const ctx = huet.useTheme();
-  // const graySteps = [0, 10, 20, 30, 40, 50, 60, 70, 80, 90, 100];
-  const graySteps = [0, 4, 8, 16, 32, 64, 100];
-  const colorSteps = [0, 4, 8, 16, 32, 64, 100];
-  return (
-    <div>
-      {graySteps.map(grayStep => (
-        <Contrast
-          key={grayStep}
-          bg={grayStep}
-          className="pa2 flex items-center"
-        >
-          <b className="code mr2">{grayStep.toString().padStart(4, "-")}</b>
-          {Object.keys(ctx.value.ramps).map(ramp => (
-            <div key={ramp} className="flex mv2 mr2">
-              {colorSteps.map(colorStep => (
-                <Contrast
-                  key={colorStep}
-                  bg={colorStep}
-                  bgRamp={ramp}
-                  className="pa1"
-                >
-                  {colorStep.toString()}
-                </Contrast>
-              ))}
-            </div>
-          ))}
-        </Contrast>
-      ))}
     </div>
   );
 }

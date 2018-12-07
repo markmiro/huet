@@ -88,7 +88,9 @@ export default function Themer({ children, themes, initialThemeKey }) {
 
   useEffect(
     () => {
-      document.body.style.backgroundColor = "red";
+      document.body.style.backgroundColor = huet
+        .contrastFunctions(ctx)
+        .contrast(0);
     },
     [bgLightness, ramps, saturationContrastMultiplier]
   );
@@ -144,7 +146,7 @@ export default function Themer({ children, themes, initialThemeKey }) {
             }}
             onClick={() => setIsExpanded(v => !v)}
           >
-            <div className="pv2 ph2 b flex-auto">Huet Themer</div>
+            <div className="pv2 ph2 b flex-auto">Huet Themer (alpha)</div>
             <Contrast
               bg={20}
               className="flex justify-center items-center ph3 b"
@@ -277,7 +279,37 @@ export default function Themer({ children, themes, initialThemeKey }) {
   );
 }
 
+function InspectRamp({ label, traceColor, nextColor }) {
+  if (!traceColor) return null;
+  return (
+    <>
+      <div className="mv1">
+        {label}{" "}
+        <Contrast text={50}>
+          lightness=
+          {traceColor._bgLightness ? traceColor._bgLightness.toString() : "?"}
+          {nextColor && nextColor._contrast
+            ? ` contrast=${nextColor._contrast.toString()}`
+            : null}
+        </Contrast>
+      </div>
+      <div className="w-30 h1 center relative">
+        <InnerRamp ramp={traceColor._ramp}>
+          <Star lightness={traceColor._bgLightness} />
+          {nextColor && (
+            <ContrastRange
+              lightness={traceColor._bgLightness}
+              contrast={nextColor._contrast}
+            />
+          )}
+        </InnerRamp>
+      </div>
+    </>
+  );
+}
+
 function ColorInspector({ isPicking, setIsPicking, pickedObject, onClear }) {
+  const { traceColors } = pickedObject || {};
   return (
     <Contrast bg={10} className="pa2">
       <div className="flex">
@@ -293,44 +325,17 @@ function ColorInspector({ isPicking, setIsPicking, pickedObject, onClear }) {
       {pickedObject && (
         <>
           <Contrast bg={5} className="pa2 mv2">
-            Context
-            <div className="w-30 h1 center relative">
-              <InnerRamp ramp={pickedObject.contextValue.color._ramp}>
-                <Star lightness={pickedObject.contextValue.bgLightness} />
-                <ContrastRange
-                  lightness={pickedObject.contextValue.bgLightness}
-                  contrast={pickedObject.props.bg}
-                />
-              </InnerRamp>
-            </div>
-            Background
-            <div className="w-30 h1 center relative">
-              <InnerRamp
-                ramp={
-                  pickedObject.contextValue.ramps[
-                    pickedObject.props.bgRamp || "gray"
-                  ]
-                }
-              >
-                <Star lightness={50} />
-                <ContrastRange
-                  lightness={50}
-                  contrast={pickedObject.props.text}
-                />
-              </InnerRamp>
-            </div>
-            Text
-            <div className="w-30 h1 center relative">
-              <InnerRamp
-                ramp={
-                  pickedObject.contextValue.ramps[
-                    pickedObject.props.textRamp || "gray"
-                  ]
-                }
-              >
-                <Star lightness={50} />
-              </InnerRamp>
-            </div>
+            <InspectRamp
+              label="Context"
+              traceColor={traceColors.context}
+              nextColor={traceColors.bg ? traceColors.bg : traceColors.text}
+            />
+            <InspectRamp
+              label="Background"
+              traceColor={traceColors.bg}
+              nextColor={traceColors.text}
+            />
+            <InspectRamp label="Text" traceColor={traceColors.text} />
           </Contrast>
           <div
             className="pa2 relative"

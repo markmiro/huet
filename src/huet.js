@@ -180,8 +180,7 @@ function color(ctx, col, a) {
     .alpha(a * ctx.contrastMultiplier);
 }
 
-function useTheme() {
-  const ctx = useContext(ThemeContext);
+function contrastFunctions(ctx) {
   return {
     value: ctx,
     plainColor({ ramp = "gray", at = 0, alpha }) {
@@ -190,9 +189,16 @@ function useTheme() {
     contrast(contrast = 100, { ramp = "gray", alpha } = {}) {
       const theRamp = ctx.ramps[ramp];
       const color = relativeColor(ctx, theRamp, contrast, alpha);
-      color._context = ctx;
       color._contrast = contrast; // for debugging
       color._ramp = theRamp; // for debugging
+      // TODO: don't recalculate this again
+      color._bgLightness = relativeLightness(ctx, theRamp, contrast);
+      // color._context = {
+      //   ...ctx,
+      //   color,
+      //   bgLightnessAbove: ctx.bgLightness,
+      //   bgLightness: relativeLightness(ctx, theRamp, contrast)
+      // };
       color.contrast = (contrast, { ramp2 } = {}) =>
         relativeColorToAnother(
           ctx,
@@ -206,8 +212,7 @@ function useTheme() {
           ...ctx,
           color,
           bgLightnessAbove: ctx.bgLightness,
-          // TODO: don't recalculate this again
-          bgLightness: relativeLightness(ctx, theRamp, contrast)
+          bgLightness: color._bgLightness
         };
 
         return children ? (
@@ -219,6 +224,11 @@ function useTheme() {
       return color;
     }
   };
+}
+
+function useTheme() {
+  const ctx = useContext(ThemeContext);
+  return contrastFunctions(ctx);
 }
 
 function _createRampWithChromaScale(scale, adjust = false) {
@@ -270,6 +280,7 @@ export default {
   _createRampWithChromaScale,
   getLightness,
   // funcs for context
+  contrastFunctions,
   useTheme,
   ThemeContext
 };

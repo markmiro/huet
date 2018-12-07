@@ -3,8 +3,6 @@ import huet from "./huet";
 import styled from "styled-components";
 import Contrast from "./Contrast";
 
-const { ThemeContext } = huet;
-
 export function Star({ lightness }) {
   return (
     <Contrast
@@ -17,6 +15,29 @@ export function Star({ lightness }) {
         top: "50%",
         left: `${lightness}%`,
         transform: "translate(-50%, -50%) rotate(45deg)"
+      }}
+    />
+  );
+}
+
+const ScreenElement = styled.div`
+  &:hover {
+    opacity: 0;
+  }
+`;
+
+export function Screen({ from, to }) {
+  return (
+    <Contrast
+      as={ScreenElement}
+      bg={0}
+      bgAlpha={0.8}
+      className="absolute"
+      style={{
+        width: `${to}%`,
+        height: "100%",
+        top: 0,
+        left: `${from}%`
       }}
     />
   );
@@ -87,14 +108,15 @@ export function ContrastRange({ lightness, contrast }) {
 }
 
 export function InnerRamp({ ramp, children }) {
-  if (!ramp.scale) return null;
+  if (!ramp || !ramp.scale) return null;
   return (
     <>
       <div
         className="h-100 w-100 bl br"
         style={{
           marginLeft: !ramp.isMirror && `${ramp.darkL}%`,
-          marginRight: !ramp.isMirror && `${100 - ramp.lightL}%`,
+          // marginRight: !ramp.isMirror && `${100 - ramp.lightL}%`,
+          width: !ramp.isMirror ? `${ramp.lightL - ramp.darkL}%` : null,
           background: `linear-gradient(to right, ${[
             0,
             5,
@@ -166,6 +188,12 @@ const ColorRamp = React.memo(({ ramp, onChangeRamp, themeContext }) => {
       </div> */}
       <div className="w-100 relative flex">
         <InnerRamp ramp={theRamp}>
+          {theRamp !== themeContext.ramps.gray && (
+            <>
+              <Screen from={0} to={themeContext.minColorLightness} />
+              <Screen from={themeContext.maxColorLightness} to={100} />
+            </>
+          )}
           {theRamp.colors.map((color, i) => (
             <MobileColorPicker
               key={i}

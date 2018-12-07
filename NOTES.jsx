@@ -76,7 +76,7 @@ function MyComponent({ children }) {
 // --
 
 import React, { useContext } from "react";
-import { Block } from "huet";
+import { ThemeContext } from "huet";
 
 function MyComponent({ children }) {
   const ctx = useContext(ThemeContext);

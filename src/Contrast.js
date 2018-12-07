@@ -69,6 +69,19 @@ const Contrast = props => {
   let isPickingStyle = null;
   let isPickingProps = null;
 
+  const coloredStyle = {
+    backgroundColor,
+    color: textColor,
+    borderColor:
+      border !== null
+        ? context.contrast(border, { ramp: borderRamp, alpha: borderAlpha })
+        : null,
+    outlineColor:
+      outline !== null
+        ? context.contrast(outline, { ramp: outlineRamp, alpha: outlineAlpha })
+        : null
+  };
+
   if (
     context.value.isPicking ||
     (context.value.pickedObject &&
@@ -87,32 +100,26 @@ const Contrast = props => {
         context.value.onPickerPick({
           currentRef: ref.current,
           contextValue: context.value,
-          props
+          props,
+          traceColors: {
+            context: context.value.color,
+            bg: coloredStyle.backgroundColor,
+            text: coloredStyle.color
+          }
         });
         e.stopPropagation();
       }
     };
   }
 
-  const finalStyle = {
-    backgroundColor,
-    color: textColor,
-    borderColor:
-      border !== null
-        ? context.contrast(border, { ramp: borderRamp, alpha: borderAlpha })
-        : null,
-    outlineColor:
-      outline !== null
-        ? context.contrast(outline, { ramp: outlineRamp, alpha: outlineAlpha })
-        : null,
-    ...style,
-    ...isPickingStyle
-  };
-
   return React.createElement(
     as,
     {
-      style: finalStyle,
+      style: {
+        ...style,
+        ...coloredStyle,
+        ...isPickingStyle
+      },
       ref,
       ...isPickingProps,
       ...rest
