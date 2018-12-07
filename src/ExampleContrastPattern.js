@@ -81,7 +81,7 @@ function NestedBlocks({
             bg={colorContrast}
             bgRamp={key}
             contrast={100}
-            className="mv1 mh2 pa1"
+            className="pa1 mv1 mh2"
           >
             Aa
           </Contrast>

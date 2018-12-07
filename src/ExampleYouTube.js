@@ -28,14 +28,13 @@ export default function YouTube() {
           </Contrast>
           <Contrast border={10} className="bt mv3" />
           <div className="flex justify-between">
-            <Contrast text={60} textRamp="youtubeBlue">
+            <Contrast text={60} textRamp="blue">
               https://2018.jsconf.is/speakers/dan-a...
             </Contrast>
             <Contrast
-              debug
               as="button"
               bg={100}
-              bgRamp="youtubeRed"
+              bgRamp="red"
               className="pv2 ph3 f6 br1"
             >
               <b>SUBSCRIBE</b> 108K
@@ -43,7 +42,7 @@ export default function YouTube() {
           </div>
           <div className="flex items-center mb3">
             <Contrast>23 Comments</Contrast>{" "}
-            <Icon name="sort/24" contrast={60} className="ml4 mr1" />{" "}
+            <Icon name="sort" size="1.5em" contrast={60} className="ml4 mr1" />{" "}
             <Contrast text={60} className="f7">
               SORT BY
             </Contrast>
@@ -83,20 +82,20 @@ function Header({ className, style }) {
       }}
     >
       <div className="flex items-center">
-        <Icon name="burger/12" contrast={40} className="mr3" />
+        <Icon name="burger" size="1em" contrast={40} className="mr3" />
         <YouTubeLogo style={{ height: "1.5em" }} />
       </div>
       <div className="flex-ns w-40 dn flex-auto-m mh4">
         <SearchInput />
         <Contrast as="button" bg={6} border={15} className="flex ph3 bt bb br">
-          <Icon name="search/20" contrast={50} />
+          <Icon name="search" size="1.2em" contrast={50} />
         </Contrast>
       </div>
-      <div className="flex flex-none">
-        <Icon name="apps/24" contrast={40} className="mr3" />
-        <Icon name="video_call/24" contrast={40} className="mr3" />
-        <Icon name="chat/24" contrast={40} className="mr3" />
-        <Icon name="notifications/24" contrast={40} className="mr3" />
+      <div className="flex flex-none items-center">
+        <Icon name="apps" size="1.5em" contrast={40} className="mr3" />
+        <Icon name="video_call" size="1.5em" contrast={40} className="mr3" />
+        <Icon name="chat" size="1.5em" contrast={40} className="mr3" />
+        <Icon name="notifications" size="1.5em" contrast={40} className="mr3" />
         <Contrast
           bg={40}
           className={`w2 h2 br-100 ${className}`}
@@ -136,7 +135,7 @@ function SearchInput() {
       style={{
         backgroundColor: bgColor,
         borderColor: contrast(15),
-        color: contrast(100),
+        color: bgColor.contrast(100),
         boxShadow: `inset 0 2px 6px ${plainColor({ alpha: 0.1 })}`
       }}
     />
@@ -163,7 +162,7 @@ function Sidebar() {
           >
             <Contrast
               bg={45}
-              bgRamp="youtubeBlue"
+              bgRamp="blue"
               className="br-pill"
               style={{
                 width: "1.3em",

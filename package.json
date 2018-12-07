@@ -1,5 +1,5 @@
 {
-  "name": "huet-themer-3",
+  "name": "huet",
   "version": "1.0.0",
   "description": "",
   "keywords": [],
@@ -8,6 +8,7 @@
     "chroma-js": "1.4.0",
     "hsluv": "0.0.3",
     "lodash": "4.17.11",
+    "microicon": "^1.0.0-b.2",
     "react": "16.7.0-alpha.2 - next",
     "react-dom": "16.7.0-alpha.2 - next",
     "react-scripts": "2.0.3",

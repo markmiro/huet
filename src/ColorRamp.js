@@ -1,10 +1,11 @@
 import React from "react";
 import huet from "./huet";
+import styled from "styled-components";
 import Contrast from "./Contrast";
 
 const { ThemeContext } = huet;
 
-function Star({ lightness }) {
+export function Star({ lightness }) {
   return (
     <Contrast
       bg={50}
@@ -21,7 +22,54 @@ function Star({ lightness }) {
   );
 }
 
-function TheRange({ pickedObject }) {
+const Block = styled.input`
+  background-color: ${({ color }) => color || "transparent"};
+  outline-width: 1px;
+  outline-offset: -2px;
+  outline-style: solid;
+  width: 1.1em;
+  height: calc(100% - 2px);
+  top: 50%;
+  left: ${({ color }) => huet.getLightness(color)}%;
+  transform: translate(-50%, -50%);
+  padding: 0;
+  &:hover,
+  &:focus {
+    transform: translate(-50%, -50%) scale(1.5);
+    z-index: 1;
+  }
+`;
+
+function MobileColorPicker({ color, onChange }) {
+  return (
+    <Contrast
+      as={Block}
+      type="color"
+      value={color}
+      color={color}
+      onChange={onChange}
+      border={0}
+      borderAlpha={0.3}
+      outline={100}
+      outlineAlpha={0.3}
+      className="absolute ba w1"
+      // style={{
+      //   backgroundColor: color || "transparent",
+      //   outlineWidth: 1,
+      //   outlineOffset: -2,
+      //   outlineStyle: "solid",
+      //   width: "1.1em",
+      //   height: "calc(100% - 2px)",
+      //   top: "50%",
+      //   left: `${huet.getLightness(color)}%`,
+      //   transform: "translate(-50%, -50%)",
+      //   padding: 0
+      // }}
+    />
+  );
+}
+
+export function ContrastRange({ lightness, contrast }) {
   return (
     <Contrast
       bg={100}
@@ -29,31 +77,69 @@ function TheRange({ pickedObject }) {
       className="absolute bt"
       style={{
         height: 2,
-        width: `${Math.abs(pickedObject.props.bg * 2)}%`,
+        width: `${Math.abs(contrast * 2)}%`,
         top: "50%",
-        left: `${pickedObject.contextValue.bgLightness}%`,
+        left: `${lightness}%`,
         transform: "translate(-50%, -50%)"
       }}
     />
   );
 }
 
-export default function ColorRamp({
-  ramp,
-  onChangeRamp,
-  themeContext,
-  pickedObject
-}) {
+export function InnerRamp({ ramp, children }) {
+  if (!ramp.scale) return null;
+  return (
+    <>
+      <div
+        className="h-100 w-100 bl br"
+        style={{
+          marginLeft: !ramp.isMirror && `${ramp.darkL}%`,
+          marginRight: !ramp.isMirror && `${100 - ramp.lightL}%`,
+          background: `linear-gradient(to right, ${[
+            0,
+            5,
+            10,
+            15,
+            20,
+            25,
+            30,
+            35,
+            40,
+            45,
+            50,
+            55,
+            60,
+            65,
+            70,
+            75,
+            80,
+            85,
+            90,
+            95,
+            100
+          ]
+            .map(i => ramp.scale(i))
+            .join(",")})`
+        }}
+      />
+      {children}
+    </>
+  );
+}
+
+const ColorRamp = React.memo(({ ramp, onChangeRamp, themeContext }) => {
   const theRamp = themeContext.ramps[ramp];
 
   return (
     <div className="flex w-100 flex-row h1">
-      <div className="flex flex-row w-30 justify-between">
+      {/* <div className="flex flex-row w-30 justify-between pr2">
         {theRamp.colors.map((color, i) => (
           <ThemeContext.Provider
             key={i}
             value={{
               ...themeContext,
+              isPicking: false,
+              pickedObject: null,
               bgLightnessAbove: huet.getLightness(color),
               bgLightness: huet.getLightness(color)
             }}
@@ -77,49 +163,20 @@ export default function ColorRamp({
             />
           </ThemeContext.Provider>
         ))}
-      </div>
-      <div className="w-70 relative flex">
-        {theRamp.scale && (
-          <div
-            className="h-100 w-100 bl br"
-            style={{
-              marginLeft: `${theRamp.darkL}%`,
-              marginRight: `${100 - theRamp.lightL}%`,
-              background: `linear-gradient(to right, ${[
-                0,
-                5,
-                10,
-                15,
-                20,
-                25,
-                30,
-                35,
-                40,
-                45,
-                50,
-                55,
-                60,
-                65,
-                70,
-                75,
-                80,
-                85,
-                90,
-                95,
-                100
-              ]
-                .map(i => theRamp.scale(i))
-                .join(",")})`
-            }}
-          />
-        )}
-        {pickedObject && (
-          <>
-            <Star lightness={pickedObject.contextValue.bgLightness} />
-            <TheRange pickedObject={pickedObject} />
-          </>
-        )}
+      </div> */}
+      <div className="w-100 relative flex">
+        <InnerRamp ramp={theRamp}>
+          {theRamp.colors.map((color, i) => (
+            <MobileColorPicker
+              key={i}
+              color={color}
+              onChange={e => onChangeRamp && onChangeRamp(e.target.value, i)}
+            />
+          ))}
+        </InnerRamp>
       </div>
     </div>
   );
-}
+});
+
+export default ColorRamp;

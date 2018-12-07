@@ -1,38 +1,50 @@
 import React, { useContext } from "react";
 import huet from "./huet";
 import H from "./Contrast";
+import Icon from "./Icon";
 
 const { ThemeContext } = huet;
 
 export default function Github() {
-  const ctx = useContext(ThemeContext);
+  const ctx = huet.useTheme();
+  const borderColor = ctx.contrast(20);
   return (
     <>
       <div className="flex-auto">
-        <H bg={10}>
-          <H bg={85} className="pa3">
-            Pull requests | Issues | Marketplace | Explore
+        <H bg={5}>
+          <H bg={70} className="pa3 flex items-center">
+            <Icon name="github" size="2em" className="mr3" />
+            Pull requests &nbsp; Issues &nbsp; Marketplace &nbsp; Explore
           </H>
-          <H border={20} className="ph2 ph5-ns bb">
+          <div
+            className="ph2 ph5-ns bb"
+            style={{
+              borderColor
+            }}
+          >
             <div className="db pv3">loremperson/some-crazy-project</div>
             <div className="flex">
-              <ThemeContext.Provider value={ctx}>
-                <H
-                  bg={0}
-                  border={20}
-                  className="pa2 mr1 bt bl br"
-                  style={{
-                    transform: "translateY(1px)"
-                  }}
-                >
-                  Code
-                </H>
-              </ThemeContext.Provider>
+              <div
+                className="pa2 mr1 bt bl br"
+                style={{
+                  backgroundColor: ctx.contrast(0),
+                  color: ctx.contrast(100),
+                  borderLeftColor: borderColor,
+                  borderRightColor: borderColor,
+                  borderTopWidth: "0.2em",
+                  borderTopColor: ctx.contrast(30, { ramp: "gold" }),
+                  borderTopLeftRadius: ".2em",
+                  borderTopRightRadius: ".2em",
+                  transform: "translateY(1px)"
+                }}
+              >
+                Code
+              </div>
               <H text={50} className="pa2 mr1">
                 Issues
                 <H
                   bg={10}
-                  text={50}
+                  text={60}
                   className="ml2 inline-flex justify-center items-center"
                   style={{
                     fontSize: ".7em",
@@ -47,7 +59,7 @@ export default function Github() {
                 Pull requests
               </H>
             </div>
-          </H>
+          </div>
         </H>
         <div
           className="ph2 ph5-ns pv3"
@@ -55,7 +67,11 @@ export default function Github() {
             minHeight: "100vh"
           }}
         >
-          <H bg={100} className="ph3 pv2 tc br3 f3">
+          <H
+            bg={100}
+            className="ph3 pv2 tc br3 f3"
+            style={{ maxWidth: "100%" }}
+          >
             Button
           </H>
           <Experiments />
@@ -103,21 +119,22 @@ function Experiments() {
         className="pa2 tc br2 ba mt3 w-100 f4"
         style={{
           background: `linear-gradient(transparent, ${theme.contrast(5)})`,
-          boxShadow: `0 1px 2px ${theme.plainColor({ alpha: 0.15 })}`
+          boxShadow: `0 1px 2px ${theme.plainColor({ alpha: 0.15 })}`,
+          maxWidth: "100%"
         }}
       >
         Button
       </H>
       <div className="flex mt3">
         {Object.keys(ctx.ramps).map(key => (
-          <H className="pa1 mr1 tc w-100 f4" bg={45} bgRamp={key}>
+          <H key={key} className="pa1 mr1 tc w-100 f4" bg={45} bgRamp={key}>
             {key}
           </H>
         ))}
       </div>
       <div className="flex mt1">
         {Object.keys(ctx.ramps).map(key => (
-          <H className="pa1 mr1 tc w-100 f4" bgRamp={key} bg={5}>
+          <H key={key} className="pa1 mr1 tc w-100 f4" bgRamp={key} bg={5}>
             {key}
           </H>
         ))}

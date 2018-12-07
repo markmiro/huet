@@ -3,6 +3,8 @@ import React, { useContext } from "react";
 
 const ThemeContext = React.createContext();
 
+const highContrastYellow = createRamp(["#000000", "#ffff00", "#ffffff"]);
+
 /*
   Adjacent elements having contrast issues. Arguably not as big a
   deal at nested since adjacent items are in the same component.
@@ -39,14 +41,6 @@ export function contrastLightnessAgainst({
   min = 0,
   max = 100
 }) {
-  if (min === max) {
-    if (bgLightness < 33.3 || bgLightness > 66.7) {
-      return 100;
-    } else {
-      return 50;
-    }
-  }
-
   // Map contrast scale to gray scale range and contrast multiplier
   // Check if can can go darker
   // Check if can go lighter
@@ -56,8 +50,18 @@ export function contrastLightnessAgainst({
   const darkestDesired = bgLightness - desiredContrast;
   const lightestDesired = bgLightness + desiredContrast;
 
+  // [        ]
+  // min    max
+  //
+  // |                              |
+  // darkestDesired   lightestDesired
+  //
+  // ^
+  // final return value (sometimes multiple possibilities can happen)
+
   if (darkestDesired >= min && lightestDesired <= max) {
-    // [ | • | ]
+    // [ | | ]
+    //   ^ ^
     switch (contrastDirection) {
       case "lighter":
         return lightestDesired;
@@ -75,103 +79,94 @@ export function contrastLightnessAgainst({
           ? lightestDesired
           : darkestDesired;
     }
-  } else if (darkestDesired < min && lightestDesired > max) {
+  } else if (darkestDesired <= min && lightestDesired >= max) {
+    // | [ ] |
+    //   ^ ^
     return min - darkestDesired < lightestDesired - max ? min : max;
-  } else if (darkestDesired >= min && darkestDesired < max) {
-    // | • [ | ]
+  } else if (darkestDesired >= min && darkestDesired <= max) {
+    // [ | ] |
+    //   ^
     return darkestDesired;
-  } else if (lightestDesired >= min && darkestDesired < max) {
-    // | • [ | ]
+  } else if (lightestDesired >= min && lightestDesired < max) {
+    // | [ | ]
+    //     ^
     return lightestDesired;
   } else if (darkestDesired > max) {
-    // [] | • |
+    // [ ] | |
+    //   ^
     return max;
   } else if (lightestDesired < min) {
-    // | • | [ ]
+    // | | [ ]
+    //     ^
     return min;
   }
-
-  // console.log("sort");
-
-  // const darkestDesiredFromMin = Math.abs(darkestDesired - min);
-  // const darkestDesiredFromMax = Math.abs(darkestDesired - max);
-  // const lightestDesiredFromMin = Math.abs(lightestDesired - min);
-  // const lightestDesiredFromMax = Math.abs(lightestDesired - max);
-
-  // const sorted = [
-  //   darkestDesiredFromMin,
-  //   darkestDesiredFromMax,
-  //   lightestDesiredFromMin,
-  //   lightestDesiredFromMax
-  // ].sort((a, b) => a - b);
-
-  // const smallest = sorted[0];
-
-  // switch (smallest) {
-  //   case darkestDesiredFromMin:
-  //   case darkestDesiredFromMax:
-  //     return darkestDesired;
-  //   case lightestDesiredFromMin:
-  //   case lightestDesiredFromMax:
-  //   default:
-  //     return lightestDesired;
-  // }
-
-  if (darkestDesired > max) {
-    // [] | • |
-    return max;
-  } else if (lightestDesired < min) {
-    // | • | [ ]
-    return min;
-  } else if (darkestDesired < min) {
-    // | [ ] • |
-    return min;
-  } else {
-    // | • [ ] |
-    return max;
-  }
+  throw new Error("Should not happen");
 }
 
-function rescaledContrast(ctx, contrast) {
-  const rescaled =
-    (contrast / 100) * (ctx.ramps.gray.lightL - ctx.ramps.gray.darkL);
-  return clamp(rescaled * ctx.contrastMultiplier);
+function rescaledContrast(contrast, ramp) {
+  return (contrast / 100) * (ramp.lightL - ramp.darkL);
 }
 
 function relativeLightness(ctx, ramp, desiredContrast) {
-  return contrastLightnessAgainst({
-    desiredContrast: rescaledContrast(ctx, desiredContrast),
+  if (ramp.isMirror) {
+    if (ctx.bgLightness < 33.3 || ctx.bgLightness > 66.7) {
+      return 100;
+    } else {
+      return 50;
+    }
+  }
+
+  const finalContrast = ctx.highContrast
+    ? desiredContrast
+      ? 100
+      : 0
+    : desiredContrast * ctx.contrastMultiplier;
+
+  let min;
+  let max;
+  const midpoint = (ramp.darkL + ramp.lightL) / 2;
+  if (ctx.bgLightness < midpoint) {
+    min = ctx.bgLightness;
+    max = ctx.maxColorLightness;
+  } else {
+    min = ctx.minColorLightness;
+    max = ctx.bgLightness;
+  }
+
+  const lightness = contrastLightnessAgainst({
+    desiredContrast: finalContrast,
     bgLightness: ctx.bgLightness,
     bgLightnessAbove: ctx.bgLightnessAbove,
     contrastDirection: ctx.contrastDirection,
     min:
-      ramp === ctx.ramps.gray
+      ramp === highContrastYellow
+        ? 20
+        : ramp === ctx.ramps.gray
         ? ramp.darkL
-        : Math.max(ctx.minColorLightness, ramp.darkL),
+        : min,
     max:
-      ramp === ctx.ramps.gray
+      ramp === highContrastYellow
+        ? 90
+        : ramp === ctx.ramps.gray
         ? ramp.lightL
-        : Math.min(ctx.maxColorLightness, ramp.lightL)
+        : max
   });
+
+  return clamp(lightness);
 }
 
 function relativeColor(ctx, ramp, contrast = 100, a = 100) {
-  if ("bgLightness" in ctx) {
-    const l = relativeLightness(ctx, ramp, contrast);
-    if (ctx.saturationContrastMultiplier === 1 && a === 100) {
-      return ramp.scale(l);
-    }
-    return ramp
-      .scale(l)
-      .set("hcl.c", `*${ctx.saturationContrastMultiplier}`)
-      .alpha(a);
-  } else {
-    relativeColor(
-      { ...ctx, bgLightness: getLightness(ctx) },
-      ctx.ramps.gray,
-      100
-    );
+  if (ctx.highContrast && ramp === ctx.ramps.gray && contrast === 100) {
+    ramp = highContrastYellow;
   }
+  const l = relativeLightness(ctx, ramp, contrast);
+  if (ctx.saturationContrastMultiplier === 1 && a === 100) {
+    return ramp.scale(l);
+  }
+  return ramp
+    .scale(l)
+    .set("hcl.c", `*${ctx.saturationContrastMultiplier}`)
+    .alpha(a);
 }
 
 function relativeColorToAnother(ctx, ramp, contrast, relativeToColor) {
@@ -195,6 +190,9 @@ function useTheme() {
     contrast(contrast = 100, { ramp = "gray", alpha } = {}) {
       const theRamp = ctx.ramps[ramp];
       const color = relativeColor(ctx, theRamp, contrast, alpha);
+      color._context = ctx;
+      color._contrast = contrast; // for debugging
+      color._ramp = theRamp; // for debugging
       color.contrast = (contrast, { ramp2 } = {}) =>
         relativeColorToAnother(
           ctx,
@@ -223,31 +221,42 @@ function useTheme() {
   };
 }
 
-function _createRampWithChromaScale(scale) {
-  let darkL = Math.round(getLightness(scale(0)));
-  let lightL = Math.round(getLightness(scale(1)));
-  if (Math.round(darkL) === Math.round(lightL)) {
-    scale.domain([0, 100]).classes(3);
-    darkL = 0;
-    lightL = 100;
-  } else {
-    scale
-      .domain([darkL, lightL])
-      .mode("hcl")
-      .correctLightness();
+function _createRampWithChromaScale(scale, adjust = false) {
+  const darkL = Math.round(getLightness(scale(0)));
+  const lightL = Math.round(getLightness(scale(100)));
+  let rampSettings = {};
+  if (adjust) {
+    if (Math.round(darkL) === Math.round(lightL)) {
+      rampSettings = {
+        scale: scale.domain([0, 100]),
+        darkL: getLightness(scale(0)),
+        lightL: getLightness(scale(0)),
+        isMirror: true
+      };
+    } else {
+      rampSettings = {
+        scale: scale
+          .domain([darkL, lightL])
+          .mode("hcl")
+          .correctLightness(),
+        darkL,
+        lightL
+      };
+    }
   }
   return {
     mode: "chroma",
+    colors: [scale(0), scale(100)],
     darkL,
     lightL,
-    colors: [scale(0), scale(100)],
-    scale
+    scale,
+    ...rampSettings
   };
 }
 
 function createRamp(colors) {
   return {
-    ..._createRampWithChromaScale(chroma.scale(colors)),
+    ..._createRampWithChromaScale(chroma.scale(colors), true),
     colors
   };
 }

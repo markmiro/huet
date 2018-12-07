@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import huet from "./huet";
 import Range from "./Range";
 import Contrast from "./Contrast";
@@ -6,7 +6,7 @@ import Select from "./Select";
 import Icon from "./Icon";
 import Button, { ButtonGroup } from "./Button";
 import Checkbox from "./Checkbox";
-import ColorRamp from "./ColorRamp";
+import ColorRamp, { InnerRamp, Star, ContrastRange } from "./ColorRamp";
 
 const { ThemeContext } = huet;
 
@@ -54,6 +54,8 @@ export default function Themer({ children, themes, initialThemeKey }) {
     setMinColorLightness(theme.minColorLightness);
     setMaxColorLightness(theme.maxColorLightness);
     setContrastDirection(theme.contrastDirection);
+    setIsPicking(false);
+    setPickedObject(null);
   }
 
   const [isPicking, setIsPicking] = useState(false);
@@ -73,9 +75,9 @@ export default function Themer({ children, themes, initialThemeKey }) {
     contrastMultiplier,
     saturationContrastMultiplier,
     contrastDirection,
-    isPicking,
     minColorLightness,
     maxColorLightness,
+    isPicking,
     onPickerPick: picked => {
       console.log(picked);
       setPickedObject(picked);
@@ -84,17 +86,23 @@ export default function Themer({ children, themes, initialThemeKey }) {
     pickedObject
   };
 
+  useEffect(
+    () => {
+      document.body.style.backgroundColor = "red";
+    },
+    [bgLightness, ramps, saturationContrastMultiplier]
+  );
+
   // Themer stuff
-  const [isExpanded, setIsExpanded] = useState(true);
+  const [isExpanded, setIsExpanded] = useState(false);
   const [shouldThemeSelf, setShouldThemeSelf] = useState(false);
 
   const themerContext = shouldThemeSelf
-    ? ctx
+    ? { ...ctx, isPicking: false }
     : {
-        ...themes.tintedBlue,
-        contrastMultiplier: 1.5,
-        bgLightness: themes.tintedBlue.ramps.gray.lightL,
-        bgLightnessAbove: themes.tintedBlue.ramps.gray.lightL
+        ...themes.basic,
+        bgLightness: themes.basic.ramps.gray.lightL,
+        bgLightnessAbove: themes.basic.ramps.gray.lightL
       };
 
   return (
@@ -103,7 +111,8 @@ export default function Themer({ children, themes, initialThemeKey }) {
         <Contrast
           bg={0}
           style={{
-            height: "100%"
+            height: "100%",
+            ...(ctx.globalStyles && ctx.globalStyles)
           }}
         >
           {children}
@@ -111,7 +120,7 @@ export default function Themer({ children, themes, initialThemeKey }) {
       </ThemeContext.Provider>
       <ThemeContext.Provider value={themerContext}>
         <Contrast
-          className="Themer f7 measure flex flex-column"
+          className="Themer f7 flex flex-column"
           outline={20}
           bg={0}
           style={{
@@ -122,7 +131,8 @@ export default function Themer({ children, themes, initialThemeKey }) {
             bottom: 0,
             right: 0,
             maxHeight: isExpanded ? "100vh" : "30vh",
-            zIndex: 9999999
+            zIndex: 9999999,
+            width: "30em"
           }}
         >
           <Contrast
@@ -134,45 +144,22 @@ export default function Themer({ children, themes, initialThemeKey }) {
             }}
             onClick={() => setIsExpanded(v => !v)}
           >
-            <div className="pv2 ph3 b flex-auto">Huet Themer</div>
+            <div className="pv2 ph2 b flex-auto">Huet Themer</div>
             <Contrast
-              bg={10}
+              bg={20}
               className="flex justify-center items-center ph3 b"
             >
               {isExpanded ? "↓" : "↑"}
             </Contrast>
           </Contrast>
           <div className="overflow-y-scroll overflow-x-hidden">
+            <ColorInspector
+              isPicking={isPicking}
+              setIsPicking={setIsPicking}
+              pickedObject={pickedObject}
+              onClear={() => setPickedObject(null)}
+            />
             <Contrast bg={5} className="pa2">
-              <Button
-                className="mb2 db"
-                isActive={isPicking}
-                onClick={() => setIsPicking(is => !is)}
-              >
-                <Icon name="colorize" />
-              </Button>
-              {pickedObject && (
-                <div className="mb3">
-                  <ColorRamp
-                    ramp={pickedObject.props.bgRamp || "gray"}
-                    onChangeRamp={(value, i) =>
-                      setRamp(pickedObject.props.bgRamp, i, value)
-                    }
-                    themeContext={ctx}
-                    pickedObject={pickedObject}
-                  />
-                  <div
-                    style={{
-                      background: pickedObject.contextValue.color
-                    }}
-                  >
-                    Hello
-                  </div>
-                  <pre>
-                    {/* JSON.stringify(pickedObject.contextValue, null, 2) */}
-                  </pre>
-                </div>
-              )}
               <Range
                 label="Page background lightness"
                 min={ctx.ramps.gray.darkL}
@@ -202,41 +189,33 @@ export default function Themer({ children, themes, initialThemeKey }) {
               />
             </Contrast>
             <Contrast border={10} className="pa2 bb">
-              <div className="flex justify-between items-end flex-wrap">
-                <Select label="Theme" value={themeKey} onChange={setTheme}>
+              <div className="flex justify-end items-end flex-wrap">
+                <Select
+                  label="Theme"
+                  value={themeKey}
+                  onChange={setTheme}
+                  className="flex-auto"
+                >
                   {Object.keys(themes).map(key => (
                     <option key={key} value={key}>
                       {themes[key].name}
                     </option>
                   ))}
                 </Select>
-                {/* <ButtonGroup className="mt1">
+                <ButtonGroup className="mt1 ml1">
                   <Button>Save</Button>
                   <Button>Save As</Button>
                   <Button>Export</Button>
                   <Button>Import</Button>
-                </ButtonGroup> */}
+                </ButtonGroup>
               </div>
             </Contrast>
             <div className="pa2">
-              <Select
-                label="Contrast pattern"
-                value={contrastDirection}
-                onChange={setContrastDirection}
-              >
-                <option value="zigzag">Zigzag</option>
-                <option value="flipflop">Flipflop</option>
-                <option value="lighter">Lighter</option>
-                <option value="darker">Darker</option>
-              </Select>
-              <Contrast text={50} className="db mt2">
-                Color ramps
-              </Contrast>
-              <div className="flex flex-wrap">
-                <Contrast className="w-30 bb" border={20} />
+              <Contrast>Color ramps</Contrast>
+              <div className="flex flex-wrap mt1">
                 <Contrast
                   border={20}
-                  className="w-70 br bl bb"
+                  className="w-100 br bl bb"
                   style={{
                     height: "0.5em",
                     background: "linear-gradient(to right, black, white)"
@@ -250,12 +229,10 @@ export default function Themer({ children, themes, initialThemeKey }) {
                     themeContext={ctx}
                   />
                 ))}
-                <div className="w-30">
-                  {/* <Button className="w-100 br--bottom">+ Ramp</Button> */}
-                </div>
-                <Contrast className="w-70 bt" border={20}>
+                {/* <Button className="w-100 br--bottom">+ Ramp</Button> */}
+                <Contrast className="w-100 bt" border={20}>
                   <Range
-                    label="Dark color minimum lightness"
+                    label="Dark color min lightness"
                     min={0}
                     max={100}
                     value={minColorLightness}
@@ -264,7 +241,7 @@ export default function Themer({ children, themes, initialThemeKey }) {
                     className="mt2"
                   />
                   <Range
-                    label="Light color maximum lightness"
+                    label="Light color max lightness"
                     min={0}
                     max={100}
                     value={maxColorLightness}
@@ -274,8 +251,19 @@ export default function Themer({ children, themes, initialThemeKey }) {
                   />
                 </Contrast>
               </div>
+              <Select
+                label="Contrast pattern"
+                value={contrastDirection}
+                onChange={setContrastDirection}
+                className="mt2"
+              >
+                <option value="zigzag">Zigzag</option>
+                <option value="flipflop">Flipflop</option>
+                <option value="lighter">Lighter</option>
+                <option value="darker">Darker</option>
+              </Select>
             </div>
-            <Contrast className="bt pa2" border={5}>
+            <Contrast className="bt pa2" border={10}>
               <Checkbox
                 label="Theme the themer"
                 isChecked={shouldThemeSelf}
@@ -286,5 +274,84 @@ export default function Themer({ children, themes, initialThemeKey }) {
         </Contrast>
       </ThemeContext.Provider>
     </>
+  );
+}
+
+function ColorInspector({ isPicking, setIsPicking, pickedObject, onClear }) {
+  return (
+    <Contrast bg={10} className="pa2">
+      <div className="flex">
+        <Button isActive={isPicking} onClick={() => setIsPicking(is => !is)}>
+          <Icon name="gps_fixed" />
+        </Button>
+        {pickedObject && (
+          <Button className="ml2" onClick={onClear}>
+            Clear
+          </Button>
+        )}
+      </div>
+      {pickedObject && (
+        <>
+          <Contrast bg={5} className="pa2 mv2">
+            Context
+            <div className="w-30 h1 center relative">
+              <InnerRamp ramp={pickedObject.contextValue.color._ramp}>
+                <Star lightness={pickedObject.contextValue.bgLightness} />
+                <ContrastRange
+                  lightness={pickedObject.contextValue.bgLightness}
+                  contrast={pickedObject.props.bg}
+                />
+              </InnerRamp>
+            </div>
+            Background
+            <div className="w-30 h1 center relative">
+              <InnerRamp
+                ramp={
+                  pickedObject.contextValue.ramps[
+                    pickedObject.props.bgRamp || "gray"
+                  ]
+                }
+              >
+                <Star lightness={50} />
+                <ContrastRange
+                  lightness={50}
+                  contrast={pickedObject.props.text}
+                />
+              </InnerRamp>
+            </div>
+            Text
+            <div className="w-30 h1 center relative">
+              <InnerRamp
+                ramp={
+                  pickedObject.contextValue.ramps[
+                    pickedObject.props.textRamp || "gray"
+                  ]
+                }
+              >
+                <Star lightness={50} />
+              </InnerRamp>
+            </div>
+          </Contrast>
+          <div
+            className="pa2 relative"
+            style={{
+              background: pickedObject.contextValue.color
+            }}
+          >
+            <ThemeContext.Provider
+              value={{
+                ...pickedObject.contextValue,
+                pickedObject: null,
+                isPicking: false
+              }}
+            >
+              <Contrast {...pickedObject.props} className="pa1" style={null}>
+                <b>Text</b>
+              </Contrast>
+            </ThemeContext.Provider>
+          </div>
+        </>
+      )}
+    </Contrast>
   );
 }
