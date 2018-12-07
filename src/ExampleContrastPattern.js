@@ -12,7 +12,7 @@ export default function ContrastPattern() {
   return (
     <div className="flex-auto pv2">
       <Range
-        className="ph2 pb2"
+        className="mh2 mb2"
         label="Lightness contrast with parent"
         min={0}
         max={100}
@@ -20,7 +20,7 @@ export default function ContrastPattern() {
         onChange={c => setContrast(c)}
       />
       <Range
-        className="ph2 pb2"
+        className="mh2 mb2"
         label="Color contrast"
         min={0}
         max={100}
