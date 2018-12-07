@@ -122,25 +122,15 @@ export function InnerRamp({ ramp, children }) {
           width: !ramp.isMirror ? `${ramp.lightL - ramp.darkL}%` : null,
           background: `linear-gradient(to right, ${[
             0,
-            5,
             10,
-            15,
             20,
-            25,
             30,
-            35,
             40,
-            45,
             50,
-            55,
             60,
-            65,
             70,
-            75,
             80,
-            85,
             90,
-            95,
             100
           ]
             .map(i => ramp.scale(i))
@@ -152,7 +142,7 @@ export function InnerRamp({ ramp, children }) {
   );
 }
 
-const ColorRamp = React.memo(({ ramp, onChangeRamp, themeContext }) => {
+const ColorRamp = ({ ramp, onChangeRamp, themeContext }) => {
   const theRamp = themeContext.ramps[ramp];
 
   return (
@@ -220,6 +210,6 @@ const ColorRamp = React.memo(({ ramp, onChangeRamp, themeContext }) => {
       </div>
     </div>
   );
-});
+};
 
 export default ColorRamp;

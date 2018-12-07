@@ -32,7 +32,8 @@ function Basic() {
 }
 
 function Switch({ on, ...cases }) {
-  return cases[on];
+  const Thing = cases[on];
+  return <Thing />;
 }
 
 function App() {
@@ -60,11 +61,11 @@ function App() {
       </Contrast>
       <Switch
         on={tab}
-        basic={<Basic />}
-        github={<Github />}
-        contrastPattern={<ContrastPattern />}
-        colorContrast={<ColorContrast />}
-        youtube={<YouTube />}
+        basic={Basic}
+        github={Github}
+        contrastPattern={ContrastPattern}
+        colorContrast={ColorContrast}
+        youtube={YouTube}
       />
     </Themer>
   );

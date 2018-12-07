@@ -1,7 +1,7 @@
 import React from "react";
 import huet from "./huet";
 
-const YouTubeLogo = React.memo(({ className, style }) => {
+const YouTubeLogo = ({ className, style }) => {
   const theme = huet.useTheme();
   const textColor = theme.contrast(100);
   const redColor = theme.contrast(100, { ramp: "red" });
@@ -101,6 +101,6 @@ const YouTubeLogo = React.memo(({ className, style }) => {
       </g>
     </svg>
   );
-});
+};
 
 export default YouTubeLogo;
