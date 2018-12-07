@@ -6,7 +6,13 @@ import Select from "./Select";
 import Icon from "./Icon";
 import Button, { ButtonGroup } from "./Button";
 import Checkbox from "./Checkbox";
-import ColorRamp, { InnerRamp, Star, ContrastRange } from "./ColorRamp";
+import ColorRamp, {
+  InnerRamp,
+  Star,
+  ContrastRange,
+  Screen,
+  Bracket
+} from "./ColorRamp";
 
 const { ThemeContext } = huet;
 
@@ -132,7 +138,7 @@ export default function Themer({ children, themes, initialThemeKey }) {
             position: "fixed",
             bottom: 0,
             right: 0,
-            maxHeight: isExpanded ? "100vh" : "30vh",
+            maxHeight: isExpanded ? "100vh" : "20vh",
             zIndex: 9999999,
             width: "30em"
           }}
@@ -215,24 +221,27 @@ export default function Themer({ children, themes, initialThemeKey }) {
             <div className="pa2">
               <Contrast>Color ramps</Contrast>
               <div className="flex flex-wrap mt1">
-                <Contrast
-                  border={20}
-                  className="w-100 br bl bb"
-                  style={{
-                    height: "0.5em",
-                    background: "linear-gradient(to right, black, white)"
-                  }}
-                />
-                {Object.keys(ramps).map(key => (
-                  <ColorRamp
-                    key={key}
-                    ramp={key}
-                    onChangeRamp={(value, i) => setRamp(key, i, value)}
-                    themeContext={ctx}
+                <div className="w-100 mh2">
+                  <Contrast
+                    border={20}
+                    className="w-100"
+                    style={{
+                      height: "2px",
+                      marginBottom: 1,
+                      background: "linear-gradient(to right, black, white)"
+                    }}
                   />
-                ))}
-                {/* <Button className="w-100 br--bottom">+ Ramp</Button> */}
-                <Contrast className="w-100 bt" border={20}>
+                  {Object.keys(ramps).map(key => (
+                    <ColorRamp
+                      key={key}
+                      ramp={key}
+                      onChangeRamp={(value, i) => setRamp(key, i, value)}
+                      themeContext={ctx}
+                    />
+                  ))}
+                </div>
+                {/* <Button className="w-100">+ Ramp</Button> */}
+                <Contrast className="w-100" border={20}>
                   <Range
                     label="Dark color min lightness"
                     min={0}
@@ -279,7 +288,7 @@ export default function Themer({ children, themes, initialThemeKey }) {
   );
 }
 
-function InspectRamp({ label, traceColor, nextColor }) {
+function InspectRamp({ label, traceColor, nextColor, ctx }) {
   if (!traceColor) return null;
   return (
     <>
@@ -295,6 +304,18 @@ function InspectRamp({ label, traceColor, nextColor }) {
       </div>
       <div className="w-30 h1 center relative">
         <InnerRamp ramp={traceColor._ramp}>
+          {traceColor._ramp !== ctx.ramps.gray && (
+            <>
+              <Screen from={0} to={ctx.minColorLightness} />
+              <Screen from={ctx.maxColorLightness} to={100} />
+            </>
+          )}
+          {traceColor._ramp !== ctx.ramps.gray && (
+            <>
+              <Bracket lightness={ctx.minColorLightness} direction="left" />
+              <Bracket lightness={ctx.maxColorLightness} direction="right" />
+            </>
+          )}
           <Star lightness={traceColor._bgLightness} />
           {nextColor && (
             <ContrastRange
@@ -314,31 +335,19 @@ function ColorInspector({ isPicking, setIsPicking, pickedObject, onClear }) {
     <Contrast bg={10} className="pa2">
       <div className="flex">
         <Button isActive={isPicking} onClick={() => setIsPicking(is => !is)}>
-          <Icon name="gps_fixed" />
+          <Icon name="gps_fixed" className="mr1" />{" "}
+          <Contrast>Inspect color</Contrast>
         </Button>
         {pickedObject && (
-          <Button className="ml2" onClick={onClear}>
+          <Button className="ml2" onClick={onClear} bgRamp="red">
             Clear
           </Button>
         )}
       </div>
       {pickedObject && (
         <>
-          <Contrast bg={5} className="pa2 mv2">
-            <InspectRamp
-              label="Context"
-              traceColor={traceColors.context}
-              nextColor={traceColors.bg ? traceColors.bg : traceColors.text}
-            />
-            <InspectRamp
-              label="Background"
-              traceColor={traceColors.bg}
-              nextColor={traceColors.text}
-            />
-            <InspectRamp label="Text" traceColor={traceColors.text} />
-          </Contrast>
           <div
-            className="pa2 relative"
+            className="pa2 mv2 relative"
             style={{
               background: pickedObject.contextValue.color
             }}
@@ -355,6 +364,25 @@ function ColorInspector({ isPicking, setIsPicking, pickedObject, onClear }) {
               </Contrast>
             </ThemeContext.Provider>
           </div>
+          <Contrast bg={5} className="pa2">
+            <InspectRamp
+              label="Context"
+              traceColor={traceColors.context}
+              nextColor={traceColors.bg ? traceColors.bg : traceColors.text}
+              ctx={pickedObject.contextValue}
+            />
+            <InspectRamp
+              label="Background"
+              traceColor={traceColors.bg}
+              nextColor={traceColors.text}
+              ctx={pickedObject.contextValue}
+            />
+            <InspectRamp
+              label="Text"
+              traceColor={traceColors.text}
+              ctx={pickedObject.contextValue}
+            />
+          </Contrast>
         </>
       )}
     </Contrast>

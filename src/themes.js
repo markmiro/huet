@@ -27,7 +27,7 @@ const shared = {
         .classes([0, 10, 100])
     ),
     red: huet.createRamp(["#000000", "#f73748", "#ffffff"]),
-    green: huet.createRamp(["#000000", "#327922", "#ffffff"]),
+    green: huet.createRamp(["#000000", "#3c962a", "#ffffff"]),
     blue: huet.createRamp(["#000000", "#3087d6", "#ffffff"]),
     gold: huet.createRamp(["#000000", "#c86c00", "#ffffff"]),
     purple: huet.createRamp(["#000000", "#a46ad3", "#ffffff"])

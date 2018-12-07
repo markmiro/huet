@@ -91,7 +91,7 @@ function Experiments() {
   return (
     <div className="mt2">
       {[100, 75, 50, 25].map(contrast => (
-        <H
+        <div
           key={contrast}
           className="f7 pa1"
           style={{
@@ -99,7 +99,7 @@ function Experiments() {
           }}
         >
           {contrast}%
-        </H>
+        </div>
       ))}
 
       <H

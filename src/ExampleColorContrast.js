@@ -14,7 +14,7 @@ export default function ColorContrast() {
           <b>{grayStep}</b>
           <div className="flex items-center flex-wrap">
             {Object.keys(ctx.value.ramps).map(ramp => (
-              <div key={ramp} className="flex mv2 mr2">
+              <div key={ramp} className="flex mt1 mr2">
                 {colorSteps.map(colorStep => (
                   <Contrast
                     key={colorStep}

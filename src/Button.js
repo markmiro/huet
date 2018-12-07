@@ -28,7 +28,7 @@ export default function Button({
       bg={10}
       text={50}
       {...rest}
-      className={className}
+      className={`flex ${className}`}
       style={style}
     >
       {children}

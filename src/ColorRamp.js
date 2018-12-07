@@ -21,23 +21,38 @@ export function Star({ lightness }) {
 }
 
 const ScreenElement = styled.div`
+  position: absolute;
+  height: 100%;
+  top: 0;
+  left: ${({ from }) => from}%;
+  width: ${({ to }) => to}%;
+  background-color: ${({ color }) => color};
+  opacity: 0.5;
+
   &:hover {
     opacity: 0;
   }
 `;
 
-export function Screen({ from, to }) {
+export function Screen(props) {
+  const { contrast } = huet.useTheme();
+  return <ScreenElement {...props} color={contrast(0)} />;
+}
+
+export function Bracket({ lightness, direction }) {
+  const { contrast } = huet.useTheme();
+  const borderColor = contrast(100);
   return (
-    <Contrast
-      as={ScreenElement}
-      bg={0}
-      bgAlpha={0.8}
-      className="absolute"
+    <div
+      className={`absolute bt bb ${direction === "left" ? "bl" : "br"}`}
       style={{
-        width: `${to}%`,
-        height: "100%",
-        top: 0,
-        left: `${from}%`
+        borderColor,
+        height: "120%",
+        width: ".3em",
+        top: "50%",
+        left: `${lightness}%`,
+        transform: "translate(-50%, -50%)",
+        textShadow: `0 0 10px 5px ${borderColor.contrast(100)}`
       }}
     />
   );
@@ -49,7 +64,7 @@ const Block = styled.input`
   outline-offset: -2px;
   outline-style: solid;
   width: 1.1em;
-  height: calc(100% - 2px);
+  height: 120%;
   top: 50%;
   left: ${({ color }) => huet.getLightness(color)}%;
   transform: translate(-50%, -50%);
@@ -74,18 +89,6 @@ function MobileColorPicker({ color, onChange }) {
       outline={100}
       outlineAlpha={0.3}
       className="absolute ba w1"
-      // style={{
-      //   backgroundColor: color || "transparent",
-      //   outlineWidth: 1,
-      //   outlineOffset: -2,
-      //   outlineStyle: "solid",
-      //   width: "1.1em",
-      //   height: "calc(100% - 2px)",
-      //   top: "50%",
-      //   left: `${huet.getLightness(color)}%`,
-      //   transform: "translate(-50%, -50%)",
-      //   padding: 0
-      // }}
     />
   );
 }
@@ -112,7 +115,7 @@ export function InnerRamp({ ramp, children }) {
   return (
     <>
       <div
-        className="h-100 w-100 bl br"
+        className="h-100 w-100"
         style={{
           marginLeft: !ramp.isMirror && `${ramp.darkL}%`,
           // marginRight: !ramp.isMirror && `${100 - ramp.lightL}%`,
@@ -153,7 +156,7 @@ const ColorRamp = React.memo(({ ramp, onChangeRamp, themeContext }) => {
   const theRamp = themeContext.ramps[ramp];
 
   return (
-    <div className="flex w-100 flex-row h1">
+    <div className="flex w-100 flex-row h1 mb2">
       {/* <div className="flex flex-row w-30 justify-between pr2">
         {theRamp.colors.map((color, i) => (
           <ThemeContext.Provider
@@ -188,10 +191,22 @@ const ColorRamp = React.memo(({ ramp, onChangeRamp, themeContext }) => {
       </div> */}
       <div className="w-100 relative flex">
         <InnerRamp ramp={theRamp}>
-          {theRamp !== themeContext.ramps.gray && (
+          {/* {theRamp !== themeContext.ramps.gray && (
             <>
               <Screen from={0} to={themeContext.minColorLightness} />
               <Screen from={themeContext.maxColorLightness} to={100} />
+            </>
+          )} */}
+          {theRamp !== themeContext.ramps.gray && (
+            <>
+              <Bracket
+                lightness={themeContext.minColorLightness}
+                direction="left"
+              />
+              <Bracket
+                lightness={themeContext.maxColorLightness}
+                direction="right"
+              />
             </>
           )}
           {theRamp.colors.map((color, i) => (
