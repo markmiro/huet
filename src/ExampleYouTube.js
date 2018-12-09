@@ -68,13 +68,13 @@ export default function YouTube() {
 }
 
 function Header({ className, style }) {
-  const { plainColor } = huet.useTheme();
+  const { darkColor } = huet.useTheme();
   return (
     <Contrast
       bg={5}
       className={`pa3 flex justify-between ${className}`}
       style={{
-        boxShadow: `0 0 10px ${plainColor({ alpha: 0.3 })}`,
+        boxShadow: `0 0 10px ${darkColor({ alpha: 0.3 })}`,
         position: "sticky",
         top: 0,
         zIndex: 1,
@@ -125,7 +125,7 @@ const Input = styled.input`
 `;
 
 function SearchInput() {
-  const { plainColor, contrast } = huet.useTheme();
+  const { darkColor, contrast } = huet.useTheme();
   const bgColor = contrast(5);
   return (
     <Input
@@ -136,14 +136,14 @@ function SearchInput() {
         backgroundColor: bgColor,
         borderColor: contrast(15),
         color: bgColor.contrast(100),
-        boxShadow: `inset 0 2px 6px ${plainColor({ alpha: 0.1 })}`
+        boxShadow: `inset 0 2px 6px ${darkColor({ alpha: 0.1 })}`
       }}
     />
   );
 }
 
 function Sidebar() {
-  const { plainColor } = huet.useTheme();
+  const { darkColor } = huet.useTheme();
   return (
     <div>
       <div className="flex justify-between mb3">
@@ -170,7 +170,7 @@ function Sidebar() {
                 position: "absolute",
                 top: "50%",
                 transform: "translate(85%,-50%)",
-                boxShadow: `0px 2px 4px ${plainColor({ alpha: 0.3 })}`
+                boxShadow: `0px 2px 4px ${darkColor({ alpha: 0.3 })}`
               }}
             />
           </Contrast>

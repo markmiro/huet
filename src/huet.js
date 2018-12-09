@@ -185,8 +185,9 @@ function color(ctx, col, a) {
 function contrastFunctions(ctx) {
   return {
     value: ctx,
-    plainColor({ ramp = "gray", at = 0, alpha }) {
-      return color(ctx, ctx.ramps[ramp].scale.domain([0, 100])(at), alpha);
+    contextValue: ctx,
+    darkColor({ ramp = "gray", alpha }) {
+      return color(ctx, ctx.ramps[ramp].scale(0), alpha);
     },
     contrast(contrast = 100, { ramp = "gray", alpha } = {}) {
       const theRamp = ctx.ramps[ramp];
