@@ -67,17 +67,16 @@ export default function Themer({ children, themes, initialThemeKey }) {
   const [isPicking, setIsPicking] = useState(false);
   const [pickedObject, setPickedObject] = useState();
 
+  const finalBgLightness = Math.min(
+    Math.max(bgLightness, ramps.gray.darkL),
+    ramps.gray.lightL
+  );
+
   const ctx = {
     ...theme,
     ramps,
-    bgLightness: Math.min(
-      Math.max(bgLightness, ramps.gray.darkL),
-      ramps.gray.lightL
-    ),
-    bgLightnessAbove: Math.min(
-      Math.max(bgLightness, ramps.gray.darkL),
-      ramps.gray.lightL
-    ),
+    bgLightness: finalBgLightness,
+    bgLightnessAbove: finalBgLightness,
     contrastMultiplier,
     saturationContrastMultiplier,
     contrastDirection,
@@ -119,7 +118,6 @@ export default function Themer({ children, themes, initialThemeKey }) {
         <Contrast
           bg={0}
           style={{
-            height: "100%",
             ...(ctx.globalStyles && ctx.globalStyles)
           }}
         >
@@ -167,7 +165,7 @@ export default function Themer({ children, themes, initialThemeKey }) {
               pickedObject={pickedObject}
               onClear={() => setPickedObject(null)}
             />
-            <Contrast bg={5} className="pa2">
+            <Contrast bg={20} className="pa2">
               <Range
                 label="Page background lightness"
                 min={ctx.ramps.gray.darkL}
@@ -332,7 +330,7 @@ function InspectRamp({ label, traceColor, nextColor, ctx }) {
 function ColorInspector({ isPicking, setIsPicking, pickedObject, onClear }) {
   const { traceColors } = pickedObject || {};
   return (
-    <Contrast bg={10} className="pa2">
+    <Contrast bg={40} className="pa2">
       <div className="flex">
         <Button isActive={isPicking} onClick={() => setIsPicking(is => !is)}>
           <Icon name="gps_fixed" className="mr1" />{" "}

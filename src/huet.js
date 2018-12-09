@@ -82,7 +82,9 @@ export function contrastLightnessAgainst({
   } else if (darkestDesired <= min && lightestDesired >= max) {
     // | [ ] |
     //   ^ ^
-    return min - darkestDesired < lightestDesired - max ? min : max;
+    return Math.abs(min - darkestDesired) < Math.abs(lightestDesired - max)
+      ? min
+      : max;
   } else if (darkestDesired >= min && darkestDesired <= max) {
     // [ | ] |
     //   ^
@@ -193,12 +195,6 @@ function contrastFunctions(ctx) {
       color._ramp = theRamp; // for debugging
       // TODO: don't recalculate this again
       color._bgLightness = relativeLightness(ctx, theRamp, contrast);
-      // color._context = {
-      //   ...ctx,
-      //   color,
-      //   bgLightnessAbove: ctx.bgLightness,
-      //   bgLightness: relativeLightness(ctx, theRamp, contrast)
-      // };
       color.contrast = (contrast, { ramp2 } = {}) =>
         relativeColorToAnother(
           ctx,
