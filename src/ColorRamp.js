@@ -1,6 +1,7 @@
 import React from "react";
-import huet from "./huet";
 import styled from "styled-components";
+import _ from "lodash";
+import huet from "./huet";
 import Contrast from "./Contrast";
 
 export function Star({ lightness }) {
@@ -114,29 +115,34 @@ export function InnerRamp({ ramp, children }) {
   if (!ramp || !ramp.scale) return null;
   return (
     <>
-      <div
+      {/* <div
         className="h-100 w-100"
         style={{
           marginLeft: !ramp.isMirror && `${ramp.darkL}%`,
           // marginRight: !ramp.isMirror && `${100 - ramp.lightL}%`,
           width: !ramp.isMirror ? `${ramp.lightL - ramp.darkL}%` : null,
-          background: `linear-gradient(to right, ${[
-            0,
-            10,
-            20,
-            30,
-            40,
-            50,
-            60,
-            70,
-            80,
-            90,
-            100
-          ]
+          background: `linear-gradient(to right, ${_.range(0, 1, 0.1)
             .map(i => ramp.scale(i))
             .join(",")})`
         }}
-      />
+      /> */}
+      <div
+        className="h-100 w-100 flex"
+        style={{
+          marginLeft: !ramp.isMirror && `${ramp.darkL}%`,
+          width: !ramp.isMirror ? `${ramp.lightL - ramp.darkL}%` : null
+        }}
+      >
+        {_.range(0, 1, 0.05).map(i => (
+          <div
+            key={i}
+            className="h-100 w-100"
+            style={{
+              backgroundColor: ramp.scale(i)
+            }}
+          />
+        ))}
+      </div>
       {children}
     </>
   );

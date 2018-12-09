@@ -157,23 +157,31 @@ function relativeLightness(ctx, ramp, desiredContrast) {
   return clamp(lightness);
 }
 
+function lightnessToScaleValue(ramp, lightness) {
+  return lightness / 100;
+}
+
 function relativeColor(ctx, ramp, contrast = 100, a = 100) {
   if (ctx.highContrast && ramp === ctx.ramps.gray && contrast === 100) {
     ramp = highContrastYellow;
   }
   const l = relativeLightness(ctx, ramp, contrast);
-  if (ctx.saturationContrastMultiplier === 1 && a === 100) {
-    return ramp.scale(l);
-  }
-  return ramp
-    .scale(l)
-    .set("hcl.c", `*${ctx.saturationContrastMultiplier}`)
-    .alpha(a);
-}
+  const scaleValue = lightnessToScaleValue(ramp, l);
 
-function relativeColorToAnother(ctx, ramp, contrast, relativeToColor) {
-  const modifiedCtx = { ...ctx, bgLightness: getLightness(relativeToColor) };
-  return relativeColor(modifiedCtx, ramp, contrast);
+  let returnColor;
+  if (ctx.saturationContrastMultiplier === 1 && a === 100) {
+    returnColor = ramp.scale(scaleValue);
+  } else {
+    returnColor = ramp
+      .scale(scaleValue)
+      .set("hcl.c", `*${ctx.saturationContrastMultiplier}`)
+      .alpha(a);
+  }
+  returnColor._contrast = contrast; // for debugging
+  returnColor._ramp = ramp; // for debugging
+  returnColor._lightness = l; // TODO: stop using this for real work
+
+  return returnColor;
 }
 
 function color(ctx, col, a) {
@@ -192,16 +200,15 @@ function contrastFunctions(ctx) {
     contrast(contrast = 100, { ramp = "gray", alpha } = {}) {
       const theRamp = ctx.ramps[ramp];
       const color = relativeColor(ctx, theRamp, contrast, alpha);
-      color._contrast = contrast; // for debugging
-      color._ramp = theRamp; // for debugging
-      // TODO: don't recalculate this again
-      color._bgLightness = relativeLightness(ctx, theRamp, contrast);
-      color.contrast = (contrast, { ramp2 } = {}) =>
-        relativeColorToAnother(
-          ctx,
+      color.contrast = (contrast2, { ramp2 } = {}) =>
+        relativeColor(
+          {
+            ...ctx,
+            bgLightnessAbove: ctx.bgLightness,
+            bgLightness: color._lightness
+          },
           ctx.ramps[ramp2 || "gray"],
-          contrast,
-          color
+          contrast2
         );
 
       color.forwardContext = children => {
@@ -209,7 +216,7 @@ function contrastFunctions(ctx) {
           ...ctx,
           color,
           bgLightnessAbove: ctx.bgLightness,
-          bgLightness: color._bgLightness
+          bgLightness: color._lightness
         };
 
         return children ? (
@@ -230,22 +237,19 @@ function useTheme() {
 
 function _createRampWithChromaScale(scale, adjust = false) {
   const darkL = Math.round(getLightness(scale(0)));
-  const lightL = Math.round(getLightness(scale(100)));
+  const lightL = Math.round(getLightness(scale(1)));
   let rampSettings = {};
   if (adjust) {
     if (Math.round(darkL) === Math.round(lightL)) {
       rampSettings = {
-        scale: scale.domain([0, 100]),
+        scale: scale,
         darkL: getLightness(scale(0)),
         lightL: getLightness(scale(0)),
         isMirror: true
       };
     } else {
       rampSettings = {
-        scale: scale
-          .domain([darkL, lightL])
-          .mode("hcl")
-          .correctLightness(),
+        scale: scale.mode("hcl").correctLightness(),
         darkL,
         lightL
       };
@@ -253,7 +257,7 @@ function _createRampWithChromaScale(scale, adjust = false) {
   }
   return {
     mode: "chroma",
-    colors: [scale(0), scale(100)],
+    colors: [scale(0), scale(1)],
     darkL,
     lightL,
     scale,

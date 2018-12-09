@@ -2,11 +2,12 @@ import chroma from "chroma-js";
 import huet from "./huet";
 
 let gray = huet._createRampWithChromaScale(
-  chroma.scale(["#000000", "#ffffff"]).domain([0, 100])
+  chroma.scale(["#000000", "#ffffff"])
   // .gamma(0.7) // TODO: enable when we can get this working on colors too
 );
 const youtubeGray = huet.createRamp(["#121212", "#ffffff"]);
 const tintedBlueGray = huet.createRamp(["#414753", "#ffffff"]);
+const beigeGray = huet.createRamp(["#5b4128", "#fff9f3"]);
 
 const crazyRamps = {
   red: huet.createRamp(["#000000", "#ff0000", "#ffffff"]),
@@ -21,10 +22,7 @@ const shared = {
   ramps: {
     gray,
     white: huet._createRampWithChromaScale(
-      chroma
-        .scale(["#000000", "#ffffff"])
-        .domain([0, 100])
-        .classes([0, 10, 100])
+      chroma.scale(["#000000", "#ffffff"]).classes([0, 0.1, 1])
     ),
     red: huet.createRamp(["#000000", "#f73748", "#ffffff"]),
     green: huet.createRamp(["#000000", "#3c962a", "#ffffff"]),
@@ -41,7 +39,7 @@ const shared = {
   contrastDirection: "zigzag"
 };
 
-export default {
+const themes = {
   basic: {
     ...shared,
     name: "Basic"
@@ -63,10 +61,7 @@ export default {
     ramps: {
       ...shared.ramps,
       gray: huet._createRampWithChromaScale(
-        chroma
-          .scale(["#000000", "#ffffff"])
-          .domain([0, 100])
-          .classes(2)
+        chroma.scale(["#000000", "#ffffff"]).classes(2)
       ),
       ...crazyRamps,
       gold: huet.createRamp(["#000000", "#ff9900", "#ffffff"])
@@ -101,5 +96,21 @@ export default {
     bgLightness: youtubeGray.lightL,
     bgLightnessAbove: youtubeGray.lightL,
     contrastDirection: "lighter"
+  },
+  beige: {
+    ...shared,
+    name: "Beige",
+    ramps: {
+      ...shared.ramps,
+      gray: beigeGray
+    },
+    bgLightness: beigeGray.darkL,
+    bgLightnessAbove: beigeGray.darkL
   }
 };
+
+window.themes = themes;
+window.huet = huet;
+window.chroma = chroma;
+
+export default themes;

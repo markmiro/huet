@@ -37,9 +37,9 @@ function Switch({ on, ...cases }) {
 }
 
 function App() {
-  const [tab, setTab] = useState("github");
+  const [tab, setTab] = useState("basic");
   return (
-    <Themer themes={themes} initialThemeKey="basic">
+    <Themer themes={themes} initialThemeKey="beige">
       <Contrast
         bg={10}
         border={100}

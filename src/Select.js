@@ -11,6 +11,7 @@ const Select = ({ value, onChange, label, children, className }) => {
     <div className={className}>
       <Contrast className="db mb1">{label}</Contrast>
       <Contrast
+        debug
         bg={10}
         text={50}
         className="relative dib w-100 flex justify-between input"

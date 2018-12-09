@@ -58,6 +58,7 @@ const Contrast = props => {
       ramp: textRamp,
       alpha: textAlpha
     });
+    if (textColor._contrast === 0) debugger;
     finalChildren = backgroundColor.forwardContext(children);
   } else {
     textColor = context.contrast(text, {

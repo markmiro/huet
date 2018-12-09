@@ -288,13 +288,14 @@ export default function Themer({ children, themes, initialThemeKey }) {
 
 function InspectRamp({ label, traceColor, nextColor, ctx }) {
   if (!traceColor) return null;
+  if (nextColor && nextColor._contrast === 0) debugger;
   return (
     <>
       <div className="mv1">
         {label}{" "}
         <Contrast text={50}>
           lightness=
-          {traceColor._bgLightness ? traceColor._bgLightness.toString() : "?"}
+          {traceColor._lightness ? traceColor._lightness.toString() : "?"}
           {nextColor && nextColor._contrast
             ? ` contrast=${nextColor._contrast.toString()}`
             : null}
@@ -314,10 +315,10 @@ function InspectRamp({ label, traceColor, nextColor, ctx }) {
               <Bracket lightness={ctx.maxColorLightness} direction="right" />
             </>
           )}
-          <Star lightness={traceColor._bgLightness} />
+          <Star lightness={traceColor._lightness} />
           {nextColor && (
             <ContrastRange
-              lightness={traceColor._bgLightness}
+              lightness={traceColor._lightness}
               contrast={nextColor._contrast}
             />
           )}
