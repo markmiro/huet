@@ -35,6 +35,7 @@ export default function YouTube() {
               as="button"
               bg={100}
               bgRamp="red"
+              textRamp="white"
               className="pv2 ph3 f6 br1"
             >
               <b>SUBSCRIBE</b> 108K

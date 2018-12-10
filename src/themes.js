@@ -21,8 +21,9 @@ const crazyRamps = {
 const shared = {
   ramps: {
     gray,
-    white: huet._createRampWithChromaScale(
-      chroma.scale(["#000000", "#ffffff"]).classes([0, 0.1, 1])
+    white: gray,
+    white: huet._createRampWithDirectChroma(
+      chroma.scale(["#ffffff", "#000000"]).classes([0, 0.7, 1])
     ),
     red: huet.createRamp(["#000000", "#f73748", "#ffffff"]),
     green: huet.createRamp(["#000000", "#3c962a", "#ffffff"]),
@@ -61,6 +62,9 @@ const themes = {
     ramps: {
       ...shared.ramps,
       gray: huet._createRampWithChromaScale(
+        // chroma
+        //   .scale(["#000000", "#ffffff", "#ffff00"])
+        //   .classes([0, 0.5, 0.999, 1])
         chroma.scale(["#000000", "#ffffff"]).classes(2)
       ),
       ...crazyRamps,
@@ -90,7 +94,9 @@ const themes = {
     ramps: {
       ...shared.ramps,
       gray: youtubeGray,
-      red: huet.createRamp(["#ff0000", "#ff9999", "#ff0000"]),
+      red: huet._createRampWithDirectChroma(
+        chroma.scale(["#ff0000", "#ff9999", "#ff0000"])
+      ),
       blue: huet.createRamp(["#104892", "#065fd4", "#73b0ff"])
     },
     bgLightness: youtubeGray.lightL,

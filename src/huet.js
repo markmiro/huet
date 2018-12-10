@@ -126,13 +126,15 @@ function relativeLightness(ctx, ramp, desiredContrast) {
 
   let min;
   let max;
-  const midpoint = (ramp.darkL + ramp.lightL) / 2;
-  if (ctx.bgLightness < midpoint) {
-    min = ctx.bgLightness;
-    max = ctx.maxColorLightness;
-  } else {
-    min = ctx.minColorLightness;
-    max = ctx.bgLightness;
+  if (ramp !== ctx.ramps.gray) {
+    const midpoint = (ramp.darkL + ramp.lightL) / 2;
+    if (ctx.bgLightness < midpoint) {
+      min = ctx.bgLightness;
+      max = ctx.maxColorLightness;
+    } else {
+      min = ctx.minColorLightness;
+      max = ctx.bgLightness;
+    }
   }
 
   const lightness = contrastLightnessAgainst({
@@ -158,15 +160,18 @@ function relativeLightness(ctx, ramp, desiredContrast) {
 }
 
 function lightnessToScaleValue(ramp, lightness) {
-  return lightness / 100;
+  return (lightness - ramp.darkL) / (ramp.lightL - ramp.darkL);
 }
 
 function relativeColor(ctx, ramp, contrast = 100, a = 100) {
   if (ctx.highContrast && ramp === ctx.ramps.gray && contrast === 100) {
     ramp = highContrastYellow;
   }
-  const l = relativeLightness(ctx, ramp, contrast);
-  const scaleValue = lightnessToScaleValue(ramp, l);
+
+  const scaleValue =
+    ramp.mode === "chromaDirect"
+      ? ctx.bgLightness / 100
+      : lightnessToScaleValue(ramp, relativeLightness(ctx, ramp, contrast));
 
   let returnColor;
   if (ctx.saturationContrastMultiplier === 1 && a === 100) {
@@ -179,7 +184,14 @@ function relativeColor(ctx, ramp, contrast = 100, a = 100) {
   }
   returnColor._contrast = contrast; // for debugging
   returnColor._ramp = ramp; // for debugging
-  returnColor._lightness = l; // TODO: stop using this for real work
+  returnColor._lightness = getLightness(returnColor); // TODO: stop using this for real work
+
+  // if (Math.abs(getLightness(returnColor) - l) > 5) {
+  //   debugger;
+  //   console.error(
+  //     "lightness contrast mismatch " + Math.abs(getLightness(returnColor) - l)
+  //   );
+  // }
 
   return returnColor;
 }
@@ -200,14 +212,14 @@ function contrastFunctions(ctx) {
     contrast(contrast = 100, { ramp = "gray", alpha } = {}) {
       const theRamp = ctx.ramps[ramp];
       const color = relativeColor(ctx, theRamp, contrast, alpha);
-      color.contrast = (contrast2, { ramp2 } = {}) =>
+      color.contrast = (contrast2, { ramp } = {}) =>
         relativeColor(
           {
             ...ctx,
             bgLightnessAbove: ctx.bgLightness,
             bgLightness: color._lightness
           },
-          ctx.ramps[ramp2 || "gray"],
+          ctx.ramps[ramp || "gray"],
           contrast2
         );
 
@@ -257,11 +269,25 @@ function _createRampWithChromaScale(scale, adjust = false) {
   }
   return {
     mode: "chroma",
-    colors: [scale(0), scale(1)],
+    colors: scale.colors(),
     darkL,
     lightL,
     scale,
     ...rampSettings
+  };
+}
+
+// if bg is 0 then we translate this directly 0 on this scale and so on
+function _createRampWithDirectChroma(scale) {
+  const sortedColors = scale
+    .colors()
+    .sort((a, b) => getLightness(a) - getLightness(b));
+  return {
+    mode: "chromaDirect",
+    colors: scale.colors(),
+    darkL: getLightness(sortedColors[0]),
+    lightL: getLightness(sortedColors[sortedColors.length - 1]),
+    scale
   };
 }
 
@@ -279,6 +305,7 @@ function getLightness(color) {
 export default {
   createRamp,
   _createRampWithChromaScale,
+  _createRampWithDirectChroma,
   getLightness,
   // funcs for context
   contrastFunctions,
