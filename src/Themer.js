@@ -334,11 +334,16 @@ function ColorInspector({ isPicking, setIsPicking, pickedObject, onClear }) {
     <Contrast bg={40} className="pa2">
       <div className="flex">
         <Button isActive={isPicking} onClick={() => setIsPicking(is => !is)}>
-          <Icon name="gps_fixed" className="mr1" />{" "}
-          <Contrast>Inspect color</Contrast>
+          <Icon name="gps_fixed" ramp="white" className="mr1" />{" "}
+          <Contrast textRamp="white">Inspect color</Contrast>
         </Button>
         {pickedObject && (
-          <Button className="ml2" onClick={onClear} bgRamp="red">
+          <Button
+            className="ml2"
+            onClick={onClear}
+            bgRamp="red"
+            textRamp="white"
+          >
             Clear
           </Button>
         )}

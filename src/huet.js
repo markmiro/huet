@@ -161,7 +161,7 @@ function relativeColor(ctx, ramp, contrast = 100, a = 100) {
     }
   } else {
     const scaleValue =
-      ramp.mode === "chromaDirect"
+      ramp.mode === "direct"
         ? ctx.bgLightness / 100
         : lightnessToScaleValue(ramp, relativeLightness(ctx, ramp, contrast));
 
@@ -233,36 +233,32 @@ function useTheme() {
   return contrastFunctions(ctx);
 }
 
-function _createRampWithChromaScale(scale) {
-  const darkL = Math.round(getLightness(scale(0)));
-  const lightL = Math.round(getLightness(scale(1)));
-  return {
-    mode: "chroma",
-    colors: scale.colors(),
-    darkL,
-    lightL,
-    scale: scale.mode("hcl").correctLightness()
-  };
-}
-
 // if bg is 0 then we translate this directly 0 on this scale and so on
-function _createRampWithDirectChroma(scale) {
+function _createRampWithChromaScale(scale, rest) {
   const sortedColors = scale
     .colors()
     .sort((a, b) => getLightness(a) - getLightness(b));
   return {
-    mode: "chromaDirect",
     colors: scale.colors(),
     darkL: getLightness(sortedColors[0]),
     lightL: getLightness(sortedColors[sortedColors.length - 1]),
-    scale
+    scale,
+    ...rest
   };
 }
 
-function createRamp(colors) {
+function createRamp(colorOrColors) {
+  const finalColors = Array.isArray(colorOrColors)
+    ? colorOrColors
+    : ["#000000", colorOrColors, "#ffffff"];
   return {
-    ..._createRampWithChromaScale(chroma.scale(colors), true),
-    colors
+    ..._createRampWithChromaScale(
+      chroma
+        .scale(finalColors)
+        .mode("hcl")
+        .correctLightness(),
+      true
+    )
   };
 }
 
@@ -273,7 +269,6 @@ function getLightness(color) {
 export default {
   createRamp,
   _createRampWithChromaScale,
-  _createRampWithDirectChroma,
   getLightness,
   // funcs for context
   contrastFunctions,

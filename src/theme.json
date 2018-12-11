@@ -1,0 +1,25 @@
+{
+  "pallet": {
+    "black": "#000000",
+    "white": "#ffffff",
+    "primary": "#a424b7",
+    "link": "#1b52e0",
+    "warning": "#cf6d18",
+    "error": "#dd0000",
+    "success": "#1d8835"
+  },
+  "ramps": {
+    "neutral": {
+      "colors": ["white", "black"],
+      "classes": [0, 0.7, 1],
+      "gamma": 1,
+      "correctLightness": true,
+      "mode": "hcl", // lrgb, lab
+      "bezier": false,
+      "direct": true
+    }
+  },
+  "bgColor": "white",
+  "contrastMultiplier": 1,
+  "saturationContrastMultiplier": 1
+}
