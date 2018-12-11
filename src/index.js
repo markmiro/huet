@@ -39,7 +39,7 @@ function Switch({ on, ...cases }) {
 function App() {
   const [tab, setTab] = useState("youtube");
   return (
-    <Themer themes={themes} initialThemeKey="basic">
+    <Themer themes={themes} initialThemeKey="highContrast">
       <Contrast
         bg={10}
         border={100}

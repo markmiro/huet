@@ -57,19 +57,17 @@ const themes = {
   },
   highContrast: {
     ...shared,
-    highContrast: true,
     name: "High Contrast",
     ramps: {
       ...shared.ramps,
-      gray: huet._createRampWithChromaScale(
-        // chroma
-        //   .scale(["#000000", "#ffffff", "#ffff00"])
-        //   .classes([0, 0.5, 0.999, 1])
-        chroma.scale(["#000000", "#ffffff"]).classes(2)
-      ),
       ...crazyRamps,
+      white: huet._createRampWithChromaScale(
+        chroma.scale(["#000000", "#ffffff"])
+        // .gamma(0.7) // TODO: enable when we can get this working on colors too
+      ),
       gold: huet.createRamp(["#000000", "#ff9900", "#ffffff"])
     },
+    mode: "highContrast",
     bgLightness: 50,
     bgLightnessAbove: 50,
     minColorLightness: 50,
