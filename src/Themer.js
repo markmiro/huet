@@ -288,7 +288,6 @@ export default function Themer({ children, themes, initialThemeKey }) {
 
 function InspectRamp({ label, traceColor, nextColor, ctx }) {
   if (!traceColor) return null;
-  if (nextColor && nextColor._contrast === 0) debugger;
   return (
     <>
       <div className="mv1">
