@@ -5,17 +5,15 @@ import { useDebounce } from "use-debounce";
 
 export default function ColorContrast() {
   const ctx = huet.useTheme();
-  const debouncedCtx = useDebounce(ctx.contextValue, 200);
+  const debouncedCtx = useDebounce(ctx.contextValue, 100);
+  const sharedSteps = [100 / 16, 100 / 8, 100 / 4, 100 / 2];
+  const colorSteps = [...sharedSteps, 100];
   // const colorSteps = [4, 8, 16, 32, 64, 100];
-  const colorSteps = [100 / 16, 100 / 8, 100 / 4, 100 / 2, 100];
   // const colorSteps = [0, 4, 8, 16, 84, 92, 96, 100];
   // const graySteps = [0, 10, 20, 30, 40, 50, 60, 70, 80, 90, 100];
   const graySteps = [
     0,
-    100 / 16,
-    100 / 8,
-    100 / 4,
-    100 / 2,
+    ...sharedSteps,
     100 - 100 / 4,
     100 - 100 / 8,
     100 - 100 / 16,
@@ -29,9 +27,9 @@ export default function ColorContrast() {
           <Contrast key={grayStep} bg={grayStep} className="pa2">
             <b>{grayStep}</b>
             <div className="flex items-center flex-wrap">
-              {Object.keys(debouncedCtx.ramps).map(ramp => (
+              {Object.keys(ctx.contextValue.ramps).map(ramp => (
                 <div key={ramp} className="flex mt1">
-                  {debouncedCtx.ramps[ramp].mode === "direct" ? (
+                  {ctx.contextValue.ramps[ramp].mode === "direct" ? (
                     <Contrast
                       bg={0}
                       bgRamp={ramp}
