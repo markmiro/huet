@@ -179,6 +179,32 @@ function relativeColor(ctx, ramp, contrast = 100, a = 100) {
   returnColor._ramp = ramp; // for debugging
   returnColor._lightness = getLightness(returnColor); // TODO: stop using this for real work
 
+  returnColor.contrast = (contrast2, { ramp } = {}) =>
+    relativeColor(
+      {
+        ...ctx,
+        bgLightnessAbove: ctx.bgLightness,
+        bgLightness: returnColor._lightness
+      },
+      ctx.ramps[ramp || "gray"],
+      contrast2
+    );
+
+  returnColor.forwardContext = children => {
+    const newContextValue = {
+      ...ctx,
+      color,
+      bgLightnessAbove: ctx.bgLightness,
+      bgLightness: returnColor._lightness
+    };
+
+    return children ? (
+      <ThemeContext.Provider value={newContextValue}>
+        {children}
+      </ThemeContext.Provider>
+    ) : null;
+  };
+
   return returnColor;
 }
 
@@ -192,39 +218,10 @@ function contrastFunctions(ctx) {
   return {
     value: ctx,
     contextValue: ctx,
-    darkColor({ ramp = "gray", alpha }) {
-      return color(ctx, ctx.ramps[ramp].scale(0), alpha);
-    },
-    contrast(contrast = 100, { ramp = "gray", alpha } = {}) {
-      const theRamp = ctx.ramps[ramp];
-      const color = relativeColor(ctx, theRamp, contrast, alpha);
-      color.contrast = (contrast2, { ramp } = {}) =>
-        relativeColor(
-          {
-            ...ctx,
-            bgLightnessAbove: ctx.bgLightness,
-            bgLightness: color._lightness
-          },
-          ctx.ramps[ramp || "gray"],
-          contrast2
-        );
-
-      color.forwardContext = children => {
-        const newContextValue = {
-          ...ctx,
-          color,
-          bgLightnessAbove: ctx.bgLightness,
-          bgLightness: color._lightness
-        };
-
-        return children ? (
-          <ThemeContext.Provider value={newContextValue}>
-            {children}
-          </ThemeContext.Provider>
-        ) : null;
-      };
-      return color;
-    }
+    darkColor: ({ ramp = "gray", alpha }) =>
+      color(ctx, ctx.ramps[ramp].scale(0), alpha),
+    contrast: (contrast = 100, { ramp = "gray", alpha } = {}) =>
+      relativeColor(ctx, ctx.ramps[ramp], contrast, alpha)
   };
 }
 
