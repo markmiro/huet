@@ -68,8 +68,8 @@ export default function Themer({ children, themes, initialThemeKey }) {
   const [pickedObject, setPickedObject] = useState();
 
   const finalBgLightness = Math.min(
-    Math.max(bgLightness, ramps.gray.darkL),
-    ramps.gray.lightL
+    Math.max(bgLightness, ramps.gray.startL),
+    ramps.gray.endL
   );
 
   const ctx = {
@@ -108,8 +108,8 @@ export default function Themer({ children, themes, initialThemeKey }) {
     ? { ...ctx, isPicking: false }
     : {
         ...themes.basic,
-        bgLightness: themes.basic.ramps.gray.lightL,
-        bgLightnessAbove: themes.basic.ramps.gray.lightL
+        bgLightness: themes.basic.ramps.gray.startL,
+        bgLightnessAbove: themes.basic.ramps.gray.startL
       };
 
   return (
@@ -168,8 +168,8 @@ export default function Themer({ children, themes, initialThemeKey }) {
             <Contrast bg={20} className="pa2">
               <Range
                 label="Page background lightness"
-                min={ctx.ramps.gray.darkL}
-                max={ctx.ramps.gray.lightL}
+                min={ctx.ramps.gray.startL}
+                max={ctx.ramps.gray.endL}
                 value={bgLightness}
                 onChange={lightness => setBgLightness(lightness)}
               />

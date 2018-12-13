@@ -30,8 +30,8 @@ export default function ContrastPattern() {
       <ThemeContext.Provider
         value={{
           ...ctx,
-          bgLightness: ctx.ramps.gray.lightL,
-          bgLightnessAbove: ctx.ramps.gray.lightL
+          bgLightness: ctx.ramps.gray.endL,
+          bgLightnessAbove: ctx.ramps.gray.endL
         }}
       >
         <NestedBlocks
@@ -44,8 +44,8 @@ export default function ContrastPattern() {
       <ThemeContext.Provider
         value={{
           ...ctx,
-          bgLightness: ctx.ramps.gray.darkL,
-          bgLightnessAbove: ctx.ramps.gray.darkL
+          bgLightness: ctx.ramps.gray.startL,
+          bgLightnessAbove: ctx.ramps.gray.startL
         }}
       >
         <NestedBlocks

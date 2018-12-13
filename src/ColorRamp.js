@@ -122,9 +122,9 @@ export function InnerRamp({ ramp, children }) {
       {/* <div
         className="h-100 w-100"
         style={{
-          marginLeft: !ramp.isMirror && `${ramp.darkL}%`,
-          // marginRight: !ramp.isMirror && `${100 - ramp.lightL}%`,
-          width: !ramp.isMirror ? `${ramp.lightL - ramp.darkL}%` : null,
+          marginLeft: ramp.startL && `${ramp.startL}%`,
+          // marginRight: ramp.startL && `${100 - ramp.endL}%`,
+          width: ramp.startL ? `${ramp.endL - ramp.startL}%` : null,
           background: `linear-gradient(to right, ${_.range(0, 1, 0.1)
             .map(i => ramp.scale(i))
             .join(",")})`
@@ -133,8 +133,8 @@ export function InnerRamp({ ramp, children }) {
       <div
         className="h-100 w-100 flex"
         style={{
-          marginLeft: !ramp.mode === "direct" && `${ramp.darkL}%`,
-          width: !ramp.mode === "direct" ? `${ramp.lightL - ramp.darkL}%` : null
+          marginLeft: ramp.startL ? `${ramp.startL}%` : null,
+          width: ramp.startL ? `${ramp.endL - ramp.startL}%` : null
         }}
       >
         {_.range(0, 1, 0.05).map(i => (

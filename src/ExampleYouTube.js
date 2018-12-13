@@ -12,7 +12,7 @@ export default function YouTube() {
       <div className="ph3 pt3 flex flex-wrap flex-nowrap-l">
         <div className="w-100 w-80-l mr3-l mb3">
           <Contrast
-            bg={100}
+            bg={20}
             className="w-100"
             style={{
               paddingTop: "55%"

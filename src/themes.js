@@ -1,16 +1,36 @@
 import chroma from "chroma-js";
 import huet from "./huet";
 
-let gray = huet._createRampWithChromaScale(
+let gray = huet.createRampWithScale(
   chroma.scale(["#000000", "#ffffff"])
   // .gamma(0.7) // TODO: enable when we can get this working on colors too
 );
 
-// let gray = huet._createRampWithChromaScale(
+// let gray = huet.createRampWithScale(
 //   chroma
 //     .scale(["#000000", "#555555", "#999999", "ffffff"])
 //     .domain([0, 0.5, 0.51, 1])
 // );
+
+// let gray = huet.createRampWithScale(
+//   chroma
+//     .scale([
+//       chroma.hcl(0, 0, 50),
+//       chroma.hcl(0, 0, 75),
+
+//       chroma.hcl(0, 0, 75),
+//       chroma.hcl(0, 0, 100),
+
+//       chroma.hcl(0, 0, 0),
+//       chroma.hcl(0, 0, 25),
+
+//       chroma.hcl(0, 0, 25),
+//       chroma.hcl(0, 0, 50)
+//     ])
+//     .domain([0, 0.25, 0.25, 0.5, 0.5, 0.75, 0.75, 1]),
+//   { mode: "direct" }
+// );
+
 const youtubeGray = huet.createRamp(["#121212", "#ffffff"]);
 const tintedBlueGray = huet.createRamp(["#414753", "#ffffff"]);
 const beigeGray = huet.createRamp(["#5b4128", "#fff9f3"]);
@@ -58,22 +78,23 @@ const crazyRamps = {
   },
 */
 
+const red = "#f73748";
+
 const shared = {
   ramps: {
     gray,
     white: gray,
-    white: huet._createRampWithChromaScale(
-      chroma.scale(["#ffffff", "#000000"]).classes([0, 0.7, 1]),
-      { mode: "direct" }
+    white: huet.createDirectRampWithScale(
+      chroma.scale(["#ffffff", "#000000"]).classes([0, 0.7, 1])
     ),
-    red: huet.createRamp("#f73748"),
+    red: huet.createRamp(red),
     green: huet.createRamp("#3c962a"),
     blue: huet.createRamp("#3087d6"),
     gold: huet.createRamp("#c86c00"),
     purple: huet.createRamp("#a46ad3")
   },
-  bgLightness: gray.lightL,
-  bgLightnessAbove: gray.lightL,
+  bgLightness: gray.startL,
+  bgLightnessAbove: gray.startL,
   minColorLightness: 20,
   maxColorLightness: 80,
   contrastMultiplier: 1,
@@ -93,29 +114,8 @@ const themes = {
       ...shared.ramps,
       gray: tintedBlueGray
     },
-    bgLightness: tintedBlueGray.lightL,
-    bgLightnessAbove: tintedBlueGray.lightL
-  },
-  highContrast: {
-    ...shared,
-    name: "High Contrast",
-    ramps: {
-      ...shared.ramps,
-      ...crazyRamps,
-      white: huet._createRampWithChromaScale(
-        chroma.scale(["#000000", "#ffffff"])
-        // .gamma(0.7) // TODO: enable when we can get this working on colors too
-      ),
-      gold: huet.createRamp("#ff9900")
-    },
-    mode: "highContrast",
-    bgLightness: 50,
-    bgLightnessAbove: 50,
-    minColorLightness: 50,
-    maxColorLightness: 70,
-    globalStyles: {
-      fontWeight: "bold"
-    }
+    bgLightness: tintedBlueGray.endL,
+    bgLightnessAbove: tintedBlueGray.endL
   },
   crazy: {
     ...shared,
@@ -124,8 +124,8 @@ const themes = {
       ...shared.ramps,
       ...crazyRamps
     },
-    bgLightness: gray.lightL,
-    bgLightnessAbove: gray.lightL
+    bgLightness: gray.endL,
+    bgLightnessAbove: gray.endL
   },
   youtube: {
     ...shared,
@@ -133,13 +133,13 @@ const themes = {
     ramps: {
       ...shared.ramps,
       gray: youtubeGray,
-      red: huet._createRampWithChromaScale(
+      red: huet.createRampWithScale(
         chroma.scale(["#ff0000", "#ff9999", "#ff0000"])
       ),
       blue: huet.createRamp(["#104892", "#065fd4", "#73b0ff"])
     },
-    bgLightness: youtubeGray.lightL,
-    bgLightnessAbove: youtubeGray.lightL,
+    bgLightness: youtubeGray.endL,
+    bgLightnessAbove: youtubeGray.endL,
     contrastDirection: "lighter"
   },
   beige: {
@@ -149,8 +149,8 @@ const themes = {
       ...shared.ramps,
       gray: beigeGray
     },
-    bgLightness: beigeGray.darkL,
-    bgLightnessAbove: beigeGray.darkL
+    bgLightness: beigeGray.startL,
+    bgLightnessAbove: beigeGray.startL
   }
 };
 
