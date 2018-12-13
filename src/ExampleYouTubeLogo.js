@@ -5,7 +5,7 @@ const YouTubeLogo = ({ className, style }) => {
   const theme = huet.useTheme();
   const textColor = theme.contrast(100);
   const redColor = theme.contrast(100, { ramp: "red" });
-  const playButtonColor = redColor.contrast(0, { ramp: "white" });
+  const playButtonColor = redColor.contrast(100, { ramp: "white" });
   return (
     <svg
       viewBox="0 0 200 60"
