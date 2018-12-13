@@ -60,19 +60,23 @@ export function Bracket({ lightness, direction }) {
 }
 
 const Block = styled.input`
+  --width: 1.1em;
   background-color: ${({ color }) => color || "transparent"};
   outline-width: 1px;
   outline-offset: -2px;
   outline-style: solid;
-  width: 1.1em;
+  width: var(--width);
   height: 120%;
   top: 50%;
-  left: ${({ color }) => huet.getLightness(color)}%;
-  transform: translate(-50%, -50%);
+  left: ${({ color }) => {
+    const l = huet.getLightness(color);
+    return `calc(${l}% - (var(--width)) * ${l / 100})`;
+  }};
+  transform: translateY(-50%);
   padding: 0;
   &:hover,
   &:focus {
-    transform: translate(-50%, -50%) scale(1.5);
+    transform: translateY(-50%) scale(1.5);
     z-index: 1;
   }
 `;
@@ -129,8 +133,8 @@ export function InnerRamp({ ramp, children }) {
       <div
         className="h-100 w-100 flex"
         style={{
-          marginLeft: !ramp.isMirror && `${ramp.darkL}%`,
-          width: !ramp.isMirror ? `${ramp.lightL - ramp.darkL}%` : null
+          marginLeft: !ramp.mode === "direct" && `${ramp.darkL}%`,
+          width: !ramp.mode === "direct" ? `${ramp.lightL - ramp.darkL}%` : null
         }}
       >
         {_.range(0, 1, 0.05).map(i => (
@@ -193,7 +197,7 @@ const ColorRamp = ({ ramp, onChangeRamp, themeContext }) => {
               <Screen from={themeContext.maxColorLightness} to={100} />
             </>
           )} */}
-          {theRamp !== themeContext.ramps.gray && (
+          {theRamp !== themeContext.ramps.gray && theRamp.mode !== "direct" && (
             <>
               <Bracket
                 lightness={themeContext.minColorLightness}

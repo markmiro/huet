@@ -219,13 +219,13 @@ export default function Themer({ children, themes, initialThemeKey }) {
             <div className="pa2">
               <Contrast>Color ramps</Contrast>
               <div className="flex flex-wrap mt1">
-                <div className="w-100 mh2">
+                <div className="w-100">
                   <Contrast
                     border={20}
                     className="w-100"
                     style={{
-                      height: "2px",
-                      marginBottom: 1,
+                      height: "4px",
+                      marginBottom: 6,
                       background: "linear-gradient(to right, black, white)"
                     }}
                   />
