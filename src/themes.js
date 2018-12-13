@@ -93,8 +93,7 @@ const shared = {
     gold: huet.createRamp("#c86c00"),
     purple: huet.createRamp("#a46ad3")
   },
-  bgLightness: gray.startL,
-  bgLightnessAbove: gray.startL,
+  bgScaleValue: 1,
   minColorLightness: 20,
   maxColorLightness: 80,
   contrastMultiplier: 1,
@@ -114,8 +113,7 @@ const themes = {
       ...shared.ramps,
       gray: tintedBlueGray
     },
-    bgLightness: tintedBlueGray.endL,
-    bgLightnessAbove: tintedBlueGray.endL
+    bgScaleValue: 1
   },
   crazy: {
     ...shared,
@@ -124,8 +122,7 @@ const themes = {
       ...shared.ramps,
       ...crazyRamps
     },
-    bgLightness: gray.endL,
-    bgLightnessAbove: gray.endL
+    bgScaleValue: 1
   },
   youtube: {
     ...shared,
@@ -138,8 +135,7 @@ const themes = {
       ),
       blue: huet.createRamp(["#104892", "#065fd4", "#73b0ff"])
     },
-    bgLightness: youtubeGray.endL,
-    bgLightnessAbove: youtubeGray.endL,
+    bgScaleValue: 1,
     contrastDirection: "lighter"
   },
   beige: {
@@ -149,8 +145,7 @@ const themes = {
       ...shared.ramps,
       gray: beigeGray
     },
-    bgLightness: beigeGray.startL,
-    bgLightnessAbove: beigeGray.startL
+    bgScaleValue: 0
   }
 };
 

@@ -20,7 +20,7 @@ export default function Themer({ children, themes, initialThemeKey }) {
   const [themeKey, setThemeKey] = useState(initialThemeKey);
   const theme = themes[themeKey];
 
-  const [bgLightness, setBgLightness] = useState(theme.bgLightness);
+  const [bgScaleValue, setBgScaleValue] = useState(theme.bgScaleValue);
   const [contrastMultiplier, setContrastMultiplier] = useState(
     theme.contrastMultiplier
   );
@@ -54,7 +54,7 @@ export default function Themer({ children, themes, initialThemeKey }) {
     const theme = themes[themeKey];
     setThemeKey(themeKey);
     setRamps(theme.ramps);
-    // setBgLightness(theme.bgLightness);
+    // setBgScaleValue(theme.bgScaleValue);
     // setContrastMultiplier(theme.contrastMultiplier);
     // setSaturationContrastMultiplier(theme.saturationContrastMultiplier);
     setMinColorLightness(theme.minColorLightness);
@@ -67,16 +67,13 @@ export default function Themer({ children, themes, initialThemeKey }) {
   const [isPicking, setIsPicking] = useState(false);
   const [pickedObject, setPickedObject] = useState();
 
-  const finalBgLightness = Math.min(
-    Math.max(bgLightness, ramps.gray.startL),
-    ramps.gray.endL
-  );
+  const bgLightness = huet.getLightness(ramps.gray.scale(bgScaleValue));
 
   const ctx = {
     ...theme,
     ramps,
-    bgLightness: finalBgLightness,
-    bgLightnessAbove: finalBgLightness,
+    bgLightness: bgLightness,
+    bgLightnessAbove: bgLightness,
     contrastMultiplier,
     saturationContrastMultiplier,
     contrastDirection,
@@ -97,7 +94,7 @@ export default function Themer({ children, themes, initialThemeKey }) {
         .contrastFunctions(ctx)
         .contrast(0);
     },
-    [bgLightness, ramps, saturationContrastMultiplier]
+    [bgScaleValue, ramps, saturationContrastMultiplier]
   );
 
   // Themer stuff
@@ -168,10 +165,11 @@ export default function Themer({ children, themes, initialThemeKey }) {
             <Contrast bg={20} className="pa2">
               <Range
                 label="Page background lightness"
-                min={ctx.ramps.gray.startL}
-                max={ctx.ramps.gray.endL}
-                value={bgLightness}
-                onChange={lightness => setBgLightness(lightness)}
+                min={0}
+                max={1}
+                decimals={2}
+                value={bgScaleValue}
+                onChange={v => setBgScaleValue(v)}
               />
               <Range
                 label="Lightness contrast multiplier"
