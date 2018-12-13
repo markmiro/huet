@@ -113,7 +113,6 @@ function useTheme() {
 // if bg is 0 then we translate this directly 0 on this scale and so on
 function createRampWithScale(scale) {
   return {
-    colors: scale.colors(),
     startL: getLightness(scale(0)),
     endL: getLightness(scale(1)),
     scale
@@ -122,7 +121,6 @@ function createRampWithScale(scale) {
 
 function createDirectRampWithScale(scale) {
   return {
-    colors: scale.colors(),
     scale,
     mode: "direct"
   };

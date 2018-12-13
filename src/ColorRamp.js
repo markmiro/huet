@@ -158,7 +158,7 @@ const ColorRamp = ({ ramp, onChangeRamp, themeContext }) => {
   return (
     <div className="flex w-100 flex-row h1 mb2">
       {/* <div className="flex flex-row w-30 justify-between pr2">
-        {theRamp.colors.map((color, i) => (
+        {theRamp.scale.colors().map((color, i) => (
           <ThemeContext.Provider
             key={i}
             value={{
@@ -209,7 +209,7 @@ const ColorRamp = ({ ramp, onChangeRamp, themeContext }) => {
               />
             </>
           )}
-          {theRamp.colors.map((color, i) => (
+          {theRamp.scale.colors().map((color, i) => (
             <MobileColorPicker
               key={i}
               color={color}

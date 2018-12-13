@@ -35,7 +35,7 @@ export default function Themer({ children, themes, initialThemeKey }) {
   );
 
   function setRamp(key, i, value) {
-    const colors = ramps[key].colors;
+    const colors = ramps[key].scale.colors();
     const newColors = [...colors.slice(0, i), value, ...colors.slice(i + 1)];
     setRamps({
       ...ramps,
