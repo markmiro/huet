@@ -12,7 +12,8 @@
     "react": "16.7.0-alpha.2 - next",
     "react-dom": "16.7.0-alpha.2 - next",
     "react-scripts": "2.0.3",
-    "styled-components": "4.1.2"
+    "styled-components": "4.1.2",
+    "use-debounce": "^0.0.7"
   },
   "devDependencies": {
     "prettier": "^1.15.3"
