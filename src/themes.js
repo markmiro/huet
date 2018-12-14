@@ -83,7 +83,6 @@ const red = "#f73748";
 const shared = {
   ramps: {
     gray,
-    white: gray,
     white: huet.createDirectRampWithScale(
       chroma.scale(["#ffffff", "#000000"]).classes([0, 0.7, 1])
     ),

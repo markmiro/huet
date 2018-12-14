@@ -105,8 +105,8 @@ export default function Themer({ children, themes, initialThemeKey }) {
     ? { ...ctx, isPicking: false }
     : {
         ...themes.basic,
-        bgLightness: themes.basic.ramps.gray.startL,
-        bgLightnessAbove: themes.basic.ramps.gray.startL
+        bgLightness: themes.basic.ramps.gray.endL,
+        bgLightnessAbove: themes.basic.ramps.gray.endL
       };
 
   return (
@@ -162,7 +162,7 @@ export default function Themer({ children, themes, initialThemeKey }) {
               pickedObject={pickedObject}
               onClear={() => setPickedObject(null)}
             />
-            <Contrast bg={20} className="pa2">
+            <Contrast bg={5} className="pa2">
               <Range
                 label="Page background lightness"
                 min={0}
@@ -174,7 +174,7 @@ export default function Themer({ children, themes, initialThemeKey }) {
               <Range
                 label="Lightness contrast multiplier"
                 min={0}
-                max={4}
+                max={2}
                 decimals={2}
                 value={contrastMultiplier}
                 onChange={multiplier => setContrastMultiplier(multiplier)}
@@ -183,7 +183,7 @@ export default function Themer({ children, themes, initialThemeKey }) {
               <Range
                 label="Saturation multiplier"
                 min={0}
-                max={3}
+                max={2}
                 decimals={2}
                 value={saturationContrastMultiplier}
                 onChange={multiplier =>
@@ -219,7 +219,7 @@ export default function Themer({ children, themes, initialThemeKey }) {
               <div className="flex flex-wrap mt1">
                 <div className="w-100">
                   <Contrast
-                    border={20}
+                    border={10}
                     className="w-100"
                     style={{
                       height: "4px",
@@ -328,7 +328,7 @@ function InspectRamp({ label, traceColor, nextColor, ctx }) {
 function ColorInspector({ isPicking, setIsPicking, pickedObject, onClear }) {
   const { traceColors } = pickedObject || {};
   return (
-    <Contrast bg={40} className="pa2">
+    <Contrast bg={10} className="pa2">
       <div className="flex">
         <Button isActive={isPicking} onClick={() => setIsPicking(is => !is)}>
           <Icon name="gps_fixed" ramp="white" className="mr1" />{" "}

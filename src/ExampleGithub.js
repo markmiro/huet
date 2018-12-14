@@ -8,7 +8,7 @@ const { ThemeContext } = huet;
 export default function Github() {
   const ctx = huet.useTheme();
   const borderColor = ctx.contrast(20);
-  debugger;
+
   return (
     <>
       <div className="flex-auto">

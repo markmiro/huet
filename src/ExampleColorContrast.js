@@ -28,7 +28,7 @@ export default function ColorContrast() {
             <b>{grayStep}</b>
             <div className="flex items-center flex-wrap">
               {Object.keys(ctx.contextValue.ramps).map(ramp => (
-                <div key={ramp} className="flex mt1">
+                <div key={ramp} className="flex mt1 mr2">
                   {ctx.contextValue.ramps[ramp].mode === "direct" ? (
                     <Contrast
                       bg={0}
@@ -37,7 +37,7 @@ export default function ColorContrast() {
                       textRamp={ramp}
                       className="pa1"
                     >
-                      D
+                      Direct
                     </Contrast>
                   ) : (
                     colorSteps.map(colorStep => (
