@@ -39,7 +39,11 @@ function relativeColor(ctx, ramp, contrast = 100, a = 100) {
   let returnColor;
 
   if (ramp.mode === "direct") {
-    returnColor = ramp.scale(ctx.bgLightness / 100);
+    // returnColor = ramp.scale(ctx.bgLightness / 100);
+    returnColor = ramp.scale(
+      (ctx.bgLightness - ctx.ramps.gray.startL) /
+        (ctx.ramps.gray.endL - ctx.ramps.gray.startL)
+    );
   } else {
     const { min, max } = getMinMax(ctx, ramp);
     const clamp = createClamp(min, max);
