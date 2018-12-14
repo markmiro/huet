@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from "react";
+import isNumber from "lodash/isNumber";
 import huet from "./huet";
 import Range from "./Range";
 import Contrast from "./Contrast";
@@ -293,9 +294,11 @@ function InspectRamp({ label, traceColor, nextColor, ctx }) {
         {label}{" "}
         <Contrast text={50}>
           lightness=
-          {traceColor._lightness ? traceColor._lightness.toString() : "?"}
-          {nextColor && nextColor._contrast
-            ? ` contrast=${nextColor._contrast.toString()}`
+          {isNumber(traceColor._lightness)
+            ? traceColor._lightness.toFixed(2)
+            : "?"}
+          {isNumber(nextColor) && nextColor._contrast
+            ? ` contrast=${nextColor._contrast.toFixed(2)}`
             : null}
         </Contrast>
       </div>
