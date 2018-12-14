@@ -7,7 +7,7 @@ export default function ColorContrast() {
   const ctx = huet.useTheme();
   const debouncedCtx = useDebounce(ctx.contextValue, 100);
   const sharedSteps = [100 / 16, 100 / 8, 100 / 4, 100 / 2];
-  const colorSteps = [...sharedSteps, 100];
+  const colorSteps = [0, ...sharedSteps, 100];
   // const colorSteps = [4, 8, 16, 32, 64, 100];
   // const colorSteps = [0, 4, 8, 16, 84, 92, 96, 100];
   // const graySteps = [0, 10, 20, 30, 40, 50, 60, 70, 80, 90, 100];
