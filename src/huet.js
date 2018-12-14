@@ -152,7 +152,7 @@ function createRamp(colorOrColors, options) {
   return createRampWithScale(
     chroma
       .scale(finalColors)
-      .mode("hcl")
+      .mode("lab")
       .correctLightness(),
     options
   );
