@@ -159,8 +159,8 @@ function createRamp(colorOrColors, options) {
 }
 
 function getLightness(color) {
-  // return chroma(color).luminance();
-  return chroma(color).get("hcl.l");
+  // return chroma(color).luminance() * 100;
+  return Math.max(0, chroma(color).get("lab.l"));
 }
 
 export default {
