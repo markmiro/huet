@@ -1,8 +1,11 @@
 import chroma from "chroma-js";
 import huet from "./huet";
 
+const darkestGray = "#333333";
+const lightestGray = "#aaaaaa";
+
 let gray = huet.createRampWithScale(
-  chroma.scale(["#000000", "#ffffff"]),
+  chroma.scale([darkestGray, lightestGray]).correctLightness(),
   // .gamma(0.7) // TODO: enable when we can get this working on colors too
   { isNeutral: true }
 );
@@ -58,26 +61,26 @@ const crazyRamps = {
   },
 */
 
-const red = "#f73748";
-
 const shared = {
   ramps: {
     gray,
     white: huet.createDirectRampWithScale(
-      chroma.scale(["#ffffff", "#000000"]).classes([0, 0.7, 1]),
+      chroma.scale([lightestGray, darkestGray]).classes([0, 0.7, 1]),
       { isNeutral: true }
     ),
-    red: huet.createRamp(red),
-    green: huet.createRamp("#3c962a"),
-    blue: huet.createRamp("#3087d6"),
-    gold: huet.createRamp("#c86c00"),
-    purple: huet.createRamp("#a46ad3")
+    red: huet.createRamp([darkestGray, "#f73748", lightestGray]),
+    green: huet.createRamp([darkestGray, "#3c962a", lightestGray]),
+    blue: huet.createRamp([darkestGray, "#3087d6", lightestGray]),
+    gold: huet.createRamp([darkestGray, "#c86c00", lightestGray]),
+    purple: huet.createRamp([darkestGray, "#a46ad3", lightestGray])
   },
   bgScaleValue: 1,
   minColorLightness: 20,
   maxColorLightness: 80,
   contrastMultiplier: 1,
   saturationContrastMultiplier: 1,
+  rescaleContrastToGrayRange: false,
+  avoidClipping: true,
   contrastDirection: "zigzag"
 };
 

@@ -37,7 +37,7 @@ function Switch({ on, ...cases }) {
 }
 
 function App() {
-  const [tab, setTab] = useState("github");
+  const [tab, setTab] = useState("colorContrast");
   return (
     <Themer themes={themes} initialThemeKey="basic">
       <Contrast

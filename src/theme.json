@@ -10,16 +10,37 @@
   },
   "ramps": {
     "neutral": {
-      "colors": ["white", "black"],
-      "classes": [0, 0.7, 1],
-      "gamma": 1,
+      "colors": ["black", "white"],
+      "classes": 5,
+      // "gamma": 1,
       "correctLightness": true,
-      "mode": "hcl", // lrgb, lab
+      "colorModel": "hcl", // lrgb, lab
       "bezier": false,
-      "direct": true
+      "mode": "contrastNeutral" // direct, contrastColored, directOffset
+    },
+    "warning": {
+      "colors": ["black", "warning", "white"],
+      "type": "hue" // normal
     }
   },
   "bgColor": "white",
   "contrastMultiplier": 1,
-  "saturationContrastMultiplier": 1
+  "saturationContrastMultiplier": 1,
+  "allowedContrasts": [4, 8, 16, 32, 64, 128],
+  "variations": {
+    "disabled": {
+      "contrastMultiplier": 0.5,
+      "saturationContrastMultiplier": 0.5
+    },
+    "active": {
+      "contrastMultiplier": 1.5
+    },
+    "invert": {
+      "bgColor": "black"
+    },
+    "superContrast": {
+      "isSuperContrast": true,
+      "bgColor": "black"
+    }
+  }
 }

@@ -52,6 +52,12 @@ export default function Themer({ children, themes, initialThemeKey }) {
     theme.maxColorLightness
   );
 
+  const [rescaleContrastToGrayRange, setRescaleContrastToGrayRange] = useState(
+    theme.rescaleContrastToGrayRange
+  );
+
+  const [avoidClipping, setAvoidClipping] = useState(theme.avoidClipping);
+
   function setTheme(themeKey) {
     const theme = themes[themeKey];
     setThemeKey(themeKey);
@@ -81,6 +87,8 @@ export default function Themer({ children, themes, initialThemeKey }) {
     contrastDirection,
     minColorLightness,
     maxColorLightness,
+    rescaleContrastToGrayRange,
+    avoidClipping,
     isPicking,
     onPickerPick: picked => {
       console.log(picked);
@@ -193,6 +201,19 @@ export default function Themer({ children, themes, initialThemeKey }) {
                 }
                 className="mt2"
               />
+              <Checkbox
+                label="Distort contrast to avoid clipping"
+                isChecked={avoidClipping}
+                onChange={setAvoidClipping}
+                className="mt2"
+              />
+
+              <Checkbox
+                label="Keep colors inside gray range"
+                isChecked={rescaleContrastToGrayRange}
+                onChange={setRescaleContrastToGrayRange}
+                className="mt2"
+              />
             </Contrast>
             <Contrast border={10} className="pa2 bb">
               <div className="flex justify-end items-end flex-wrap">
@@ -260,7 +281,7 @@ export default function Themer({ children, themes, initialThemeKey }) {
                   />
                 </Contrast>
               </div>
-              <Select
+              {/* <Select
                 label="Contrast pattern"
                 value={contrastDirection}
                 onChange={setContrastDirection}
@@ -270,7 +291,7 @@ export default function Themer({ children, themes, initialThemeKey }) {
                 <option value="flipflop">Flipflop</option>
                 <option value="lighter">Lighter</option>
                 <option value="darker">Darker</option>
-              </Select>
+              </Select> */}
             </div>
             <Contrast className="bt pa2" border={10}>
               <Checkbox

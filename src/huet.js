@@ -47,24 +47,66 @@ function relativeColor(ctx, ramp, contrast = 100, a = 100) {
   } else {
     const { min, max } = getMinMax(ctx, ramp);
     const clamp = createClamp(min, max);
-    const contrastAdder = ctx.bgLightness < 50 ? contrast : -contrast;
 
+    // TODO: Causes flicker
+    // let direction;
+    // if (
+    //   ctx.bgLightness - contrast >= min &&
+    //   ctx.bgLightness + contrast <= max
+    // ) {
+    //   switch (ctx.contrastDirection) {
+    //     case "darker":
+    //       direction = -1;
+    //       break;
+    //     case "lighter":
+    //       direction = 1;
+    //       break;
+    //     case "flipflop":
+    //       direction = ctx.bgLightness > ctx.bgLightnessAbove ? -1 : +1;
+    //       break;
+    //     case "zigzag":
+    //     default:
+    //       direction = ctx.bgLightness > ctx.bgLightnessAbove ? 1 : -1;
+    //   }
+    // } else {
+    // }
+    const midpoint = (ramp.startL + ramp.endL) / 2;
+    const direction = ctx.bgLightness < midpoint ? 1 : -1;
+
+    // At 50 in a black to white scale, the highest contrast is 50.
+    // This means contrast of 100 is also 50.
+    // By normalizing we make sure there's always a visible difference
+    // between 50 and 100 and all the colors in between.
     //  __0 _50 100 | Math.abs(50 - ctx.bgLightness)
     //  _50 __0 _50 | $_ / 50
     //  __1 __0 __1 | 1 - $_
     //  __0 __1 __0 | $_ / 2
     //  __0 _.5 __0 | 1 - $_
     //  __1 _.5 __1
-    // const contrastNormalizer =
-    //   1 - (1 - Math.abs(50 - ctx.bgLightness) / 50) / 2;
-    const contrastNormalizer = 1;
+    const contrastNormalizer = ctx.avoidClipping
+      ? 1 - (1 - Math.abs(50 - ctx.bgLightness) / 50) / 2
+      : 1;
 
-    returnColor = ramp.scale(
-      clamp(
-        ctx.bgLightness +
-          contrastAdder * ctx.contrastMultiplier * contrastNormalizer
-      ) / 100
+    const contrastRescale = ctx.rescaleContrastToGrayRange
+      ? (ctx.ramps.gray.endL - ctx.ramps.gray.startL) / 100
+      : 1;
+
+    const targetLightness = clamp(
+      ctx.bgLightness +
+        contrast *
+          direction *
+          ctx.contrastMultiplier *
+          contrastNormalizer *
+          contrastRescale
     );
+
+    // Rescale targetLightness from ramp range to 0-1
+    // const min2 = Math.max(ramp.startL, ctx.ramps.gray.startL);
+    // const max2 = Math.min(ramp.endL, ctx.ramps.gray.endL);
+    const scaleValue =
+      (targetLightness - ramp.startL) / (ramp.endL - ramp.startL);
+
+    returnColor = ramp.scale(scaleValue);
   }
 
   if (ctx.saturationContrastMultiplier !== 1 || a !== 100) {
