@@ -87,7 +87,7 @@ function relativeColor(ctx, ramp, contrast = 100, a = 100) {
   returnColor.forwardContext = children => {
     const newContextValue = {
       ...ctx,
-      color,
+      color: returnColor,
       bgLightnessAbove: ctx.bgLightness,
       bgLightness: returnColor._lightness
     };
