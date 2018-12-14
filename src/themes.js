@@ -2,38 +2,18 @@ import chroma from "chroma-js";
 import huet from "./huet";
 
 let gray = huet.createRampWithScale(
-  chroma.scale(["#000000", "#ffffff"])
+  chroma.scale(["#000000", "#ffffff"]),
   // .gamma(0.7) // TODO: enable when we can get this working on colors too
+  { isNeutral: true }
 );
 
-// let gray = huet.createRampWithScale(
-//   chroma
-//     .scale(["#000000", "#555555", "#999999", "ffffff"])
-//     .domain([0, 0.5, 0.51, 1])
-// );
-
-// let gray = huet.createRampWithScale(
-//   chroma
-//     .scale([
-//       chroma.hcl(0, 0, 50),
-//       chroma.hcl(0, 0, 75),
-
-//       chroma.hcl(0, 0, 75),
-//       chroma.hcl(0, 0, 100),
-
-//       chroma.hcl(0, 0, 0),
-//       chroma.hcl(0, 0, 25),
-
-//       chroma.hcl(0, 0, 25),
-//       chroma.hcl(0, 0, 50)
-//     ])
-//     .domain([0, 0.25, 0.25, 0.5, 0.5, 0.75, 0.75, 1]),
-//   { mode: "direct" }
-// );
-
-const youtubeGray = huet.createRamp(["#121212", "#ffffff"]);
-const tintedBlueGray = huet.createRamp(["#414753", "#ffffff"]);
-const beigeGray = huet.createRamp(["#5b4128", "#fff9f3"]);
+const youtubeGray = huet.createRamp(["#121212", "#ffffff"], {
+  isNeutral: true
+});
+const tintedBlueGray = huet.createRamp(["#414753", "#ffffff"], {
+  isNeutral: true
+});
+const beigeGray = huet.createRamp(["#5b4128", "#fff9f3"], { isNeutral: true });
 
 const crazyRamps = {
   red: huet.createRamp("#ff0000"),
@@ -84,7 +64,8 @@ const shared = {
   ramps: {
     gray,
     white: huet.createDirectRampWithScale(
-      chroma.scale(["#ffffff", "#000000"]).classes([0, 0.7, 1])
+      chroma.scale(["#ffffff", "#000000"]).classes([0, 0.7, 1]),
+      { isNeutral: true }
     ),
     red: huet.createRamp(red),
     green: huet.createRamp("#3c962a"),

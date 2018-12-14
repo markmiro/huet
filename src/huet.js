@@ -14,7 +14,8 @@ function createClamp(min, max) {
 }
 
 function getMinMax(ctx, ramp) {
-  if (ramp === ctx.ramps.gray) {
+  if (ramp.mode === "direct") throw new Error("Direct mode ramps not allowed");
+  if (ramp.isNeutral) {
     return {
       min: ramp.startL,
       max: ramp.endL
@@ -44,8 +45,21 @@ function relativeColor(ctx, ramp, contrast = 100, a = 100) {
     const clamp = createClamp(min, max);
     const contrastAdder = ctx.bgLightness < 50 ? contrast : -contrast;
 
+    //  __0 _50 100 | Math.abs(50 - ctx.bgLightness)
+    //  _50 __0 _50 | $_ / 50
+    //  __1 __0 __1 | 1 - $_
+    //  __0 __1 __0 | $_ / 2
+    //  __0 _.5 __0 | 1 - $_
+    //  __1 _.5 __1
+    // const contrastNormalizer =
+    //   1 - (1 - Math.abs(50 - ctx.bgLightness) / 50) / 2;
+    const contrastNormalizer = 1;
+
     returnColor = ramp.scale(
-      clamp(ctx.bgLightness + contrastAdder * ctx.contrastMultiplier) / 100
+      clamp(
+        ctx.bgLightness +
+          contrastAdder * ctx.contrastMultiplier * contrastNormalizer
+      ) / 100
     );
   }
 
@@ -55,7 +69,6 @@ function relativeColor(ctx, ramp, contrast = 100, a = 100) {
       .alpha(a);
   }
 
-  returnColor._contrast = contrast; // for debugging
   returnColor._ramp = ramp; // for debugging
   returnColor._lightness = getLightness(returnColor); // TODO: stop using this for real work
 
@@ -111,33 +124,37 @@ function useTheme() {
 }
 
 // if bg is 0 then we translate this directly 0 on this scale and so on
-function createRampWithScale(scale) {
+function createRampWithScale(scale, { isNeutral } = { isNeutral: false }) {
   return {
     startL: getLightness(scale(0)),
     endL: getLightness(scale(1)),
-    scale
+    scale,
+    isNeutral
   };
 }
 
-function createDirectRampWithScale(scale) {
+function createDirectRampWithScale(
+  scale,
+  { isNeutral } = { isNeutral: false }
+) {
   return {
     scale,
-    mode: "direct"
+    mode: "direct",
+    isNeutral
   };
 }
 
-function createRamp(colorOrColors) {
+function createRamp(colorOrColors, options) {
   const finalColors = Array.isArray(colorOrColors)
     ? colorOrColors
     : ["#000000", colorOrColors, "#ffffff"];
-  return {
-    ...createRampWithScale(
-      chroma
-        .scale(finalColors)
-        .mode("hcl")
-        .correctLightness()
-    )
-  };
+  return createRampWithScale(
+    chroma
+      .scale(finalColors)
+      .mode("hcl")
+      .correctLightness(),
+    options
+  );
 }
 
 function getLightness(color) {

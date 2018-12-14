@@ -191,13 +191,13 @@ const ColorRamp = ({ ramp, onChangeRamp, themeContext }) => {
       </div> */}
       <div className="w-100 relative flex">
         <InnerRamp ramp={theRamp}>
-          {/* {theRamp !== themeContext.ramps.gray && (
+          {/* {!theRamp.isNeutral && (
             <>
               <Screen from={0} to={themeContext.minColorLightness} />
               <Screen from={themeContext.maxColorLightness} to={100} />
             </>
           )} */}
-          {theRamp !== themeContext.ramps.gray && theRamp.mode !== "direct" && (
+          {!theRamp.isNeutral && theRamp.mode !== "direct" && (
             <>
               <Bracket
                 lightness={themeContext.minColorLightness}

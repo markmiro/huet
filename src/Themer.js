@@ -300,13 +300,13 @@ function InspectRamp({ label, traceColor, nextColor, ctx }) {
       </div>
       <div className="w-30 h1 center relative">
         <InnerRamp ramp={traceColor._ramp}>
-          {traceColor._ramp !== ctx.ramps.gray && (
+          {!traceColor._ramp.isNeutral && (
             <>
               <Screen from={0} to={ctx.minColorLightness} />
               <Screen from={ctx.maxColorLightness} to={100} />
             </>
           )}
-          {traceColor._ramp !== ctx.ramps.gray && (
+          {!traceColor._ramp.isNeutral && (
             <>
               <Bracket lightness={ctx.minColorLightness} direction="left" />
               <Bracket lightness={ctx.maxColorLightness} direction="right" />
