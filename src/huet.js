@@ -70,6 +70,7 @@ function relativeColor(ctx, ramp, contrast = 100, a = 100) {
   }
 
   returnColor._ramp = ramp; // for debugging
+  returnColor._contrast = contrast; // for debugging
   returnColor._lightness = getLightness(returnColor); // TODO: stop using this for real work
 
   returnColor.contrast = (contrast2, { ramp } = {}) =>

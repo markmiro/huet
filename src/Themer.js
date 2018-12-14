@@ -35,11 +35,12 @@ export default function Themer({ children, themes, initialThemeKey }) {
   );
 
   function setRamp(key, i, value) {
-    const colors = ramps[key].scale.colors();
+    const oldRamp = ramps[key];
+    const colors = oldRamp.scale.colors();
     const newColors = [...colors.slice(0, i), value, ...colors.slice(i + 1)];
     setRamps({
       ...ramps,
-      [key]: huet.createRamp(newColors)
+      [key]: huet.createRamp(newColors, { isNeutral: oldRamp.isNeutral })
     });
   }
 
