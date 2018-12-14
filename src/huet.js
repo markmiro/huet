@@ -125,7 +125,7 @@ function useTheme() {
 }
 
 // if bg is 0 then we translate this directly 0 on this scale and so on
-function createRampWithScale(scale, { isNeutral } = { isNeutral: false }) {
+function createRampWithScale(scale, { isNeutral = false } = {}) {
   return {
     startL: getLightness(scale(0)),
     endL: getLightness(scale(1)),
@@ -134,10 +134,7 @@ function createRampWithScale(scale, { isNeutral } = { isNeutral: false }) {
   };
 }
 
-function createDirectRampWithScale(
-  scale,
-  { isNeutral } = { isNeutral: false }
-) {
+function createDirectRampWithScale(scale, { isNeutral = false } = {}) {
   return {
     scale,
     mode: "direct",
