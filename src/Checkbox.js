@@ -7,7 +7,7 @@ const Checkbox = ({ label, isChecked, onChange, style, className }) => {
     <Contrast
       as="label"
       style={style}
-      className={`flex items-center ${className}`}
+      className={`inline-flex items-center ${className}`}
     >
       <input
         type="checkbox"
