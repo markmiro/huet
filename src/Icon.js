@@ -18,8 +18,8 @@ const Icon = ({
   size = "1em",
   alt = "icon"
 }) => {
-  const ctx = huet.useTheme();
-  const color = ctx.contrast(contrast, { ramp });
+  const ctxWrapper = huet.useTheme();
+  const color = ctxWrapper.contrast(contrast, { ramp });
 
   return (
     <Container className={className} style={style}>

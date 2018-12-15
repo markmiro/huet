@@ -99,8 +99,8 @@ const Things = React.memo(({ colorSteps, graySteps, ctx }) => (
 ));
 
 export default function ColorContrast() {
-  const ctx = huet.useTheme();
-  const debouncedCtx = useDebounce(ctx.contextValue, 100);
+  const ctxWrapper = huet.useTheme();
+  const debouncedCtx = useDebounce(ctxWrapper.contextValue, 100);
   const [stepKey, setStepKey] = useBrowserState("increment20");
 
   return (

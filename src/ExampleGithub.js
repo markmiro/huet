@@ -6,8 +6,8 @@ import Icon from "./Icon";
 const { ThemeContext } = huet;
 
 export default function Github() {
-  const ctx = huet.useTheme();
-  const borderColor = ctx.contrast(20);
+  const ctxWrapper = huet.useTheme();
+  const borderColor = ctxWrapper.contrast(20);
 
   return (
     <>
@@ -28,12 +28,12 @@ export default function Github() {
               <div
                 className="pa2 mr1 bt bl br"
                 style={{
-                  backgroundColor: ctx.value.color,
-                  color: ctx.contrast(100),
+                  backgroundColor: ctxWrapper.contextValue.color,
+                  color: ctxWrapper.contrast(100),
                   borderLeftColor: borderColor,
                   borderRightColor: borderColor,
                   borderTopWidth: "0.2em",
-                  borderTopColor: ctx.contrast(30, { ramp: "gold" }),
+                  borderTopColor: ctxWrapper.contrast(30, { ramp: "gold" }),
                   borderTopLeftRadius: ".2em",
                   borderTopRightRadius: ".2em",
                   transform: "translateY(1px)"
@@ -83,11 +83,12 @@ export default function Github() {
 }
 
 function Experiments() {
-  const ctx = useContext(ThemeContext);
-  const theme = huet.useTheme();
+  const ctxWrapper = huet.useTheme();
 
   function gradient(contrast) {
-    return `linear-gradient(to right, transparent, ${theme.contrast(contrast)}`;
+    return `linear-gradient(to right, transparent, ${ctxWrapper.contrast(
+      contrast
+    )}`;
   }
   return (
     <div className="mt2">
@@ -107,7 +108,7 @@ function Experiments() {
         bg={30}
         className="h2 mt2"
         style={{
-          boxShadow: `0 5px 10px ${theme.darkColor({
+          boxShadow: `0 5px 10px ${ctxWrapper.darkColor({
             alpha: 0.2
           })}`
         }}
@@ -119,22 +120,22 @@ function Experiments() {
         text={70}
         className="pa2 tc br2 ba mt3 w-100 f4"
         style={{
-          background: `linear-gradient(transparent, ${theme.contrast(5)})`,
-          boxShadow: `0 1px 2px ${theme.darkColor({ alpha: 0.15 })}`,
+          background: `linear-gradient(transparent, ${ctxWrapper.contrast(5)})`,
+          boxShadow: `0 1px 2px ${ctxWrapper.darkColor({ alpha: 0.15 })}`,
           maxWidth: "100%"
         }}
       >
         Button
       </H>
       <div className="flex mt3">
-        {Object.keys(ctx.ramps).map(key => (
+        {Object.keys(ctxWrapper.contextValue.ramps).map(key => (
           <H key={key} className="pa1 mr1 tc w-100 f4" bg={45} bgRamp={key}>
             {key}
           </H>
         ))}
       </div>
       <div className="flex mt1">
-        {Object.keys(ctx.ramps).map(key => (
+        {Object.keys(ctxWrapper.contextValue.ramps).map(key => (
           <H key={key} className="pa1 mr1 tc w-100 f4" bgRamp={key} bg={5}>
             {key}
           </H>
