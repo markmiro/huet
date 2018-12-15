@@ -78,15 +78,14 @@ function relativeColor(ctx, ramp, contrast = 100, a = 100) {
     // This means contrast of 100 is also 50.
     // By normalizing we make sure there's always a visible difference
     // between 50 and 100 and all the colors in between.
-    //  __0 _50 100 | Math.abs(50 - ctx.bgLightness)
-    //  _50 __0 _50 | $_ / 50
-    //  __1 __0 __1 | 1 - $_
-    //  __0 __1 __0 | $_ / 2
-    //  __0 _.5 __0 | 1 - $_
-    //  __1 _.5 __1
+    //              | ctx.bgLightness
+    //  __0 _50 100 | $_/100
+    //  __0 _.5 __1 | Math.abs(.5 - ctx.bgLightness/100)
+    //  _.5 __0 _.5 | $_ + .5
+    //  __1 _.5 __1 |
     const contrastNormalizer = ctx.normalizeContrastToContext
       ? ramp === ctx.ramps.gray
-        ? 1 - (1 - Math.abs(50 - ctx.bgLightness) / 50) / 2
+        ? Math.abs(0.5 - ctx.bgLightness / 100) + 0.5
         : (max - min) / 100
       : 1;
 
