@@ -1,10 +1,11 @@
-import React, { useState, useContext } from "react";
+import React, { useContext } from "react";
 import ReactDOM from "react-dom";
 
 import "./styles.css";
 import Themer from "./Themer";
 import themes from "./themes";
 import huet from "./huet";
+import useBrowserState from "./useBrowserState";
 
 import Contrast from "./Contrast";
 import Select from "./Select";
@@ -42,7 +43,7 @@ function Switch({ on, ...cases }) {
 }
 
 function App() {
-  const [tab, setTab] = useState("colorContrast");
+  const [tab, setTab] = useBrowserState("colorContrast");
   return (
     <Themer themes={themes} initialThemeKey="teal">
       <Contrast

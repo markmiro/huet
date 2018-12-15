@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from "react";
 import isNumber from "lodash/isNumber";
+import useBrowserState, { reset } from "./useBrowserState";
 import huet from "./huet";
 import Range from "./Range";
 import Contrast from "./Contrast";
@@ -18,18 +19,18 @@ import ColorRamp, {
 const { ThemeContext } = huet;
 
 export default function Themer({ children, themes, initialThemeKey }) {
-  const [themeKey, setThemeKey] = useState(initialThemeKey);
+  const [themeKey, setThemeKey] = useBrowserState(initialThemeKey);
   const theme = themes[themeKey];
 
-  const [bgScaleValue, setBgScaleValue] = useState(theme.bgScaleValue);
-  const [contrastMultiplier, setContrastMultiplier] = useState(
+  const [bgScaleValue, setBgScaleValue] = useBrowserState(theme.bgScaleValue);
+  const [contrastMultiplier, setContrastMultiplier] = useBrowserState(
     theme.contrastMultiplier
   );
   const [ramps, setRamps] = useState(theme.ramps);
   const [
     saturationContrastMultiplier,
     setSaturationContrastMultiplier
-  ] = useState(theme.saturationContrastMultiplier);
+  ] = useBrowserState(theme.saturationContrastMultiplier);
 
   const [contrastDirection, setContrastDirection] = useState(
     theme.contrastDirection
@@ -45,16 +46,17 @@ export default function Themer({ children, themes, initialThemeKey }) {
     });
   }
 
-  const [minColorLightness, setMinColorLightness] = useState(
+  const [minColorLightness, setMinColorLightness] = useBrowserState(
     theme.minColorLightness
   );
-  const [maxColorLightness, setMaxColorLightness] = useState(
+  const [maxColorLightness, setMaxColorLightness] = useBrowserState(
     theme.maxColorLightness
   );
 
-  const [rescaleContrastToGrayRange, setRescaleContrastToGrayRange] = useState(
-    theme.rescaleContrastToGrayRange
-  );
+  const [
+    rescaleContrastToGrayRange,
+    setRescaleContrastToGrayRange
+  ] = useBrowserState(theme.rescaleContrastToGrayRange);
 
   const [
     rescaleColorContrastToGrayRange,
@@ -63,9 +65,10 @@ export default function Themer({ children, themes, initialThemeKey }) {
 
   const canAdjustToGray = ramps.gray.endL - ramps.gray.startL < 90;
 
-  const [normalizeContrastToContext, setnormalizeContrastToContext] = useState(
-    theme.normalizeContrastToContext
-  );
+  const [
+    normalizeContrastToContext,
+    setnormalizeContrastToContext
+  ] = useBrowserState(theme.normalizeContrastToContext);
 
   function setTheme(themeKey) {
     const theme = themes[themeKey];
@@ -122,8 +125,10 @@ export default function Themer({ children, themes, initialThemeKey }) {
   );
 
   // Themer stuff
-  const [isExpanded, setIsExpanded] = useState(false);
-  const [shouldThemeSelf, setShouldThemeSelf] = useState(false);
+  const [isExpanded, setIsExpanded] = useBrowserState(false, {
+    at: "isExpanded"
+  });
+  const [shouldThemeSelf, setShouldThemeSelf] = useBrowserState(false);
 
   const themerContext = shouldThemeSelf
     ? { ...ctx, isPicking: false }
@@ -180,6 +185,9 @@ export default function Themer({ children, themes, initialThemeKey }) {
             </Contrast>
           </Contrast>
           <div className="overflow-y-scroll overflow-x-hidden">
+            <Button className="ma2" onClick={reset}>
+              Reset Settings
+            </Button>
             <ColorInspector
               isPicking={isPicking}
               setIsPicking={setIsPicking}
@@ -380,7 +388,7 @@ function ColorInspector({ isPicking, setIsPicking, pickedObject, onClear }) {
       <div className="flex">
         <Button isActive={isPicking} onClick={() => setIsPicking(is => !is)}>
           <Icon name="gps_fixed" ramp="white" className="mr1" />{" "}
-          <Contrast textRamp="white">Inspect color</Contrast>
+          <Contrast textRamp="white">Inspect Color</Contrast>
         </Button>
         {pickedObject && (
           <Button

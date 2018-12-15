@@ -1,6 +1,7 @@
-import React, { useState } from "react";
+import React from "react";
 import range from "lodash/range";
 import huet from "./huet";
+import useBrowserState from "./useBrowserState";
 import Contrast from "./Contrast";
 import { useDebounce } from "use-debounce";
 import Select from "./Select";
@@ -43,7 +44,7 @@ export default function ColorContrast() {
   const ctx = huet.useTheme();
   const debouncedCtx = useDebounce(ctx.contextValue, 100);
 
-  const [stepKey, setStepKey] = useState("increment20");
+  const [stepKey, setStepKey] = useBrowserState("increment20");
 
   const { colorSteps, graySteps } = stepSizes[stepKey];
 
