@@ -3,10 +3,11 @@ import Contrast from "./Contrast";
 import Icon from "./Icon";
 
 const Select = ({ value, onChange, label, children, className }) => {
-  const text =
+  const selectedChild =
     children &&
-    React.Children.toArray(children).find(child => child.props.value === value)
-      .props.children;
+    React.Children.toArray(children).find(child => child.props.value === value);
+  const text = selectedChild ? selectedChild.props.children : "None";
+  const finalValue = selectedChild ? value : "";
   return (
     <div className={className}>
       <Contrast className="db mb1">{label}</Contrast>
@@ -16,11 +17,12 @@ const Select = ({ value, onChange, label, children, className }) => {
         className="relative dib w-100 flex justify-between input"
       >
         <select
-          value={value}
+          value={finalValue}
           className="o-0 absolute w-100 h-100 top-0 left-0"
           onChange={e => onChange(e.target.value)}
         >
           {children}
+          {!selectedChild && <option value="">None</option>}
         </select>
         {text}
         <Icon name="chevron" size=".6em" className="ml2 rotate-90" />
