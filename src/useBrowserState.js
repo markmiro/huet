@@ -43,7 +43,6 @@ export default function useBrowserState(defaultValue, { at } = {}) {
 
   const debounceSaveToLocalStorage = useCallback(
     debounce((key, value) => {
-      if (key === "isExpanded") debugger;
       localStorage.setItem(key, JSON.stringify(value));
     }, 500),
     []
