@@ -160,6 +160,11 @@ function relativeColor(ctx, ramp, contrast = 100, a = 100) {
   return returnColor;
 }
 
+function getLightness(color) {
+  // return chroma(color).luminance() * 100;
+  return Math.max(0, chroma(color).get("lab.l"));
+}
+
 function color(ctx, col, a) {
   return chroma(col)
     .set("hcl.c", `*${ctx.saturationContrastMultiplier}`)
@@ -211,11 +216,6 @@ function createRamp(colorOrColors, options) {
       .correctLightness(),
     options
   );
-}
-
-function getLightness(color) {
-  // return chroma(color).luminance() * 100;
-  return Math.max(0, chroma(color).get("lab.l"));
 }
 
 export default {
