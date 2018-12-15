@@ -9,24 +9,33 @@
     "success": "#1d8835"
   },
   "ramps": {
-    "neutral": {
+    "base": {
       "colors": ["black", "white"],
       "classes": 5,
       // "gamma": 1,
       "correctLightness": true,
       "colorModel": "hcl", // lrgb, lab
       "bezier": false,
-      "mode": "contrastNeutral" // direct, contrastColored, directOffset
+      "mode": "contrast.neutral" // direct, contrast.colored, directOffset
     },
+    "backgroundGray": [
+      {
+        "ramp": "base",
+        "scaleValue": 0.5
+      },
+      {
+        "ramp": "base",
+        "scaleValue": 1
+      }
+    ],
     "warning": {
-      "colors": ["black", "warning", "white"],
-      "type": "hue" // normal
+      "colors": ["black", "warning", "white"]
     }
   },
   "bgColor": "white",
   "contrastMultiplier": 1,
   "saturationContrastMultiplier": 1,
-  "allowedContrasts": [4, 8, 16, 32, 64, 128],
+  "allowedContrasts": [4, 8, 16, 32, 64, 128], // biggest number represents 100% contrast
   "variations": {
     "disabled": {
       "contrastMultiplier": 0.5,

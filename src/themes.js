@@ -1,8 +1,11 @@
 import chroma from "chroma-js";
 import huet from "./huet";
 
-const darkestGray = "#333333";
-const lightestGray = "#aaaaaa";
+// const darkestGray = "#333333";
+// const lightestGray = "#aaaaaa";
+
+const darkestGray = "#000000";
+const lightestGray = "#ffffff";
 
 let gray = huet.createRampWithScale(
   chroma.scale([darkestGray, lightestGray]).correctLightness(),
@@ -79,8 +82,8 @@ const shared = {
   maxColorLightness: 80,
   contrastMultiplier: 1,
   saturationContrastMultiplier: 1,
-  rescaleContrastToGrayRange: false,
-  avoidClipping: true,
+  rescaleContrastToGrayRange: true,
+  normalizeContrastToContext: true,
   contrastDirection: "zigzag"
 };
 
@@ -129,7 +132,16 @@ const themes = {
       gray: beigeGray
     },
     bgScaleValue: 0
-  }
+  },
+  teal: {
+    ...shared,
+    name: "Subtle Teal",
+    ramps: {
+      ...shared.ramps,
+      gray: huet.createRamp(["#004a43", "#9a8e84"])
+    }
+  },
+  bgScaleValue: 0
 };
 
 window.themes = themes;

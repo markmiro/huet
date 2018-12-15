@@ -31,6 +31,11 @@ function Basic() {
   );
 }
 
+window.debug = function(thing) {
+  debugger;
+  return thing;
+};
+
 function Switch({ on, ...cases }) {
   const Thing = cases[on];
   return <Thing />;
@@ -39,7 +44,7 @@ function Switch({ on, ...cases }) {
 function App() {
   const [tab, setTab] = useState("colorContrast");
   return (
-    <Themer themes={themes} initialThemeKey="basic">
+    <Themer themes={themes} initialThemeKey="crazy">
       <Contrast
         bg={10}
         border={100}

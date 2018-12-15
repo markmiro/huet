@@ -1,4 +1,5 @@
 import React from "react";
+import range from "lodash/range";
 import huet from "./huet";
 import Contrast from "./Contrast";
 import { useDebounce } from "use-debounce";
@@ -7,18 +8,20 @@ export default function ColorContrast() {
   const ctx = huet.useTheme();
   const debouncedCtx = useDebounce(ctx.contextValue, 100);
   const sharedSteps = [100 / 16, 100 / 8, 100 / 4, 100 / 2];
-  const colorSteps = [0, ...sharedSteps, 100];
-  // const colorSteps = [4, 8, 16, 32, 64, 100];
-  // const colorSteps = [0, 4, 8, 16, 84, 92, 96, 100];
-  // const graySteps = [0, 10, 20, 30, 40, 50, 60, 70, 80, 90, 100];
-  const graySteps = [
-    0,
-    ...sharedSteps,
-    100 - 100 / 4,
-    100 - 100 / 8,
-    100 - 100 / 16,
-    100
-  ];
+  // const colorSteps = [0, ...sharedSteps, 100];
+  // // const colorSteps = [4, 8, 16, 32, 64, 100];
+  // // const colorSteps = [0, 4, 8, 16, 84, 92, 96, 100];
+  // const graySteps = [
+  //   0,
+  //   ...sharedSteps,
+  //   100 - 100 / 4,
+  //   100 - 100 / 8,
+  //   100 - 100 / 16,
+  //   100
+  // ];
+
+  const colorSteps = range(0, 120, 20);
+  const graySteps = colorSteps;
 
   return (
     <huet.ThemeContext.Provider value={debouncedCtx}>
@@ -53,6 +56,24 @@ export default function ColorContrast() {
                       </Contrast>
                     ))
                   )}
+                  <div className="flex flex-column">
+                    <div
+                      className="w1 h-100"
+                      style={{
+                        backgroundColor: ctx.contextValue.ramps[ramp].scale(
+                          ctx.contextValue.maxColorLightness / 100
+                        )
+                      }}
+                    />
+                    <div
+                      className="w1 h-100"
+                      style={{
+                        backgroundColor: ctx.contextValue.ramps[ramp].scale(
+                          ctx.contextValue.minColorLightness / 100
+                        )
+                      }}
+                    />
+                  </div>
                 </div>
               ))}
             </div>

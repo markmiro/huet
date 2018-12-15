@@ -56,7 +56,9 @@ export default function Themer({ children, themes, initialThemeKey }) {
     theme.rescaleContrastToGrayRange
   );
 
-  const [avoidClipping, setAvoidClipping] = useState(theme.avoidClipping);
+  const [normalizeContrastToContext, setnormalizeContrastToContext] = useState(
+    theme.normalizeContrastToContext
+  );
 
   function setTheme(themeKey) {
     const theme = themes[themeKey];
@@ -88,7 +90,7 @@ export default function Themer({ children, themes, initialThemeKey }) {
     minColorLightness,
     maxColorLightness,
     rescaleContrastToGrayRange,
-    avoidClipping,
+    normalizeContrastToContext,
     isPicking,
     onPickerPick: picked => {
       console.log(picked);
@@ -202,14 +204,14 @@ export default function Themer({ children, themes, initialThemeKey }) {
                 className="mt2"
               />
               <Checkbox
-                label="Distort contrast to avoid clipping"
-                isChecked={avoidClipping}
-                onChange={setAvoidClipping}
+                label="Rescale contrast to context"
+                isChecked={normalizeContrastToContext}
+                onChange={setnormalizeContrastToContext}
                 className="mt2"
               />
 
               <Checkbox
-                label="Keep colors inside gray range"
+                label="Rescale contrast to gray range"
                 isChecked={rescaleContrastToGrayRange}
                 onChange={setRescaleContrastToGrayRange}
                 className="mt2"

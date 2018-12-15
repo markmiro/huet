@@ -15,12 +15,15 @@ function createClamp(min, max) {
 
 function getMinMax(ctx, ramp) {
   if (ramp.mode === "direct") throw new Error("Direct mode ramps not allowed");
+
+  // Neutral ramps don't have min and max limitations
   if (ramp.isNeutral) {
     return {
       min: ramp.startL,
       max: ramp.endL
     };
   }
+
   const midpoint = (ramp.startL + ramp.endL) / 2;
   if (ctx.bgLightness < midpoint) {
     return {
@@ -45,10 +48,8 @@ function relativeColor(ctx, ramp, contrast = 100, a = 100) {
         (ctx.ramps.gray.endL - ctx.ramps.gray.startL)
     );
   } else {
-    const { min, max } = getMinMax(ctx, ramp);
-    const clamp = createClamp(min, max);
-
     // TODO: Causes flicker
+    // const { min, max } = getMinMax(ctx, ramp);
     // let direction;
     // if (
     //   ctx.bgLightness - contrast >= min &&
@@ -70,8 +71,8 @@ function relativeColor(ctx, ramp, contrast = 100, a = 100) {
     //   }
     // } else {
     // }
-    const midpoint = (ramp.startL + ramp.endL) / 2;
-    const direction = ctx.bgLightness < midpoint ? 1 : -1;
+
+    const { min, max } = getMinMax(ctx, ramp);
 
     // At 50 in a black to white scale, the highest contrast is 50.
     // This means contrast of 100 is also 50.
@@ -83,14 +84,19 @@ function relativeColor(ctx, ramp, contrast = 100, a = 100) {
     //  __0 __1 __0 | $_ / 2
     //  __0 _.5 __0 | 1 - $_
     //  __1 _.5 __1
-    const contrastNormalizer = ctx.avoidClipping
-      ? 1 - (1 - Math.abs(50 - ctx.bgLightness) / 50) / 2
+    const contrastNormalizer = ctx.normalizeContrastToContext
+      ? ramp === ctx.ramps.gray
+        ? 1 - (1 - Math.abs(50 - ctx.bgLightness) / 50) / 2
+        : (max - min) / 100
       : 1;
 
     const contrastRescale = ctx.rescaleContrastToGrayRange
       ? (ctx.ramps.gray.endL - ctx.ramps.gray.startL) / 100
       : 1;
 
+    const midpoint = (ramp.startL + ramp.endL) / 2;
+    const direction = ctx.bgLightness < midpoint ? 1 : -1;
+    const clamp = createClamp(min, max);
     const targetLightness = clamp(
       ctx.bgLightness +
         contrast *
@@ -101,8 +107,6 @@ function relativeColor(ctx, ramp, contrast = 100, a = 100) {
     );
 
     // Rescale targetLightness from ramp range to 0-1
-    // const min2 = Math.max(ramp.startL, ctx.ramps.gray.startL);
-    // const max2 = Math.min(ramp.endL, ctx.ramps.gray.endL);
     const scaleValue =
       (targetLightness - ramp.startL) / (ramp.endL - ramp.startL);
 
