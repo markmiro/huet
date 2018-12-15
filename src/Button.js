@@ -19,6 +19,8 @@ export default function Button({
   style,
   children,
   isActive,
+  verify,
+  onClick,
   ...rest
 }) {
   return (
@@ -27,8 +29,17 @@ export default function Button({
       bgRamp={isActive ? "blue" : "gray"}
       bg={10}
       text={50}
+      onClick={e => {
+        if (verify) {
+          const didAccept = window.confirm(
+            verify === true ? "Are you sure?" : verify
+          );
+          if (!didAccept) return;
+        }
+        onClick(e);
+      }}
       {...rest}
-      className={`flex ${className}`}
+      className={`flex justify-center ${className}`}
       style={style}
     >
       {children}

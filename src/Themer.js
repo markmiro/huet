@@ -185,9 +185,6 @@ export default function Themer({ children, themes, initialThemeKey }) {
             </Contrast>
           </Contrast>
           <div className="overflow-y-scroll overflow-x-hidden">
-            <Button className="ma2" onClick={reset}>
-              Reset Settings
-            </Button>
             <ColorInspector
               isPicking={isPicking}
               setIsPicking={setIsPicking}
@@ -324,12 +321,21 @@ export default function Themer({ children, themes, initialThemeKey }) {
                 <option value="darker">Darker</option>
               </Select> */}
             </div>
-            <Contrast className="bt pa2" border={10}>
+            <Contrast className="bt pa2 flex justify-between" border={10}>
               <Checkbox
                 label="Theme the themer"
                 isChecked={shouldThemeSelf}
                 onChange={setShouldThemeSelf}
               />
+              <Button
+                bg={50}
+                bgRamp="red"
+                textRamp="white"
+                onClick={reset}
+                verify
+              >
+                Reset Settings
+              </Button>
             </Contrast>
           </div>
         </Contrast>
