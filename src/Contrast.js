@@ -42,7 +42,8 @@ const Contrast = props => {
   if (debug) {
     debugger;
   }
-  const context = huet.useTheme();
+  const ctxWrapper = huet.useTheme();
+  const ctx = ctxWrapper.contextValue;
   const ref = React.useRef();
 
   let finalChildren = children;
@@ -50,7 +51,7 @@ const Contrast = props => {
   let textColor = null;
 
   if (bg !== null) {
-    backgroundColor = context.contrast(bg, {
+    backgroundColor = ctxWrapper.contrast(bg, {
       ramp: bgRamp,
       alpha: bgAlpha
     });
@@ -60,7 +61,7 @@ const Contrast = props => {
     });
     finalChildren = backgroundColor.forwardContext(children);
   } else {
-    textColor = context.contrast(text, {
+    textColor = ctxWrapper.contrast(text, {
       ramp: textRamp,
       alpha: textAlpha
     });
@@ -74,21 +75,23 @@ const Contrast = props => {
     color: textColor,
     borderColor:
       border !== null
-        ? context.contrast(border, { ramp: borderRamp, alpha: borderAlpha })
+        ? ctxWrapper.contrast(border, { ramp: borderRamp, alpha: borderAlpha })
         : null,
     outlineColor:
       outline !== null
-        ? context.contrast(outline, { ramp: outlineRamp, alpha: outlineAlpha })
+        ? ctxWrapper.contrast(outline, {
+            ramp: outlineRamp,
+            alpha: outlineAlpha
+          })
         : null
   };
 
   if (
-    context.value.isPicking ||
-    (context.value.pickedObject &&
-      context.value.pickedObject.currentRef === ref.current)
+    ctx.isPicking ||
+    (ctx.pickedObject && ctx.pickedObject.currentRef === ref.current)
   ) {
     isPickingStyle = {
-      outlineColor: (backgroundColor || context).contrast(100, {
+      outlineColor: (backgroundColor || ctxWrapper).contrast(100, {
         ramp: "blue"
       }),
       outlineWidth: 1,
@@ -97,12 +100,12 @@ const Contrast = props => {
     };
     isPickingProps = {
       onClick: e => {
-        context.value.onPickerPick({
+        ctx.onPickerPick({
           currentRef: ref.current,
-          contextValue: context.value,
+          contextValue: ctx,
           props,
           traceColors: {
-            context: context.value.color,
+            context: ctx.color,
             bg: coloredStyle.backgroundColor,
             text: coloredStyle.color
           }
