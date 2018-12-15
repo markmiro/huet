@@ -13,6 +13,15 @@ function createClamp(min, max) {
   return n => Math.max(min, Math.min(max, n));
 }
 
+// function createTransform([aMin, aMax], [bMin, bMax]) {
+//   const aRange = aMax - aMin;
+//   const bRange = bMax - bMin;
+//   return i => {
+//     const normalized = (i - aMin) / aRange; // from 0 to 1 now
+//     return normalized * bRange + bMin;
+//   };
+// }
+
 function getMinMax(ctx, ramp) {
   if (ramp.mode === "direct") throw new Error("Direct mode ramps not allowed");
 
@@ -171,9 +180,8 @@ function color(ctx, col, a) {
     .alpha(a * ctx.contrastMultiplier);
 }
 
-function contrastFunctions(ctx) {
+function createCtxWrapper(ctx) {
   return {
-    value: ctx,
     contextValue: ctx,
     darkColor: ({ ramp = "gray", alpha }) =>
       color(ctx, ctx.ramps[ramp].scale(0), alpha),
@@ -182,9 +190,19 @@ function contrastFunctions(ctx) {
   };
 }
 
+function createTheme(theme) {
+  const bgLightness = getLightness(theme.ramps.gray.scale(theme.bgScaleValue));
+  return createCtxWrapper({
+    // TODO: putting above because it can get overwritten
+    bgLightness,
+    bgLightnessAbove: bgLightness,
+    ...theme
+  });
+}
+
 function useTheme() {
   const ctx = useContext(ThemeContext);
-  return contrastFunctions(ctx);
+  return createCtxWrapper(ctx);
 }
 
 // if bg is 0 then we translate this directly 0 on this scale and so on
@@ -224,7 +242,8 @@ export default {
   createRampWithScale,
   getLightness,
   // funcs for context
-  contrastFunctions,
+  createTheme,
+  createCtxWrapper,
   useTheme,
   ThemeContext
 };

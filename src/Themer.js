@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState } from "react";
 import isNumber from "lodash/isNumber";
 import useBrowserState, { reset } from "./useBrowserState";
 import huet from "./huet";
@@ -18,26 +18,62 @@ import ColorRamp, {
 
 const { ThemeContext } = huet;
 
-export default function Themer({ children, themes, initialThemeKey }) {
-  const [themeKey, setThemeKey] = useBrowserState(initialThemeKey);
-  const theme = themes[themeKey];
+export default function Themer({ themes, theme, onChangeTheme }) {
+  const [isExpanded, setIsExpanded] = useBrowserState(false);
+  const [shouldThemeSelf, setShouldThemeSelf] = useBrowserState(false);
+  let isPicking, pickedObject, setIsPicking, setPickedObject;
 
-  const [bgScaleValue, setBgScaleValue] = useBrowserState(theme.bgScaleValue);
-  const [contrastMultiplier, setContrastMultiplier] = useBrowserState(
-    theme.contrastMultiplier
+  const ctx = huet.createTheme(theme).contextValue;
+  const canAdjustToGray = ctx.ramps.gray.endL - ctx.ramps.gray.startL < 90;
+
+  function modify(key) {
+    const setFunc = newValue => {
+      onChangeTheme({
+        ...theme,
+        rescaleContrastToGrayRange: canAdjustToGray
+          ? theme.rescaleContrastToGrayRange
+          : false,
+        rescaleColorContrastToGrayRange: canAdjustToGray
+          ? theme.rescaleColorContrastToGrayRange
+          : false,
+        onPickerPick: picked => {
+          console.log(picked);
+          setPickedObject(picked);
+          setIsPicking(false);
+        },
+        [key]: newValue
+      });
+    };
+    const value = theme[key];
+    return [value, setFunc];
+  }
+
+  const [bgScaleValue, setBgScaleValue] = modify("bgScaleValue");
+  const [contrastMultiplier, setContrastMultiplier] = modify(
+    "contrastMultiplier"
   );
-  const [ramps, setRamps] = useState(theme.ramps);
   const [
     saturationContrastMultiplier,
     setSaturationContrastMultiplier
-  ] = useBrowserState(theme.saturationContrastMultiplier);
-
-  const [contrastDirection, setContrastDirection] = useState(
-    theme.contrastDirection
+  ] = modify("saturationContrastMultiplier");
+  const [ramps, setRamps] = modify("ramps");
+  const [minColorLightness, setMinColorLightness] = modify("minColorLightness");
+  const [maxColorLightness, setMaxColorLightness] = modify("maxColorLightness");
+  const [rescaleContrastToGrayRange, setRescaleContrastToGrayRange] = modify(
+    "rescaleContrastToGrayRange"
   );
+  const [
+    rescaleColorContrastToGrayRange,
+    setRescaleColorContrastToGrayRange
+  ] = modify("rescaleColorContrastToGrayRange");
+  const [normalizeContrastToContext, setNormalizeContrastToContext] = modify(
+    "normalizeContrastToContext"
+  );
+  [isPicking, setIsPicking] = modify("isPicking");
+  [pickedObject, setPickedObject] = modify("pickedObject");
 
   function setRamp(key, i, value) {
-    const oldRamp = ramps[key];
+    const oldRamp = ctx.ramps[key];
     const colors = oldRamp.scale.colors();
     const newColors = [...colors.slice(0, i), value, ...colors.slice(i + 1)];
     setRamps({
@@ -46,91 +82,23 @@ export default function Themer({ children, themes, initialThemeKey }) {
     });
   }
 
-  const [minColorLightness, setMinColorLightness] = useBrowserState(
-    theme.minColorLightness
-  );
-  const [maxColorLightness, setMaxColorLightness] = useBrowserState(
-    theme.maxColorLightness
+  const themeKey = Object.keys(themes).find(
+    themeKey => themes[themeKey] === theme
   );
 
-  const [
-    rescaleContrastToGrayRange,
-    setRescaleContrastToGrayRange
-  ] = useBrowserState(theme.rescaleContrastToGrayRange);
-
-  const [
-    rescaleColorContrastToGrayRange,
-    setRescaleColorContrastToGrayRange
-  ] = useState(theme.rescaleColorContrastToGrayRange);
-
-  const canAdjustToGray = ramps.gray.endL - ramps.gray.startL < 90;
-
-  const [
-    normalizeContrastToContext,
-    setnormalizeContrastToContext
-  ] = useBrowserState(theme.normalizeContrastToContext);
-
-  function setTheme(themeKey) {
-    const theme = themes[themeKey];
-    setThemeKey(themeKey);
-    setRamps(theme.ramps);
-    // setBgScaleValue(theme.bgScaleValue);
-    // setContrastMultiplier(theme.contrastMultiplier);
-    // setSaturationContrastMultiplier(theme.saturationContrastMultiplier);
-    setMinColorLightness(theme.minColorLightness);
-    setMaxColorLightness(theme.maxColorLightness);
-    setContrastDirection(theme.contrastDirection);
+  function setThemeKey(themeKey) {
+    onChangeTheme(themes[themeKey]);
+    // setRamps(theme.ramps);
+    // // setBgScaleValue(theme.bgScaleValue);
+    // // setContrastMultiplier(theme.contrastMultiplier);
+    // // setSaturationContrastMultiplier(theme.saturationContrastMultiplier);
+    // setMinColorLightness(theme.minColorLightness);
+    // setMaxColorLightness(theme.maxColorLightness);
     setIsPicking(false);
     setPickedObject(null);
   }
 
-  const [isPicking, setIsPicking] = useState(false);
-  const [pickedObject, setPickedObject] = useState();
-
-  const bgLightness = huet.getLightness(ramps.gray.scale(bgScaleValue));
-
-  const ctx = {
-    ...theme,
-    ramps,
-    bgLightness: bgLightness,
-    bgLightnessAbove: bgLightness,
-    contrastMultiplier,
-    saturationContrastMultiplier,
-    contrastDirection,
-    minColorLightness,
-    maxColorLightness,
-    rescaleContrastToGrayRange: canAdjustToGray
-      ? rescaleContrastToGrayRange
-      : false,
-    rescaleColorContrastToGrayRange: canAdjustToGray
-      ? rescaleColorContrastToGrayRange
-      : false,
-    normalizeContrastToContext,
-    isPicking,
-    onPickerPick: picked => {
-      console.log(picked);
-      setPickedObject(picked);
-      setIsPicking(false);
-    },
-    pickedObject
-  };
-
-  useEffect(
-    () => {
-      document.body.style.backgroundColor = huet
-        .contrastFunctions(ctx)
-        .contrast(0);
-    },
-    [bgScaleValue, ramps, saturationContrastMultiplier]
-  );
-
-  // Themer stuff
-  const [isExpanded, setIsExpanded] = useBrowserState(false, {
-    at: "isExpanded"
-  });
-  const [shouldThemeSelf, setShouldThemeSelf] = useBrowserState(false);
-
-  const themerContext = shouldThemeSelf
+  const themerCtx = shouldThemeSelf
     ? { ...ctx, isPicking: false }
     : {
         ...themes.basic,
@@ -139,208 +107,180 @@ export default function Themer({ children, themes, initialThemeKey }) {
       };
 
   return (
-    <>
-      <ThemeContext.Provider value={ctx}>
+    <ThemeContext.Provider value={themerCtx}>
+      <Contrast
+        className="Themer f7 flex flex-column"
+        outline={20}
+        bg={0}
+        style={{
+          outlineWidth: 1,
+          outlineStyle: "solid",
+          boxShadow: `0 5px 30px ${themerCtx.ramps.gray.scale(0)}`,
+          position: "fixed",
+          bottom: 0,
+          right: 0,
+          maxHeight: isExpanded ? "100vh" : "20vh",
+          zIndex: 9999999,
+          width: "30em"
+        }}
+      >
         <Contrast
-          bg={0}
+          bg={100}
+          className="db flex justify-between"
           style={{
-            ...(ctx.globalStyles && ctx.globalStyles)
+            flexShrink: 0,
+            userSelect: "none"
           }}
+          onClick={() => setIsExpanded(v => !v)}
         >
-          {children}
-        </Contrast>
-      </ThemeContext.Provider>
-      <ThemeContext.Provider value={themerContext}>
-        <Contrast
-          className="Themer f7 flex flex-column"
-          outline={20}
-          bg={0}
-          style={{
-            outlineWidth: 1,
-            outlineStyle: "solid",
-            boxShadow: `0 5px 30px ${themerContext.ramps.gray.scale(0)}`,
-            position: "fixed",
-            bottom: 0,
-            right: 0,
-            maxHeight: isExpanded ? "100vh" : "20vh",
-            zIndex: 9999999,
-            width: "30em"
-          }}
-        >
-          <Contrast
-            bg={100}
-            className="db flex justify-between"
-            style={{
-              flexShrink: 0,
-              userSelect: "none"
-            }}
-            onClick={() => setIsExpanded(v => !v)}
-          >
-            <div className="pv2 ph2 b flex-auto">Huet Themer (alpha)</div>
-            <Contrast
-              bg={20}
-              className="flex justify-center items-center ph3 b"
-            >
-              {isExpanded ? "↓" : "↑"}
-            </Contrast>
+          <div className="pv2 ph2 b flex-auto">Huet Themer (alpha)</div>
+          <Contrast bg={20} className="flex justify-center items-center ph3 b">
+            {isExpanded ? "↓" : "↑"}
           </Contrast>
-          <div className="overflow-y-scroll overflow-x-hidden">
-            <ColorInspector
-              isPicking={isPicking}
-              setIsPicking={setIsPicking}
-              pickedObject={pickedObject}
-              onClear={() => setPickedObject(null)}
-            />
-            <Contrast bg={5} className="pa2">
-              <Range
-                label="Page background lightness"
-                min={0}
-                max={1}
-                decimals={2}
-                value={bgScaleValue}
-                onChange={v => setBgScaleValue(v)}
-              />
-              <Range
-                label="Lightness contrast multiplier"
-                min={0}
-                max={2}
-                decimals={2}
-                value={contrastMultiplier}
-                onChange={multiplier => setContrastMultiplier(multiplier)}
-                className="mt2"
-              />
-              <Range
-                label="Saturation multiplier"
-                min={0}
-                max={2}
-                decimals={2}
-                value={saturationContrastMultiplier}
-                onChange={multiplier =>
-                  setSaturationContrastMultiplier(multiplier)
-                }
-                className="mt2"
-              />
-              <Checkbox
-                label="Rescale contrast to context"
-                isChecked={normalizeContrastToContext}
-                onChange={setnormalizeContrastToContext}
-                className="mt2"
-              />
-              {canAdjustToGray && (
-                <>
-                  <Checkbox
-                    label="Rescale contrast to gray range"
-                    isChecked={rescaleContrastToGrayRange}
-                    onChange={setRescaleContrastToGrayRange}
-                    className="mt2"
-                  />
-                  <Checkbox
-                    label="Rescale color contrast to gray range"
-                    isChecked={rescaleColorContrastToGrayRange}
-                    onChange={setRescaleColorContrastToGrayRange}
-                    className="mt2"
-                  />
-                </>
-              )}
-            </Contrast>
-            <Contrast border={10} className="pa2 bb">
-              <div className="flex justify-end items-end flex-wrap">
-                <Select
-                  label="Theme"
-                  value={themeKey}
-                  onChange={setTheme}
-                  className="flex-auto"
-                >
-                  {Object.keys(themes).map(key => (
-                    <option key={key} value={key}>
-                      {themes[key].name}
-                    </option>
-                  ))}
-                </Select>
-                <ButtonGroup className="mt1 ml1">
-                  <Button>Save</Button>
-                  <Button>Save As</Button>
-                  <Button>Export</Button>
-                  <Button>Import</Button>
-                </ButtonGroup>
-              </div>
-            </Contrast>
-            <div className="pa2">
-              <Contrast>Color ramps</Contrast>
-              <div className="flex flex-wrap mt1">
-                <div className="w-100">
-                  <Contrast
-                    border={10}
-                    className="w-100"
-                    style={{
-                      height: "4px",
-                      marginBottom: 6,
-                      background: "linear-gradient(to right, black, white)"
-                    }}
-                  />
-                  {Object.keys(ramps).map(key => (
-                    <ColorRamp
-                      key={key}
-                      ramp={key}
-                      onChangeRamp={(value, i) => setRamp(key, i, value)}
-                      themeContext={ctx}
-                    />
-                  ))}
-                </div>
-                {/* <Button className="w-100">+ Ramp</Button> */}
-                <Contrast className="w-100" border={20}>
-                  <Range
-                    label="Dark color min lightness"
-                    min={0}
-                    max={100}
-                    value={minColorLightness}
-                    onChange={setMinColorLightness}
-                    hideInput
-                    className="mt2"
-                  />
-                  <Range
-                    label="Light color max lightness"
-                    min={0}
-                    max={100}
-                    value={maxColorLightness}
-                    onChange={setMaxColorLightness}
-                    hideInput
-                    className="mt2"
-                  />
-                </Contrast>
-              </div>
-              {/* <Select
-                label="Contrast pattern"
-                value={contrastDirection}
-                onChange={setContrastDirection}
-                className="mt2"
-              >
-                <option value="zigzag">Zigzag</option>
-                <option value="flipflop">Flipflop</option>
-                <option value="lighter">Lighter</option>
-                <option value="darker">Darker</option>
-              </Select> */}
-            </div>
-            <Contrast className="bt pa2 flex justify-between" border={10}>
-              <Checkbox
-                label="Theme the themer"
-                isChecked={shouldThemeSelf}
-                onChange={setShouldThemeSelf}
-              />
-              <Button
-                bg={50}
-                bgRamp="red"
-                textRamp="white"
-                onClick={reset}
-                verify
-              >
-                Reset Settings
-              </Button>
-            </Contrast>
-          </div>
         </Contrast>
-      </ThemeContext.Provider>
-    </>
+        <div className="overflow-y-scroll overflow-x-hidden">
+          <ColorInspector
+            isPicking={isPicking}
+            setIsPicking={setIsPicking}
+            pickedObject={pickedObject}
+            onClear={() => setPickedObject(null)}
+          />
+          <Contrast bg={5} className="pa2">
+            <Range
+              label="Page background lightness"
+              min={0}
+              max={1}
+              decimals={2}
+              value={bgScaleValue}
+              onChange={setBgScaleValue}
+            />
+            <Range
+              label="Lightness contrast multiplier"
+              min={0}
+              max={2}
+              decimals={2}
+              value={contrastMultiplier}
+              onChange={setContrastMultiplier}
+              className="mt2"
+            />
+            <Range
+              label="Saturation multiplier"
+              min={0}
+              max={2}
+              decimals={2}
+              value={saturationContrastMultiplier}
+              onChange={setSaturationContrastMultiplier}
+              className="mt2"
+            />
+            <Checkbox
+              label="Rescale contrast to context"
+              isChecked={normalizeContrastToContext}
+              onChange={setNormalizeContrastToContext}
+              className="mt2"
+            />
+            {canAdjustToGray && (
+              <>
+                <Checkbox
+                  label="Rescale contrast to gray range"
+                  isChecked={rescaleContrastToGrayRange}
+                  onChange={setRescaleContrastToGrayRange}
+                  className="mt2"
+                />
+                <Checkbox
+                  label="Rescale color contrast to gray range"
+                  isChecked={rescaleColorContrastToGrayRange}
+                  onChange={setRescaleColorContrastToGrayRange}
+                  className="mt2"
+                />
+              </>
+            )}
+          </Contrast>
+          <Contrast border={10} className="pa2 bb">
+            <div className="flex justify-end items-end flex-wrap">
+              <Select
+                label="Theme"
+                value={themeKey}
+                onChange={setThemeKey}
+                className="flex-auto"
+              >
+                {Object.keys(themes).map(key => (
+                  <option key={key} value={key}>
+                    {themes[key].name}
+                  </option>
+                ))}
+              </Select>
+              <ButtonGroup className="mt1 ml1">
+                <Button>Save</Button>
+                <Button>Save As</Button>
+                <Button>Export</Button>
+                <Button>Import</Button>
+              </ButtonGroup>
+            </div>
+          </Contrast>
+          <div className="pa2">
+            <Contrast>Color ramps</Contrast>
+            <div className="flex flex-wrap mt1">
+              <div className="w-100">
+                <Contrast
+                  border={10}
+                  className="w-100"
+                  style={{
+                    height: "4px",
+                    marginBottom: 6,
+                    background: "linear-gradient(to right, black, white)"
+                  }}
+                />
+                {Object.keys(ramps).map(key => (
+                  <ColorRamp
+                    key={key}
+                    ramp={key}
+                    onChangeRamp={(value, i) => setRamp(key, i, value)}
+                    themeContext={ctx}
+                  />
+                ))}
+              </div>
+              {/* <Button className="w-100">+ Ramp</Button> */}
+              <Contrast className="w-100" border={20}>
+                <Range
+                  label="Dark color min lightness"
+                  min={0}
+                  max={100}
+                  value={minColorLightness}
+                  onChange={setMinColorLightness}
+                  hideInput
+                  className="mt2"
+                />
+                <Range
+                  label="Light color max lightness"
+                  min={0}
+                  max={100}
+                  value={maxColorLightness}
+                  onChange={setMaxColorLightness}
+                  hideInput
+                  className="mt2"
+                />
+              </Contrast>
+            </div>
+          </div>
+          <Contrast className="bt pa2 flex justify-between" border={10}>
+            <Checkbox
+              label="Theme the themer"
+              isChecked={shouldThemeSelf}
+              onChange={setShouldThemeSelf}
+            />
+            <Button
+              bg={50}
+              bgRamp="red"
+              textRamp="white"
+              onClick={reset}
+              verify
+            >
+              Reset Settings
+            </Button>
+          </Contrast>
+        </div>
+      </Contrast>
+    </ThemeContext.Provider>
   );
 }
 

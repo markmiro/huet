@@ -1,4 +1,4 @@
-import React, { useContext } from "react";
+import React, { useContext, useState, useEffect } from "react";
 import ReactDOM from "react-dom";
 
 import "./styles.css";
@@ -44,36 +44,50 @@ function Switch({ on, ...cases }) {
 
 function App() {
   const [tab, setTab] = useBrowserState("colorContrast");
+  const [theme, setTheme] = useState(themes.basic);
+
+  const ctxWrapper = huet.createTheme(theme);
+
+  useEffect(
+    () => {
+      document.body.style.backgroundColor = ctxWrapper.contrast(0);
+    },
+    [theme.bgScaleValue, theme.ramps.gray]
+  );
+
   return (
-    <Themer themes={themes} initialThemeKey="teal">
-      <Contrast
-        bg={10}
-        border={100}
-        className="bb"
-        style={{ position: "relative", zIndex: 2 }}
-      >
-        <Select
-          label="Example Demos"
-          className="pa2 pb3"
-          value={tab}
-          onChange={setTab}
+    <div>
+      <Themer themes={themes} theme={theme} onChangeTheme={setTheme} />
+      <huet.ThemeContext.Provider value={ctxWrapper.contextValue}>
+        <Contrast
+          bg={10}
+          border={100}
+          className="bb"
+          style={{ position: "relative", zIndex: 2 }}
         >
-          <option value="github">Github</option>
-          <option value="youtube">YouTube</option>
-          <option value="contrastPattern">Contrast Pattern</option>
-          <option value="colorContrast">Color Contrast</option>
-          <option value="basic">Basic</option>
-        </Select>
-      </Contrast>
-      <Switch
-        on={tab}
-        basic={Basic}
-        github={Github}
-        contrastPattern={ContrastPattern}
-        colorContrast={ColorContrast}
-        youtube={YouTube}
-      />
-    </Themer>
+          <Select
+            label="Example Demos"
+            className="pa2 pb3"
+            value={tab}
+            onChange={setTab}
+          >
+            <option value="github">Github</option>
+            <option value="youtube">YouTube</option>
+            <option value="contrastPattern">Contrast Pattern</option>
+            <option value="colorContrast">Color Contrast</option>
+            <option value="basic">Basic</option>
+          </Select>
+        </Contrast>
+        <Switch
+          on={tab}
+          basic={Basic}
+          github={Github}
+          contrastPattern={ContrastPattern}
+          colorContrast={ColorContrast}
+          youtube={YouTube}
+        />
+      </huet.ThemeContext.Provider>
+    </div>
   );
 }
 
