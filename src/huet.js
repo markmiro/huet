@@ -79,19 +79,27 @@ function relativeColor(ctx, ramp, contrast = 100, a = 100) {
     // By normalizing we make sure there's always a visible difference
     // between 50 and 100 and all the colors in between.
     //              | ctx.bgLightness
-    //  __0 _50 100 | $_/100
     //  __0 _.5 __1 | Math.abs(.5 - ctx.bgLightness/100)
     //  _.5 __0 _.5 | $_ + .5
     //  __1 _.5 __1 |
+    const normalizedLightness =
+      (ctx.bgLightness - ctx.ramps.gray.startL) /
+      (ctx.ramps.gray.endL - ctx.ramps.gray.startL);
     const contrastNormalizer = ctx.normalizeContrastToContext
       ? ramp === ctx.ramps.gray
-        ? Math.abs(0.5 - ctx.bgLightness / 100) + 0.5
+        ? Math.abs(0.5 - normalizedLightness) + 0.5
         : (max - min) / 100
       : 1;
 
-    const contrastRescale = ctx.rescaleContrastToGrayRange
-      ? (ctx.ramps.gray.endL - ctx.ramps.gray.startL) / 100
-      : 1;
+    const contrastRescale =
+      ctx.rescaleContrastToGrayRange && ramp === ctx.ramps.gray
+        ? (ctx.ramps.gray.endL - ctx.ramps.gray.startL) / 100
+        : 1;
+
+    const colorContrastRescale =
+      ctx.rescaleColorContrastToGrayRange && ramp !== ctx.ramps.gray
+        ? (ctx.ramps.gray.endL - ctx.ramps.gray.startL) / 100
+        : 1;
 
     const midpoint = (ramp.startL + ramp.endL) / 2;
     const direction = ctx.bgLightness < midpoint ? 1 : -1;
@@ -102,7 +110,8 @@ function relativeColor(ctx, ramp, contrast = 100, a = 100) {
           direction *
           ctx.contrastMultiplier *
           contrastNormalizer *
-          contrastRescale
+          contrastRescale *
+          colorContrastRescale
     );
 
     // Rescale targetLightness from ramp range to 0-1

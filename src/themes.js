@@ -83,6 +83,7 @@ const shared = {
   contrastMultiplier: 1,
   saturationContrastMultiplier: 1,
   rescaleContrastToGrayRange: true,
+  rescaleColorContrastToGrayRange: true,
   normalizeContrastToContext: true,
   contrastDirection: "zigzag"
 };
@@ -139,9 +140,11 @@ const themes = {
     ramps: {
       ...shared.ramps,
       gray: huet.createRamp(["#004a43", "#9a8e84"])
-    }
-  },
-  bgScaleValue: 0
+    },
+    bgScaleValue: 0,
+    minColorLightness: 30,
+    maxColorLightness: 60
+  }
 };
 
 window.themes = themes;

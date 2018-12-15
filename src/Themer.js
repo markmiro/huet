@@ -56,6 +56,13 @@ export default function Themer({ children, themes, initialThemeKey }) {
     theme.rescaleContrastToGrayRange
   );
 
+  const [
+    rescaleColorContrastToGrayRange,
+    setRescaleColorContrastToGrayRange
+  ] = useState(theme.rescaleColorContrastToGrayRange);
+
+  const canAdjustToGray = ramps.gray.endL - ramps.gray.startL < 90;
+
   const [normalizeContrastToContext, setnormalizeContrastToContext] = useState(
     theme.normalizeContrastToContext
   );
@@ -89,7 +96,12 @@ export default function Themer({ children, themes, initialThemeKey }) {
     contrastDirection,
     minColorLightness,
     maxColorLightness,
-    rescaleContrastToGrayRange,
+    rescaleContrastToGrayRange: canAdjustToGray
+      ? rescaleContrastToGrayRange
+      : false,
+    rescaleColorContrastToGrayRange: canAdjustToGray
+      ? rescaleColorContrastToGrayRange
+      : false,
     normalizeContrastToContext,
     isPicking,
     onPickerPick: picked => {
@@ -209,13 +221,22 @@ export default function Themer({ children, themes, initialThemeKey }) {
                 onChange={setnormalizeContrastToContext}
                 className="mt2"
               />
-
-              <Checkbox
-                label="Rescale contrast to gray range"
-                isChecked={rescaleContrastToGrayRange}
-                onChange={setRescaleContrastToGrayRange}
-                className="mt2"
-              />
+              {canAdjustToGray && (
+                <>
+                  <Checkbox
+                    label="Rescale contrast to gray range"
+                    isChecked={rescaleContrastToGrayRange}
+                    onChange={setRescaleContrastToGrayRange}
+                    className="mt2"
+                  />
+                  <Checkbox
+                    label="Rescale color contrast to gray range"
+                    isChecked={rescaleColorContrastToGrayRange}
+                    onChange={setRescaleColorContrastToGrayRange}
+                    className="mt2"
+                  />
+                </>
+              )}
             </Contrast>
             <Contrast border={10} className="pa2 bb">
               <div className="flex justify-end items-end flex-wrap">

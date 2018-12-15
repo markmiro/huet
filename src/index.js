@@ -44,7 +44,7 @@ function Switch({ on, ...cases }) {
 function App() {
   const [tab, setTab] = useState("colorContrast");
   return (
-    <Themer themes={themes} initialThemeKey="crazy">
+    <Themer themes={themes} initialThemeKey="teal">
       <Contrast
         bg={10}
         border={100}
