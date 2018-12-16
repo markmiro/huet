@@ -54,7 +54,7 @@ function App() {
     () => {
       document.body.style.backgroundColor = ctxWrapper.contrast(0);
     },
-    [theme.bgScaleValue, theme.ramps.gray]
+    [theme.pallet, theme.ramps.gray, theme.bgScaleValue]
   );
 
   return (
