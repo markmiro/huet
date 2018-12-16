@@ -229,7 +229,6 @@ export default function Themer({ themes, theme, onChangeTheme }) {
                   <ColorRamp key={key} ramp={key} themeContext={ctx} />
                 ))}
               </div>
-              {/* <Button className="w-100">+ Ramp</Button> */}
               <Contrast className="w-100" border={20}>
                 <Range
                   label="Dark color min lightness"

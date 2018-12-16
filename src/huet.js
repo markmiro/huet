@@ -257,8 +257,6 @@ function createRamp(theme, rampConfig) {
 }
 
 export default {
-  createDirectRampWithScale,
-  createRampWithScale,
   getLightness,
   // funcs for context
   createTheme,
