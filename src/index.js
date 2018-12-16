@@ -80,14 +80,16 @@ function App() {
             <option value="basic">Basic</option>
           </Select>
         </Contrast>
-        <Switch
-          on={tab}
-          basic={Basic}
-          github={Github}
-          contrastPattern={ContrastPattern}
-          colorContrast={ColorContrast}
-          youtube={YouTube}
-        />
+        <Contrast bg={0}>
+          <Switch
+            on={tab}
+            basic={Basic}
+            github={Github}
+            contrastPattern={ContrastPattern}
+            colorContrast={ColorContrast}
+            youtube={YouTube}
+          />
+        </Contrast>
       </huet.ThemeContext.Provider>
     </div>
   );
