@@ -1,4 +1,4 @@
-import React, { useContext, useState, useEffect } from "react";
+import React, { useContext, useEffect } from "react";
 import ReactDOM from "react-dom";
 
 import "./styles.css";
@@ -46,7 +46,7 @@ function App() {
   const [tab, setTab] = useBrowserState("colorContrast");
 
   // TODO: make themes not need objects
-  const [theme, setTheme] = useState(themes.basic);
+  const [theme, setTheme] = useBrowserState(themes.basic);
 
   const ctxWrapper = huet.createTheme(theme);
 

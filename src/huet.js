@@ -1,5 +1,6 @@
 import chroma from "chroma-js";
 import React, { useContext } from "react";
+import mapValues from "lodash/mapValues";
 
 const ThemeContext = React.createContext();
 
@@ -191,12 +192,14 @@ function createCtxWrapper(ctx) {
 }
 
 function createTheme(theme) {
-  const bgLightness = getLightness(theme.ramps.gray.scale(theme.bgScaleValue));
+  const ramps = mapValues(theme.ramps, ramp => createRamp2(theme, ramp));
+  const bgLightness = getLightness(ramps.gray.scale(theme.bgScaleValue));
   return createCtxWrapper({
     // TODO: putting above because it can get overwritten
     bgLightness,
     bgLightnessAbove: bgLightness,
-    ...theme
+    ...theme,
+    ramps
   });
 }
 
@@ -234,6 +237,36 @@ function createRamp(colorOrColors, options) {
       .correctLightness(),
     options
   );
+}
+
+const defaultRampConfig = {
+  colors: ["black", "white"],
+  colorModel: "lab", // lrgb, lab
+  correctLightness: true,
+  mode: "colored" // we don't actually read this
+};
+
+// TODO: try to bake in things like the contrastMultiplier so
+// it is only calculated once
+// TODO: consider wrapping scales in a more opaque structure to avoid
+// it being mutated by consumer as we do here
+function createRamp2(theme, rampConfig) {
+  const config = {
+    ...defaultRampConfig,
+    ...rampConfig
+  };
+  const hexColors = config.colors.map(colorName => theme.pallet[colorName]);
+  const scale = chroma.scale(hexColors);
+  const rampOptions = { isNeutral: config.isNeutral };
+  if (config.colorModel) scale.mode(config.colorModel);
+  if (config.classes) scale.classes(config.classes);
+  switch (config.mode) {
+    case "direct":
+      return createDirectRampWithScale(scale, rampOptions);
+    default:
+      if (config.correctLightness) scale.correctLightness();
+      return createRampWithScale(scale, rampOptions);
+  }
 }
 
 export default {
