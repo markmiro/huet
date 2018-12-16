@@ -82,8 +82,9 @@ export default function Themer({ themes, theme, onChangeTheme }) {
     });
   }
 
+  // TODO: find a better way?
   const themeKey = Object.keys(themes).find(
-    themeKey => themes[themeKey] === theme
+    themeKey => themes[themeKey].name === theme.name
   );
 
   function setThemeKey(themeKey) {
@@ -94,8 +95,8 @@ export default function Themer({ themes, theme, onChangeTheme }) {
     // // setSaturationContrastMultiplier(theme.saturationContrastMultiplier);
     // setMinColorLightness(theme.minColorLightness);
     // setMaxColorLightness(theme.maxColorLightness);
-    setIsPicking(false);
-    setPickedObject(null);
+    // setIsPicking(false);
+    // setPickedObject(null);
   }
 
   const themerCtx = shouldThemeSelf
