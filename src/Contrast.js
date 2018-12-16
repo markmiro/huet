@@ -119,8 +119,8 @@ const Contrast = props => {
     as,
     {
       style: {
-        ...style,
         ...coloredStyle,
+        ...style,
         ...isPickingStyle
       },
       ref,
