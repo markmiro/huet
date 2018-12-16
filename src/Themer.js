@@ -15,6 +15,7 @@ import ColorRamp, {
   Screen,
   Bracket
 } from "./ColorRamp";
+import Pallet from "./Pallet";
 
 const { ThemeContext } = huet;
 
@@ -56,7 +57,7 @@ export default function Themer({ themes, theme, onChangeTheme }) {
     saturationContrastMultiplier,
     setSaturationContrastMultiplier
   ] = modify("saturationContrastMultiplier");
-  const [ramps, setRamps] = modify("ramps");
+  const [pallet, setPallet] = modify("pallet");
   const [minColorLightness, setMinColorLightness] = modify("minColorLightness");
   const [maxColorLightness, setMaxColorLightness] = modify("maxColorLightness");
   const [rescaleContrastToGrayRange, setRescaleContrastToGrayRange] = modify(
@@ -71,16 +72,6 @@ export default function Themer({ themes, theme, onChangeTheme }) {
   );
   [isPicking, setIsPicking] = modify("isPicking");
   [pickedObject, setPickedObject] = modify("pickedObject");
-
-  function setRamp(key, i, value) {
-    const oldRamp = ctx.ramps[key];
-    const colors = oldRamp.scale.colors();
-    const newColors = [...colors.slice(0, i), value, ...colors.slice(i + 1)];
-    setRamps({
-      ...ramps,
-      [key]: huet.createRamp(newColors, { isNeutral: oldRamp.isNeutral })
-    });
-  }
 
   // TODO: find a better way?
   const themeKey = Object.keys(themes).find(
@@ -220,7 +211,9 @@ export default function Themer({ themes, theme, onChangeTheme }) {
             </div>
           </Contrast>
           <div className="pa2">
-            <Contrast>Color ramps</Contrast>
+            <div className="mb1">Pallet</div>
+            <Pallet colors={pallet} onColorsChange={setPallet} />
+            <div className="mt2 mb1">Color ramps</div>
             <div className="flex flex-wrap mt1">
               <div className="w-100">
                 <Contrast
@@ -232,13 +225,8 @@ export default function Themer({ themes, theme, onChangeTheme }) {
                     background: "linear-gradient(to right, black, white)"
                   }}
                 />
-                {Object.keys(ramps).map(key => (
-                  <ColorRamp
-                    key={key}
-                    ramp={key}
-                    onChangeRamp={(value, i) => setRamp(key, i, value)}
-                    themeContext={ctx}
-                  />
+                {Object.keys(ctx.ramps).map(key => (
+                  <ColorRamp key={key} ramp={key} themeContext={ctx} />
                 ))}
               </div>
               {/* <Button className="w-100">+ Ramp</Button> */}

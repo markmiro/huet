@@ -59,7 +59,7 @@ export function Bracket({ lightness, direction }) {
   );
 }
 
-const Block = styled.input`
+const RampColorMarkerElement = styled.div`
   --width: 1.1em;
   background-color: ${({ color }) => color || "transparent"};
   outline-width: 1px;
@@ -73,22 +73,13 @@ const Block = styled.input`
     return `calc(${l}% - (var(--width)) * ${l / 100})`;
   }};
   transform: translateY(-50%);
-  padding: 0;
-  &:hover,
-  &:focus {
-    transform: translateY(-50%) scale(1.5);
-    z-index: 1;
-  }
 `;
 
-function MobileColorPicker({ color, onChange }) {
+function RampColorMarker({ color }) {
   return (
     <Contrast
-      as={Block}
-      type="color"
-      value={color}
+      as={RampColorMarkerElement}
       color={color}
-      onChange={onChange}
       border={0}
       borderAlpha={0.3}
       outline={100}
@@ -152,43 +143,11 @@ export function InnerRamp({ ramp, children }) {
   );
 }
 
-const ColorRamp = ({ ramp, onChangeRamp, themeContext }) => {
+const ColorRamp = ({ ramp, themeContext }) => {
   const theRamp = themeContext.ramps[ramp];
 
   return (
     <div className="flex w-100 flex-row h1 mb2">
-      {/* <div className="flex flex-row w-30 justify-between pr2">
-        {theRamp.scale.colors().map((color, i) => (
-          <ThemeContext.Provider
-            key={i}
-            value={{
-              ...themeContext,
-              isPicking: false,
-              pickedObject: null,
-              bgLightnessAbove: huet.getLightness(color),
-              bgLightness: huet.getLightness(color)
-            }}
-          >
-            <Contrast
-              key={i}
-              as="input"
-              outline={10}
-              outlineRamp={ramp}
-              type="color"
-              value={color}
-              onChange={e => onChangeRamp && onChangeRamp(e.target.value, i)}
-              className="w-third h-100"
-              style={{
-                borderWidth: 0,
-                outlineWidth: 1,
-                outlineStyle: "solid",
-                background: color,
-                outlineOffset: -4
-              }}
-            />
-          </ThemeContext.Provider>
-        ))}
-      </div> */}
       <div className="w-100 relative flex">
         <InnerRamp ramp={theRamp}>
           {/* {!theRamp.isNeutral && (
@@ -210,11 +169,7 @@ const ColorRamp = ({ ramp, onChangeRamp, themeContext }) => {
             </>
           )}
           {theRamp.scale.colors().map((color, i) => (
-            <MobileColorPicker
-              key={i}
-              color={color}
-              onChange={e => onChangeRamp && onChangeRamp(e.target.value, i)}
-            />
+            <RampColorMarker key={i} color={color} />
           ))}
         </InnerRamp>
       </div>
