@@ -99,13 +99,14 @@ export default function Themer({ themes, theme, onChangeTheme }) {
     // setPickedObject(null);
   }
 
-  const themerCtx = shouldThemeSelf
-    ? { ...ctx, isPicking: false }
-    : {
-        ...themes.basic,
-        bgLightness: themes.basic.ramps.gray.endL,
-        bgLightnessAbove: themes.basic.ramps.gray.endL
-      };
+  const themerCtx = huet.createTheme(
+    shouldThemeSelf
+      ? { ...theme, isPicking: false }
+      : {
+          ...themes.basic,
+          bgScaleValue: 1
+        }
+  ).contextValue;
 
   return (
     <ThemeContext.Provider value={themerCtx}>
