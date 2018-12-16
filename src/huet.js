@@ -192,7 +192,7 @@ function createCtxWrapper(ctx) {
 }
 
 function createTheme(theme) {
-  const ramps = mapValues(theme.ramps, ramp => createRamp2(theme, ramp));
+  const ramps = mapValues(theme.ramps, ramp => createRamp(theme, ramp));
   const bgLightness = getLightness(ramps.gray.scale(theme.bgScaleValue));
   return createCtxWrapper({
     // TODO: putting above because it can get overwritten
@@ -226,19 +226,6 @@ function createDirectRampWithScale(scale, { isNeutral = false } = {}) {
   };
 }
 
-function createRamp(colorOrColors, options) {
-  const finalColors = Array.isArray(colorOrColors)
-    ? colorOrColors
-    : ["#000000", colorOrColors, "#ffffff"];
-  return createRampWithScale(
-    chroma
-      .scale(finalColors)
-      .mode("lab")
-      .correctLightness(),
-    options
-  );
-}
-
 const defaultRampConfig = {
   colors: ["black", "white"],
   colorModel: "lab", // lrgb, lab
@@ -250,7 +237,7 @@ const defaultRampConfig = {
 // it is only calculated once
 // TODO: consider wrapping scales in a more opaque structure to avoid
 // it being mutated by consumer as we do here
-function createRamp2(theme, rampConfig) {
+function createRamp(theme, rampConfig) {
   const config = {
     ...defaultRampConfig,
     ...rampConfig
@@ -270,7 +257,6 @@ function createRamp2(theme, rampConfig) {
 }
 
 export default {
-  createRamp,
   createDirectRampWithScale,
   createRampWithScale,
   getLightness,
