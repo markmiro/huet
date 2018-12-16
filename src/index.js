@@ -80,7 +80,14 @@ function App() {
             <option value="basic">Basic</option>
           </Select>
         </Contrast>
-        <Contrast bg={0}>
+        <Contrast
+          bg={0}
+          style={{
+            // So page refresh is visible
+            animationDuration: "0.5s",
+            animationName: "fade-in"
+          }}
+        >
           <Switch
             on={tab}
             basic={Basic}

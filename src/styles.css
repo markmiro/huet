@@ -83,3 +83,12 @@ button:focus {
   overflow: hidden;
   -webkit-box-orient: vertical;
 }
+
+@keyframes fade-in {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
