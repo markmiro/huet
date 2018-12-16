@@ -36,7 +36,7 @@ export default function Button({
           );
           if (!didAccept) return;
         }
-        onClick(e);
+        onClick && onClick(e);
       }}
       {...rest}
       className={`flex justify-center ${className}`}
