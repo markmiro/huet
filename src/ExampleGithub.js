@@ -1,84 +1,76 @@
-import React, { useContext } from "react";
+import React from "react";
 import huet from "./huet";
 import H from "./Contrast";
 import Icon from "./Icon";
-
-const { ThemeContext } = huet;
 
 export default function Github() {
   const ctxWrapper = huet.useTheme();
   const borderColor = ctxWrapper.contrast(20);
 
   return (
-    <>
-      <div className="flex-auto">
-        <H bg={5}>
-          <H bg={70} className="pa3 flex items-center">
-            <Icon name="github" size="2em" className="mr3" />
-            Pull requests &nbsp; Issues &nbsp; Marketplace &nbsp; Explore
-          </H>
-          <div
-            className="ph2 ph5-ns bb"
-            style={{
-              borderColor
-            }}
-          >
-            <div className="db pv3">loremperson/some-crazy-project</div>
-            <div className="flex">
-              <div
-                className="pa2 mr1 bt bl br"
-                style={{
-                  backgroundColor: ctxWrapper.contextValue.color,
-                  color: ctxWrapper.contrast(100),
-                  borderLeftColor: borderColor,
-                  borderRightColor: borderColor,
-                  borderTopWidth: "0.2em",
-                  borderTopColor: ctxWrapper.contrast(30, { ramp: "gold" }),
-                  borderTopLeftRadius: ".2em",
-                  borderTopRightRadius: ".2em",
-                  transform: "translateY(1px)"
-                }}
-              >
-                Code
-              </div>
-              <H text={50} className="pa2 mr1">
-                Issues
-                <H
-                  bg={10}
-                  text={60}
-                  className="ml2 inline-flex justify-center items-center"
-                  style={{
-                    fontSize: ".7em",
-                    padding: "2px 6px",
-                    borderRadius: "1em"
-                  }}
-                >
-                  22
-                </H>
-              </H>
-              <H text={50} className="pa2 mr1">
-                Pull requests
-              </H>
-            </div>
-          </div>
+    <div className="flex-auto">
+      <H bg={5}>
+        <H bg={70} className="pa3 flex items-center">
+          <Icon name="github" size="2em" className="mr3" />
+          Pull requests &nbsp; Issues &nbsp; Marketplace &nbsp; Explore
         </H>
         <div
-          className="ph2 ph5-ns pv3"
+          className="ph2 ph5-ns bb"
           style={{
-            minHeight: "100vh"
+            borderColor
           }}
         >
-          <H
-            bg={100}
-            className="ph3 pv2 tc br3 f3"
-            style={{ maxWidth: "100%" }}
-          >
-            Button
-          </H>
-          <Experiments />
+          <div className="db pv3">loremperson/some-crazy-project</div>
+          <div className="flex">
+            <div
+              className="pa2 mr1 bt bl br"
+              style={{
+                backgroundColor: ctxWrapper.contextValue.color,
+                color: ctxWrapper.contrast(100),
+                borderLeftColor: borderColor,
+                borderRightColor: borderColor,
+                borderTopWidth: "0.2em",
+                borderTopColor: ctxWrapper.contrast(30, { ramp: "gold" }),
+                borderTopLeftRadius: ".2em",
+                borderTopRightRadius: ".2em",
+                transform: "translateY(1px)"
+              }}
+            >
+              Code
+            </div>
+            <H text={50} className="pa2 mr1">
+              Issues
+              <H
+                bg={10}
+                text={60}
+                className="ml2 inline-flex justify-center items-center"
+                style={{
+                  fontSize: ".7em",
+                  padding: "2px 6px",
+                  borderRadius: "1em"
+                }}
+              >
+                22
+              </H>
+            </H>
+            <H text={50} className="pa2 mr1">
+              Pull requests
+            </H>
+          </div>
         </div>
+      </H>
+      <div
+        className="ph2 ph5-ns pv3"
+        style={{
+          minHeight: "100vh"
+        }}
+      >
+        <H bg={100} className="ph3 pv2 tc br3 f3" style={{ maxWidth: "100%" }}>
+          Button
+        </H>
+        <Experiments />
       </div>
-    </>
+    </div>
   );
 }
 

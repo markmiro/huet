@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React from "react";
 import isNumber from "lodash/isNumber";
 import useBrowserState, { reset } from "./useBrowserState";
 import huet from "./huet";

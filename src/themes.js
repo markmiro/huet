@@ -77,7 +77,7 @@ const shared = {
     gold: huet.createRamp([darkestGray, "#c86c00", lightestGray]),
     purple: huet.createRamp([darkestGray, "#a46ad3", lightestGray])
   },
-  bgScaleValue: 1,
+  bgScaleValue: 0,
   minColorLightness: 20,
   maxColorLightness: 80,
   contrastMultiplier: 1,
@@ -99,8 +99,7 @@ const themes = {
     ramps: {
       ...shared.ramps,
       gray: tintedBlueGray
-    },
-    bgScaleValue: 1
+    }
   },
   crazy: {
     ...shared,
@@ -108,8 +107,7 @@ const themes = {
     ramps: {
       ...shared.ramps,
       ...crazyRamps
-    },
-    bgScaleValue: 1
+    }
   },
   youtube: {
     ...shared,
