@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useState } from "react";
 import isNumber from "lodash/isNumber";
 import useBrowserState, { reset } from "./useBrowserState";
 import huet from "./huet";
@@ -28,7 +28,7 @@ export default function Themer({ themes, theme, onChangeTheme }) {
   const canAdjustToGray = ctx.ramps.gray.endL - ctx.ramps.gray.startL < 90;
 
   function modify(key) {
-    const setFunc = newValue => {
+    return newValue => {
       onChangeTheme({
         ...theme,
         rescaleContrastToGrayRange: canAdjustToGray
@@ -37,41 +37,31 @@ export default function Themer({ themes, theme, onChangeTheme }) {
         rescaleColorContrastToGrayRange: canAdjustToGray
           ? theme.rescaleColorContrastToGrayRange
           : false,
-        onPickerPick: picked => {
-          console.log(picked);
-          setPickedObject(picked);
-          setIsPicking(false);
-        },
+        // onPickerPick: picked => {
+        //   console.log(picked);
+        //   setPickedObject(picked);
+        //   setIsPicking(false);
+        // },
         [key]: newValue
       });
     };
-    const value = theme[key];
-    return [value, setFunc];
   }
 
-  const [bgScaleValue, setBgScaleValue] = modify("bgScaleValue");
-  const [contrastMultiplier, setContrastMultiplier] = modify(
-    "contrastMultiplier"
+  const setBgScaleValue = modify("bgScaleValue");
+  const setContrastMultiplier = modify("contrastMultiplier");
+  const setSaturationContrastMultiplier = modify(
+    "saturationContrastMultiplier"
   );
-  const [
-    saturationContrastMultiplier,
-    setSaturationContrastMultiplier
-  ] = modify("saturationContrastMultiplier");
-  const [pallet, setPallet] = modify("pallet");
-  const [minColorLightness, setMinColorLightness] = modify("minColorLightness");
-  const [maxColorLightness, setMaxColorLightness] = modify("maxColorLightness");
-  const [rescaleContrastToGrayRange, setRescaleContrastToGrayRange] = modify(
-    "rescaleContrastToGrayRange"
+  const setPallet = modify("pallet");
+  const setMinColorLightness = modify("minColorLightness");
+  const setMaxColorLightness = modify("maxColorLightness");
+  const setRescaleContrastToGrayRange = modify("rescaleContrastToGrayRange");
+  const setRescaleColorContrastToGrayRange = modify(
+    "rescaleColorContrastToGrayRange"
   );
-  const [
-    rescaleColorContrastToGrayRange,
-    setRescaleColorContrastToGrayRange
-  ] = modify("rescaleColorContrastToGrayRange");
-  const [normalizeContrastToContext, setNormalizeContrastToContext] = modify(
-    "normalizeContrastToContext"
-  );
-  [isPicking, setIsPicking] = modify("isPicking");
-  [pickedObject, setPickedObject] = modify("pickedObject");
+  const setNormalizeContrastToContext = modify("normalizeContrastToContext");
+  [isPicking, setIsPicking] = useState(false);
+  [pickedObject, setPickedObject] = useState();
 
   // TODO: find a better way?
   const themeKey = Object.keys(themes).find(
@@ -144,7 +134,7 @@ export default function Themer({ themes, theme, onChangeTheme }) {
               min={0}
               max={1}
               decimals={2}
-              value={bgScaleValue}
+              value={theme.bgScaleValue}
               onChange={setBgScaleValue}
             />
             <Range
@@ -152,7 +142,7 @@ export default function Themer({ themes, theme, onChangeTheme }) {
               min={0}
               max={2}
               decimals={2}
-              value={contrastMultiplier}
+              value={theme.contrastMultiplier}
               onChange={setContrastMultiplier}
               className="mt2"
             />
@@ -161,13 +151,13 @@ export default function Themer({ themes, theme, onChangeTheme }) {
               min={0}
               max={2}
               decimals={2}
-              value={saturationContrastMultiplier}
+              value={theme.saturationContrastMultiplier}
               onChange={setSaturationContrastMultiplier}
               className="mt2"
             />
             <Checkbox
               label="Rescale contrast to context"
-              isChecked={normalizeContrastToContext}
+              isChecked={theme.normalizeContrastToContext}
               onChange={setNormalizeContrastToContext}
               className="mt2"
             />
@@ -175,13 +165,13 @@ export default function Themer({ themes, theme, onChangeTheme }) {
               <>
                 <Checkbox
                   label="Rescale contrast to gray range"
-                  isChecked={rescaleContrastToGrayRange}
+                  isChecked={theme.rescaleContrastToGrayRange}
                   onChange={setRescaleContrastToGrayRange}
                   className="mt2"
                 />
                 <Checkbox
                   label="Rescale color contrast to gray range"
-                  isChecked={rescaleColorContrastToGrayRange}
+                  isChecked={theme.rescaleColorContrastToGrayRange}
                   onChange={setRescaleColorContrastToGrayRange}
                   className="mt2"
                 />
@@ -212,7 +202,7 @@ export default function Themer({ themes, theme, onChangeTheme }) {
           </Contrast>
           <div className="pa2">
             <div className="mb1">Pallet</div>
-            <Pallet colors={pallet} onColorsChange={setPallet} />
+            <Pallet colors={theme.pallet} onColorsChange={setPallet} />
             <div className="mt2 mb1">Color ramps</div>
             <div className="flex flex-wrap mt1">
               <div className="w-100">
@@ -234,7 +224,7 @@ export default function Themer({ themes, theme, onChangeTheme }) {
                   label="Dark color min lightness"
                   min={0}
                   max={100}
-                  value={minColorLightness}
+                  value={theme.minColorLightness}
                   onChange={setMinColorLightness}
                   hideInput
                   className="mt2"
@@ -243,7 +233,7 @@ export default function Themer({ themes, theme, onChangeTheme }) {
                   label="Light color max lightness"
                   min={0}
                   max={100}
-                  value={maxColorLightness}
+                  value={theme.maxColorLightness}
                   onChange={setMaxColorLightness}
                   hideInput
                   className="mt2"
