@@ -1,7 +1,9 @@
-import React, { useContext, useEffect } from "react";
+import React, { useContext, useEffect, lazy, Suspense } from "react";
 import ReactDOM from "react-dom";
+import { importMDX } from "mdx.macro";
 
 import "./styles.css";
+import "./globals";
 import Themer from "./Themer";
 import themes from "./themes";
 import huet from "./huet";
@@ -14,6 +16,21 @@ import ContrastPattern from "./ExampleContrastPattern";
 import ColorContrast from "./ExampleColorContrast";
 import Github from "./ExampleGithub";
 
+const pages = {
+  basic: "./Basic",
+  github: "./Github",
+  contrastPattern: "./ContrastPattern",
+  colorContrast: "./ColorContrast",
+  youtube: "./YouTube",
+  explanation: "./Explanation"
+};
+
+const Explanation = () => (
+  <div>
+    <Suspense fallback={<div>Loading...</div>}>
+      {React.createElement(lazy(() => importMDX("./ExampleExplanation.mdx")))}
+    </Suspense>
+  </div>
 );
 
 function Basic() {
@@ -75,6 +92,7 @@ function App() {
             <option value="contrastPattern">Contrast Pattern</option>
             <option value="colorContrast">Color Contrast</option>
             <option value="basic">Basic</option>
+            <option value="explanation">Explanation</option>
           </Select>
         </Contrast>
         <Contrast
@@ -92,6 +110,7 @@ function App() {
             contrastPattern={ContrastPattern}
             colorContrast={ColorContrast}
             youtube={YouTube}
+            explanation={Explanation}
           />
         </Contrast>
       </huet.ThemeContext.Provider>
