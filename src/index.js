@@ -1,4 +1,4 @@
-import React, { useContext, useEffect, lazy, Suspense } from "react";
+import React, { useEffect, lazy, Suspense } from "react";
 import ReactDOM from "react-dom";
 import { importMDX } from "mdx.macro";
 
@@ -19,15 +19,6 @@ import ColorContrast from "./ExampleColorContrast";
 import Github from "./ExampleGithub";
 import Basic from "./ExampleBasic";
 
-const pages = {
-  basic: "./Basic",
-  github: "./Github",
-  contrastPattern: "./ContrastPattern",
-  colorContrast: "./ColorContrast",
-  youtube: "./YouTube",
-  explanation: "./Explanation"
-};
-
 const Explanation = () => (
   <div>
     <Suspense fallback={<div>Loading...</div>}>
@@ -36,13 +27,35 @@ const Explanation = () => (
   </div>
 );
 
-function Switch({ on, ...cases }) {
-  const Thing = cases[on];
-  return <Thing />;
-}
+const pages = {
+  basic: {
+    name: "Basic",
+    component: Basic
+  },
+  github: {
+    name: "Github",
+    component: Github
+  },
+  contrastPattern: {
+    name: "Contrast Pattern",
+    component: ContrastPattern
+  },
+  colorContrast: {
+    name: "Color Contrast",
+    component: ColorContrast
+  },
+  youtube: {
+    name: "YouTube",
+    component: YouTube
+  },
+  explanation: {
+    name: "Explanation",
+    component: Explanation
+  }
+};
 
 function App() {
-  const [tab, setTab] = useBrowserState("colorContrast");
+  const [pageKey, setPageKey] = useBrowserState("colorContrast");
 
   // TODO: make themes not need objects
   const [theme, setTheme] = useBrowserState(themes.basic);
@@ -69,15 +82,14 @@ function App() {
           <Select
             label="Example Demos"
             className="pa2 pb3"
-            value={tab}
-            onChange={setTab}
+            value={pageKey}
+            onChange={setPageKey}
           >
-            <option value="github">Github</option>
-            <option value="youtube">YouTube</option>
-            <option value="contrastPattern">Contrast Pattern</option>
-            <option value="colorContrast">Color Contrast</option>
-            <option value="basic">Basic</option>
-            <option value="explanation">Explanation</option>
+            {Object.keys(pages).map(pageKey => (
+              <option key={pageKey} value={pageKey}>
+                {pages[pageKey].name}
+              </option>
+            ))}
           </Select>
         </Contrast>
         <Contrast
@@ -88,15 +100,7 @@ function App() {
             animationName: "fade-in"
           }}
         >
-          <Switch
-            on={tab}
-            basic={Basic}
-            github={Github}
-            contrastPattern={ContrastPattern}
-            colorContrast={ColorContrast}
-            youtube={YouTube}
-            explanation={Explanation}
-          />
+          {React.createElement(pages[pageKey].component)}
         </Contrast>
       </huet.ThemeContext.Provider>
     </div>
