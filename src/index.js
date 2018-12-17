@@ -14,6 +14,8 @@ import ContrastPattern from "./ExampleContrastPattern";
 import ColorContrast from "./ExampleColorContrast";
 import Github from "./ExampleGithub";
 
+);
+
 function Basic() {
   const { contrast } = huet.useTheme();
   const ctx = useContext(huet.ThemeContext);
@@ -31,11 +33,6 @@ function Basic() {
     </div>
   );
 }
-
-window.debug = function(thing) {
-  debugger;
-  return thing;
-};
 
 function Switch({ on, ...cases }) {
   const Thing = cases[on];
