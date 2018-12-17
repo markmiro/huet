@@ -12,45 +12,30 @@ import useBrowserState from "./useBrowserState";
 import Contrast from "./Contrast";
 import Select from "./Select";
 
-// pages
-import YouTube from "./ExampleYouTube";
-import ContrastPattern from "./ExampleContrastPattern";
-import ColorContrast from "./ExampleColorContrast";
-import Github from "./ExampleGithub";
-import Basic from "./ExampleBasic";
-
-const Explanation = () => (
-  <div>
-    <Suspense fallback={<div>Loading...</div>}>
-      {React.createElement(lazy(() => importMDX("./ExampleExplanation.mdx")))}
-    </Suspense>
-  </div>
-);
-
 const pages = {
   basic: {
     name: "Basic",
-    component: Basic
+    component: () => import("./ExampleBasic")
   },
   github: {
     name: "Github",
-    component: Github
+    component: () => import("./ExampleGithub")
   },
   contrastPattern: {
     name: "Contrast Pattern",
-    component: ContrastPattern
+    component: () => import("./ExampleContrastPattern")
   },
   colorContrast: {
     name: "Color Contrast",
-    component: ColorContrast
+    component: () => import("./ExampleColorContrast")
   },
   youtube: {
     name: "YouTube",
-    component: YouTube
+    component: () => import("./ExampleYouTube")
   },
   explanation: {
     name: "Explanation",
-    component: Explanation
+    component: () => importMDX("./ExampleExplanation.mdx")
   }
 };
 
@@ -100,7 +85,9 @@ function App() {
             animationName: "fade-in"
           }}
         >
-          {React.createElement(pages[pageKey].component)}
+          <Suspense fallback={<div>Loading...</div>}>
+            {React.createElement(lazy(pages[pageKey].component))}
+          </Suspense>
         </Contrast>
       </huet.ThemeContext.Provider>
     </div>
