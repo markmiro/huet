@@ -11,10 +11,13 @@ import useBrowserState from "./useBrowserState";
 
 import Contrast from "./Contrast";
 import Select from "./Select";
+
+// pages
 import YouTube from "./ExampleYouTube";
 import ContrastPattern from "./ExampleContrastPattern";
 import ColorContrast from "./ExampleColorContrast";
 import Github from "./ExampleGithub";
+import Basic from "./ExampleBasic";
 
 const pages = {
   basic: "./Basic",
@@ -32,24 +35,6 @@ const Explanation = () => (
     </Suspense>
   </div>
 );
-
-function Basic() {
-  const { contrast } = huet.useTheme();
-  const ctx = useContext(huet.ThemeContext);
-  const red = contrast(10, { ramp: "red" });
-  const hundredContrast = contrast(100);
-  return (
-    <div className="pa4">
-      Basic
-      <div style={{ color: red }}>Red</div>
-      <div style={{ color: hundredContrast }}>100 contrast</div>
-      <Contrast text={100}>50 Contrast</Contrast>
-      <pre>minColorLightness: {ctx.minColorLightness}</pre>
-      <pre>maxColorLightness: {ctx.maxColorLightness}</pre>
-      <pre>bgLightness: {ctx.bgLightness}</pre>
-    </div>
-  );
-}
 
 function Switch({ on, ...cases }) {
   const Thing = cases[on];
