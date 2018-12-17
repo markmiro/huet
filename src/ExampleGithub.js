@@ -121,6 +121,13 @@ function Experiments() {
       </H>
       <div className="flex mt3">
         {Object.keys(ctxWrapper.contextValue.ramps).map(key => (
+          <H key={key} className="pa1 mr1 tc w-100 f4" bg={100} bgRamp={key}>
+            {key}
+          </H>
+        ))}
+      </div>
+      <div className="flex mt3">
+        {Object.keys(ctxWrapper.contextValue.ramps).map(key => (
           <H key={key} className="pa1 mr1 tc w-100 f4" bg={45} bgRamp={key}>
             {key}
           </H>
