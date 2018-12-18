@@ -1,9 +1,9 @@
 import React from "react";
-import huet from "./huet";
-import Contrast from "./Contrast";
-import Icon from "./Icon";
-import YouTubeLogo from "./ExampleYouTubeLogo";
 import styled from "styled-components";
+import huet from "../huet";
+import Contrast from "../Contrast";
+import Icon from "../Icon";
+import YouTubeLogo from "../YouTubeLogo";
 
 export default function YouTube() {
   return (

@@ -1,7 +1,7 @@
 import React, { useState, useContext } from "react";
-import huet from "./huet";
-import Range from "./Range";
-import Contrast from "./Contrast";
+import huet from "../huet";
+import Range from "../Range";
+import Contrast from "../Contrast";
 
 const { ThemeContext } = huet;
 

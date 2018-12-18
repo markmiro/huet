@@ -1,7 +1,7 @@
 import React from "react";
-import huet from "./huet";
-import H from "./Contrast";
-import Icon from "./Icon";
+import huet from "../huet";
+import H from "../Contrast";
+import Icon from "../Icon";
 
 export default function Github() {
   const ctxWrapper = huet.useTheme();

@@ -1,10 +1,10 @@
 import React from "react";
 import range from "lodash/range";
-import huet from "./huet";
-import useBrowserState from "./useBrowserState";
-import Contrast from "./Contrast";
 import { useDebounce } from "use-debounce";
-import Select from "./Select";
+import huet from "../huet";
+import useBrowserState from "../useBrowserState";
+import Contrast from "../Contrast";
+import Select from "../Select";
 
 const sharedDoubleFractionSteps = [100 / 16, 100 / 8, 100 / 4, 100 / 2];
 const doubleSteps = [4, 8, 16, 32, 64, 100];

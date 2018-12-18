@@ -1,6 +1,6 @@
 import React, { useContext } from "react";
-import huet from "./huet";
-import Contrast from "./Contrast";
+import huet from "../huet";
+import Contrast from "../Contrast";
 
 export default function Basic() {
   const { contrast } = huet.useTheme();

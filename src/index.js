@@ -15,27 +15,27 @@ import Select from "./Select";
 const pages = {
   basic: {
     name: "Basic",
-    component: () => import("./ExampleBasic")
+    component: () => import("./pages/Basic")
   },
   github: {
     name: "Github",
-    component: () => import("./ExampleGithub")
+    component: () => import("./pages/Github")
   },
   contrastPattern: {
     name: "Contrast Pattern",
-    component: () => import("./ExampleContrastPattern")
+    component: () => import("./pages/ContrastPattern")
   },
   colorContrast: {
     name: "Color Contrast",
-    component: () => import("./ExampleColorContrast")
+    component: () => import("./pages/ColorContrast")
   },
   youtube: {
     name: "YouTube",
-    component: () => import("./ExampleYouTube")
+    component: () => import("./pages/YouTube")
   },
   explanation: {
     name: "Explanation",
-    component: () => importMDX("./ExampleExplanation.mdx")
+    component: () => importMDX("./pages/Explanation.mdx")
   }
 };
 
