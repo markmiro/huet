@@ -11,6 +11,11 @@ body {
   font-family: system-ui;
 }
 
+p,
+ul {
+  line-height: 1.25;
+}
+
 /* .Themer {
   transform-origin: top right;
   transform: scale(0.3);

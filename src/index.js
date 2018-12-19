@@ -1,6 +1,5 @@
 import React, { useEffect, lazy, Suspense } from "react";
 import ReactDOM from "react-dom";
-import { importMDX } from "mdx.macro";
 
 import "./styles.css";
 import "./globals";
@@ -15,27 +14,27 @@ import Select from "./Select";
 const pages = {
   basic: {
     name: "Basic",
-    component: () => import("./pages/Basic")
+    component: lazy(() => import("./pages/Basic"))
   },
   github: {
     name: "Github",
-    component: () => import("./pages/Github")
+    component: lazy(() => import("./pages/Github"))
   },
   contrastPattern: {
     name: "Contrast Pattern",
-    component: () => import("./pages/ContrastPattern")
+    component: lazy(() => import("./pages/ContrastPattern"))
   },
   colorContrast: {
     name: "Color Contrast",
-    component: () => import("./pages/ColorContrast")
+    component: lazy(() => import("./pages/ColorContrast"))
   },
   youtube: {
     name: "YouTube",
-    component: () => import("./pages/YouTube")
+    component: lazy(() => import("./pages/YouTube"))
   },
   explanation: {
     name: "Explanation",
-    component: () => importMDX("./pages/Explanation.mdx")
+    component: lazy(() => import("./pages/Explanation"))
   }
 };
 
@@ -86,7 +85,7 @@ function App() {
           }}
         >
           <Suspense fallback={<div>Loading...</div>}>
-            {React.createElement(lazy(pages[pageKey].component))}
+            {React.createElement(pages[pageKey].component)}
           </Suspense>
         </Contrast>
       </huet.ThemeContext.Provider>
