@@ -49,14 +49,12 @@ function getMinMax(ctx, ramp) {
 }
 
 function relativeColor(ctx, ramp, contrast = 100, a = 100) {
-  let returnColor;
+  let scaleValue;
 
   if (ramp.mode === "direct") {
-    // returnColor = ramp.scale(ctx.bgLightness / 100);
-    returnColor = ramp.scale(
+    scaleValue =
       (ctx.bgLightness - ctx.ramps.gray.startL) /
-        (ctx.ramps.gray.endL - ctx.ramps.gray.startL)
-    );
+      (ctx.ramps.gray.endL - ctx.ramps.gray.startL);
   } else {
     // TODO: Causes flicker
     // const { min, max } = getMinMax(ctx, ramp);
@@ -125,11 +123,10 @@ function relativeColor(ctx, ramp, contrast = 100, a = 100) {
     );
 
     // Rescale targetLightness from ramp range to 0-1
-    const scaleValue =
-      (targetLightness - ramp.startL) / (ramp.endL - ramp.startL);
-
-    returnColor = ramp.scale(scaleValue);
+    scaleValue = (targetLightness - ramp.startL) / (ramp.endL - ramp.startL);
   }
+
+  let returnColor = ramp.scale(scaleValue);
 
   if (ctx.saturationContrastMultiplier !== 1 || a !== 100) {
     returnColor = returnColor
