@@ -8,6 +8,7 @@ import themes from "./themes";
 import huet from "./huet";
 import useBrowserState from "./useBrowserState";
 
+import ErrorBoundary from "./ErrorBoundary";
 import Contrast from "./Contrast";
 import Select from "./Select";
 
@@ -54,42 +55,44 @@ function App() {
   );
 
   return (
-    <div>
-      <Themer themes={themes} theme={theme} onChangeTheme={setTheme} />
-      <huet.ThemeContext.Provider value={ctxWrapper.contextValue}>
-        <Contrast
-          bg={10}
-          border={100}
-          className="bb"
-          style={{ position: "relative", zIndex: 2 }}
-        >
-          <Select
-            label="Example Demos"
-            className="pa2 pb3"
-            value={pageKey}
-            onChange={setPageKey}
+    <ErrorBoundary>
+      <div>
+        <Themer themes={themes} theme={theme} onChangeTheme={setTheme} />
+        <huet.ThemeContext.Provider value={ctxWrapper.contextValue}>
+          <Contrast
+            bg={10}
+            border={100}
+            className="bb"
+            style={{ position: "relative", zIndex: 2 }}
           >
-            {Object.keys(pages).map(pageKey => (
-              <option key={pageKey} value={pageKey}>
-                {pages[pageKey].name}
-              </option>
-            ))}
-          </Select>
-        </Contrast>
-        <Contrast
-          bg={0}
-          style={{
-            // So page refresh is visible
-            animationDuration: "0.5s",
-            animationName: "fade-in"
-          }}
-        >
-          <Suspense fallback={<div>Loading...</div>}>
-            {React.createElement(pages[pageKey].component)}
-          </Suspense>
-        </Contrast>
-      </huet.ThemeContext.Provider>
-    </div>
+            <Select
+              label="Example Demos"
+              className="pa2 pb3"
+              value={pageKey}
+              onChange={setPageKey}
+            >
+              {Object.keys(pages).map(pageKey => (
+                <option key={pageKey} value={pageKey}>
+                  {pages[pageKey].name}
+                </option>
+              ))}
+            </Select>
+          </Contrast>
+          <Contrast
+            bg={0}
+            style={{
+              // So page refresh is visible
+              animationDuration: "0.5s",
+              animationName: "fade-in"
+            }}
+          >
+            <Suspense fallback={<div>Loading...</div>}>
+              {React.createElement(pages[pageKey].component)}
+            </Suspense>
+          </Contrast>
+        </huet.ThemeContext.Provider>
+      </div>
+    </ErrorBoundary>
   );
 }
 
