@@ -91,8 +91,8 @@ function relativeColor(ctx, ramp, contrast = 100, a = 100) {
     //  _.5 __0 _.5 | $_ + .5
     //  __1 _.5 __1 |
     const normalizedLightness =
-      (ctx.bgLightness - ctx.ramps.gray.startL) /
-      (ctx.ramps.gray.endL - ctx.ramps.gray.startL);
+      (ctx.bgLightness - ctx.bgRamp.startL) /
+      (ctx.bgRamp.endL - ctx.bgRamp.startL);
     const contrastNormalizer = ctx.normalizeContrastToContext
       ? ramp === ctx.ramps.gray
         ? Math.abs(0.5 - normalizedLightness) + 0.5
@@ -153,6 +153,7 @@ function relativeColor(ctx, ramp, contrast = 100, a = 100) {
     const newContextValue = {
       ...ctx,
       color: returnColor,
+      bgRamp: ramp,
       bgLightnessAbove: ctx.bgLightness,
       bgLightness: returnColor._lightness
     };
@@ -193,6 +194,7 @@ function createTheme(theme) {
   const bgLightness = getLightness(ramps.gray.scale(theme.bgScaleValue));
   return createCtxWrapper({
     // TODO: putting above because it can get overwritten
+    bgRamp: ramps.gray,
     bgLightness,
     bgLightnessAbove: bgLightness,
     ...theme,
