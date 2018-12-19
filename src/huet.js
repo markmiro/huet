@@ -23,28 +23,19 @@ function createClamp(min, max) {
 //   };
 // }
 
-function getMinMax(ctx, ramp) {
+function getRange(ctx, ramp) {
   if (ramp.mode === "direct") throw new Error("Direct mode ramps not allowed");
 
   // Neutral ramps don't have min and max limitations
   if (ramp.isNeutral) {
-    return {
-      min: ramp.startL,
-      max: ramp.endL
-    };
+    return ramp.endL - ramp.startL;
   }
 
   const midpoint = (ramp.startL + ramp.endL) / 2;
   if (ctx.bgLightness < midpoint) {
-    return {
-      min: ctx.bgLightness,
-      max: ctx.maxColorLightness
-    };
+    return ctx.maxColorLightness - ctx.bgLightness;
   } else {
-    return {
-      min: ctx.minColorLightness,
-      max: ctx.bgLightness
-    };
+    return ctx.bgLightness - ctx.minColorLightness;
   }
 }
 
@@ -80,8 +71,6 @@ function relativeColor(ctx, ramp, contrast = 100, a = 100) {
     // } else {
     // }
 
-    const { min, max } = getMinMax(ctx, ramp);
-
     // At 50 in a black to white scale, the highest contrast is 50.
     // This means contrast of 100 is also 50.
     // By normalizing we make sure there's always a visible difference
@@ -96,7 +85,7 @@ function relativeColor(ctx, ramp, contrast = 100, a = 100) {
     const contrastNormalizer = ctx.normalizeContrastToContext
       ? ramp === ctx.ramps.gray
         ? Math.abs(0.5 - normalizedLightness) + 0.5
-        : (max - min) / 100
+        : getRange(ctx, ramp) / 100
       : 1;
 
     const contrastRescale =
@@ -104,23 +93,15 @@ function relativeColor(ctx, ramp, contrast = 100, a = 100) {
         ? (ctx.ramps.gray.endL - ctx.ramps.gray.startL) / 100
         : 1;
 
-    const colorContrastRescale =
-      ctx.rescaleColorContrastToGrayRange && ramp !== ctx.ramps.gray
-        ? (ctx.ramps.gray.endL - ctx.ramps.gray.startL) / 100
-        : 1;
-
     const midpoint = (ramp.startL + ramp.endL) / 2;
     const direction = ctx.bgLightness < midpoint ? 1 : -1;
-    const clamp = createClamp(min, max);
-    const targetLightness = clamp(
+    const targetLightness =
       ctx.bgLightness +
-        contrast *
-          direction *
-          ctx.contrastMultiplier *
-          contrastNormalizer *
-          contrastRescale *
-          colorContrastRescale
-    );
+      contrast *
+        direction *
+        ctx.contrastMultiplier *
+        contrastNormalizer *
+        contrastRescale;
 
     // Rescale targetLightness from ramp range to 0-1
     scaleValue = (targetLightness - ramp.startL) / (ramp.endL - ramp.startL);

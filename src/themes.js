@@ -46,7 +46,6 @@ const shared = {
   contrastMultiplier: 1,
   saturationContrastMultiplier: 1,
   rescaleContrastToGrayRange: true,
-  rescaleColorContrastToGrayRange: true,
   normalizeContrastToContext: true,
   contrastDirection: "zigzag"
 };

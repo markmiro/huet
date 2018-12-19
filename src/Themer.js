@@ -34,9 +34,6 @@ export default function Themer({ themes, theme, onChangeTheme }) {
         rescaleContrastToGrayRange: canAdjustToGray
           ? theme.rescaleContrastToGrayRange
           : false,
-        rescaleColorContrastToGrayRange: canAdjustToGray
-          ? theme.rescaleColorContrastToGrayRange
-          : false,
         // onPickerPick: picked => {
         //   console.log(picked);
         //   setPickedObject(picked);
@@ -56,9 +53,6 @@ export default function Themer({ themes, theme, onChangeTheme }) {
   const setMinColorLightness = modify("minColorLightness");
   const setMaxColorLightness = modify("maxColorLightness");
   const setRescaleContrastToGrayRange = modify("rescaleContrastToGrayRange");
-  const setRescaleColorContrastToGrayRange = modify(
-    "rescaleColorContrastToGrayRange"
-  );
   const setNormalizeContrastToContext = modify("normalizeContrastToContext");
   [isPicking, setIsPicking] = useState(false);
   [pickedObject, setPickedObject] = useState();
@@ -162,20 +156,12 @@ export default function Themer({ themes, theme, onChangeTheme }) {
               className="mt2"
             />
             {canAdjustToGray && (
-              <>
-                <Checkbox
-                  label="Rescale contrast to gray range"
-                  isChecked={theme.rescaleContrastToGrayRange}
-                  onChange={setRescaleContrastToGrayRange}
-                  className="mt2"
-                />
-                <Checkbox
-                  label="Rescale color contrast to gray range"
-                  isChecked={theme.rescaleColorContrastToGrayRange}
-                  onChange={setRescaleColorContrastToGrayRange}
-                  className="mt2"
-                />
-              </>
+              <Checkbox
+                label="Rescale gray contrast to gray range"
+                isChecked={theme.rescaleContrastToGrayRange}
+                onChange={setRescaleContrastToGrayRange}
+                className="mt2"
+              />
             )}
           </Contrast>
           <Contrast border={10} className="pa2 bb">

@@ -132,13 +132,7 @@ export function InnerRamp({ ramp }) {
   switch (type) {
     case "classes":
       return (
-        <div
-          className="h-100 w-100 flex"
-          style={{
-            marginLeft: ramp.startL ? `${ramp.startL}%` : null,
-            width: ramp.startL ? `${ramp.endL - ramp.startL}%` : null
-          }}
-        >
+        <div className="h-100 w-100 flex">
           {pairs(ramp).map(([first, second], i) => (
             <div
               key={i}
@@ -153,13 +147,7 @@ export function InnerRamp({ ramp }) {
       );
     case "domain":
       return (
-        <div
-          className="h-100 w-100 flex"
-          style={{
-            marginLeft: ramp.startL ? `${ramp.startL}%` : null,
-            width: ramp.startL ? `${ramp.endL - ramp.startL}%` : null
-          }}
-        >
+        <div className="h-100 w-100 flex">
           {_.chunk(ramp.scale.theDomain, 2).map(([first, second], i) => (
             <div
               key={i}
@@ -180,9 +168,6 @@ export function InnerRamp({ ramp }) {
         <div
           className="h-100 w-100"
           style={{
-            marginLeft: ramp.startL && `${ramp.startL}%`,
-            // marginRight: ramp.startL && `${100 - ramp.endL}%`,
-            width: ramp.startL ? `${ramp.endL - ramp.startL}%` : null,
             background: `linear-gradient(to right, ${_.range(0, 1, 0.01)
               .map(i => ramp.scale(i))
               .join(",")})`
