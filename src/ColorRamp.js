@@ -106,41 +106,90 @@ export function ContrastRange({ lightness, contrast }) {
   );
 }
 
-export function InnerRamp({ ramp, children }) {
+function duplicate(n) {
+  return [n, n];
+}
+function pairs(ramp) {
+  const classes = ramp.scale.classes();
+  const classesArr = Array.isArray(classes)
+    ? classes
+    : [..._.range(0, 1, 1 / classes), 1];
+  const first = _.first(classesArr);
+  const last = _.last(classesArr);
+  const middle = _.initial(_.tail(classesArr));
+  return _.chunk([first, ..._.flatMap(middle, duplicate), last], 2);
+}
+
+export function InnerRamp({ ramp }) {
   if (!ramp || !ramp.scale) return null;
-  return (
-    <>
-      {/* <div
-        className="h-100 w-100"
-        style={{
-          marginLeft: ramp.startL && `${ramp.startL}%`,
-          // marginRight: ramp.startL && `${100 - ramp.endL}%`,
-          width: ramp.startL ? `${ramp.endL - ramp.startL}%` : null,
-          background: `linear-gradient(to right, ${_.range(0, 1, 0.1)
-            .map(i => ramp.scale(i))
-            .join(",")})`
-        }}
-      /> */}
-      <div
-        className="h-100 w-100 flex"
-        style={{
-          marginLeft: ramp.startL ? `${ramp.startL}%` : null,
-          width: ramp.startL ? `${ramp.endL - ramp.startL}%` : null
-        }}
-      >
-        {_.range(0, 1, 0.05).map(i => (
-          <div
-            key={i}
-            className="h-100 w-100"
-            style={{
-              backgroundColor: ramp.scale(i)
-            }}
-          />
-        ))}
-      </div>
-      {children}
-    </>
-  );
+
+  const type = ramp.scale.classes()
+    ? "classes"
+    : ramp.scale.theDomain
+    ? "domain"
+    : "normal";
+
+  switch (type) {
+    case "classes":
+      return (
+        <div
+          className="h-100 w-100 flex"
+          style={{
+            marginLeft: ramp.startL ? `${ramp.startL}%` : null,
+            width: ramp.startL ? `${ramp.endL - ramp.startL}%` : null
+          }}
+        >
+          {pairs(ramp).map(([first, second], i) => (
+            <div
+              key={i}
+              className="h-100"
+              style={{
+                backgroundColor: ramp.scale((first + second) / 2),
+                width: `${(second - first) * 100}%`
+              }}
+            />
+          ))}
+        </div>
+      );
+    case "domain":
+      return (
+        <div
+          className="h-100 w-100 flex"
+          style={{
+            marginLeft: ramp.startL ? `${ramp.startL}%` : null,
+            width: ramp.startL ? `${ramp.endL - ramp.startL}%` : null
+          }}
+        >
+          {_.chunk(ramp.scale.theDomain, 2).map(([first, second], i) => (
+            <div
+              key={i}
+              className="h-100 w-100"
+              style={{
+                width: `${(second - first) * 100}%`,
+                background: `linear-gradient(to right, ${ramp.scale(
+                  first + 0.001
+                )}, ${ramp.scale(second)})`
+              }}
+            />
+          ))}
+        </div>
+      );
+    case "normal":
+    default:
+      return (
+        <div
+          className="h-100 w-100"
+          style={{
+            marginLeft: ramp.startL && `${ramp.startL}%`,
+            // marginRight: ramp.startL && `${100 - ramp.endL}%`,
+            width: ramp.startL ? `${ramp.endL - ramp.startL}%` : null,
+            background: `linear-gradient(to right, ${_.range(0, 1, 0.01)
+              .map(i => ramp.scale(i))
+              .join(",")})`
+          }}
+        />
+      );
+  }
 }
 
 const ColorRamp = ({ ramp, themeContext }) => {
@@ -149,29 +198,10 @@ const ColorRamp = ({ ramp, themeContext }) => {
   return (
     <div className="flex w-100 flex-row h1 mb2">
       <div className="w-100 relative flex">
-        <InnerRamp ramp={theRamp}>
-          {/* {!theRamp.isNeutral && (
-            <>
-              <Screen from={0} to={themeContext.minColorLightness} />
-              <Screen from={themeContext.maxColorLightness} to={100} />
-            </>
-          )} */}
-          {!theRamp.isNeutral && theRamp.mode !== "direct" && (
-            <>
-              <Bracket
-                lightness={themeContext.minColorLightness}
-                direction="left"
-              />
-              <Bracket
-                lightness={themeContext.maxColorLightness}
-                direction="right"
-              />
-            </>
-          )}
-          {theRamp.scale.colors().map((color, i) => (
-            <RampColorMarker key={i} color={color} />
-          ))}
-        </InnerRamp>
+        <InnerRamp ramp={theRamp} />
+        {theRamp.scale.colors().map((color, i) => (
+          <RampColorMarker key={i} color={color} />
+        ))}
       </div>
     </div>
   );
