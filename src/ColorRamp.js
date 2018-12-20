@@ -157,6 +157,7 @@ export function InnerRamp({ ramp }) {
               className="h-100 w-100"
               style={{
                 width: `${(second - first) * 100}%`,
+                // TODO: use range here to add more points
                 background: `linear-gradient(to right, ${ramp.scale(
                   first + 0.001
                 )}, ${ramp.scale(second)})`
@@ -171,7 +172,7 @@ export function InnerRamp({ ramp }) {
         <div
           className="h-100 w-100"
           style={{
-            background: `linear-gradient(to right, ${_.range(0, 1, 0.01)
+            background: `linear-gradient(to right, ${_.range(0, 1, 0.2)
               .map(i => ramp.scale(i))
               .join(",")})`
           }}
