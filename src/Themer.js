@@ -201,9 +201,16 @@ export default function Themer({ themes, theme, onChangeTheme }) {
                     background: "linear-gradient(to right, black, white)"
                   }}
                 />
-                {Object.keys(ctx.ramps).map(key => (
-                  <ColorRamp key={key} ramp={key} themeContext={ctx} />
-                ))}
+                <div
+                  style={{
+                    marginLeft: `${ctx.ramps.gray.startL}%`,
+                    width: `${ctx.ramps.gray.endL - ctx.ramps.gray.startL}%`
+                  }}
+                >
+                  {Object.keys(ctx.ramps).map(key => (
+                    <ColorRamp key={key} ramp={key} themeContext={ctx} />
+                  ))}
+                </div>
               </div>
               <Contrast className="w-100" border={20}>
                 <Range
