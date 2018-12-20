@@ -60,19 +60,19 @@ export function Bracket({ lightness, direction }) {
 }
 
 const RampColorMarkerElement = styled.div`
-  --width: 1.1em;
+  --size: 1em;
   background-color: ${({ color }) => color || "transparent"};
   outline-width: 1px;
   outline-offset: -2px;
   outline-style: solid;
-  width: var(--width);
-  height: 120%;
+  width: var(--size);
+  height: var(--size);
   top: 50%;
   left: ${({ color, grayRamp }) => {
     const l =
       (huet.getLightness(color) - grayRamp.startL) /
       (grayRamp.endL - grayRamp.startL);
-    return `calc(${l * 100}% - (var(--width)) * ${l})`;
+    return `calc(${l * 100}% - (var(--size)) * ${l})`;
   }};
   transform: translateY(-50%);
 `;
