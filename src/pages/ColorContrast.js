@@ -82,17 +82,13 @@ const Things = React.memo(({ colorSteps, graySteps, ctx }) => {
                   <div
                     className="w1 h-100"
                     style={{
-                      backgroundColor: ctx.ramps[ramp].scale(
-                        ctx.maxColorLightness / 100
-                      )
+                      backgroundColor: ctx.ramps[ramp].scale(0)
                     }}
                   />
                   <div
                     className="w1 h-100"
                     style={{
-                      backgroundColor: ctx.ramps[ramp].scale(
-                        ctx.minColorLightness / 100
-                      )
+                      backgroundColor: ctx.ramps[ramp].scale(1)
                     }}
                   />
                 </div>
