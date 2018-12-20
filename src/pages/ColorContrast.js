@@ -8,7 +8,7 @@ import Contrast from "../Contrast";
 import Select from "../Select";
 
 const sharedDoubleFractionSteps = [100 / 16, 100 / 8, 100 / 4, 100 / 2];
-const doubleSteps = [4, 8, 16, 32, 64, 100];
+const doubleSteps = [0, 4, 8, 16, 32, 64, 100];
 const littleSteps = [0, 2, 4, 6, 96, 98, 100];
 
 const stepSizes = {
