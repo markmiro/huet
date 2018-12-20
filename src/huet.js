@@ -24,12 +24,14 @@ function getMinMax(ctx, ramp) {
 }
 
 function relativeColor(ctx, ramp, contrast = 100, a = 100) {
-  let scaleValue;
+  let returnColor;
 
   if (ramp.mode === "direct") {
-    scaleValue =
+    returnColor = ramp.scale(
       (ctx.bgLightness - ctx.ramps.gray.startL) /
-      (ctx.ramps.gray.endL - ctx.ramps.gray.startL);
+        (ctx.ramps.gray.endL - ctx.ramps.gray.startL)
+    );
+    // returnColor = chroma.mix(ctx.color, returnColor, ctx.contrastMultiplier);
   } else {
     const [min, max] = getMinMax(ctx, ramp);
     const [bgMin, bgMax] = getMinMax(ctx, ctx.bgRamp);
@@ -41,11 +43,18 @@ function relativeColor(ctx, ramp, contrast = 100, a = 100) {
     //  __0 _.5 __1 | Math.abs(.5 - ctx.bgLightness/100)
     //  _.5 __0 _.5 | $_ + .5
     //  __1 _.5 __1 |
+    // const normalizedLightness = (ctx.bgLightness - bgMin) / (bgMax - bgMin);
     const normalizedLightness = (ctx.bgLightness - bgMin) / (bgMax - bgMin);
     const contrastNormalizer = Math.abs(0.5 - normalizedLightness) + 0.5;
     const contrastRescale = (max - min) / 100;
     const midpoint = (min + max) / 2;
     const direction = ctx.bgLightness < midpoint ? 1 : -1;
+    const colorContrastMinMax =
+      ramp === ctx.ramps.gray
+        ? 1
+        : ctx.bgLightness < midpoint
+        ? ctx.maxColorLightness / 100
+        : 1 - ctx.minColorLightness / 100;
 
     const targetLightness =
       ctx.bgLightness +
@@ -53,13 +62,27 @@ function relativeColor(ctx, ramp, contrast = 100, a = 100) {
         direction *
         ctx.contrastMultiplier *
         contrastNormalizer *
+        colorContrastMinMax *
         contrastRescale;
 
     // Rescale targetLightness from ramp range to 0-1
-    scaleValue = (targetLightness - ramp.startL) / (ramp.endL - ramp.startL);
-  }
+    let scaleValue =
+      (targetLightness - ramp.startL) / (ramp.endL - ramp.startL);
 
-  let returnColor = ramp.scale(scaleValue);
+    returnColor = ramp.scale(scaleValue);
+    returnColor._targetLightness = targetLightness;
+    returnColor._scaleValue = scaleValue;
+
+    const [, bgA, bgB] = chroma(ctx.color).lab();
+    const [fgL, fgA, fgB] = chroma(returnColor).lab();
+    const colorContrastNormalizer = Math.abs(0.5 - normalizedLightness) * 2;
+    const abContrast = (colorContrastNormalizer + contrast) / 100;
+    returnColor = chroma.lab(
+      fgL,
+      bgA + (fgA - bgA) * abContrast,
+      bgB + (fgB - bgB) * abContrast
+    );
+  }
 
   if (ctx.saturationContrastMultiplier !== 1 || a !== 100) {
     returnColor = returnColor
@@ -180,15 +203,6 @@ function createRamp(theme, rampConfig) {
   const scale = chroma.scale(hexColors);
   const rampOptions = { isNeutral: config.isNeutral };
   if (config.colorModel) scale.mode(config.colorModel);
-  if (
-    !config.isNeutral &&
-    config.mode !== "direct" &&
-    (theme.minColorLightness || theme.maxColorLightness)
-  ) {
-    const left = theme.minColorLightness / 100;
-    const right = 1 - theme.maxColorLightness / 100;
-    scale.padding([left, right]);
-  }
   if (config.classes) scale.classes(config.classes);
   switch (config.mode) {
     case "direct":
