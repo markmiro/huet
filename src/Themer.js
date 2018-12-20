@@ -212,7 +212,6 @@ export default function Themer({ themes, theme, onChangeTheme }) {
                   max={100}
                   value={theme.minColorLightness}
                   onChange={setMinColorLightness}
-                  hideInput
                   className="mt2"
                 />
                 <Range
@@ -221,7 +220,6 @@ export default function Themer({ themes, theme, onChangeTheme }) {
                   max={100}
                   value={theme.maxColorLightness}
                   onChange={setMaxColorLightness}
-                  hideInput
                   className="mt2"
                 />
               </Contrast>
