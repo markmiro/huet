@@ -124,9 +124,11 @@ function createCtxWrapper(ctx) {
 
 function createTheme(theme) {
   const ramps = mapValues(theme.ramps, ramp => createRamp(theme, ramp));
-  const bgLightness = getLightness(ramps.gray.scale(theme.bgScaleValue));
+  const bgColor = ramps.gray.scale(theme.bgScaleValue);
+  const bgLightness = getLightness(bgColor);
   return createCtxWrapper({
     // TODO: putting above because it can get overwritten
+    color: bgColor,
     bgRamp: ramps.gray,
     bgLightness,
     bgLightnessAbove: bgLightness,
