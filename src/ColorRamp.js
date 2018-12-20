@@ -68,18 +68,21 @@ const RampColorMarkerElement = styled.div`
   width: var(--width);
   height: 120%;
   top: 50%;
-  left: ${({ color }) => {
-    const l = huet.getLightness(color);
-    return `calc(${l}% - (var(--width)) * ${l / 100})`;
+  left: ${({ color, grayRamp }) => {
+    const l =
+      (huet.getLightness(color) - grayRamp.startL) /
+      (grayRamp.endL - grayRamp.startL);
+    return `calc(${l * 100}% - (var(--width)) * ${l})`;
   }};
   transform: translateY(-50%);
 `;
 
-function RampColorMarker({ color }) {
+function RampColorMarker({ color, grayRamp }) {
   return (
     <Contrast
       as={RampColorMarkerElement}
       color={color}
+      grayRamp={grayRamp}
       border={0}
       borderAlpha={0.3}
       outline={100}
@@ -185,7 +188,11 @@ const ColorRamp = ({ ramp, themeContext }) => {
       <div className="w-100 relative flex">
         <InnerRamp ramp={theRamp} />
         {theRamp.scale.colors().map((color, i) => (
-          <RampColorMarker key={i} color={color} />
+          <RampColorMarker
+            key={i}
+            color={color}
+            grayRamp={themeContext.ramps.gray}
+          />
         ))}
       </div>
     </div>
