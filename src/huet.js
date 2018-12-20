@@ -4,39 +4,23 @@ import mapValues from "lodash/mapValues";
 
 const ThemeContext = React.createContext();
 
-/*
-  TODO:
-  Additional settings:
-  - tint colors with the gray
-*/
-
-function createClamp(min, max) {
-  return n => Math.max(min, Math.min(max, n));
+function createTransform([aMin, aMax], [bMin, bMax]) {
+  const aRange = aMax - aMin;
+  const bRange = bMax - bMin;
+  return i => {
+    const normalized = (i - aMin) / aRange; // from 0 to 1 now
+    return normalized * bRange + bMin;
+  };
 }
 
-// function createTransform([aMin, aMax], [bMin, bMax]) {
-//   const aRange = aMax - aMin;
-//   const bRange = bMax - bMin;
-//   return i => {
-//     const normalized = (i - aMin) / aRange; // from 0 to 1 now
-//     return normalized * bRange + bMin;
-//   };
-// }
-
-function getRange(ctx, ramp) {
-  if (ramp.mode === "direct") throw new Error("Direct mode ramps not allowed");
-
-  // Neutral ramps don't have min and max limitations
+function getMinMax(ctx, ramp) {
   if (ramp.isNeutral) {
-    return ramp.endL - ramp.startL;
+    return [ramp.startL, ramp.endL];
   }
 
-  const midpoint = (ramp.startL + ramp.endL) / 2;
-  if (ctx.bgLightness < midpoint) {
-    return ctx.maxColorLightness - ctx.bgLightness;
-  } else {
-    return ctx.bgLightness - ctx.minColorLightness;
-  }
+  const min = Math.max(ramp.startL, ctx.ramps.gray.startL);
+  const max = Math.min(ramp.endL, ctx.ramps.gray.endL);
+  return [min, max];
 }
 
 function relativeColor(ctx, ramp, contrast = 100, a = 100) {
@@ -47,30 +31,8 @@ function relativeColor(ctx, ramp, contrast = 100, a = 100) {
       (ctx.bgLightness - ctx.ramps.gray.startL) /
       (ctx.ramps.gray.endL - ctx.ramps.gray.startL);
   } else {
-    // TODO: Causes flicker
-    // const { min, max } = getMinMax(ctx, ramp);
-    // let direction;
-    // if (
-    //   ctx.bgLightness - contrast >= min &&
-    //   ctx.bgLightness + contrast <= max
-    // ) {
-    //   switch (ctx.contrastDirection) {
-    //     case "darker":
-    //       direction = -1;
-    //       break;
-    //     case "lighter":
-    //       direction = 1;
-    //       break;
-    //     case "flipflop":
-    //       direction = ctx.bgLightness > ctx.bgLightnessAbove ? -1 : +1;
-    //       break;
-    //     case "zigzag":
-    //     default:
-    //       direction = ctx.bgLightness > ctx.bgLightnessAbove ? 1 : -1;
-    //   }
-    // } else {
-    // }
-
+    const [min, max] = getMinMax(ctx, ramp);
+    const [bgMin, bgMax] = getMinMax(ctx, ctx.bgRamp);
     // At 50 in a black to white scale, the highest contrast is 50.
     // This means contrast of 100 is also 50.
     // By normalizing we make sure there's always a visible difference
@@ -79,22 +41,12 @@ function relativeColor(ctx, ramp, contrast = 100, a = 100) {
     //  __0 _.5 __1 | Math.abs(.5 - ctx.bgLightness/100)
     //  _.5 __0 _.5 | $_ + .5
     //  __1 _.5 __1 |
-    const normalizedLightness =
-      (ctx.bgLightness - ctx.bgRamp.startL) /
-      (ctx.bgRamp.endL - ctx.bgRamp.startL);
-    const contrastNormalizer = ctx.normalizeContrastToContext
-      ? ramp === ctx.ramps.gray
-        ? Math.abs(0.5 - normalizedLightness) + 0.5
-        : getRange(ctx, ramp) / 100
-      : 1;
-
-    const contrastRescale =
-      ctx.rescaleContrastToGrayRange && ramp === ctx.ramps.gray
-        ? (ctx.ramps.gray.endL - ctx.ramps.gray.startL) / 100
-        : 1;
-
-    const midpoint = (ramp.startL + ramp.endL) / 2;
+    const normalizedLightness = (ctx.bgLightness - bgMin) / (bgMax - bgMin);
+    const contrastNormalizer = Math.abs(0.5 - normalizedLightness) + 0.5;
+    const contrastRescale = (max - min) / 100;
+    const midpoint = (min + max) / 2;
     const direction = ctx.bgLightness < midpoint ? 1 : -1;
+
     const targetLightness =
       ctx.bgLightness +
       contrast *
@@ -226,6 +178,15 @@ function createRamp(theme, rampConfig) {
   const scale = chroma.scale(hexColors);
   const rampOptions = { isNeutral: config.isNeutral };
   if (config.colorModel) scale.mode(config.colorModel);
+  if (
+    !config.isNeutral &&
+    config.mode !== "direct" &&
+    (theme.minColorLightness || theme.maxColorLightness)
+  ) {
+    const left = theme.minColorLightness / 100;
+    const right = 1 - theme.maxColorLightness / 100;
+    scale.padding([left, right]);
+  }
   if (config.classes) scale.classes(config.classes);
   switch (config.mode) {
     case "direct":
