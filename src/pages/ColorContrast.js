@@ -1,5 +1,6 @@
 import React from "react";
 import range from "lodash/range";
+import partition from "lodash/partition";
 import { useDebounce } from "use-debounce";
 import huet from "../huet";
 import useBrowserState from "../useBrowserState";
@@ -40,63 +41,69 @@ const stepSizes = {
   }
 };
 
-const Things = React.memo(({ colorSteps, graySteps, ctx }) => (
-  <huet.ThemeContext.Provider value={ctx}>
-    {graySteps.map(grayStep => (
-      <Contrast key={grayStep} bg={grayStep} className="pa2">
-        <b>{grayStep}</b>
-        <div className="flex items-center flex-wrap">
-          {Object.keys(ctx.ramps).map(ramp => (
-            <div key={ramp} className="flex mt1 mr2">
-              {ctx.ramps[ramp].mode === "direct" ? (
-                <Contrast
-                  bg={0}
-                  bgRamp={ramp}
-                  text={0}
-                  textRamp={ramp}
-                  className="pa1"
-                >
-                  Direct
-                </Contrast>
-              ) : (
-                colorSteps.map(colorStep => (
+const Things = React.memo(({ colorSteps, graySteps, ctx }) => {
+  const [direct, indirect] = partition(
+    Object.keys(ctx.ramps),
+    key => ctx.ramps[key].mode === "direct"
+  );
+  return (
+    <huet.ThemeContext.Provider value={ctx}>
+      {graySteps.map(grayStep => (
+        <Contrast key={grayStep} bg={grayStep} className="pa2">
+          <b>{grayStep}</b>
+          <div className="flex flex-wrap">
+            {[...indirect, ...direct].map(ramp => (
+              <div key={ramp} className="flex mt1 mr2">
+                {ctx.ramps[ramp].mode === "direct" ? (
                   <Contrast
-                    key={colorStep}
-                    bg={colorStep}
+                    bg={0}
                     bgRamp={ramp}
-                    text={colorStep}
+                    text={0}
                     textRamp={ramp}
                     className="pa1"
                   >
-                    {colorStep.toString()}
+                    Direct
                   </Contrast>
-                ))
-              )}
-              <div className="flex flex-column">
-                <div
-                  className="w1 h-100"
-                  style={{
-                    backgroundColor: ctx.ramps[ramp].scale(
-                      ctx.maxColorLightness / 100
-                    )
-                  }}
-                />
-                <div
-                  className="w1 h-100"
-                  style={{
-                    backgroundColor: ctx.ramps[ramp].scale(
-                      ctx.minColorLightness / 100
-                    )
-                  }}
-                />
+                ) : (
+                  colorSteps.map(colorStep => (
+                    <Contrast
+                      key={colorStep}
+                      bg={colorStep}
+                      bgRamp={ramp}
+                      text={colorStep}
+                      textRamp={ramp}
+                      className="pa1"
+                    >
+                      {colorStep.toString()}
+                    </Contrast>
+                  ))
+                )}
+                <div className="flex flex-column">
+                  <div
+                    className="w1 h-100"
+                    style={{
+                      backgroundColor: ctx.ramps[ramp].scale(
+                        ctx.maxColorLightness / 100
+                      )
+                    }}
+                  />
+                  <div
+                    className="w1 h-100"
+                    style={{
+                      backgroundColor: ctx.ramps[ramp].scale(
+                        ctx.minColorLightness / 100
+                      )
+                    }}
+                  />
+                </div>
               </div>
-            </div>
-          ))}
-        </div>
-      </Contrast>
-    ))}
-  </huet.ThemeContext.Provider>
-));
+            ))}
+          </div>
+        </Contrast>
+      ))}
+    </huet.ThemeContext.Provider>
+  );
+});
 
 export default function ColorContrast() {
   const ctxWrapper = huet.useTheme();
