@@ -172,7 +172,7 @@ export function InnerRamp({ ramp }) {
         <div
           className="h-100 w-100"
           style={{
-            background: `linear-gradient(to right, ${_.range(0, 1, 0.2)
+            background: `linear-gradient(to right, ${_.range(0, 1.2, 0.2)
               .map(i => ramp.scale(i))
               .join(",")})`
           }}
