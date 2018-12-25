@@ -185,7 +185,13 @@ const ColorRamp = ({ ramp, themeContext }) => {
   const theRamp = themeContext.ramps[ramp];
 
   return (
-    <div className="flex w-100 flex-row h1 mb2">
+    <div
+      className="flex w-100 flex-row h1 mb2"
+      style={{
+        marginLeft: `${theRamp.startL}%`,
+        width: `${theRamp.endL - theRamp.startL}%`
+      }}
+    >
       <div className="w-100 relative flex">
         <InnerRamp ramp={theRamp} />
         {theRamp.scale.colors().map((color, i) => (
