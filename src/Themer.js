@@ -25,15 +25,12 @@ export default function Themer({ themes, theme, onChangeTheme }) {
   let isPicking, pickedObject, setIsPicking, setPickedObject;
 
   const ctx = huet.createTheme(theme).contextValue;
-  const canAdjustToGray = ctx.ramps.gray.endL - ctx.ramps.gray.startL < 90;
 
   function modify(key) {
     return newValue => {
       onChangeTheme({
         ...theme,
-        rescaleContrastToGrayRange: canAdjustToGray
-          ? theme.rescaleContrastToGrayRange
-          : false,
+        rescaleContrastToGrayRange: theme.rescaleContrastToGrayRange,
         // onPickerPick: picked => {
         //   console.log(picked);
         //   setPickedObject(picked);

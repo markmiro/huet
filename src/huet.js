@@ -35,17 +35,14 @@ function relativeColor(ctx, ramp, contrast = 100, a = 100) {
   } else {
     const [min, max] = getMinMax(ctx, ramp);
     const [bgMin, bgMax] = getMinMax(ctx, ctx.bgRamp);
-    // At 50 in a black to white scale, the highest contrast is 50.
-    // This means contrast of 100 is also 50.
-    // By normalizing we make sure there's always a visible difference
-    // between 50 and 100 and all the colors in between.
-    //              | ctx.bgLightness
-    //  __0 _.5 __1 | Math.abs(.5 - ctx.bgLightness/100)
-    //  _.5 __0 _.5 | $_ + .5
-    //  __1 _.5 __1 |
-    // const normalizedLightness = (ctx.bgLightness - bgMin) / (bgMax - bgMin);
+
+    // __0 _.5 __1
     const normalizedLightness = (ctx.bgLightness - bgMin) / (bgMax - bgMin);
-    const contrastNormalizer = Math.abs(0.5 - normalizedLightness) + 0.5;
+    // __1 _.5 __1
+    const contrastNormalizer =
+      ctx.rescaleContrastToGrayRange || ramp !== ctx.ramps.gray
+        ? Math.abs(0.5 - normalizedLightness) + 0.5
+        : 1;
     const contrastRescale = (max - min) / 100;
     const midpoint = (min + max) / 2;
     const direction = ctx.bgLightness < midpoint ? 1 : -1;
