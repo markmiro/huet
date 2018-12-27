@@ -16,6 +16,7 @@ import ColorRamp, {
   Bracket
 } from "./ColorRamp";
 import Pallet from "./Pallet";
+import saveAs from "file-saver";
 
 const { ThemeContext } = huet;
 
@@ -59,6 +60,8 @@ export default function Themer({ themes, theme, onChangeTheme }) {
     themeKey => themes[themeKey].name === theme.name
   );
 
+  const isThemeModified = theme !== themes[themeKey];
+
   function setThemeKey(themeKey) {
     onChangeTheme(themes[themeKey]);
     // setRamps(theme.ramps);
@@ -69,6 +72,26 @@ export default function Themer({ themes, theme, onChangeTheme }) {
     // setMaxColorLightness(theme.maxColorLightness);
     // setIsPicking(false);
     // setPickedObject(null);
+  }
+
+  function saveTheme() {}
+  function saveThemeAs() {}
+  function exportTheme() {
+    const str = JSON.stringify(theme, null, "  ");
+    const blob = new Blob([str], {
+      type: "text/plain;charset=utf-8"
+    });
+    saveAs(blob, themes[themeKey].name + "Huet Theme.json");
+  }
+  function importTheme() {}
+  function exportThemes(e) {
+    e.stopPropagation();
+  }
+  function importThemes(e) {
+    e.stopPropagation();
+  }
+  function resetTheme() {
+    onChangeTheme(themes[themeKey]);
   }
 
   const themerCtx = huet.createTheme(
@@ -107,61 +130,27 @@ export default function Themer({ themes, theme, onChangeTheme }) {
           }}
           onClick={() => setIsExpanded(v => !v)}
         >
-          <div className="pv2 ph2 b flex-auto">Huet Themer (alpha)</div>
+          <div className="pv2 ph2 b flex-auto flex justify-between items-center">
+            Huet Themer (alpha)
+            <div className="flex">
+              <Button onClick={exportThemes}>Export All</Button>
+              <Button className="ml1" onClick={importThemes}>
+                Import All
+              </Button>
+            </div>
+          </div>
           <Contrast bg={20} className="flex justify-center items-center ph3 b">
             {isExpanded ? "↓" : "↑"}
           </Contrast>
         </Contrast>
         <div className="overflow-y-scroll overflow-x-hidden">
-          <ColorInspector
+          {/* <ColorInspector
             isPicking={isPicking}
             setIsPicking={setIsPicking}
             pickedObject={pickedObject}
             onClear={() => setPickedObject(null)}
-          />
-          <Contrast bg={5} className="pa2">
-            <Range
-              label="Page background lightness"
-              min={0}
-              max={1}
-              decimals={2}
-              value={theme.bgScaleValue}
-              onChange={setBgScaleValue}
-            />
-            <Range
-              label="Lightness contrast multiplier"
-              min={0}
-              max={2}
-              decimals={2}
-              value={theme.contrastMultiplier}
-              onChange={setContrastMultiplier}
-              className="mt2"
-            />
-            <Range
-              label="Saturation multiplier"
-              min={0}
-              max={2}
-              decimals={2}
-              value={theme.saturationContrastMultiplier}
-              onChange={setSaturationContrastMultiplier}
-              className="mt2"
-            />
-            <Checkbox
-              label="Rescale contrast to context"
-              isChecked={theme.normalizeContrastToContext}
-              onChange={setNormalizeContrastToContext}
-              className="mt2"
-            />
-            {canAdjustToGray && (
-              <Checkbox
-                label="Rescale gray contrast to gray range"
-                isChecked={theme.rescaleContrastToGrayRange}
-                onChange={setRescaleContrastToGrayRange}
-                className="mt2"
-              />
-            )}
-          </Contrast>
-          <Contrast border={10} className="pa2 bb">
+          /> */}
+          <Contrast bg={10} className="pa2">
             <div className="flex justify-end items-end flex-wrap">
               <Select
                 label="Theme"
@@ -176,12 +165,24 @@ export default function Themer({ themes, theme, onChangeTheme }) {
                 ))}
               </Select>
               <ButtonGroup className="mt1 ml1">
-                <Button>Save</Button>
-                <Button>Save As</Button>
-                <Button>Export</Button>
-                <Button>Import</Button>
+                <Button onClick={resetTheme}>Reset</Button>
+                <Button onClick={saveTheme}>
+                  Save {isThemeModified && "*"}
+                </Button>
+                <Button onClick={saveThemeAs}>Save As</Button>
+                <Button onClick={exportTheme}>Export</Button>
+                <Button onClick={importTheme}>Import</Button>
               </ButtonGroup>
             </div>
+            <Contrast border={20} className="bb mv2" />
+            <Range
+              label="Page background lightness"
+              min={0}
+              max={1}
+              decimals={2}
+              value={theme.bgScaleValue}
+              onChange={setBgScaleValue}
+            />
           </Contrast>
           <div className="pa2">
             <div className="mb1">Pallet</div>
@@ -198,16 +199,9 @@ export default function Themer({ themes, theme, onChangeTheme }) {
                     background: "linear-gradient(to right, black, white)"
                   }}
                 />
-                <div
-                  style={{
-                    marginLeft: `${ctx.ramps.gray.startL}%`,
-                    width: `${ctx.ramps.gray.endL - ctx.ramps.gray.startL}%`
-                  }}
-                >
-                  {Object.keys(ctx.ramps).map(key => (
-                    <ColorRamp key={key} ramp={key} themeContext={ctx} />
-                  ))}
-                </div>
+                {Object.keys(ctx.ramps).map(key => (
+                  <ColorRamp key={key} ramp={key} themeContext={ctx} />
+                ))}
               </div>
               <Contrast className="w-100" border={20}>
                 <Range
@@ -224,6 +218,30 @@ export default function Themer({ themes, theme, onChangeTheme }) {
                   max={100}
                   value={theme.maxColorLightness}
                   onChange={setMaxColorLightness}
+                  className="mt2"
+                />
+                <Range
+                  label="Lightness contrast multiplier"
+                  min={0}
+                  max={2}
+                  decimals={2}
+                  value={theme.contrastMultiplier}
+                  onChange={setContrastMultiplier}
+                  className="mt2"
+                />
+                <Range
+                  label="Saturation multiplier"
+                  min={0}
+                  max={2}
+                  decimals={2}
+                  value={theme.saturationContrastMultiplier}
+                  onChange={setSaturationContrastMultiplier}
+                  className="mt2"
+                />
+                <Checkbox
+                  label="Rescale gray contrast to gray range"
+                  isChecked={theme.rescaleContrastToGrayRange}
+                  onChange={setRescaleContrastToGrayRange}
                   className="mt2"
                 />
               </Contrast>

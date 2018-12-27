@@ -6,6 +6,7 @@
   "main": "src/index.js",
   "dependencies": {
     "chroma-js": "1.4.0",
+    "file-saver": "^2.0.0",
     "hsluv": "0.0.3",
     "lodash": "4.17.11",
     "microicon": "^1.0.0-b.2",
