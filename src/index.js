@@ -41,10 +41,7 @@ const pages = {
 
 function App() {
   const [pageKey, setPageKey] = useBrowserState("colorContrast");
-
-  // TODO: make themes not need objects
   const [theme, setTheme] = useBrowserState(themes.basic);
-
   const ctxWrapper = huet.createTheme(theme);
 
   useEffect(
