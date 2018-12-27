@@ -31,7 +31,12 @@ function relativeColor(ctx, ramp, contrast = 100, a = 100) {
       (ctx.bgLightness - ctx.ramps.gray.startL) /
         (ctx.ramps.gray.endL - ctx.ramps.gray.startL)
     );
-    // returnColor = chroma.mix(ctx.color, returnColor, ctx.contrastMultiplier);
+    returnColor = chroma.mix(
+      ctx.color,
+      returnColor,
+      Math.min(ctx.contrastMultiplier, 1),
+      "lab"
+    );
   } else {
     const [min, max] = getMinMax(ctx, ramp);
     const [bgMin, bgMax] = getMinMax(ctx, ctx.bgRamp);
@@ -53,11 +58,16 @@ function relativeColor(ctx, ramp, contrast = 100, a = 100) {
         ? ctx.maxColorLightness / 100
         : 1 - ctx.minColorLightness / 100;
 
+    const contrastMultiplier =
+      ramp === ctx.ramps.gray || ctx.contrastMultiplier < 1
+        ? ctx.contrastMultiplier
+        : 1;
+
     const targetLightness =
       ctx.bgLightness +
       contrast *
         direction *
-        ctx.contrastMultiplier *
+        contrastMultiplier *
         contrastNormalizer *
         colorContrastMinMax *
         contrastRescale;
@@ -70,12 +80,15 @@ function relativeColor(ctx, ramp, contrast = 100, a = 100) {
     returnColor._targetLightness = targetLightness;
     returnColor._scaleValue = scaleValue;
 
-    const [, bgA, bgB] = chroma(ctx.color).lab();
+    const [bgL, bgA, bgB] = chroma(ctx.color).lab();
     const [fgL, fgA, fgB] = chroma(returnColor).lab();
     const colorContrastNormalizer = Math.abs(0.5 - normalizedLightness) * 2;
-    const abContrast = (colorContrastNormalizer + contrast) / 100;
+    const abContrast =
+      ctx.contrastMultiplier < 1
+        ? ctx.contrastMultiplier
+        : (colorContrastNormalizer + contrast) / 100;
     returnColor = chroma.lab(
-      fgL,
+      bgL + (fgL - bgL) * 1,
       bgA + (fgA - bgA) * abContrast,
       bgB + (fgB - bgB) * abContrast
     );
