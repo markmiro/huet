@@ -1,20 +1,12 @@
-import React, { useState } from "react";
-import isNumber from "lodash/isNumber";
+import React from "react";
 import useBrowserState, { reset } from "./useBrowserState";
 import huet from "./huet";
 import Range from "./Range";
 import Contrast from "./Contrast";
 import Select from "./Select";
-import Icon from "./Icon";
 import Button, { ButtonGroup } from "./Button";
 import Checkbox from "./Checkbox";
-import ColorRamp, {
-  InnerRamp,
-  Star,
-  ContrastRange,
-  Screen,
-  Bracket
-} from "./ColorRamp";
+import ColorRamp from "./ColorRamp";
 import Pallet from "./Pallet";
 import saveAs from "file-saver";
 
@@ -23,7 +15,6 @@ const { ThemeContext } = huet;
 export default function Themer({ themes, theme, onChangeTheme }) {
   const [isExpanded, setIsExpanded] = useBrowserState(false);
   const [shouldThemeSelf, setShouldThemeSelf] = useBrowserState(false);
-  let isPicking, pickedObject, setIsPicking, setPickedObject;
 
   const ctx = huet.createTheme(theme).contextValue;
 
@@ -32,11 +23,6 @@ export default function Themer({ themes, theme, onChangeTheme }) {
       onChangeTheme({
         ...theme,
         rescaleContrastToGrayRange: theme.rescaleContrastToGrayRange,
-        // onPickerPick: picked => {
-        //   console.log(picked);
-        //   setPickedObject(picked);
-        //   setIsPicking(false);
-        // },
         [key]: newValue
       });
     };
@@ -51,9 +37,6 @@ export default function Themer({ themes, theme, onChangeTheme }) {
   const setMinColorLightness = modify("minColorLightness");
   const setMaxColorLightness = modify("maxColorLightness");
   const setRescaleContrastToGrayRange = modify("rescaleContrastToGrayRange");
-  const setNormalizeContrastToContext = modify("normalizeContrastToContext");
-  [isPicking, setIsPicking] = useState(false);
-  [pickedObject, setPickedObject] = useState();
 
   // TODO: find a better way?
   const themeKey = Object.keys(themes).find(
@@ -70,12 +53,8 @@ export default function Themer({ themes, theme, onChangeTheme }) {
     // // setSaturationContrastMultiplier(theme.saturationContrastMultiplier);
     // setMinColorLightness(theme.minColorLightness);
     // setMaxColorLightness(theme.maxColorLightness);
-    // setIsPicking(false);
-    // setPickedObject(null);
   }
 
-  function saveTheme() {}
-  function saveThemeAs() {}
   function exportTheme() {
     const str = JSON.stringify(theme, null, "  ");
     const blob = new Blob([str], {
@@ -144,12 +123,6 @@ export default function Themer({ themes, theme, onChangeTheme }) {
           </Contrast>
         </Contrast>
         <div className="overflow-y-scroll overflow-x-hidden">
-          {/* <ColorInspector
-            isPicking={isPicking}
-            setIsPicking={setIsPicking}
-            pickedObject={pickedObject}
-            onClear={() => setPickedObject(null)}
-          /> */}
           <Contrast bg={10} className="pa2">
             <div className="flex justify-end items-end flex-wrap">
               <Select
@@ -165,11 +138,7 @@ export default function Themer({ themes, theme, onChangeTheme }) {
                 ))}
               </Select>
               <ButtonGroup className="mt1 ml1">
-                <Button onClick={resetTheme}>Reset</Button>
-                <Button onClick={saveTheme}>
-                  Save {isThemeModified && "*"}
-                </Button>
-                <Button onClick={saveThemeAs}>Save As</Button>
+                {isThemeModified && <Button onClick={resetTheme}>Reset</Button>}
                 <Button onClick={exportTheme}>Export</Button>
                 <Button onClick={importTheme}>Import</Button>
               </ButtonGroup>
@@ -266,113 +235,5 @@ export default function Themer({ themes, theme, onChangeTheme }) {
         </div>
       </Contrast>
     </ThemeContext.Provider>
-  );
-}
-
-function InspectRamp({ label, traceColor, nextColor, ctx }) {
-  if (!traceColor) return null;
-  return (
-    <>
-      <div className="mv1">
-        {label}{" "}
-        <Contrast text={50}>
-          lightness=
-          {isNumber(traceColor._lightness)
-            ? traceColor._lightness.toFixed(2)
-            : "?"}
-          {isNumber(nextColor) && nextColor._contrast
-            ? ` contrast=${nextColor._contrast.toFixed(2)}`
-            : null}
-        </Contrast>
-      </div>
-      <div className="w-30 h1 center relative">
-        <InnerRamp ramp={traceColor._ramp}>
-          {!traceColor._ramp.isNeutral && (
-            <>
-              <Screen from={0} to={ctx.minColorLightness} />
-              <Screen from={ctx.maxColorLightness} to={100} />
-            </>
-          )}
-          {!traceColor._ramp.isNeutral && (
-            <>
-              <Bracket lightness={ctx.minColorLightness} direction="left" />
-              <Bracket lightness={ctx.maxColorLightness} direction="right" />
-            </>
-          )}
-          <Star lightness={traceColor._lightness} />
-          {nextColor && (
-            <ContrastRange
-              lightness={traceColor._lightness}
-              contrast={nextColor._contrast}
-            />
-          )}
-        </InnerRamp>
-      </div>
-    </>
-  );
-}
-
-function ColorInspector({ isPicking, setIsPicking, pickedObject, onClear }) {
-  const { traceColors } = pickedObject || {};
-  return (
-    <Contrast bg={10} className="pa2">
-      <div className="flex">
-        <Button isActive={isPicking} onClick={() => setIsPicking(is => !is)}>
-          <Icon name="gps_fixed" ramp="white" className="mr1" />{" "}
-          <Contrast textRamp="white">Inspect Color</Contrast>
-        </Button>
-        {pickedObject && (
-          <Button
-            className="ml2"
-            onClick={onClear}
-            bgRamp="red"
-            textRamp="white"
-          >
-            Clear
-          </Button>
-        )}
-      </div>
-      {pickedObject && (
-        <>
-          <div
-            className="pa2 mv2 relative"
-            style={{
-              background: pickedObject.contextValue.color
-            }}
-          >
-            <ThemeContext.Provider
-              value={{
-                ...pickedObject.contextValue,
-                pickedObject: null,
-                isPicking: false
-              }}
-            >
-              <Contrast {...pickedObject.props} className="pa1" style={null}>
-                <b>Text</b>
-              </Contrast>
-            </ThemeContext.Provider>
-          </div>
-          <Contrast bg={5} className="pa2">
-            <InspectRamp
-              label="Context"
-              traceColor={traceColors.context}
-              nextColor={traceColors.bg ? traceColors.bg : traceColors.text}
-              ctx={pickedObject.contextValue}
-            />
-            <InspectRamp
-              label="Background"
-              traceColor={traceColors.bg}
-              nextColor={traceColors.text}
-              ctx={pickedObject.contextValue}
-            />
-            <InspectRamp
-              label="Text"
-              traceColor={traceColors.text}
-              ctx={pickedObject.contextValue}
-            />
-          </Contrast>
-        </>
-      )}
-    </Contrast>
   );
 }

@@ -42,8 +42,7 @@ const Contrast = props => {
   if (debug) {
     debugger;
   }
-  const ctxWrapper = huet.useTheme();
-  const ctx = ctxWrapper.contextValue;
+  const { contrast } = huet.useTheme();
   const ref = React.useRef();
 
   let finalChildren = children;
@@ -51,7 +50,7 @@ const Contrast = props => {
   let textColor = null;
 
   if (bg !== null) {
-    backgroundColor = ctxWrapper.contrast(bg, {
+    backgroundColor = contrast(bg, {
       ramp: bgRamp,
       alpha: bgAlpha
     });
@@ -61,70 +60,36 @@ const Contrast = props => {
     });
     finalChildren = backgroundColor.forwardContext(children);
   } else {
-    textColor = ctxWrapper.contrast(text, {
+    textColor = contrast(text, {
       ramp: textRamp,
       alpha: textAlpha
     });
   }
-
-  let isPickingStyle = null;
-  let isPickingProps = null;
 
   const coloredStyle = {
     backgroundColor,
     color: textColor,
     borderColor:
       border !== null
-        ? ctxWrapper.contrast(border, { ramp: borderRamp, alpha: borderAlpha })
+        ? contrast(border, { ramp: borderRamp, alpha: borderAlpha })
         : null,
     outlineColor:
       outline !== null
-        ? ctxWrapper.contrast(outline, {
+        ? contrast(outline, {
             ramp: outlineRamp,
             alpha: outlineAlpha
           })
         : null
   };
 
-  if (
-    ctx.isPicking ||
-    (ctx.pickedObject && ctx.pickedObject.currentRef === ref.current)
-  ) {
-    isPickingStyle = {
-      outlineColor: (backgroundColor || ctxWrapper).contrast(100, {
-        ramp: "blue"
-      }),
-      outlineWidth: 1,
-      outlineStyle: "dotted",
-      outlineOffset: -1
-    };
-    isPickingProps = {
-      onClick: e => {
-        ctx.onPickerPick({
-          currentRef: ref.current,
-          contextValue: ctx,
-          props,
-          traceColors: {
-            context: ctx.color,
-            bg: coloredStyle.backgroundColor,
-            text: coloredStyle.color
-          }
-        });
-        e.stopPropagation();
-      }
-    };
-  }
-
   return React.createElement(
     as,
     {
       style: {
         ...coloredStyle,
-        ...style,
-        ...isPickingStyle
+        ...style
       },
       ref,
-      ...isPickingProps,
       ...rest
     },
     finalChildren
