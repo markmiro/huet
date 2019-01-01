@@ -223,7 +223,6 @@ export default {
   getLightness,
   // funcs for context
   createTheme,
-  createCtxWrapper,
   useTheme,
   ThemeContext
 };
