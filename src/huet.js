@@ -163,6 +163,11 @@ function createTheme(theme) {
 
 function useTheme() {
   const ctx = useContext(ThemeContext);
+
+  // TODO: Add a link that shows how to resolve this error
+  if (!ctx) {
+    throw new Error("Set a ThemeContext in a parent for it to be available");
+  }
   return createCtxWrapper(ctx);
 }
 
