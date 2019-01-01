@@ -4,15 +4,6 @@ import mapValues from "lodash/mapValues";
 
 const ThemeContext = React.createContext();
 
-function createTransform([aMin, aMax], [bMin, bMax]) {
-  const aRange = aMax - aMin;
-  const bRange = bMax - bMin;
-  return i => {
-    const normalized = (i - aMin) / aRange; // from 0 to 1 now
-    return normalized * bRange + bMin;
-  };
-}
-
 function getMinMax(ctx, ramp) {
   if (ramp.isNeutral) {
     return [ramp.startL, ramp.endL];
