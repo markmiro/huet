@@ -58,7 +58,11 @@ const Contrast = props => {
       ramp: textRamp,
       alpha: textAlpha
     });
-    finalChildren = backgroundColor.forwardContext(children);
+    finalChildren = children ? (
+      <huet.ThemeContext.Provider value={backgroundColor.context}>
+        {children}
+      </huet.ThemeContext.Provider>
+    ) : null;
   } else {
     textColor = contrast(text, {
       ramp: textRamp,
