@@ -1,11 +1,11 @@
-import React from "react";
-import huet from "../huet";
+import React, { useContext } from "react";
+import { BackgroundContext } from "../huet2";
 import H from "../Contrast";
 import Icon from "../Icon";
 
 export default function Github() {
-  const ctxWrapper = huet.useTheme();
-  const borderColor = ctxWrapper.contrast(20);
+  const parentBg = useContext(BackgroundContext);
+  const borderColor = parentBg.contrast(20);
 
   return (
     <div className="flex-auto">
@@ -25,12 +25,15 @@ export default function Github() {
             <div
               className="pa2 mr1 bt bl br"
               style={{
-                backgroundColor: ctxWrapper.contextValue.color,
-                color: ctxWrapper.contrast(100),
+                backgroundColor: parentBg,
+                color: parentBg.contrast(100),
                 borderLeftColor: borderColor,
                 borderRightColor: borderColor,
                 borderTopWidth: "0.2em",
-                borderTopColor: ctxWrapper.contrast(30, { ramp: "gold" }),
+                borderTopColor: parentBg.contrast(
+                  30,
+                  parentBg.theme.ramps.gold
+                ),
                 borderTopLeftRadius: ".2em",
                 borderTopRightRadius: ".2em",
                 transform: "translateY(1px)"
@@ -75,10 +78,11 @@ export default function Github() {
 }
 
 function Experiments() {
-  const ctxWrapper = huet.useTheme();
+  const parentBg = useContext(BackgroundContext);
+  const theme = parentBg.theme;
 
   function gradient(contrast) {
-    return `linear-gradient(to right, transparent, ${ctxWrapper.contrast(
+    return `linear-gradient(to right, transparent, ${parentBg.contrast(
       contrast
     )}`;
   }
@@ -100,9 +104,7 @@ function Experiments() {
         bg={30}
         className="h2 mt2"
         style={{
-          boxShadow: `0 5px 10px ${ctxWrapper.darkColor({
-            alpha: 0.2
-          })}`
+          boxShadow: `0 5px 10px ${theme.ramps.gray(0).alpha(0.2)}`
         }}
       />
 
@@ -112,29 +114,29 @@ function Experiments() {
         text={70}
         className="pa2 tc br2 ba mt3 w-100 f4"
         style={{
-          background: `linear-gradient(transparent, ${ctxWrapper.contrast(5)})`,
-          boxShadow: `0 1px 2px ${ctxWrapper.darkColor({ alpha: 0.15 })}`,
+          background: `linear-gradient(transparent, ${parentBg.contrast(5)})`,
+          boxShadow: `0 1px 2px ${theme.ramps.gray(0).alpha(0.15)}`,
           maxWidth: "100%"
         }}
       >
         Button
       </H>
       <div className="flex mt3">
-        {Object.keys(ctxWrapper.contextValue.ramps).map(key => (
+        {Object.keys(theme.ramps).map(key => (
           <H key={key} className="pa1 mr1 tc w-100 f4" bg={100} bgRamp={key}>
             {key}
           </H>
         ))}
       </div>
       <div className="flex mt3">
-        {Object.keys(ctxWrapper.contextValue.ramps).map(key => (
+        {Object.keys(theme.ramps).map(key => (
           <H key={key} className="pa1 mr1 tc w-100 f4" bg={45} bgRamp={key}>
             {key}
           </H>
         ))}
       </div>
       <div className="flex mt1">
-        {Object.keys(ctxWrapper.contextValue.ramps).map(key => (
+        {Object.keys(theme.ramps).map(key => (
           <H key={key} className="pa1 mr1 tc w-100 f4" bgRamp={key} bg={5}>
             {key}
           </H>
