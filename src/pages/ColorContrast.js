@@ -44,7 +44,7 @@ const stepSizes = {
 const Things = React.memo(({ colorSteps, graySteps, ctx }) => {
   const [direct, indirect] = partition(
     Object.keys(ctx.ramps),
-    key => ctx.ramps[key].mode === "direct"
+    key => ctx.ramps[key].config.mode === "direct"
   );
   return (
     <huet.ThemeContext.Provider value={ctx}>
@@ -54,7 +54,7 @@ const Things = React.memo(({ colorSteps, graySteps, ctx }) => {
           <div className="flex flex-wrap">
             {[...indirect, ...direct].map(ramp => (
               <div key={ramp} className="flex mt1 mr2">
-                {ctx.ramps[ramp].mode === "direct" ? (
+                {ctx.ramps[ramp].config.mode === "direct" ? (
                   <Contrast
                     bg={0}
                     bgRamp={ramp}

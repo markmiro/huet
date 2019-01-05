@@ -1,7 +1,7 @@
 import chroma from "chroma-js";
 
 function getMinMax(theme, ramp) {
-  if (ramp.isNeutral) {
+  if (ramp.config.isNeutral) {
     return [ramp.startL, ramp.endL];
   }
 
@@ -20,7 +20,7 @@ export default class Color {
   }
 
   contrast(contrast = 100, ramp = this.theme.ramps.gray) {
-    if (ramp.mode !== "colored") throw new Error("Not allowed");
+    if (ramp.config.mode !== "colored") throw new Error("Not allowed");
     return Color.fromColor({
       theme: this.theme,
       bgColor: this,
@@ -30,7 +30,7 @@ export default class Color {
   }
 
   direct(ramp) {
-    if (ramp.mode !== "direct") throw new Error("Not allowed");
+    if (ramp.config.mode !== "direct") throw new Error("Not allowed");
     return Color.fromColorDirect({
       theme: this.theme,
       bgColor: this,
@@ -122,7 +122,7 @@ export default class Color {
         (theme.ramps.gray.endL - theme.ramps.gray.startL)
     );
     hex = chroma
-      .mix(bgColor, hex, Math.min(theme.contrastMultiplier, 1), "lab")
+      .mix(bgColor.hex, hex, Math.min(theme.contrastMultiplier, 1), "lab")
       .hex();
 
     return new Color({

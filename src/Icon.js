@@ -1,7 +1,7 @@
-import React from "react";
-import huet from "./huet";
+import React, { useContext } from "react";
 import styled from "styled-components";
 import { Icon as MicroIcon } from "microicon";
+import { BackgroundContext } from "./huet2";
 
 const Container = styled.div`
   & svg {
@@ -9,17 +9,9 @@ const Container = styled.div`
   }
 `;
 
-const Icon = ({
-  name,
-  contrast,
-  ramp,
-  className,
-  style,
-  size = "1em",
-  alt = "icon"
-}) => {
-  const ctxWrapper = huet.useTheme();
-  const color = ctxWrapper.contrast(contrast, { ramp });
+const Icon = ({ name, contrast, ramp, className, style, size = "1em" }) => {
+  const parentBg = useContext(BackgroundContext);
+  const color = parentBg.contrast(contrast, ramp);
 
   return (
     <Container className={className} style={style}>

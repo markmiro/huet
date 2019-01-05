@@ -91,6 +91,7 @@ function parseColorsToStyle(parentBg, str) {
     // key: 'bg' value: '10-red'
     const [key, value] = thing.split(":");
 
+    // TODO: allow user to only set ramp if it's a direct ramp
     // contrast: '10' rampKey: 'red'
     const [contrast, rampKey = "gray"] = value.split("-");
 
@@ -103,7 +104,14 @@ function parseColorsToStyle(parentBg, str) {
     //
     const parentColor = colors[parentKey];
 
-    const color = parentColor.contrast(parseInt(contrast), ctx.ramps[rampKey]);
+    const ramp = ctx.ramps[rampKey];
+
+    let color;
+    if (ramp.config.mode === "direct") {
+      color = parentColor.direct(ramp);
+    } else {
+      color = parentColor.contrast(parseInt(contrast), ramp);
+    }
     colors[childKey] = color;
 
     returnStyle[keyToCss[childKey]] = color;

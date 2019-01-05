@@ -1,6 +1,6 @@
-import React from "react";
+import React, { useContext } from "react";
 import Contrast from "./Contrast";
-import huet from "./huet";
+import { BackgroundContext } from "./huet2";
 
 const Range = ({
   label,
@@ -14,8 +14,8 @@ const Range = ({
   hideInput = false
 }) => {
   const step = 1 / Math.pow(10, decimals);
-  const { contrast } = huet.useTheme();
-  const rangeBg = contrast(10);
+  const parentBg = useContext(BackgroundContext);
+  const rangeBg = parentBg.contrast(10);
   return (
     <div
       className={`flex flex-column max-input ${className}`}
@@ -57,7 +57,7 @@ const Range = ({
           max={max}
           step={step}
           value={value}
-          onChange={e => onChange(parseFloat(e.target.value))}
+          onChange={e => onChange && onChange(parseFloat(e.target.value))}
         />
       </div>
     </div>

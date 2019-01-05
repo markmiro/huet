@@ -1,11 +1,13 @@
-import React from "react";
-import huet from "./huet";
+import React, { useContext } from "react";
+import { BackgroundContext, ThemeContext } from "./huet2";
 
 const YouTubeLogo = ({ className, style }) => {
-  const ctxWrapper = huet.useTheme();
-  const textColor = ctxWrapper.contrast(100);
-  const redColor = ctxWrapper.contrast(100, { ramp: "red" });
-  const playButtonColor = redColor.contrast(100, { ramp: "white" });
+  const theme = useContext(ThemeContext);
+  const parentBg = useContext(BackgroundContext);
+  const textColor = parentBg.contrast(100);
+  const redColor = parentBg.contrast(100, theme.ramps.red);
+  const playButtonColor = redColor.direct(theme.ramps.white);
+
   return (
     <svg
       viewBox="0 0 200 60"
