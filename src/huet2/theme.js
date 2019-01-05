@@ -14,10 +14,6 @@ export function createTheme(themeConfig) {
 
 // ---
 
-// TODO: try to bake in things like the contrastMultiplier so
-// it is only calculated once
-// TODO: consider wrapping scales in a more opaque structure to avoid
-// it being mutated by consumer as we do here
 function createRamp(themeConfig, rampConfig) {
   const config = {
     ...defaultRampConfig,
