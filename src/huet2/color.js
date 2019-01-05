@@ -97,7 +97,7 @@ export default class Color {
 
     let hex = ramp(scaleValue);
 
-    const [bgL, bgA, bgB] = chroma(bgColor).lab();
+    const [bgL, bgA, bgB] = chroma(bgColor.hex).lab();
     const [fgL, fgA, fgB] = chroma(hex).lab();
     const colorContrastNormalizer = Math.abs(0.5 - normalizedLightness) * 2;
     const abContrast =
