@@ -20,7 +20,12 @@ export default class Color {
   }
 
   contrast(contrast = 100, ramp = this.theme.ramps.gray) {
-    if (ramp.config.mode !== "colored") throw new Error("Not allowed");
+    if (ramp.config.mode === "direct") {
+      console.warn(
+        'You should be using the "direct" method instead since the "contrast" parameter won\'t do anything here'
+      );
+      return this.direct(ramp);
+    }
     return Color.fromColor({
       theme: this.theme,
       bgColor: this,
