@@ -10,11 +10,31 @@ function getMinMax(theme, ramp) {
   return [min, max];
 }
 
-export default class Color {
+export class BaseColor {
+  constructor(hex) {
+    this.hex = hex;
+  }
+
+  alpha(a) {
+    return chroma(this.hex)
+      .alpha(a)
+      .hex();
+  }
+
+  toString() {
+    return this.hex;
+  }
+}
+
+export default class Color extends BaseColor {
   constructor({ theme, bgColor, hex, ramp }) {
+    super(hex);
+    // TODO: consider making this private so there aren't two ways of getting a theme:
+    // 1) From a color
+    // 2) From a useContext(ThemeContext)
+    // Also consider making `ThemeContext` only available internally to Huet
     this.theme = theme;
     this.bgColor = bgColor;
-    this.hex = hex;
     this.ramp = ramp;
     this.lightness = getLightness(hex);
   }
@@ -47,10 +67,6 @@ export default class Color {
     return chroma(this.hex)
       .alpha(amount * this.theme.contrastMultiplier)
       .hex();
-  }
-
-  toString() {
-    return this.hex;
   }
 
   // ---
@@ -95,7 +111,7 @@ export default class Color {
     let scaleValue =
       (targetLightness - ramp.startL) / (ramp.endL - ramp.startL);
 
-    let hex = ramp(scaleValue);
+    let hex = ramp(scaleValue).hex;
 
     const [bgL, bgA, bgB] = chroma(bgColor.hex).lab();
     const [fgL, fgA, fgB] = chroma(hex).lab();
@@ -125,7 +141,7 @@ export default class Color {
     let hex = ramp(
       (bgColor.lightness - theme.ramps.gray.startL) /
         (theme.ramps.gray.endL - theme.ramps.gray.startL)
-    );
+    ).hex;
     hex = chroma
       .mix(bgColor.hex, hex, Math.min(theme.contrastMultiplier, 1), "lab")
       .hex();
@@ -139,7 +155,7 @@ export default class Color {
   }
 
   static fromTheme(theme) {
-    const hex = theme.ramps.gray(theme.bgRampValue);
+    const hex = theme.ramps.gray(theme.bgRampValue).hex;
     return new Color({
       theme,
       bgColor: null,

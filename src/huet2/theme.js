@@ -1,6 +1,6 @@
 import chroma from "chroma-js";
 import mapValues from "lodash/mapValues";
-import { getLightness } from "./color";
+import { getLightness, BaseColor } from "./color";
 
 export function createTheme(themeConfig) {
   const ramps = mapValues(themeConfig.ramps, ramp =>
@@ -41,17 +41,19 @@ function createRamp(themeConfig, rampConfig) {
   return ramp;
 }
 
-// TODO: ramp should just be a function and have props for startL and endL and isNeutral
-// if bg is 0 then we translate this directly 0 on this scale and so on
+function wrapScaleFunc(scale) {
+  return n => new BaseColor(scale(n).hex());
+}
+
 function createRampWithScale(scale) {
-  let scaleFunc = n => scale(n).hex();
+  let scaleFunc = wrapScaleFunc(scale);
   scaleFunc.startL = getLightness(scale(0));
   scaleFunc.endL = getLightness(scale(1));
   return scaleFunc;
 }
 
 function createDirectRampWithScale(scale) {
-  return n => scale(n).hex();
+  return wrapScaleFunc(scale);
 }
 
 const defaultRampConfig = {
