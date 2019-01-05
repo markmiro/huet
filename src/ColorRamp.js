@@ -113,7 +113,7 @@ function duplicate(n) {
   return [n, n];
 }
 function pairs(ramp) {
-  const classes = ramp.scale.classes();
+  const classes = ramp.classes;
   const classesArr = Array.isArray(classes)
     ? classes
     : [..._.range(0, 1, 1 / classes), 1];
@@ -124,13 +124,9 @@ function pairs(ramp) {
 }
 
 export function InnerRamp({ ramp }) {
-  if (!ramp || !ramp.scale) return null;
+  if (!ramp) return null;
 
-  const type = ramp.scale.classes()
-    ? "classes"
-    : ramp.scale.theDomain
-    ? "domain"
-    : "normal";
+  const type = ramp.classes ? "classes" : "normal";
 
   switch (type) {
     case "classes":
@@ -141,26 +137,8 @@ export function InnerRamp({ ramp }) {
               key={i}
               className="h-100"
               style={{
-                backgroundColor: ramp.scale((first + second) / 2),
+                backgroundColor: ramp((first + second) / 2),
                 width: `${(second - first) * 100}%`
-              }}
-            />
-          ))}
-        </div>
-      );
-    case "domain":
-      return (
-        <div className="h-100 w-100 flex">
-          {_.chunk(ramp.scale.theDomain, 2).map(([first, second], i) => (
-            <div
-              key={i}
-              className="h-100 w-100"
-              style={{
-                width: `${(second - first) * 100}%`,
-                // TODO: use range here to add more points
-                background: `linear-gradient(to right, ${ramp.scale(
-                  first + 0.001
-                )}, ${ramp.scale(second)})`
               }}
             />
           ))}
@@ -173,7 +151,7 @@ export function InnerRamp({ ramp }) {
           className="h-100 w-100"
           style={{
             background: `linear-gradient(to right, ${_.range(0, 1.2, 0.2)
-              .map(i => ramp.scale(i))
+              .map(i => ramp(i))
               .join(",")})`
           }}
         />
@@ -182,19 +160,17 @@ export function InnerRamp({ ramp }) {
 }
 
 const ColorRamp = ({ ramp, themeContext }) => {
-  const theRamp = themeContext.ramps[ramp];
-
   return (
     <div
       className="flex w-100 flex-row h1 mb2"
       style={{
-        marginLeft: `${theRamp.startL}%`,
-        width: `${theRamp.endL - theRamp.startL}%`
+        marginLeft: `${ramp.startL}%`,
+        width: `${ramp.endL - ramp.startL}%`
       }}
     >
       <div className="w-100 relative flex">
-        <InnerRamp ramp={theRamp} />
-        {theRamp.scale.colors().map((color, i) => (
+        <InnerRamp ramp={ramp} />
+        {ramp.config.colors.map((color, i) => (
           <RampColorMarker
             key={i}
             color={color}

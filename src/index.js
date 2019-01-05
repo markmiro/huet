@@ -63,7 +63,8 @@ function App() {
         <Pallet colors={themeConfigs.basic.pallet} />
         <Range label="Test" min={0} max={100} value={10} />
         <YouTubeLogo />
-        {/* <ColorRamp ramp={theme.ramps.gray} themeContext={theme} /> */}
+        <ColorRamp ramp={theme.ramps.gray} themeContext={theme} />
+        <ColorRamp ramp={theme.ramps.red} themeContext={theme} />
       </Block>
     </ErrorBoundary>
   );
