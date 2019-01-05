@@ -2,7 +2,7 @@ import React, { useContext } from "react";
 import range from "lodash/range";
 import partition from "lodash/partition";
 import { useDebounce } from "use-debounce";
-import { ThemeContext, BackgroundContext } from "../huet2";
+import { ThemeContext, BackgroundContext } from "../huet";
 import useBrowserState from "../useBrowserState";
 import Contrast from "../Contrast";
 import Select from "../Select";

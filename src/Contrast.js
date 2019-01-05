@@ -1,5 +1,5 @@
 import React, { useContext } from "react";
-import { ThemeContext, BackgroundContext, Color } from "./huet2";
+import { ThemeContext, BackgroundContext, Color } from "./huet";
 
 /*
 Ideas:

@@ -1,7 +1,7 @@
 import React, { useContext } from "react";
 import styled from "styled-components";
 import { Icon as MicroIcon } from "microicon";
-import { BackgroundContext } from "./huet2";
+import { BackgroundContext } from "./huet";
 
 const Container = styled.div`
   & svg {

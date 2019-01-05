@@ -1,6 +1,6 @@
 import React from "react";
 import useBrowserState, { reset } from "./useBrowserState";
-import { createTheme, ThemeContext } from "./huet2";
+import { createTheme, ThemeContext } from "./huet";
 import Range from "./Range";
 import Contrast from "./Contrast";
 import Select from "./Select";
