@@ -19,7 +19,7 @@ const Select = ({ value, onChange, label, children, className }) => {
         <select
           value={finalValue}
           className="o-0 absolute w-100 h-100 top-0 left-0"
-          onChange={e => onChange(e.target.value)}
+          onChange={e => onChange && onChange(e.target.value)}
         >
           {children}
           {!selectedChild && <option value="">None</option>}

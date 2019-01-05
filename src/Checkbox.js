@@ -20,7 +20,7 @@ const Checkbox = ({
       <input
         type="checkbox"
         checked={isChecked}
-        onChange={e => onChange(e.target.checked)}
+        onChange={e => onChange && onChange(e.target.checked)}
       />
       <Icon
         contrast={contrast}
