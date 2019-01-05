@@ -28,7 +28,7 @@ export default function Themer({ themes, theme, onChangeTheme }) {
     };
   }
 
-  const setBgScaleValue = modify("bgScaleValue");
+  const setBgRampValue = modify("bgRampValue");
   const setContrastMultiplier = modify("contrastMultiplier");
   const setSaturationContrastMultiplier = modify(
     "saturationContrastMultiplier"
@@ -48,7 +48,7 @@ export default function Themer({ themes, theme, onChangeTheme }) {
   function setThemeKey(themeKey) {
     onChangeTheme(themes[themeKey]);
     // setRamps(theme.ramps);
-    // // setBgScaleValue(theme.bgScaleValue);
+    // // setBgRampValue(theme.bgRampValue);
     // // setContrastMultiplier(theme.contrastMultiplier);
     // // setSaturationContrastMultiplier(theme.saturationContrastMultiplier);
     // setMinColorLightness(theme.minColorLightness);
@@ -78,7 +78,7 @@ export default function Themer({ themes, theme, onChangeTheme }) {
       ? { ...theme, isPicking: false }
       : {
           ...themes.basic,
-          bgScaleValue: 1
+          bgRampValue: 1
         }
   ).contextValue;
 
@@ -149,8 +149,8 @@ export default function Themer({ themes, theme, onChangeTheme }) {
               min={0}
               max={1}
               decimals={2}
-              value={theme.bgScaleValue}
-              onChange={setBgScaleValue}
+              value={theme.bgRampValue}
+              onChange={setBgRampValue}
             />
           </Contrast>
           <div className="pa2">

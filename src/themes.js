@@ -40,13 +40,13 @@ const shared = {
       colors: ["black", "purple", "white"]
     }
   },
-  bgScaleValue: 0,
+  bgRamp: "gray",
+  bgRampValue: 1,
   minColorLightness: 20,
   maxColorLightness: 80,
   contrastMultiplier: 1,
   saturationContrastMultiplier: 1,
-  rescaleContrastToGrayRange: true,
-  contrastDirection: "zigzag"
+  rescaleContrastToGrayRange: true
 };
 
 const themes = {
@@ -97,7 +97,7 @@ const themes = {
         colors: ["darkBlue", "blue", "lightBlue"]
       }
     },
-    bgScaleValue: 1
+    bgRampValue: 1
   },
   beige: {
     ...shared,
@@ -107,7 +107,7 @@ const themes = {
       black: "#5b4128",
       white: "#fff9f3"
     },
-    bgScaleValue: 0
+    bgRampValue: 0
   },
   teal: {
     ...shared,
@@ -117,7 +117,7 @@ const themes = {
       black: "#004a43",
       white: "#9a8e84"
     },
-    bgScaleValue: 0,
+    bgRampValue: 0,
     minColorLightness: 30,
     maxColorLightness: 60
   }

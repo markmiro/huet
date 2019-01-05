@@ -3,6 +3,7 @@ import React, { useContext } from "react";
 import mapValues from "lodash/mapValues";
 
 const ThemeContext = React.createContext();
+const BackgroundContext = React.createContext();
 
 function getMinMax(ctx, ramp) {
   if (ramp.isNeutral) {
@@ -140,7 +141,7 @@ function createCtxWrapper(ctx) {
 
 function createTheme(theme) {
   const ramps = mapValues(theme.ramps, ramp => createRamp(theme, ramp));
-  const bgColor = ramps.gray.scale(theme.bgScaleValue);
+  const bgColor = ramps.gray.scale(theme.bgRampValue);
   const bgLightness = getLightness(bgColor);
   return createCtxWrapper({
     // TODO: putting above because it can get overwritten
@@ -216,5 +217,6 @@ export default {
   // funcs for context
   createTheme,
   useTheme,
-  ThemeContext
+  ThemeContext,
+  BackgroundContext
 };
