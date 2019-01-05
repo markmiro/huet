@@ -1,12 +1,12 @@
 import chroma from "chroma-js";
 
-function getMinMax(ctx, ramp) {
+function getMinMax(theme, ramp) {
   if (ramp.isNeutral) {
     return [ramp.startL, ramp.endL];
   }
 
-  const min = Math.max(ramp.startL, ctx.ramps.gray.startL);
-  const max = Math.min(ramp.endL, ctx.ramps.gray.endL);
+  const min = Math.max(ramp.startL, theme.ramps.gray.startL);
+  const max = Math.min(ramp.endL, theme.ramps.gray.endL);
   return [min, max];
 }
 
@@ -51,30 +51,30 @@ export default class Color {
   // ---
 
   static fromColor({ bgColor, ramp, contrast }) {
-    const ctx = bgColor.theme;
-    const [min, max] = getMinMax(ctx, ramp);
-    const [bgMin, bgMax] = getMinMax(ctx, bgColor.ramp);
+    const theme = bgColor.theme;
+    const [min, max] = getMinMax(theme, ramp);
+    const [bgMin, bgMax] = getMinMax(theme, bgColor.ramp);
 
     // __0 _.5 __1
     const normalizedLightness = (bgColor.lightness - bgMin) / (bgMax - bgMin);
     // __1 _.5 __1
     const contrastNormalizer =
-      ctx.rescaleContrastToGrayRange || ramp !== ctx.ramps.gray
+      theme.rescaleContrastToGrayRange || ramp !== theme.ramps.gray
         ? Math.abs(0.5 - normalizedLightness) + 0.5
         : 1;
     const contrastRescale = (max - min) / 100;
     const midpoint = (min + max) / 2;
     const direction = bgColor.lightness < midpoint ? 1 : -1;
     const colorContrastMinMax =
-      ramp === ctx.ramps.gray
+      ramp === theme.ramps.gray
         ? 1
         : bgColor.lightness < midpoint
-        ? ctx.maxColorLightness / 100
-        : 1 - ctx.minColorLightness / 100;
+        ? theme.maxColorLightness / 100
+        : 1 - theme.minColorLightness / 100;
 
     const contrastMultiplier =
-      ramp === ctx.ramps.gray || ctx.contrastMultiplier < 1
-        ? ctx.contrastMultiplier
+      ramp === theme.ramps.gray || theme.contrastMultiplier < 1
+        ? theme.contrastMultiplier
         : 1;
 
     const targetLightness =
@@ -96,8 +96,8 @@ export default class Color {
     const [fgL, fgA, fgB] = chroma(hex).lab();
     const colorContrastNormalizer = Math.abs(0.5 - normalizedLightness) * 2;
     const abContrast =
-      ctx.contrastMultiplier < 1
-        ? ctx.contrastMultiplier
+      theme.contrastMultiplier < 1
+        ? theme.contrastMultiplier
         : (colorContrastNormalizer + contrast) / 100;
     hex = chroma
       .lab(
@@ -108,7 +108,7 @@ export default class Color {
       .hex();
 
     return new Color({
-      theme: ctx,
+      theme,
       bgColor,
       hex,
       ramp
@@ -116,17 +116,17 @@ export default class Color {
   }
 
   static fromColorDirect({ bgColor, ramp }) {
-    const ctx = bgColor.theme;
+    const theme = bgColor.theme;
     let hex = ramp(
-      (bgColor.lightness - ctx.ramps.gray.startL) /
-        (ctx.ramps.gray.endL - ctx.ramps.gray.startL)
+      (bgColor.lightness - theme.ramps.gray.startL) /
+        (theme.ramps.gray.endL - theme.ramps.gray.startL)
     );
     hex = chroma
-      .mix(bgColor, hex, Math.min(ctx.contrastMultiplier, 1), "lab")
+      .mix(bgColor, hex, Math.min(theme.contrastMultiplier, 1), "lab")
       .hex();
 
     return new Color({
-      theme: ctx,
+      theme,
       bgColor,
       hex,
       ramp
