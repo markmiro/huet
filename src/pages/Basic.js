@@ -1,21 +1,20 @@
 import React, { useContext } from "react";
-import huet from "../huet";
+import { BackgroundContext } from "../huet2";
 import Contrast from "../Contrast";
 
 export default function Basic() {
-  const { contrast } = huet.useTheme();
-  const ctx = useContext(huet.ThemeContext);
-  const red = contrast(10, { ramp: "red" });
-  const hundredContrast = contrast(100);
+  const parentBg = useContext(BackgroundContext);
+  const theme = parentBg.theme;
+  const red = parentBg.contrast(10, theme.ramps.red);
+  const hundredContrast = parentBg.contrast(100);
   return (
     <div className="pa4">
       Basic
       <div style={{ color: red }}>Red</div>
       <div style={{ color: hundredContrast }}>100 contrast</div>
       <Contrast text={100}>50 Contrast</Contrast>
-      <pre>minColorLightness: {ctx.minColorLightness}</pre>
-      <pre>maxColorLightness: {ctx.maxColorLightness}</pre>
-      <pre>bgLightness: {ctx.bgLightness}</pre>
+      <pre>minColorLightness: {theme.minColorLightness}</pre>
+      <pre>maxColorLightness: {theme.maxColorLightness}</pre>
     </div>
   );
 }
