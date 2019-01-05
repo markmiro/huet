@@ -40,11 +40,11 @@ function App() {
 
   return (
     <ErrorBoundary>
-      {/* <Themer
+      <Themer
         themeConfigs={themeConfigs}
         themeConfig={themeConfig}
         onChangeThemeConfig={setThemeConfig}
-      /> */}
+      />
       This is a&nbsp;
       <Block
         theme={theme}
@@ -63,8 +63,8 @@ function App() {
         <Pallet colors={themeConfigs.basic.pallet} />
         <Range label="Test" min={0} max={100} value={10} />
         <YouTubeLogo />
-        <ColorRamp ramp={theme.ramps.gray} themeContext={theme} />
-        <ColorRamp ramp={theme.ramps.red} themeContext={theme} />
+        <ColorRamp ramp={theme.ramps.gray} theme={theme} />
+        <ColorRamp ramp={theme.ramps.red} theme={theme} />
       </Block>
     </ErrorBoundary>
   );

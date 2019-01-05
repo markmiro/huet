@@ -1,7 +1,7 @@
-import React from "react";
+import React, { useContext } from "react";
 import styled from "styled-components";
 import _ from "lodash";
-import huet from "./huet";
+import { getLightness, BackgroundContext } from "./huet2";
 import Contrast from "./Contrast";
 
 export function Star({ lightness }) {
@@ -36,13 +36,13 @@ const ScreenElement = styled.div`
 `;
 
 export function Screen(props) {
-  const { contrast } = huet.useTheme();
-  return <ScreenElement {...props} color={contrast(0)} />;
+  const parentBg = useContext(BackgroundContext);
+  return <ScreenElement {...props} color={parentBg} />;
 }
 
 export function Bracket({ lightness, direction }) {
-  const { contrast } = huet.useTheme();
-  const borderColor = contrast(100);
+  const parentBg = useContext(BackgroundContext);
+  const borderColor = parentBg.contrast(100);
   return (
     <div
       className={`absolute bt bb ${direction === "left" ? "bl" : "br"}`}
@@ -70,7 +70,7 @@ const RampColorMarkerElement = styled.div`
   top: 50%;
   left: ${({ color, grayRamp }) => {
     const l =
-      (huet.getLightness(color) - grayRamp.startL) /
+      (getLightness(color) - grayRamp.startL) /
       (grayRamp.endL - grayRamp.startL);
     return `calc(${l * 100}% - (var(--size)) * ${l})`;
   }};
@@ -159,7 +159,7 @@ export function InnerRamp({ ramp }) {
   }
 }
 
-const ColorRamp = ({ ramp, themeContext }) => {
+const ColorRamp = ({ ramp, theme }) => {
   return (
     <div
       className="flex w-100 flex-row h1 mb2"
@@ -173,8 +173,8 @@ const ColorRamp = ({ ramp, themeContext }) => {
         {ramp.config.colors.map((color, i) => (
           <RampColorMarker
             key={i}
-            color={color}
-            grayRamp={themeContext.ramps.gray}
+            color={theme.pallet[color]}
+            grayRamp={theme.ramps.gray}
           />
         ))}
       </div>

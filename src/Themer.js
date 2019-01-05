@@ -1,6 +1,6 @@
 import React from "react";
 import useBrowserState, { reset } from "./useBrowserState";
-import huet from "./huet";
+import { createTheme, ThemeContext } from "./huet2";
 import Range from "./Range";
 import Contrast from "./Contrast";
 import Select from "./Select";
@@ -10,19 +10,21 @@ import ColorRamp from "./ColorRamp";
 import Pallet from "./Pallet";
 import saveAs from "file-saver";
 
-const { ThemeContext } = huet;
-
-export default function Themer({ themes, theme, onChangeTheme }) {
+export default function Themer({
+  themeConfigs,
+  themeConfig,
+  onChangeThemeConfig
+}) {
   const [isExpanded, setIsExpanded] = useBrowserState(false);
   const [shouldThemeSelf, setShouldThemeSelf] = useBrowserState(false);
 
-  const ctx = huet.createTheme(theme).contextValue;
+  const theme = createTheme(themeConfig);
 
   function modify(key) {
     return newValue => {
-      onChangeTheme({
-        ...theme,
-        rescaleContrastToGrayRange: theme.rescaleContrastToGrayRange,
+      onChangeThemeConfig({
+        ...themeConfig,
+        rescaleContrastToGrayRange: themeConfig.rescaleContrastToGrayRange,
         [key]: newValue
       });
     };
@@ -39,14 +41,14 @@ export default function Themer({ themes, theme, onChangeTheme }) {
   const setRescaleContrastToGrayRange = modify("rescaleContrastToGrayRange");
 
   // TODO: find a better way?
-  const themeKey = Object.keys(themes).find(
-    themeKey => themes[themeKey].name === theme.name
+  const themeKey = Object.keys(themeConfigs).find(
+    themeKey => themeConfigs[themeKey].name === themeConfig.name
   );
 
-  const isThemeModified = theme !== themes[themeKey];
+  const isThemeModified = themeConfig !== themeConfigs[themeKey];
 
   function setThemeKey(themeKey) {
-    onChangeTheme(themes[themeKey]);
+    onChangeThemeConfig(themeConfigs[themeKey]);
     // setRamps(theme.ramps);
     // // setBgRampValue(theme.bgRampValue);
     // // setContrastMultiplier(theme.contrastMultiplier);
@@ -56,11 +58,11 @@ export default function Themer({ themes, theme, onChangeTheme }) {
   }
 
   function exportTheme() {
-    const str = JSON.stringify(theme, null, "  ");
+    const str = JSON.stringify(themeConfig, null, "  ");
     const blob = new Blob([str], {
       type: "text/plain;charset=utf-8"
     });
-    saveAs(blob, themes[themeKey].name + "Huet Theme.json");
+    saveAs(blob, themeConfigs[themeKey].name + "Huet Theme.json");
   }
   function importTheme() {}
   function exportThemes(e) {
@@ -70,20 +72,20 @@ export default function Themer({ themes, theme, onChangeTheme }) {
     e.stopPropagation();
   }
   function resetTheme() {
-    onChangeTheme(themes[themeKey]);
+    onChangeThemeConfig(themeConfigs[themeKey]);
   }
 
-  const themerCtx = huet.createTheme(
+  const themerTheme = createTheme(
     shouldThemeSelf
-      ? { ...theme, isPicking: false }
+      ? { ...themeConfig, isPicking: false }
       : {
-          ...themes.basic,
+          ...themeConfigs.basic,
           bgRampValue: 1
         }
-  ).contextValue;
+  );
 
   return (
-    <ThemeContext.Provider value={themerCtx}>
+    <ThemeContext.Provider value={themerTheme}>
       <Contrast
         className="Themer f7 flex flex-column"
         outline={20}
@@ -91,7 +93,7 @@ export default function Themer({ themes, theme, onChangeTheme }) {
         style={{
           outlineWidth: 1,
           outlineStyle: "solid",
-          boxShadow: `0 5px 30px ${themerCtx.ramps.gray.scale(0)}`,
+          boxShadow: `0 5px 30px ${themerTheme.ramps.gray(0)}`,
           position: "fixed",
           bottom: 0,
           right: 0,
@@ -131,9 +133,9 @@ export default function Themer({ themes, theme, onChangeTheme }) {
                 onChange={setThemeKey}
                 className="flex-auto"
               >
-                {Object.keys(themes).map(key => (
+                {Object.keys(themeConfigs).map(key => (
                   <option key={key} value={key}>
-                    {themes[key].name}
+                    {themeConfigs[key].name}
                   </option>
                 ))}
               </Select>
@@ -149,13 +151,13 @@ export default function Themer({ themes, theme, onChangeTheme }) {
               min={0}
               max={1}
               decimals={2}
-              value={theme.bgRampValue}
+              value={themeConfig.bgRampValue}
               onChange={setBgRampValue}
             />
           </Contrast>
           <div className="pa2">
             <div className="mb1">Pallet</div>
-            <Pallet colors={theme.pallet} onColorsChange={setPallet} />
+            <Pallet colors={themeConfig.pallet} onColorsChange={setPallet} />
             <div className="mt2 mb1">Color ramps</div>
             <div className="flex flex-wrap mt1">
               <div className="w-100">
@@ -168,8 +170,8 @@ export default function Themer({ themes, theme, onChangeTheme }) {
                     background: "linear-gradient(to right, black, white)"
                   }}
                 />
-                {Object.keys(ctx.ramps).map(key => (
-                  <ColorRamp key={key} ramp={key} themeContext={ctx} />
+                {Object.keys(theme.ramps).map(key => (
+                  <ColorRamp key={key} ramp={theme.ramps[key]} theme={theme} />
                 ))}
               </div>
               <Contrast className="w-100" border={20}>
@@ -177,7 +179,7 @@ export default function Themer({ themes, theme, onChangeTheme }) {
                   label="Dark color min lightness"
                   min={0}
                   max={100}
-                  value={theme.minColorLightness}
+                  value={themeConfig.minColorLightness}
                   onChange={setMinColorLightness}
                   className="mt2"
                 />
@@ -185,7 +187,7 @@ export default function Themer({ themes, theme, onChangeTheme }) {
                   label="Light color max lightness"
                   min={0}
                   max={100}
-                  value={theme.maxColorLightness}
+                  value={themeConfig.maxColorLightness}
                   onChange={setMaxColorLightness}
                   className="mt2"
                 />
@@ -194,7 +196,7 @@ export default function Themer({ themes, theme, onChangeTheme }) {
                   min={0}
                   max={2}
                   decimals={2}
-                  value={theme.contrastMultiplier}
+                  value={themeConfig.contrastMultiplier}
                   onChange={setContrastMultiplier}
                   className="mt2"
                 />
@@ -203,13 +205,13 @@ export default function Themer({ themes, theme, onChangeTheme }) {
                   min={0}
                   max={2}
                   decimals={2}
-                  value={theme.saturationContrastMultiplier}
+                  value={themeConfig.saturationContrastMultiplier}
                   onChange={setSaturationContrastMultiplier}
                   className="mt2"
                 />
                 <Checkbox
                   label="Rescale gray contrast to gray range"
-                  isChecked={theme.rescaleContrastToGrayRange}
+                  isChecked={themeConfig.rescaleContrastToGrayRange}
                   onChange={setRescaleContrastToGrayRange}
                   className="mt2"
                 />

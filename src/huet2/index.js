@@ -1,8 +1,7 @@
 import React from "react";
 
 // TODO: see if we really need to export this
-// export { getLightness } from "./color";
-export { default as Color } from "./color";
+export { default as Color, getLightness } from "./color";
 export { createTheme } from "./theme";
 export { default as Block } from "./Block";
 
