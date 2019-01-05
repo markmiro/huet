@@ -1,8 +1,8 @@
-import React from "react";
+import React, { useContext } from "react";
 import range from "lodash/range";
 import partition from "lodash/partition";
 import { useDebounce } from "use-debounce";
-import huet from "../huet";
+import { ThemeContext, BackgroundContext } from "../huet2";
 import useBrowserState from "../useBrowserState";
 import Contrast from "../Contrast";
 import Select from "../Select";
@@ -41,20 +41,20 @@ const stepSizes = {
   }
 };
 
-const Things = React.memo(({ colorSteps, graySteps, ctx }) => {
+const Things = React.memo(({ colorSteps, graySteps, theme }) => {
   const [direct, indirect] = partition(
-    Object.keys(ctx.ramps),
-    key => ctx.ramps[key].config.mode === "direct"
+    Object.keys(theme.ramps),
+    key => theme.ramps[key].config.mode === "direct"
   );
   return (
-    <huet.ThemeContext.Provider value={ctx}>
+    <ThemeContext.Provider value={theme}>
       {graySteps.map(grayStep => (
         <Contrast key={grayStep} bg={grayStep} className="pa2">
           <b>{grayStep}</b>
           <div className="flex flex-wrap">
             {[...indirect, ...direct].map(ramp => (
               <div key={ramp} className="flex mt1 mr2">
-                {ctx.ramps[ramp].config.mode === "direct" ? (
+                {theme.ramps[ramp].config.mode === "direct" ? (
                   <Contrast
                     bg={0}
                     bgRamp={ramp}
@@ -82,16 +82,16 @@ const Things = React.memo(({ colorSteps, graySteps, ctx }) => {
                   <div
                     className="w1 h-100"
                     style={{
-                      backgroundColor: ctx.ramps[ramp].scale(
-                        ctx.minColorLightness / 100
+                      backgroundColor: theme.ramps[ramp](
+                        theme.minColorLightness / 100
                       )
                     }}
                   />
                   <div
                     className="w1 h-100"
                     style={{
-                      backgroundColor: ctx.ramps[ramp].scale(
-                        ctx.maxColorLightness / 100
+                      backgroundColor: theme.ramps[ramp](
+                        theme.maxColorLightness / 100
                       )
                     }}
                   />
@@ -101,13 +101,13 @@ const Things = React.memo(({ colorSteps, graySteps, ctx }) => {
           </div>
         </Contrast>
       ))}
-    </huet.ThemeContext.Provider>
+    </ThemeContext.Provider>
   );
 });
 
 export default function ColorContrast() {
-  const ctxWrapper = huet.useTheme();
-  const debouncedCtx = useDebounce(ctxWrapper.contextValue, 100);
+  const parentBg = useContext(BackgroundContext);
+  const debouncedTheme = useDebounce(parentBg.theme, 100);
   const [stepKey, setStepKey] = useBrowserState("increment20");
 
   return (
@@ -124,7 +124,7 @@ export default function ColorContrast() {
         <option value="increment10">10, 20, 30, ...</option>
         <option value="increment20">20, 40, 80, ...</option>
       </Select>
-      <Things {...stepSizes[stepKey]} ctx={debouncedCtx} />
+      <Things {...stepSizes[stepKey]} theme={debouncedTheme} />
     </div>
   );
 }
