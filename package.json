@@ -5,7 +5,7 @@
   "keywords": [],
   "main": "src/index.js",
   "dependencies": {
-    "chroma-js": "1.4.0",
+    "chroma-js": "^2.0.2",
     "file-saver": "^2.0.0",
     "hsluv": "0.0.3",
     "lodash": "4.17.11",
