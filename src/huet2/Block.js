@@ -17,24 +17,36 @@ export default function Block({
 
   // Figure out props, especially the style prop
   const parentTheme = useContext(ThemeContext);
-  const finalTheme = theme || parentTheme;
+  const parentBg = useContext(BackgroundContext);
+  let finalTheme;
+  let relativeToColor;
+
+  if (theme) {
+    finalTheme = theme;
+    relativeToColor = Color.fromTheme(theme);
+  } else {
+    finalTheme = parentTheme;
+    relativeToColor = parentBg;
+  }
+
   if (!finalTheme) {
     throw new Error("Need to set a theme before using a Block");
   }
-
-  const parentBg = useContext(BackgroundContext) || Color.fromTheme(theme);
 
   let returnStyle;
   if (_.isPlainObject(style)) {
     returnStyle = style;
   } else if (_.isFunction(style)) {
-    returnStyle = style(parentBg);
+    returnStyle = style(relativeToColor);
   } else {
     returnStyle = null;
   }
 
   if (colors) {
-    returnStyle = { ...returnStyle, ...parseColorsToStyle(parentBg, colors) };
+    returnStyle = {
+      ...returnStyle,
+      ...parseColorsToStyle(relativeToColor, colors)
+    };
   }
 
   const props = {
@@ -77,13 +89,13 @@ const keyToCss = {
   o: "outlineColor"
 };
 
-function parseColorsToStyle(parentBg, str) {
-  const ctx = parentBg.theme;
+function parseColorsToStyle(relativeToColor, str) {
+  const ctx = relativeToColor.theme;
 
   const things = str.split(" ");
   let returnStyle = {};
   let colors = {
-    parent: parentBg
+    parent: relativeToColor
   };
   things.forEach(thing => {
     // thing: 'bg/fg:10-red'

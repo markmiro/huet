@@ -1,12 +1,9 @@
 import React, { useState, useContext } from "react";
-import huet from "../huet";
+import { ThemeContext, Block } from "../huet2";
 import Range from "../Range";
-import Contrast from "../Contrast";
-
-const { ThemeContext } = huet;
 
 export default function ContrastPattern() {
-  const ctx = useContext(ThemeContext);
+  const theme = useContext(ThemeContext);
   const [contrast, setContrast] = useState(10);
   const [colorContrast, setColorContrast] = useState(5);
   return (
@@ -27,34 +24,34 @@ export default function ContrastPattern() {
         value={colorContrast}
         onChange={c => setColorContrast(c)}
       />
-      <ThemeContext.Provider
-        value={{
-          ...ctx,
-          bgLightness: ctx.ramps.gray.endL,
-          bgLightnessAbove: ctx.ramps.gray.endL
+      <Block
+        theme={{
+          ...theme,
+          bgRampValue: 0
         }}
+        colors="bg:0"
       >
         <NestedBlocks
           levels={11}
-          ramp="gray"
+          ramp={theme.ramps.gray}
           contrast={contrast}
           colorContrast={colorContrast}
         />
-      </ThemeContext.Provider>
-      <ThemeContext.Provider
-        value={{
-          ...ctx,
-          bgLightness: ctx.ramps.gray.startL,
-          bgLightnessAbove: ctx.ramps.gray.startL
+      </Block>
+      <Block
+        theme={{
+          ...theme,
+          bgRampValue: 1
         }}
+        colors="bg:0"
       >
         <NestedBlocks
           levels={11}
-          ramp="gray"
+          ramp={theme.ramps.gray}
           contrast={contrast}
           colorContrast={colorContrast}
         />
-      </ThemeContext.Provider>
+      </Block>
     </div>
   );
 }
@@ -66,25 +63,27 @@ function NestedBlocks({
   contrast,
   colorContrast
 }) {
-  const ctx = useContext(ThemeContext);
+  const { ramps } = useContext(ThemeContext);
   if (levels === 0) return null;
   return (
-    <Contrast
-      bgRamp={ramp || "gray"}
-      bg={currentLevel === 0 ? 0 : contrast}
+    <Block
+      style={parentColor => ({
+        backgroundColor: parentColor.contrast(
+          currentLevel === 0 ? 0 : contrast,
+          ramp
+        )
+      })}
       className="flex pb2 flex-auto"
     >
       <div className="flex flex-column">
-        {Object.keys(ctx.ramps).map(key => (
-          <Contrast
-            key={key}
-            bg={colorContrast}
-            bgRamp={key}
-            contrast={100}
+        {Object.keys(ramps).map(rampKey => (
+          <Block
+            key={rampKey}
+            colors={`bg:${colorContrast}-${rampKey} bg/fg:100`}
             className="pa1 mv1 mh2"
           >
             Aa
-          </Contrast>
+          </Block>
         ))}
       </div>
       {currentLevel < levels - 1 && (
@@ -96,6 +95,6 @@ function NestedBlocks({
           colorContrast={colorContrast}
         />
       )}
-    </Contrast>
+    </Block>
   );
 }
