@@ -2,7 +2,7 @@ import chroma from "chroma-js";
 import mapValues from "lodash/mapValues";
 import { getLightness, BaseColor } from "./color";
 
-export function createTheme(themeConfig) {
+export default function createTheme(themeConfig) {
   const ramps = mapValues(themeConfig.ramps, ramp =>
     createRamp(themeConfig, ramp)
   );
