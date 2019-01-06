@@ -9,9 +9,8 @@ import ErrorBoundary from "./ErrorBoundary";
 
 // Theme stuff
 import themeConfigs from "./themes";
-import { Block, createTheme, Color } from "./huet";
+import { Block, Contrast, createTheme, Color } from "./huet";
 import Themer from "./Themer";
-import Contrast from "./Contrast";
 
 // Components
 import Select from "./Select";

@@ -1,8 +1,7 @@
 import React, { useContext } from "react";
 import styled from "styled-components";
 import _ from "lodash";
-import { getLightness, BackgroundContext } from "./huet";
-import Contrast from "./Contrast";
+import { getLightness, BackgroundContext, Contrast } from "./huet";
 
 export function Star({ lightness }) {
   return (

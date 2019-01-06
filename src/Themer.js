@@ -1,8 +1,7 @@
 import React from "react";
 import useBrowserState, { reset } from "./useBrowserState";
-import { createTheme, ThemeContext } from "./huet";
+import { createTheme, ThemeContext, Contrast } from "./huet";
 import Range from "./Range";
-import Contrast from "./Contrast";
 import Select from "./Select";
 import Button, { ButtonGroup } from "./Button";
 import Checkbox from "./Checkbox";

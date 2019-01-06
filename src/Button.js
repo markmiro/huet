@@ -1,5 +1,5 @@
 import React from "react";
-import Contrast from "./Contrast";
+import { Contrast } from "./huet";
 
 export function ButtonGroup({ children, className, style }) {
   const items = React.Children.map(children, (child, i) => {

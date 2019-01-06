@@ -1,7 +1,7 @@
 import React from "react";
 import styled from "styled-components";
 import map from "lodash/map";
-import Contrast from "./Contrast";
+import { Contrast } from "./huet";
 
 const ColorPickerElement = styled.input`
   background-color: ${({ color }) => color || "transparent"};

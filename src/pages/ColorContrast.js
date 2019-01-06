@@ -2,9 +2,8 @@ import React, { useContext } from "react";
 import range from "lodash/range";
 import partition from "lodash/partition";
 import { useDebounce } from "use-debounce";
-import { ThemeContext, BackgroundContext } from "../huet";
+import { ThemeContext, BackgroundContext, Contrast } from "../huet";
 import useBrowserState from "../useBrowserState";
-import Contrast from "../Contrast";
 import Select from "../Select";
 
 const sharedDoubleFractionSteps = [100 / 16, 100 / 8, 100 / 4, 100 / 2];

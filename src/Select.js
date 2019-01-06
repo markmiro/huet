@@ -1,5 +1,5 @@
 import React from "react";
-import Contrast from "./Contrast";
+import { Contrast } from "./huet";
 import Icon from "./Icon";
 
 const Select = ({ value, onChange, label, children, className }) => {

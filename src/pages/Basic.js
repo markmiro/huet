@@ -1,6 +1,5 @@
 import React, { useContext } from "react";
-import { BackgroundContext } from "../huet";
-import Contrast from "../Contrast";
+import { BackgroundContext, Contrast } from "../huet";
 
 export default function Basic() {
   const parentBg = useContext(BackgroundContext);

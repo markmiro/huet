@@ -1,6 +1,5 @@
 import React, { useContext } from "react";
-import { BackgroundContext } from "../huet";
-import H from "../Contrast";
+import { BackgroundContext, Contrast } from "../huet";
 import Icon from "../Icon";
 
 export default function Github() {
@@ -9,11 +8,11 @@ export default function Github() {
 
   return (
     <div className="flex-auto">
-      <H bg={5}>
-        <H bg={70} className="pa3 flex items-center">
+      <Contrast bg={5}>
+        <Contrast bg={70} className="pa3 flex items-center">
           <Icon name="github" size="2em" className="mr3" />
           Pull requests &nbsp; Issues &nbsp; Marketplace &nbsp; Explore
-        </H>
+        </Contrast>
         <div
           className="ph2 ph5-ns bb"
           style={{
@@ -41,9 +40,9 @@ export default function Github() {
             >
               Code
             </div>
-            <H text={50} className="pa2 mr1">
+            <Contrast text={50} className="pa2 mr1">
               Issues
-              <H
+              <Contrast
                 bg={10}
                 text={60}
                 className="ml2 inline-flex justify-center items-center"
@@ -54,23 +53,27 @@ export default function Github() {
                 }}
               >
                 22
-              </H>
-            </H>
-            <H text={50} className="pa2 mr1">
+              </Contrast>
+            </Contrast>
+            <Contrast text={50} className="pa2 mr1">
               Pull requests
-            </H>
+            </Contrast>
           </div>
         </div>
-      </H>
+      </Contrast>
       <div
         className="ph2 ph5-ns pv3"
         style={{
           minHeight: "100vh"
         }}
       >
-        <H bg={100} className="ph3 pv2 tc br3 f3" style={{ maxWidth: "100%" }}>
+        <Contrast
+          bg={100}
+          className="ph3 pv2 tc br3 f3"
+          style={{ maxWidth: "100%" }}
+        >
           Button
-        </H>
+        </Contrast>
         <Experiments />
       </div>
     </div>
@@ -100,7 +103,7 @@ function Experiments() {
         </div>
       ))}
 
-      <H
+      <Contrast
         bg={30}
         className="h2 mt2"
         style={{
@@ -108,7 +111,7 @@ function Experiments() {
         }}
       />
 
-      <H
+      <Contrast
         as="button"
         border={20}
         text={70}
@@ -120,26 +123,41 @@ function Experiments() {
         }}
       >
         Button
-      </H>
+      </Contrast>
       <div className="flex mt3">
         {Object.keys(theme.ramps).map(key => (
-          <H key={key} className="pa1 mr1 tc w-100 f4" bg={100} bgRamp={key}>
+          <Contrast
+            key={key}
+            className="pa1 mr1 tc w-100 f4"
+            bg={100}
+            bgRamp={key}
+          >
             {key}
-          </H>
+          </Contrast>
         ))}
       </div>
       <div className="flex mt3">
         {Object.keys(theme.ramps).map(key => (
-          <H key={key} className="pa1 mr1 tc w-100 f4" bg={45} bgRamp={key}>
+          <Contrast
+            key={key}
+            className="pa1 mr1 tc w-100 f4"
+            bg={45}
+            bgRamp={key}
+          >
             {key}
-          </H>
+          </Contrast>
         ))}
       </div>
       <div className="flex mt1">
         {Object.keys(theme.ramps).map(key => (
-          <H key={key} className="pa1 mr1 tc w-100 f4" bgRamp={key} bg={5}>
+          <Contrast
+            key={key}
+            className="pa1 mr1 tc w-100 f4"
+            bgRamp={key}
+            bg={5}
+          >
             {key}
-          </H>
+          </Contrast>
         ))}
       </div>
     </div>
