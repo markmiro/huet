@@ -172,6 +172,7 @@ function getMinMax(theme, ramp) {
   return [min, max];
 }
 
+// TODO: finish doing whatever with this
 export function rampOrDefault(theme, ramp) {
   return ramp || theme.ramps.gray;
 }

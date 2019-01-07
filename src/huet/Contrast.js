@@ -1,18 +1,6 @@
 import React, { useContext } from "react";
 import { ThemeContext, BackgroundContext, Color } from ".";
 
-/*
-Ideas:
-
-className="text-red-100 bg-gray-10 b-blue-5 o-"
-
-<Contrast style={({ctx}) => ({
-  borderColor: ctx.contrast(10)
-})}>
-</Contrast>
-
-*/
-
 const Contrast = props => {
   const {
     as,
@@ -52,7 +40,6 @@ const Contrast = props => {
     if (ramp.config.mode === "direct") {
       return parentColor.direct(ramp);
     } else {
-      debugger;
       return parentColor.contrast(contrastAmount, ramp);
     }
   }

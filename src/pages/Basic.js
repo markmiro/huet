@@ -12,7 +12,7 @@ export default function Basic() {
       <div style={{ color: red }}>Red</div>
       <div style={{ color: hundredContrast }}>100 contrast</div>
       <Contrast text={100}>50 Contrast</Contrast>
-      <Contrast debug className="pa1 tc w-100 f4" bg={100} bgRamp="white">
+      <Contrast className="pa1 tc w-100 f4" bg={100} bgRamp="white">
         Button
       </Contrast>
       <Block className="pa1 tc w-100 f4" colors="bg:100-white bg/fg:100">
