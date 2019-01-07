@@ -157,7 +157,7 @@ export default class Color extends BaseColor {
 
 function getMinMax(theme, ramp) {
   if (ramp.config.mode === "direct") {
-    return [0, 100];
+    return [theme.ramps.gray.startL, theme.ramps.gray.endL];
   }
 
   if (ramp.config.isNeutral) {
