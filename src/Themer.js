@@ -64,12 +64,6 @@ export default function Themer({
     saveAs(blob, themeConfigs[themeKey].name + "Huet Theme.json");
   }
   function importTheme() {}
-  function exportThemes(e) {
-    e.stopPropagation();
-  }
-  function importThemes(e) {
-    e.stopPropagation();
-  }
   function resetTheme() {
     onChangeThemeConfig(themeConfigs[themeKey]);
   }
@@ -110,15 +104,7 @@ export default function Themer({
           }}
           onClick={() => setIsExpanded(v => !v)}
         >
-          <div className="pv2 ph2 b flex-auto flex justify-between items-center">
-            Huet Themer (alpha)
-            <div className="flex">
-              <Button onClick={exportThemes}>Export All</Button>
-              <Button className="ml1" onClick={importThemes}>
-                Import All
-              </Button>
-            </div>
-          </div>
+          <div className="pv2 ph2 b">Huet Themer (alpha)</div>
           <Contrast bg={20} className="flex justify-center items-center ph3 b">
             {isExpanded ? "↓" : "↑"}
           </Contrast>
