@@ -1,7 +1,7 @@
 import React, { useContext } from "react";
 import styled from "styled-components";
 import _ from "lodash";
-import { getLightness, BackgroundContext, Contrast } from "./huet";
+import { getLightness, BackgroundContext, Block, Contrast } from "./huet";
 
 export function Star({ lightness }) {
   return (
@@ -78,14 +78,14 @@ const RampColorMarkerElement = styled.div`
 
 function RampColorMarker({ color, grayRamp }) {
   return (
-    <Contrast
+    <Block
       as={RampColorMarkerElement}
       color={color}
       grayRamp={grayRamp}
-      border={0}
-      borderAlpha={0.3}
-      outline={100}
-      outlineAlpha={0.3}
+      style={parentBg => ({
+        borderColor: parentBg.contrast(0).alpha(0.3),
+        outlineColor: parentBg.contrast(100).alpha(0.3)
+      })}
       className="absolute ba w1"
     />
   );

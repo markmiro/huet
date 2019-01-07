@@ -22,10 +22,8 @@ const Contrast = props => {
     textRamp,
     border,
     borderRamp,
-    borderAlpha,
     outline,
     outlineRamp,
-    outlineAlpha,
     children,
     style,
     debug,
@@ -35,8 +33,6 @@ const Contrast = props => {
     bg: null,
     border: null,
     outline: null,
-    borderAlpha: 1,
-    outlineAlpha: 1,
     ...props
   };
 
@@ -51,18 +47,14 @@ const Contrast = props => {
 
   const parentBg = useContext(BackgroundContext) || Color.fromTheme(theme);
 
-  function contrast(parentColor, contrastAmount, rampKey = "gray", alpha) {
-    const ramp = theme.ramps[rampKey];
-    let color;
+  function contrast(parentColor, contrastAmount, rampKey) {
+    const ramp = rampKey ? theme.ramps[rampKey] : theme.ramps.gray;
     if (ramp.config.mode === "direct") {
-      color = parentColor.direct(ramp);
+      return parentColor.direct(ramp);
     } else {
+      debugger;
       return parentColor.contrast(contrastAmount, ramp);
     }
-    if (typeof alpha === "number") {
-      color = color.alpha(alpha);
-    }
-    return color;
   }
 
   // ---
@@ -87,13 +79,9 @@ const Contrast = props => {
     backgroundColor,
     color: textColor,
     borderColor:
-      border !== null
-        ? contrast(parentBg, border, borderRamp, borderAlpha)
-        : null,
+      border !== null ? contrast(parentBg, border, borderRamp) : null,
     outlineColor:
-      outline !== null
-        ? contrast(parentBg, outline, outlineRamp, outlineAlpha)
-        : null
+      outline !== null ? contrast(parentBg, outline, outlineRamp) : null
   };
 
   const returnProps = {

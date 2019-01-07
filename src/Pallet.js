@@ -1,7 +1,7 @@
 import React from "react";
 import styled from "styled-components";
 import map from "lodash/map";
-import { Contrast } from "./huet";
+import { Block } from "./huet";
 
 const ColorPickerElement = styled.input`
   background-color: ${({ color }) => color || "transparent"};
@@ -10,14 +10,13 @@ const ColorPickerElement = styled.input`
 
 function ColorPicker({ color, onChange }) {
   return (
-    <Contrast
+    <Block
       as={ColorPickerElement}
       type="color"
       value={color}
       color={color}
       onChange={e => onChange(e.target.value)}
-      border={100}
-      borderAlpha={0.3}
+      colors="b:20"
       className="ba w-100 h1"
     />
   );
