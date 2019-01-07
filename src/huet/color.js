@@ -156,7 +156,10 @@ export default class Color extends BaseColor {
 }
 
 function getMinMax(theme, ramp) {
-  if (ramp.config.mode === "direct") {
+  // We're not requiring a ramp because we want the `contrast` method to work
+  // even if the parent Color instance has just a hex and a theme. This allows us to
+  // use our ramps on top of any background color.
+  if (!ramp || ramp.config.mode === "direct") {
     return [theme.ramps.gray.startL, theme.ramps.gray.endL];
   }
 
