@@ -2,11 +2,15 @@ import React, { useContext } from "react";
 import _ from "lodash";
 import { ThemeContext, BackgroundContext, Color } from ".";
 
+// TODO: consider separating out the `theme` setting part because it makes things extra complicated
+// when also dealing with the option of setting the BackgroundContext via the style or `colors` props
+
 export default function Block({
   as = "div",
   theme,
   debug,
   style,
+  // TODO: default `colors` to "bg:100 bg/fg:100"
   colors,
   children,
   ...rest
@@ -73,6 +77,17 @@ export default function Block({
         {returnChildren}
       </BackgroundContext.Provider>
     ) : null;
+  } else if (theme) {
+    if (!children) {
+      throw new Error(
+        "Add children to the <Block> in order to see something on screen."
+      );
+    }
+    returnChildren = (
+      <BackgroundContext.Provider value={relativeToColor}>
+        {returnChildren}
+      </BackgroundContext.Provider>
+    );
   }
 
   // Return element with props and children from above
