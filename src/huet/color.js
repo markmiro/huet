@@ -55,7 +55,7 @@ export default class Color extends BaseColor {
     });
   }
 
-  contrast(contrast = 100, ramp = this.theme.ramps.gray) {
+  contrast(contrastAmount = 100, ramp = this.theme.ramps.gray) {
     if (ramp.config.mode === "direct") {
       console.warn(
         'You should be using the "direct" method instead since the "contrast" parameter won\'t do anything here'
@@ -92,7 +92,7 @@ export default class Color extends BaseColor {
 
     const targetLightness =
       this.lightness +
-      contrast *
+      contrastAmount *
         direction *
         contrastMultiplier *
         contrastNormalizer *
@@ -111,7 +111,7 @@ export default class Color extends BaseColor {
     const abContrast =
       theme.contrastMultiplier < 1
         ? theme.contrastMultiplier
-        : (colorContrastNormalizer + contrast) / 100;
+        : (colorContrastNormalizer + contrastAmount) / 100;
     hex = chroma
       .lab(
         bgL + (fgL - bgL) * 1,
