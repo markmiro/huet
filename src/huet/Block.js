@@ -105,7 +105,7 @@ const keyToCss = {
 };
 
 function parseColorsToStyle(relativeToColor, str) {
-  const ctx = relativeToColor.theme;
+  const theme = relativeToColor.theme;
 
   const things = str.split(" ");
   let returnStyle = {};
@@ -131,7 +131,7 @@ function parseColorsToStyle(relativeToColor, str) {
     //
     const parentColor = colors[parentKey];
 
-    const ramp = ctx.ramps[rampKey];
+    const ramp = theme.ramps[rampKey];
 
     let color;
     if (ramp.config.mode === "direct") {
