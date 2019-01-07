@@ -1,14 +1,19 @@
 import chroma from "chroma-js";
 
-function getMinMax(theme, ramp) {
-  if (ramp.config.isNeutral) {
-    return [ramp.startL, ramp.endL];
-  }
+/*
+  Rationale:
+  We want colors to context-dependent. This means there's really no such thing
+  as "red" with a specific hex value. Instead, we want to be able to say we want
+  a red that *stands out* from the background color by a certain amount. The properties
+  of how to make a red stand out, and what "red" really means is defined by the theme.
 
-  const min = Math.max(ramp.startL, theme.ramps.gray.startL);
-  const max = Math.min(ramp.endL, theme.ramps.gray.endL);
-  return [min, max];
-}
+  In the theme, the "red" would be defined as a "ramp" that specifies the boundaries
+  of what's allowed for the color. However, this doesn't mean we'll always pick one of these
+  colors. We'll pick a color that's on the plane between the ramp of the color you want and the
+  ramp of the parent color.
+*/
+
+// ---
 
 export class BaseColor {
   constructor(hex) {
@@ -39,6 +44,17 @@ export default class Color extends BaseColor {
     this.lightness = getLightness(hex);
   }
 
+  static fromTheme(theme) {
+    const ramp = theme.ramps[theme.bgRamp];
+    const hex = ramp(theme.bgRampValue).hex;
+    return new Color({
+      theme,
+      bgColor: null,
+      hex,
+      ramp
+    });
+  }
+
   contrast(contrast = 100, ramp = this.theme.ramps.gray) {
     if (ramp.config.mode === "direct") {
       console.warn(
@@ -46,38 +62,14 @@ export default class Color extends BaseColor {
       );
       return this.direct(ramp);
     }
-    return Color.fromColor({
-      theme: this.theme,
-      bgColor: this,
-      ramp,
-      contrast
-    });
-  }
 
-  direct(ramp) {
-    if (ramp.config.mode !== "direct") throw new Error("Not allowed");
-    return Color.fromColorDirect({
-      theme: this.theme,
-      bgColor: this,
-      ramp
-    });
-  }
+    const { theme } = this;
 
-  alpha(amount) {
-    return chroma(this.hex)
-      .alpha(amount * this.theme.contrastMultiplier)
-      .hex();
-  }
-
-  // ---
-
-  static fromColor({ bgColor, ramp, contrast }) {
-    const theme = bgColor.theme;
     const [min, max] = getMinMax(theme, ramp);
-    const [bgMin, bgMax] = getMinMax(theme, bgColor.ramp);
+    const [bgMin, bgMax] = getMinMax(theme, this.ramp);
 
     // __0 _.5 __1
-    const normalizedLightness = (bgColor.lightness - bgMin) / (bgMax - bgMin);
+    const normalizedLightness = (this.lightness - bgMin) / (bgMax - bgMin);
     // __1 _.5 __1
     const contrastNormalizer =
       theme.rescaleContrastToGrayRange || ramp !== theme.ramps.gray
@@ -85,11 +77,11 @@ export default class Color extends BaseColor {
         : 1;
     const contrastRescale = (max - min) / 100;
     const midpoint = (min + max) / 2;
-    const direction = bgColor.lightness < midpoint ? 1 : -1;
+    const direction = this.lightness < midpoint ? 1 : -1;
     const colorContrastMinMax =
       ramp === theme.ramps.gray
         ? 1
-        : bgColor.lightness < midpoint
+        : this.lightness < midpoint
         ? theme.maxColorLightness / 100
         : 1 - theme.minColorLightness / 100;
 
@@ -99,7 +91,7 @@ export default class Color extends BaseColor {
         : 1;
 
     const targetLightness =
-      bgColor.lightness +
+      this.lightness +
       contrast *
         direction *
         contrastMultiplier *
@@ -113,7 +105,7 @@ export default class Color extends BaseColor {
 
     let hex = ramp(scaleValue).hex;
 
-    const [bgL, bgA, bgB] = chroma(bgColor.hex).lab();
+    const [bgL, bgA, bgB] = chroma(this.hex).lab();
     const [fgL, fgA, fgB] = chroma(hex).lab();
     const colorContrastNormalizer = Math.abs(0.5 - normalizedLightness) * 2;
     const abContrast =
@@ -130,39 +122,51 @@ export default class Color extends BaseColor {
 
     return new Color({
       theme,
-      bgColor,
+      bgColor: this,
       hex,
       ramp
     });
   }
 
-  static fromColorDirect({ bgColor, ramp }) {
-    const theme = bgColor.theme;
+  direct(ramp) {
+    if (ramp.config.mode !== "direct") throw new Error("Not allowed");
+
+    const { theme } = this;
     let hex = ramp(
-      (bgColor.lightness - theme.ramps.gray.startL) /
+      (this.lightness - theme.ramps.gray.startL) /
         (theme.ramps.gray.endL - theme.ramps.gray.startL)
     ).hex;
     hex = chroma
-      .mix(bgColor.hex, hex, Math.min(theme.contrastMultiplier, 1), "lab")
+      .mix(this.hex, hex, Math.min(theme.contrastMultiplier, 1), "lab")
       .hex();
 
     return new Color({
       theme,
-      bgColor,
+      bgColor: this,
       hex,
       ramp
     });
   }
 
-  static fromTheme(theme) {
-    const hex = theme.ramps.gray(theme.bgRampValue).hex;
-    return new Color({
-      theme,
-      bgColor: null,
-      hex,
-      ramp: theme.ramps[theme.bgRamp]
-    });
+  alpha(amount) {
+    return chroma(this.hex)
+      .alpha(amount * this.theme.contrastMultiplier)
+      .hex();
   }
+}
+
+function getMinMax(theme, ramp) {
+  if (ramp.config.isNeutral) {
+    return [ramp.startL, ramp.endL];
+  }
+
+  const min = Math.max(ramp.startL, theme.ramps.gray.startL);
+  const max = Math.min(ramp.endL, theme.ramps.gray.endL);
+  return [min, max];
+}
+
+export function rampOrDefault(theme, ramp) {
+  return ramp || theme.ramps.gray;
 }
 
 export function getLightness(color) {
