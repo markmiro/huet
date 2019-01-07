@@ -86,8 +86,7 @@ function App() {
             ))}
           </Select>
         </Contrast>
-        <Contrast
-          bg={0}
+        <div
           style={{
             // So page refresh is visible
             animationDuration: "0.5s",
@@ -97,7 +96,7 @@ function App() {
           <Suspense fallback={<div>Loading...</div>}>
             {React.createElement(pages[pageKey].component)}
           </Suspense>
-        </Contrast>
+        </div>
       </Block>
     </ErrorBoundary>
   );
