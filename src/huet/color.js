@@ -156,6 +156,10 @@ export default class Color extends BaseColor {
 }
 
 function getMinMax(theme, ramp) {
+  if (ramp.config.mode === "direct") {
+    return [0, 100];
+  }
+
   if (ramp.config.isNeutral) {
     return [ramp.startL, ramp.endL];
   }
