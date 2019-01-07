@@ -17,6 +17,9 @@ import chroma from "chroma-js";
 
 export class BaseColor {
   constructor(hex) {
+    if (!hex) {
+      throw new Error("`hex` is required");
+    }
     this.hex = hex;
   }
 
@@ -32,8 +35,11 @@ export class BaseColor {
 }
 
 export default class Color extends BaseColor {
-  constructor({ theme, bgColor, hex, ramp }) {
+  constructor({ theme, bgColor = null, hex, ramp = null }) {
     super(hex);
+    if (!theme) {
+      throw new Error("`theme` is required");
+    }
     // TODO: consider making this private so there aren't two ways of getting a theme:
     // 1) From a color
     // 2) From a useContext(ThemeContext)
