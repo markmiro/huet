@@ -10,21 +10,19 @@ const ColorPickerElement = styled.input`
 
 function ColorPicker({ color, onChange }) {
   return (
-    <Block
-      as={ColorPickerElement}
+    <ColorPickerElement
       type="color"
       value={color}
       color={color}
       onChange={e => onChange(e.target.value)}
-      colors="b:20"
-      className="ba w-100 h1"
+      className="w-100 h1"
     />
   );
 }
 
 export default function Pallet({ colors, onColorsChange }) {
   return (
-    <div className="flex">
+    <Block className="flex ba" colors="b:20">
       {map(colors, (color, key) => (
         <ColorPicker
           key={key}
@@ -32,6 +30,6 @@ export default function Pallet({ colors, onColorsChange }) {
           onChange={c => onColorsChange({ ...colors, [key]: c })}
         />
       ))}
-    </div>
+    </Block>
   );
 }
