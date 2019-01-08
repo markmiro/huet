@@ -112,7 +112,7 @@ function duplicate(n) {
   return [n, n];
 }
 function pairs(ramp) {
-  const classes = ramp.classes;
+  const classes = ramp.config.classes;
   const classesArr = Array.isArray(classes)
     ? classes
     : [..._.range(0, 1, 1 / classes), 1];
@@ -125,7 +125,9 @@ function pairs(ramp) {
 export function InnerRamp({ ramp }) {
   if (!ramp) return null;
 
-  const type = ramp.classes ? "classes" : "normal";
+  const type = ramp.config.classes ? "classes" : "normal";
+
+  debugger;
 
   switch (type) {
     case "classes":
