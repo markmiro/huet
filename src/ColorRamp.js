@@ -127,8 +127,6 @@ export function InnerRamp({ ramp }) {
 
   const type = ramp.config.classes ? "classes" : "normal";
 
-  debugger;
-
   switch (type) {
     case "classes":
       return (
