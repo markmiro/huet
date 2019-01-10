@@ -1,5 +1,5 @@
 import React, { useContext } from "react";
-import { BackgroundContext, Contrast } from "../huet";
+import { BackgroundContext, Contrast, Block } from "../huet";
 import Icon from "../Icon";
 
 export default function Github() {
@@ -30,7 +30,7 @@ export default function Github() {
                 borderRightColor: borderColor,
                 borderTopWidth: "0.2em",
                 borderTopColor: parentBg.contrast(
-                  30,
+                  60,
                   parentBg.theme.ramps.gold
                 ),
                 borderTopLeftRadius: ".2em",
@@ -131,18 +131,20 @@ function Experiments() {
             className="pa1 mr1 tc w-100 f4"
             bg={100}
             bgRamp={key}
+            textRamp="white"
           >
             {key}
           </Contrast>
         ))}
       </div>
-      <div className="flex mt3">
+      <div className="flex mt1">
         {Object.keys(theme.ramps).map(key => (
           <Contrast
             key={key}
             className="pa1 mr1 tc w-100 f4"
             bg={45}
             bgRamp={key}
+            textRamp="white"
           >
             {key}
           </Contrast>
@@ -155,6 +157,7 @@ function Experiments() {
             className="pa1 mr1 tc w-100 f4"
             bgRamp={key}
             bg={5}
+            textRamp="white"
           >
             {key}
           </Contrast>
