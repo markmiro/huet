@@ -70,7 +70,7 @@ export default function ColorContrast() {
           <div className="flex mt1">
             <Block
               as="button"
-              colors="bg:10 fg:100"
+              colors="bg:10 bg/fg:100"
               className="h2"
               onClick={() => setPalletKey("none")}
             >
