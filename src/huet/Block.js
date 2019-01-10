@@ -12,6 +12,7 @@ export default function Block({
   style,
   // TODO: default `colors` to "bg:100 bg/fg:100"
   colors,
+  base = "gray",
   children,
   ...rest
 }) {
@@ -32,6 +33,9 @@ export default function Block({
     finalTheme = parentTheme;
     relativeToColor = parentBg;
   }
+  if (base) {
+    relativeToColor = relativeToColor.base(finalTheme.ramps[base]);
+  }
 
   if (!finalTheme) {
     throw new Error("Need to set a theme before using a Block");
@@ -47,9 +51,10 @@ export default function Block({
   }
 
   if (colors) {
+    // TODO: consider making "colors" prop values depend on the value of stuff set in style?
     returnStyle = {
       ...returnStyle,
-      ...parseColorsToStyle(relativeToColor, colors)
+      ...parseColorsToStyle(relativeToColor, colors, base)
     };
   }
 
@@ -104,7 +109,7 @@ const keyToCss = {
   o: "outlineColor"
 };
 
-function parseColorsToStyle(relativeToColor, str) {
+function parseColorsToStyle(relativeToColor, str, base) {
   const theme = relativeToColor.theme;
 
   const things = str.split(" ");
@@ -118,9 +123,22 @@ function parseColorsToStyle(relativeToColor, str) {
     // key: 'bg' value: '10-red'
     const [key, value] = thing.split(":");
 
-    // TODO: allow user to only set ramp if it's a direct ramp
     // contrast: '10' rampKey: 'red'
-    const [contrast, rampKey = "gray"] = value.split("-");
+    const [contrast, rampKey = base] = (() => {
+      // 10-red || 10 || red
+      const [first, second] = value.split("-");
+      if (first && second) {
+        return [parseInt(first, 10), second];
+      }
+
+      // TODO: verify that a zero (0) should get ignored here
+      const firstAsInt = parseInt(first, 10);
+      if (Number.isInteger(firstAsInt)) {
+        return [firstAsInt];
+      } else {
+        return [, first];
+      }
+    })();
 
     // keys: ['bg', 'fg']
     const keys = key.split("/");
@@ -137,7 +155,7 @@ function parseColorsToStyle(relativeToColor, str) {
     if (ramp.config.mode === "direct") {
       color = parentColor.direct(ramp);
     } else {
-      color = parentColor.contrast(parseInt(contrast), ramp);
+      color = parentColor.contrast(contrast, ramp);
     }
     colors[childKey] = color;
 
