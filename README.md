@@ -94,15 +94,15 @@ This project is in alpha. This is because it's still not seemlesss to use Huet w
 
 ### Glossary
 
-*Theme config*: This is the JSON-serializable definition that create the ultimate theme that we use.
+**Theme config**: This is the JSON-serializable definition that create the ultimate theme that we use.
 
-*Theme*: This is the object that all Huet colors use to determine how they should be displayed.
+**Theme**: This is the object that all Huet colors use to determine how they should be displayed.
 
-*Pallet*: The set of key/value pairs to define colors and their hex values in your theme config / theme.
+**Pallet**: The set of key/value pairs to define colors and their hex values in your theme config / theme.
 
-*Ramp*: A ramp represents the range of acceptable colors.
+**Ramp**: A ramp represents the range of acceptable colors.
 
-*Huet color*: An instance of a Huet Color class.
+**Huet color**: An instance of a Huet Color class.
 
 # Credits
 
