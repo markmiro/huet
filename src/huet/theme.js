@@ -2,14 +2,24 @@ import chroma from "chroma-js";
 import mapValues from "lodash/mapValues";
 import { getLightness, BaseColor } from "./color";
 
-export default function createTheme(themeConfig) {
-  const ramps = mapValues(themeConfig.ramps, ramp =>
-    createRamp(themeConfig, ramp)
-  );
-  return {
-    ...themeConfig,
-    ramps
-  };
+export default class Theme {
+  /**
+   * Creates a theme instance from a themeConfig
+   * @param {*} config
+   */
+  constructor(config) {
+    this.pallet = config.pallet;
+    this.bgRamp = config.bgRamp;
+    this.bgRampValue = config.bgRampValue;
+    this.minColorLightness = config.minColorLightness;
+    this.maxColorLightness = config.maxColorLightness;
+    this.contrastMultiplier = config.contrastMultiplier;
+    this.saturationContrastMultiplier = config.saturationContrastMultiplier;
+    this.rescaleContrastToGrayRange = config.rescaleContrastToGrayRange;
+
+    const ramps = mapValues(config.ramps, ramp => createRamp(config, ramp));
+    this.ramps = ramps;
+  }
 }
 
 // ---

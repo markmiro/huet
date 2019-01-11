@@ -9,7 +9,7 @@ import ErrorBoundary from "./ErrorBoundary";
 
 // Theme stuff
 import themeConfigs from "./themes";
-import { Block, Contrast, createTheme, Color } from "./huet";
+import { Block, Contrast, Theme, Color } from "./huet";
 import Themer from "./Themer";
 
 // Components
@@ -48,7 +48,7 @@ function App() {
   const [themeConfig, setThemeConfig] = useBrowserState(themeConfigs.basic);
   const [pageKey, setPageKey] = useBrowserState("colorContrast");
 
-  const theme = createTheme(themeConfig);
+  const theme = new Theme(themeConfig);
   const parentBg = Color.fromTheme(theme);
 
   useEffect(
