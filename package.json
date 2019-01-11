@@ -1,8 +1,14 @@
 {
   "name": "huet",
-  "version": "1.0.0",
-  "description": "",
-  "keywords": [],
+  "version": "0.0.1",
+  "description": "Color UIs by specifying colors relatively (using HCL, a perceptually accurate color model)",
+  "keywords": [
+    "huet",
+    "react",
+    "HCL",
+    "color",
+    "contrast"
+  ],
   "main": "src/index.js",
   "dependencies": {
     "chroma-js": "^2.0.2",
@@ -19,6 +25,16 @@
   "devDependencies": {
     "prettier": "^1.15.3"
   },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/markmiro/huet.git"
+  },
+  "author": "Mark Miro <contact@markmiro.com> (https://markmiro.com/)",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/markmiro/huet/issues"
+  },
+  "homepage": "https://github.com/markmiro/huet#readme",
   "scripts": {
     "start": "react-scripts start",
     "build": "react-scripts build",
