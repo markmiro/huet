@@ -9,7 +9,7 @@
     "color",
     "contrast"
   ],
-  "main": "src/index.js",
+  "main": "index.js",
   "dependencies": {
     "chroma-js": "^2.0.2",
     "file-saver": "^2.0.0",
