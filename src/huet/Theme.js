@@ -1,6 +1,6 @@
 import chroma from "chroma-js";
 import mapValues from "lodash/mapValues";
-import { getLightness, BaseColor } from "./color";
+import { getLightness, BaseColor } from "./Color";
 
 export default class Theme {
   /**
