@@ -10,23 +10,12 @@
     "contrast"
   ],
   "main": "index.js",
-  "dependencies": {
-    "chroma-js": "^2.0.2",
-    "file-saver": "^2.0.0",
-    "hsluv": "0.0.3",
-    "lodash": "4.17.11",
-    "microicon": "^1.0.0-b.2",
-    "react": "16.8.0-alpha.0",
-    "react-dom": "16.8.0-alpha.0",
-    "react-scripts": "2.0.3",
-    "styled-components": "4.1.2",
-    "use-debounce": "^0.0.7"
-  },
   "peerDependencies": {
-    "react": "16.8.0-alpha.0",
-    "react-dom": "16.8.0-alpha.0"
+    "react": "16.8.0-alpha.0"
   },
   "devDependencies": {
+    "chroma-js": "^2.0.2",
+    "lodash": "4.17.11",
     "@babel/cli": "^7.2.3",
     "@babel/core": "^7.2.2",
     "@babel/preset-env": "^7.2.3",
