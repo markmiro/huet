@@ -3,7 +3,6 @@ const replace = require("rollup-plugin-replace");
 const babel = require("rollup-plugin-babel");
 const resolve = require("rollup-plugin-node-resolve");
 const commonjs = require("rollup-plugin-commonjs");
-import { uglify } from "rollup-plugin-uglify";
 const NODE_ENV = process.env.NODE_ENV || "development";
 const outputFile = NODE_ENV === "production" ? "./lib/prod.js" : "./lib/dev.js";
 
@@ -27,7 +26,6 @@ export default {
     // the output bundle
     resolve(),
     // Most node_modules are Node.js CommonJS, so handle them
-    commonjs(),
-    uglify()
+    commonjs()
   ]
 };
