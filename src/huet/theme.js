@@ -5,7 +5,7 @@ import { getLightness, BaseColor } from "./color";
 export default class Theme {
   /**
    * Creates a theme instance from a themeConfig
-   * @param {*} config
+   * @param {Object} config
    */
   constructor(config) {
     this.pallet = config.pallet;
