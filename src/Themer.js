@@ -1,6 +1,6 @@
 import React from "react";
 import useBrowserState, { reset } from "./useBrowserState";
-import { createTheme, ThemeContext, Contrast } from "./huet";
+import { Theme, ThemeContext, Contrast } from "./huet";
 import Range from "./Range";
 import Select from "./Select";
 import Button, { ButtonGroup } from "./Button";
@@ -17,7 +17,7 @@ export default function Themer({
   const [isExpanded, setIsExpanded] = useBrowserState(false);
   const [shouldThemeSelf, setShouldThemeSelf] = useBrowserState(false);
 
-  const theme = createTheme(themeConfig);
+  const theme = new Theme(themeConfig);
 
   function modify(key) {
     return newValue => {
@@ -68,7 +68,7 @@ export default function Themer({
     onChangeThemeConfig(themeConfigs[themeKey]);
   }
 
-  const themerTheme = createTheme(
+  const themerTheme = new Theme(
     shouldThemeSelf
       ? { ...themeConfig, isPicking: false }
       : {
