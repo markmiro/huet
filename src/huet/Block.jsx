@@ -1,6 +1,7 @@
 import React, { useContext } from "react";
-import _ from "lodash";
 import { ThemeContext, BackgroundContext, Color } from ".";
+import isPlainObject from "lodash/isPlainObject";
+import isFunction from "lodash/isFunction";
 
 // TODO: consider separating out the `theme` setting part because it makes things extra complicated
 // when also dealing with the option of setting the BackgroundContext via the style or `colors` props
@@ -42,9 +43,9 @@ export default function Block({
   }
 
   let returnStyle;
-  if (_.isPlainObject(style)) {
+  if (isPlainObject(style)) {
     returnStyle = style;
-  } else if (_.isFunction(style)) {
+  } else if (isFunction(style)) {
     returnStyle = style(relativeToColor);
   } else {
     returnStyle = null;
