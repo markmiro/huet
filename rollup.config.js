@@ -7,7 +7,7 @@ const NODE_ENV = process.env.NODE_ENV || "development";
 const outputFile = NODE_ENV === "production" ? "./lib/prod.js" : "./lib/dev.js";
 
 export default {
-  input: "./src/huet/index.js",
+  input: "./src/index.js",
   output: {
     file: outputFile,
     format: "cjs"
