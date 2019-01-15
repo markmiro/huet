@@ -1,0 +1,6 @@
+{
+  "packages": ["packages/*"],
+  "npmClient": "yarn",
+  "ignoreChanges": ["*.md"],
+  "version": "1.0.0-alpha.0"
+}
