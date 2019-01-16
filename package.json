@@ -1,6 +1,6 @@
 {
   "name": "huet",
-  "version": "1.0.0-alpha.1",
+  "version": "1.0.0-alpha.2",
   "description": "Color UIs by specifying colors relatively (using HCL, a perceptually accurate color model)",
   "keywords": [
     "huet",
