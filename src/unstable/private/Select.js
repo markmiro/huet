@@ -25,7 +25,7 @@ const Select = ({ value, onChange, label, children, className }) => {
           {!selectedChild && <option value="">None</option>}
         </select>
         {text}
-        <Icon name="chevron" size=".6em" className="ml2 rotate-90" />
+        <div className="ml2">▿</div>
       </Contrast>
     </div>
   );

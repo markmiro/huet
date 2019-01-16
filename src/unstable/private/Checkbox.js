@@ -22,12 +22,9 @@ const Checkbox = ({
         checked={isChecked}
         onChange={e => onChange && onChange(e.target.checked)}
       />
-      <Icon
-        contrast={contrast}
-        name={isChecked ? "check_box" : "check_box_outline_blank"}
-        className="mr1"
-      />
-      {/* <span style={{ fontSize: "1.25em" }}>{isChecked ? "☒" : "☐"}</span>{" "} */}
+      <span className="mr1" style={{ fontSize: "1.25em" }}>
+        {isChecked ? "☒" : "☐"}
+      </span>
       {label}
     </Contrast>
   );
