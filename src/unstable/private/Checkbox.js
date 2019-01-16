@@ -1,6 +1,5 @@
 import React from "react";
 import Contrast from "../Contrast.jsx";
-import Icon from "./Icon";
 
 const Checkbox = ({
   label,
