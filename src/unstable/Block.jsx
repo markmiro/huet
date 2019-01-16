@@ -1,8 +1,11 @@
 import React, { useContext } from "react";
 import isPlainObject from "lodash/isPlainObject";
 import isFunction from "lodash/isFunction";
-import Color from "./Color";
-import { ThemeContext, BackgroundContext } from "./reactContexts";
+import { Color } from "huet";
+import {
+  ThemeContext,
+  BackgroundContext
+} from "unstable/private/reactContexts";
 
 // TODO: consider separating out the `theme` setting part because it makes things extra complicated
 // when also dealing with the option of setting the BackgroundContext via the style or `colors` props

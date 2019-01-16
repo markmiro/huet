@@ -1,6 +1,6 @@
 import React, { useContext } from "react";
-import Color from "./Color";
-import { ThemeContext, BackgroundContext } from "./reactContexts";
+import { Color } from "huet";
+import { ThemeContext, BackgroundContext } from "./private/reactContexts";
 
 const Contrast = props => {
   const {

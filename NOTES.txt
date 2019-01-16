@@ -1,0 +1,30 @@
+This repo is the reification of some equations as part of my ongoing experiments with colors. The "Principles" section describes what's possible with a relative color theme as opposed to the absolute color themes that are the norm today. The theming system I'm proposing here is named Huet because each color depends on another. Pairs of colors are performing what might be called a "duet", hence the name Huet.
+
+PRINCIPLES
+* Components should look right regardless of the parent background color.
+* You should be able to modify one color at a time and the other colors should work themselved out according to specified constraints.
+* When colorig UIs, we should specify the *intention* directly rather than an exact hex value (that is meant to satisfy the intention).
+* Provide the knobs that allow UIs to adapt to different scenarios:
+  - The end-user should be able to specify their desired level of contrast the way users currently specify their desired level of page zoom.
+  - Dark environments (dark mode)
+  - Low battery life (when OLED display)
+  - Low vision (high contrast),
+  - High glare / dim displays
+  - Partial color blindness (full color blindness where person sees in grayscale would require colors to be distinguishable with different textures)
+* Dark mode should be trivial without having to build one by hand. There are scenarios where a user might want a dark mode even though your app doesn't specifically need a dark mode. Users should not just be able to specify that they want a dark mode, they should be able to specify how "yellow" the interface is allowed to look. Flux, at max settings is impractical in scencarios where you need to differentiate between hues. Dark mode encourages better sleep when used at night, and reduces battery usage in some types of displays.
+https://www.theverge.com/2018/11/8/18076502/google-dark-mode-android-battery-life
+https://justgetflux.com/
+* Colors are all relative except for the root background color.
+
+FEATURES
+* Manage lots of themes.
+* Visual tool for visually tweaking themes and/or creating new ones.
+* Easily re-theme your UI.
+* Allow end-users to re-theme your UI to a degree that wasn't possible before.
+* Experimental <Block /> React component for replacing "divs" so you can use a terse language for specifying colors.
+
+CAVEATS
+* Pseudo selectors are a pain to work with
+* You don't get to pick the final colors of your components directly
+* Lack of gamma correction can be a real issue when converting to a dark mode (solvable in future iterations of Huet)
+* You might be tempted to use a base scale with a value at or near .5, but you'll have to decide between two non-ideal options. You either get accurate contrast at low contrasts, but the bigger contrasts get clipped, or you get relatively accurate contrasts within a component, but the contrast of the entire component is reduced.

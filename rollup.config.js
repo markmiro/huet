@@ -4,10 +4,11 @@ const babel = require("rollup-plugin-babel");
 const resolve = require("rollup-plugin-node-resolve");
 const commonjs = require("rollup-plugin-commonjs");
 const NODE_ENV = process.env.NODE_ENV || "development";
-const outputFile = NODE_ENV === "production" ? "./lib/prod.js" : "./lib/dev.js";
+const outputFile =
+  NODE_ENV === "production" ? "./lib/huet.prod.js" : "./lib/huet.dev.js";
 
 export default {
-  input: "./src/index.js",
+  input: "./src/huet.js",
   output: {
     file: outputFile,
     format: "cjs"
