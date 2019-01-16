@@ -19,10 +19,7 @@ export default {
     replace({
       "process.env.NODE_ENV": JSON.stringify(NODE_ENV)
     }),
-    babel({
-      // Don't transpile node_modules
-      exclude: "node_modules/**"
-    }),
+    babel(),
     // Get node_modules and "resolve" them properly to include in
     // the output bundle
     resolve(),
