@@ -64,6 +64,9 @@ export default class Color extends BaseColor {
 
   // TODO: consider removing `bgRamp` and `bgRampValue from theme
   static fromTheme(theme) {
+    if (!theme instanceof Theme) {
+      throw new Error('Need to give me a Theme instance, not a "theme config"');
+    }
     const ramp = theme.ramps[theme.bgRamp];
     const hex = ramp(theme.bgRampValue).hex;
     return new Color({
