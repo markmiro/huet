@@ -1,6 +1,6 @@
 import React, { useContext } from "react";
-import styled from "styled-components";
-import { Icon as MicroIcon } from "microicon";
+import { default as styled } from "styled-components/dist/styled-components.cjs";
+import { default as MicroIcon } from "microicon/lib/Icon";
 import { BackgroundContext } from "./reactContexts";
 
 const Container = styled.div`

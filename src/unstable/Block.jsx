@@ -1,6 +1,5 @@
 import React, { useContext } from "react";
-import isPlainObject from "lodash/isPlainObject";
-import isFunction from "lodash/isFunction";
+import _ from "lodash";
 import Color from "../Color";
 import { ThemeContext, BackgroundContext } from "./private/reactContexts";
 // TODO: consider separating out the `theme` setting part because it makes things extra complicated
@@ -43,9 +42,9 @@ export default function Block({
   }
 
   let returnStyle;
-  if (isPlainObject(style)) {
+  if (_.isPlainObject(style)) {
     returnStyle = style;
-  } else if (isFunction(style)) {
+  } else if (_.isFunction(style)) {
     returnStyle = style(relativeToColor);
   } else {
     returnStyle = null;

@@ -1,5 +1,5 @@
 import chroma from "chroma-js";
-import mapValues from "lodash/mapValues";
+import _ from "lodash";
 import { getLightness, BaseColor } from "./Color";
 
 export default class Theme {
@@ -17,7 +17,7 @@ export default class Theme {
     this.saturationContrastMultiplier = config.saturationContrastMultiplier;
     this.rescaleContrastToGrayRange = config.rescaleContrastToGrayRange;
 
-    const ramps = mapValues(config.ramps, ramp => createRamp(config, ramp));
+    const ramps = _.mapValues(config.ramps, ramp => createRamp(config, ramp));
     this.ramps = ramps;
   }
 }

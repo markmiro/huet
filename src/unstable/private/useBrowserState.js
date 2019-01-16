@@ -1,5 +1,5 @@
 import { useState, useCallback, useEffect } from "react";
-import debounce from "lodash/debounce";
+import _ from "lodash";
 
 let counter = 0;
 function increment() {
@@ -42,7 +42,7 @@ export default function useBrowserState(defaultValue, { at } = {}) {
   });
 
   const debounceSaveToLocalStorage = useCallback(
-    debounce((key, value) => {
+    _.debounce((key, value) => {
       localStorage.setItem(key, JSON.stringify(value));
     }, 500),
     []

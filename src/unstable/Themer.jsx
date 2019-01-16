@@ -3,7 +3,7 @@ import saveAs from "file-saver";
 
 import Theme from "../Theme";
 import { ThemeContext } from "../unstable/private/reactContexts";
-import Contrast from "./Contrast";
+import Contrast from "./Contrast.jsx";
 
 import useBrowserState, { reset } from "./private/useBrowserState";
 import Range from "./private/Range";

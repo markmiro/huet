@@ -1,6 +1,6 @@
 import React, { useContext } from "react";
 import { BackgroundContext } from "./reactContexts";
-import Contrast from "../Contrast";
+import Contrast from "../Contrast.jsx";
 
 const Range = ({
   label,

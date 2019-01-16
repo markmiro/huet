@@ -1,8 +1,8 @@
 import React, { useContext } from "react";
-import styled from "styled-components";
+import { default as styled } from "styled-components/dist/styled-components.cjs";
 import _ from "lodash";
-import Contrast from "../Contrast";
-import Block from "../Block";
+import Contrast from "../Contrast.jsx";
+import Block from "../Block.jsx";
 import { getLightness } from "../../Color";
 import { BackgroundContext } from "./reactContexts";
 

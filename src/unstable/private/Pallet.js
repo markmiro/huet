@@ -1,7 +1,7 @@
 import React from "react";
-import styled from "styled-components";
-import map from "lodash/map";
-import Block from "../Block";
+import { default as styled } from "styled-components/dist/styled-components.cjs";
+import _ from "lodash";
+import Block from "../Block.jsx";
 
 const ColorPickerElement = styled.input`
   background-color: ${({ color }) => color || "transparent"};
@@ -23,7 +23,7 @@ function ColorPicker({ color, onChange }) {
 export default function Pallet({ colors, onColorsChange }) {
   return (
     <Block className="flex ba" colors="b:20">
-      {map(colors, (color, key) => (
+      {_.map(colors, (color, key) => (
         <ColorPicker
           key={key}
           color={color}

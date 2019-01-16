@@ -1,6 +1,5 @@
 import React, { useContext } from "react";
-import range from "lodash/range";
-import partition from "lodash/partition";
+import _ from "lodash";
 import { useDebounce } from "use-debounce";
 import { Color } from "huet";
 import { ThemeContext, BackgroundContext, Contrast, Block } from "huet";
@@ -32,12 +31,12 @@ const stepSizes = {
     colorSteps: littleSteps
   },
   increment10: {
-    graySteps: range(0, 110, 10),
-    colorSteps: range(0, 110, 10)
+    graySteps: _.range(0, 110, 10),
+    colorSteps: _.range(0, 110, 10)
   },
   increment20: {
-    graySteps: range(0, 120, 20),
-    colorSteps: range(0, 120, 20)
+    graySteps: _.range(0, 120, 20),
+    colorSteps: _.range(0, 120, 20)
   }
 };
 
@@ -104,7 +103,7 @@ export default function ColorContrast() {
 }
 
 const Things = React.memo(({ colorSteps, graySteps, theme, bgHex }) => {
-  const [direct, indirect] = partition(
+  const [direct, indirect] = _.partition(
     Object.keys(theme.ramps),
     key => theme.ramps[key].config.mode === "direct"
   );
