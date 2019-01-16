@@ -1,5 +1,5 @@
 import React from "react";
-import { Contrast } from "huet-react";
+import Contrast from "../Contrast";
 import Icon from "./Icon";
 
 const Checkbox = ({

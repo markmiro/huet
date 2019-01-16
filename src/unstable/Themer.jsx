@@ -1,14 +1,17 @@
 import React from "react";
-import { Theme } from "huet";
-import { ThemeContext, Contrast } from "huet-react";
-import useBrowserState, { reset } from "unstable/private/useBrowserState";
-import Range from "unstable/private/Range";
-import Select from "unstable/private/Select";
-import Button, { ButtonGroup } from "unstable/private/Button";
-import Checkbox from "unstable/private/Checkbox";
-import ColorRamp from "unstable/private/ColorRamp";
-import Pallet from "unstable/private/Pallet";
 import saveAs from "file-saver";
+
+import Theme from "../Theme";
+import { ThemeContext } from "../unstable/private/reactContexts";
+import Contrast from "./Contrast";
+
+import useBrowserState, { reset } from "./private/useBrowserState";
+import Range from "./private/Range";
+import Select from "./private/Select";
+import Button, { ButtonGroup } from "./private/Button";
+import Checkbox from "./private/Checkbox";
+import ColorRamp from "./private/ColorRamp";
+import Pallet from "./private/Pallet";
 
 export default function Themer({
   themeConfigs,

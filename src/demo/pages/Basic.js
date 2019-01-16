@@ -1,6 +1,6 @@
 import React, { useContext } from "react";
 import styled from "styled-components";
-import { BackgroundContext, Contrast, Block } from "huet-react";
+import { BackgroundContext, Contrast, Block } from "huet";
 
 const Button = styled.button`
   &:hover {

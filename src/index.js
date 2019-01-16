@@ -11,7 +11,7 @@ import useBrowserState from "./unstable/private/useBrowserState";
 // Theme stuff
 import themeConfigs from "./demo/themes.js";
 import { Color, Theme } from "huet";
-import { Block, Contrast, Themer } from "huet-react";
+import { Block, Contrast, Themer } from "huet";
 
 // Components
 import Select from "./unstable/private/Select";

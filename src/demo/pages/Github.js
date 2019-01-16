@@ -1,5 +1,5 @@
 import React, { useContext } from "react";
-import { BackgroundContext, Contrast } from "huet-react";
+import { BackgroundContext, Contrast } from "huet";
 import Icon from "unstable/private/Icon";
 
 export default function Github() {

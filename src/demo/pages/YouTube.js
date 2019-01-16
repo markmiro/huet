@@ -1,6 +1,6 @@
 import React, { useContext } from "react";
 import styled from "styled-components";
-import { ThemeContext, BackgroundContext, Contrast } from "huet-react";
+import { ThemeContext, BackgroundContext, Contrast } from "huet";
 import Icon from "unstable/private/Icon";
 import YouTubeLogo from "../YouTubeLogo";
 

@@ -1,5 +1,5 @@
 import React from "react";
-import { Contrast } from "huet-react";
+import Contrast from "../Contrast";
 
 export function ButtonGroup({ children, className, style }) {
   const items = React.Children.map(children, (child, i) => {

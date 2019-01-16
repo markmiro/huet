@@ -3,7 +3,7 @@ import range from "lodash/range";
 import partition from "lodash/partition";
 import { useDebounce } from "use-debounce";
 import { Color } from "huet";
-import { ThemeContext, BackgroundContext, Contrast, Block } from "huet-react";
+import { ThemeContext, BackgroundContext, Contrast, Block } from "huet";
 import useBrowserState from "unstable/private/useBrowserState";
 import Select from "unstable/private/Select";
 

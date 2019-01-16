@@ -1,5 +1,5 @@
 import React, { useState, useContext } from "react";
-import { ThemeContext, Block } from "huet-react";
+import { ThemeContext, Block } from "huet";
 import Range from "unstable/private/Range";
 
 export default function ContrastPattern() {
