@@ -25,10 +25,6 @@ const pages = {
     name: "Github",
     component: lazy(() => import("./demo/pages/Github"))
   },
-  contrastPattern: {
-    name: "Contrast Pattern",
-    component: lazy(() => import("./demo/pages/ContrastPattern"))
-  },
   colorContrast: {
     name: "Color Contrast",
     component: lazy(() => import("./demo/pages/ColorContrast"))
