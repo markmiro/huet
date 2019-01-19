@@ -1,6 +1,5 @@
 import React, { useContext } from "react";
-import { default as styled } from "styled-components/dist/styled-components.cjs";
-import { default as MicroIcon } from "microicon/lib/Icon";
+import styled from "styled-components";
 import { BackgroundContext } from "./reactContexts";
 
 const Container = styled.div`
@@ -15,7 +14,9 @@ const Icon = ({ name, contrast, ramp, className, style, size = "1em" }) => {
 
   return (
     <Container className={className} style={style}>
-      <MicroIcon name={name} size={size} color={color} />
+      <span className="ba" style={{ color, borderStyle: "dotted" }}>
+        {name}
+      </span>
     </Container>
   );
 };
