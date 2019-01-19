@@ -59,7 +59,7 @@ function App() {
   );
 
   return (
-    <ErrorBoundary>
+    <>
       <Themer
         themeConfigs={themeConfigs}
         themeConfig={themeConfig}
@@ -97,9 +97,14 @@ function App() {
           </Suspense>
         </div>
       </Block>
-    </ErrorBoundary>
+    </>
   );
 }
 
 const rootElement = document.getElementById("root");
-ReactDOM.render(<App />, rootElement);
+ReactDOM.render(
+  <ErrorBoundary>
+    <App />
+  </ErrorBoundary>,
+  rootElement
+);
