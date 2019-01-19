@@ -160,7 +160,12 @@ function parseColorsToStyle(relativeToColor, str, base) {
     // parentKey: 'bg' childKey: 'fg'
     const [parentKey, childKey] = keys.length > 1 ? keys : ["parent", keys[0]];
 
-    //
+    if (parentKey === "fg") {
+      throw new Error(
+        `Can't use "fg" as the parent as in "fg/bg:100". This limitation exists to prevent accidental mistakes assuming you meant "bg/fg:100". However, if you think you have a legitimate use case, please create an issue on Github.`
+      );
+    }
+
     const parentColor = colors[parentKey];
 
     const ramp = theme.ramps[rampKey];
