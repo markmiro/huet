@@ -2,7 +2,7 @@ import React, { useEffect, lazy, Suspense } from "react";
 import ReactDOM from "react-dom";
 
 // General setup
-import "../node_modules/tachyons/css/tachyons.css";
+import "tachyons/css/tachyons.css";
 import "./demo/styles.css";
 import "./demo/globals";
 import ErrorBoundary from "./unstable/private/ErrorBoundary";
@@ -10,8 +10,7 @@ import useBrowserState from "./unstable/private/useBrowserState";
 
 // Theme stuff
 import themeConfigs from "./demo/themes.js";
-import { Color, Theme } from "huet";
-import { Block, Contrast, Themer } from "huet";
+import { Color, Theme, Block, Contrast, Themer } from "./huet";
 
 // Components
 import Select from "./unstable/private/Select";

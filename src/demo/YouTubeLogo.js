@@ -1,5 +1,5 @@
 import React, { useContext } from "react";
-import { BackgroundContext, ThemeContext } from "huet";
+import { BackgroundContext, ThemeContext } from "../huet";
 
 const YouTubeLogo = ({ className, style }) => {
   const theme = useContext(ThemeContext);

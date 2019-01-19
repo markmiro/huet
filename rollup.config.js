@@ -5,25 +5,33 @@ const resolve = require("rollup-plugin-node-resolve");
 const commonjs = require("rollup-plugin-commonjs");
 const NODE_ENV = process.env.NODE_ENV || "development";
 const outputFile =
-  NODE_ENV === "production" ? "./lib/huet.prod.js" : "./lib/huet.dev.js";
+  NODE_ENV === "production"
+    ? "./lib/huet.prod.cjs.js"
+    : "./lib/huet.dev.cjs.js";
+
+const outputFileEs =
+  NODE_ENV === "production"
+    ? "./lib/huet.prod.esm.js"
+    : "./lib/huet.dev.esm.js";
 
 export default {
   input: "./src/huet.js",
-  output: {
-    file: outputFile,
-    format: "cjs"
-  },
-  // React is a peer dependency so doing bundle it
-  external: ["react"],
+  output: [
+    {
+      file: outputFile,
+      format: "cjs"
+    },
+    {
+      file: outputFileEs,
+      format: "esm"
+    }
+  ],
+  // React is a peer dependency so don't bundle it
+  external: id => /^react/.test(id),
   plugins: [
     replace({
       "process.env.NODE_ENV": JSON.stringify(NODE_ENV)
     }),
-    babel(),
-    // Get node_modules and "resolve" them properly to include in
-    // the output bundle
-    resolve(),
-    // Most node_modules are Node.js CommonJS, so handle them
-    commonjs()
+    babel()
   ]
 };

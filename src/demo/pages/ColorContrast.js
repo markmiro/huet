@@ -1,8 +1,13 @@
 import React, { useContext } from "react";
 import _ from "lodash";
 import { useDebounce } from "use-debounce";
-import { Color } from "huet";
-import { ThemeContext, BackgroundContext, Contrast, Block } from "huet";
+import {
+  Color,
+  ThemeContext,
+  BackgroundContext,
+  Contrast,
+  Block
+} from "../../huet";
 import useBrowserState from "unstable/private/useBrowserState";
 import Select from "unstable/private/Select";
 
