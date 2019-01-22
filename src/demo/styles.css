@@ -16,16 +16,6 @@ ul {
   line-height: 1.25;
 }
 
-/* .Themer {
-  transform-origin: top right;
-  transform: scale(0.3);
-  opacity: 0.8;
-}
-.Themer:hover {
-  transform: scale(1);
-  opacity: 1;
-} */
-
 .input,
 input,
 select,

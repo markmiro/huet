@@ -1,0 +1,10 @@
+.Themer {
+  all: initial;
+  height: 100%;
+}
+
+.Themer * {
+  all: initial;
+  display: block;
+  font-family: system-ui;
+}
