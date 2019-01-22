@@ -33,12 +33,13 @@ function Bla({
     finalTheme = parentTheme;
     relativeToColor = parentBg;
   }
-  if (base) {
-    relativeToColor = relativeToColor.base(finalTheme.ramps[base]);
-  }
 
   if (!finalTheme) {
     throw new Error("Need to set a theme before using a Block");
+  }
+
+  if (base) {
+    relativeToColor = relativeToColor.base(finalTheme.ramps[base]);
   }
 
   let returnStyle;
