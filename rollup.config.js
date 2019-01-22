@@ -3,6 +3,7 @@ const replace = require("rollup-plugin-replace");
 const babel = require("rollup-plugin-babel");
 const resolve = require("rollup-plugin-node-resolve");
 const commonjs = require("rollup-plugin-commonjs");
+const postcss = require("rollup-plugin-postcss");
 const NODE_ENV = process.env.NODE_ENV || "development";
 const outputFile =
   NODE_ENV === "production"
@@ -28,11 +29,26 @@ export default {
   ],
   // "react" is a peer dependency so don't bundle it
   // "stream" is a built-in node module only used in dev, so we do this to suppress errors
-  external: id => /^react|^stream/.test(id),
+  external: id => /^react$|^stream$/.test(id),
   plugins: [
     replace({
       "process.env.NODE_ENV": JSON.stringify(NODE_ENV)
     }),
-    babel()
+    // JSX,
+    babel({
+      exclude: "node_modules/**"
+    }),
+    resolve(),
+    commonjs({
+      // "react-is" is used by styled-components
+      namedExports: {
+        "node_modules/react-is/index.js": [
+          "ForwardRef",
+          "isElement",
+          "isValidElementType"
+        ]
+      }
+    }),
+    postcss()
   ]
 };
