@@ -26,8 +26,9 @@ export default {
       format: "esm"
     }
   ],
-  // React is a peer dependency so don't bundle it
-  external: id => /^react/.test(id),
+  // "react" is a peer dependency so don't bundle it
+  // "stream" is a built-in node module only used in dev, so we do this to suppress errors
+  external: id => /^react|^stream/.test(id),
   plugins: [
     replace({
       "process.env.NODE_ENV": JSON.stringify(NODE_ENV)
