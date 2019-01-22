@@ -1,5 +1,5 @@
 import React, { useContext } from "react";
-import { default as styled } from "styled-components/dist/styled-components.cjs";
+import styled from "styled-components";
 import _ from "lodash";
 import Contrast from "../Contrast.jsx";
 import Block from "../Block.jsx";

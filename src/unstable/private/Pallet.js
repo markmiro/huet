@@ -1,5 +1,5 @@
 import React from "react";
-import { default as styled } from "styled-components/dist/styled-components.cjs";
+import styled from "styled-components";
 import _ from "lodash";
 import Block from "../Block.jsx";
 
