@@ -45,13 +45,10 @@ function App() {
   const theme = new Theme(themeConfig);
   const parentBg = Color.fromTheme(theme);
 
-  useEffect(
-    () => {
-      document.body.style.backgroundColor = parentBg;
-      document.body.style.color = parentBg.contrast(100);
-    },
-    [parentBg]
-  );
+  useEffect(() => {
+    document.body.style.backgroundColor = parentBg;
+    document.body.style.color = parentBg.contrast(100);
+  }, [parentBg]);
 
   return (
     <>
