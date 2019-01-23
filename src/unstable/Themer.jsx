@@ -14,8 +14,8 @@ import ColorRamp from "./private/ColorRamp";
 import Pallet from "./private/Pallet";
 
 import "./Themer.css";
-import "tachyons/css/tachyons.css";
 import "../demo/styles.css";
+import __ from "./atoms";
 
 export default function Themer({
   themeConfigs,
@@ -89,10 +89,10 @@ export default function Themer({
     <ThemeContext.Provider value={themerTheme}>
       <div className="hh-root hh-Themer">
         <Contrast
-          className="f7 flex flex-column"
           outline={20}
           bg={0}
           style={{
+            ...__.f7.flex.flex_column,
             outlineWidth: 1,
             outlineStyle: "solid",
             boxShadow: `0 5px 30px ${themerTheme.ramps.gray(0)}`,
@@ -106,29 +106,31 @@ export default function Themer({
         >
           <Contrast
             bg={100}
-            className="db flex justify-between"
             style={{
               flexShrink: 0,
-              userSelect: "none"
+              userSelect: "none",
+              ...__.db.flex.justify_between
             }}
             onClick={() => setIsExpanded(v => !v)}
           >
-            <div className="pv2 ph2 b">Huet Themer (alpha)</div>
-            <Contrast
-              bg={20}
-              className="flex justify-center items-center ph3 b"
-            >
+            <div style={__.pv2.ph2.b}>Huet Themer (alpha)</div>
+            <Contrast bg={20} style={__.flex.justify_center.items_center.ph3.b}>
               {isExpanded ? "↓" : "↑"}
             </Contrast>
           </Contrast>
-          <div className="overflow-y-scroll overflow-x-hidden">
-            <Contrast bg={10} className="pa2">
-              <div className="flex justify-end items-end flex-wrap">
+          <div
+            style={{
+              overflowY: "scroll",
+              overflowX: "hidden"
+            }}
+          >
+            <Contrast bg={10} style={__.pa2}>
+              <div style={__.flex.justify_end.items_end.flex_wrap}>
                 <Select
                   label="Theme"
                   value={themeKey}
                   onChange={setThemeKey}
-                  className="flex-auto"
+                  style={__.flex_auto}
                 >
                   {Object.keys(themeConfigs).map(key => (
                     <option key={key} value={key}>
@@ -136,7 +138,7 @@ export default function Themer({
                     </option>
                   ))}
                 </Select>
-                <ButtonGroup className="mt1 ml1">
+                <ButtonGroup style={__.mt1.ml1}>
                   {isThemeModified && (
                     <Button onClick={resetTheme}>Reset</Button>
                   )}
@@ -144,7 +146,7 @@ export default function Themer({
                   <Button onClick={importTheme}>Import</Button>
                 </ButtonGroup>
               </div>
-              <Contrast border={20} className="bb mv2" />
+              <Contrast border={20} style={__.bb.mv2} />
               <Range
                 label="Page background lightness"
                 min={0}
@@ -154,19 +156,19 @@ export default function Themer({
                 onChange={setBgRampValue}
               />
             </Contrast>
-            <div className="pa2">
-              <div className="mb1">Pallet</div>
+            <div style={__.pa2}>
+              <div style={__.mb1}>Pallet</div>
               <Pallet colors={themeConfig.pallet} onColorsChange={setPallet} />
-              <div className="mt2 mb1">Color ramps</div>
-              <div className="flex flex-wrap mt1">
-                <div className="w-100">
+              <div style={__.mt2.mb1}>Color ramps</div>
+              <div style={__.flex.flex_wrap.mt1}>
+                <div style={__.w100}>
                   <Contrast
                     border={10}
-                    className="w-100"
                     style={{
                       height: "4px",
                       marginBottom: 6,
-                      background: "linear-gradient(to right, black, white)"
+                      background: "linear-gradient(to right, black, white)",
+                      ...__.w100
                     }}
                   />
                   {Object.keys(theme.ramps).map(key => (
@@ -177,14 +179,14 @@ export default function Themer({
                     />
                   ))}
                 </div>
-                <Contrast className="w-100" border={20}>
+                <Contrast style={__.w100} border={20}>
                   <Range
                     label="Dark color min lightness"
                     min={0}
                     max={100}
                     value={themeConfig.minColorLightness}
                     onChange={setMinColorLightness}
-                    className="mt2"
+                    style={__.mt2}
                   />
                   <Range
                     label="Light color max lightness"
@@ -192,7 +194,7 @@ export default function Themer({
                     max={100}
                     value={themeConfig.maxColorLightness}
                     onChange={setMaxColorLightness}
-                    className="mt2"
+                    style={__.mt2}
                   />
                   <Range
                     label="Lightness contrast multiplier"
@@ -201,7 +203,7 @@ export default function Themer({
                     decimals={2}
                     value={themeConfig.contrastMultiplier}
                     onChange={setContrastMultiplier}
-                    className="mt2"
+                    style={__.mt2}
                   />
                   <Range
                     label="Saturation multiplier"
@@ -210,18 +212,18 @@ export default function Themer({
                     decimals={2}
                     value={themeConfig.saturationContrastMultiplier}
                     onChange={setSaturationContrastMultiplier}
-                    className="mt2"
+                    style={__.mt2}
                   />
                   <Checkbox
                     label="Rescale gray contrast to gray range"
                     isChecked={themeConfig.rescaleContrastToGrayRange}
                     onChange={setRescaleContrastToGrayRange}
-                    className="mt2"
+                    style={__.mt2}
                   />
                 </Contrast>
               </div>
             </div>
-            <Contrast className="bt pa2 flex justify-between" border={10}>
+            <Contrast style={__.bt.pa2.flex.justify_between} border={10}>
               <Checkbox
                 label="Theme the themer"
                 isChecked={shouldThemeSelf}

@@ -1,14 +1,15 @@
 import React from "react";
 import Contrast from "../Contrast.jsx";
+import __ from "../atoms";
 
 export function ButtonGroup({ children, className, style }) {
   const items = React.Children.map(children, (child, i) => {
     const isFirst = i === 0;
-    return <div className={`${isFirst ? "" : "ml1"}`}>{child}</div>;
+    return <div style={isFirst ? null : __.ml1}>{child}</div>;
   });
 
   return (
-    <div className={`flex ${className}`} style={{ marginRight: 1, ...style }}>
+    <div className={className} style={{ ...__.flex, marginRight: 1, ...style }}>
       {items}
     </div>
   );
@@ -39,8 +40,8 @@ export default function Button({
         onClick && onClick(e);
       }}
       {...rest}
-      className={`flex justify-center ${className}`}
-      style={style}
+      className={className}
+      style={{ ...__.flex.justify_center, ...style }}
     >
       {children}
     </Contrast>

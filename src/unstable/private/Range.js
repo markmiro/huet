@@ -1,6 +1,7 @@
 import React, { useContext } from "react";
 import { BackgroundContext } from "./reactContexts";
 import Contrast from "../Contrast.jsx";
+import __ from "../atoms";
 
 const Range = ({
   label,
@@ -18,28 +19,28 @@ const Range = ({
   const rangeBg = parentBg.contrast(10);
   return (
     <div
-      className={`flex flex-column hh-max-input ${className}`}
-      style={{ style }}
+      className={`hh-max-input ${className}`}
+      style={{ ...__.flex.flex_column, ...style }}
     >
       {label && (
-        <Contrast text={100} className="mb1 flex justify-between">
+        <Contrast text={100} style={__.mb1.flex.justify_between}>
           {label}
-          <Contrast className="di" text={30}>
+          <Contrast style={__.di} text={30}>
             ({min.toFixed(decimals)}-{max.toFixed(decimals)})
           </Contrast>
         </Contrast>
       )}
-      <div className="flex items-center">
+      <div style={__.flex.items_center}>
         {!hideInput && (
           <Contrast
             bg={10}
             text={50}
             as="input"
             type="number"
-            className="mr1"
             style={{
               width: "5em",
-              fontSize: "inherit"
+              fontSize: "inherit",
+              ...__.mr1
             }}
             value={value.toFixed(decimals)}
             step={step}
@@ -48,10 +49,10 @@ const Range = ({
         )}
         <input
           type="range"
-          className="self-stretch"
           style={{
             backgroundColor: rangeBg,
-            color: rangeBg.contrast(100)
+            color: rangeBg.contrast(100),
+            ...__.self_stretch
           }}
           min={min}
           max={max}

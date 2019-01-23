@@ -4,7 +4,8 @@
 }
 
 .hh-Themer * {
-  all: initial;
+  all: unset;
   display: block;
   font-family: system-ui;
+  cursor: default;
 }

@@ -43,12 +43,14 @@ function Bla({
   }
 
   let returnStyle;
-  if (_.isPlainObject(style)) {
-    returnStyle = style;
-  } else if (_.isFunction(style)) {
+  if (_.isFunction(style)) {
     returnStyle = style(relativeToColor);
-  } else {
+  } else if (_.isObject(style)) {
+    returnStyle = style;
+  } else if (!style) {
     returnStyle = null;
+  } else {
+    throw new Error("Unsupported style prop value");
   }
 
   if (colors) {

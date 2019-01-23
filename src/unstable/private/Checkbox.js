@@ -1,5 +1,6 @@
 import React from "react";
 import Contrast from "../Contrast.jsx";
+import __ from "../atoms";
 
 const Checkbox = ({
   label,
@@ -12,16 +13,17 @@ const Checkbox = ({
   return (
     <Contrast
       as="label"
-      style={style}
-      className={`inline-flex items-center ${className}`}
+      className={className}
+      style={{ ...__.inline_flex.items_center.relative, ...style }}
       text={contrast}
     >
       <input
         type="checkbox"
         checked={isChecked}
         onChange={e => onChange && onChange(e.target.checked)}
+        style={__.absolute.top0.left0.w0.h100}
       />
-      <span className="mr1" style={{ fontSize: "1.25em" }}>
+      <span style={{ ...__.mr1, fontSize: "1.25em" }}>
         {isChecked ? "☒" : "☐"}
       </span>
       {label}

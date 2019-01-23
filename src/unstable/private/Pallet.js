@@ -1,28 +1,25 @@
 import React from "react";
-import styled from "styled-components";
 import _ from "lodash";
 import Block from "../Block.jsx";
-
-const ColorPickerElement = styled.input`
-  background-color: ${({ color }) => color || "transparent"};
-  padding: 0;
-`;
+import __ from "../atoms";
 
 function ColorPicker({ color, onChange }) {
   return (
-    <ColorPickerElement
+    <input
       type="color"
       value={color}
-      color={color}
       onChange={e => onChange(e.target.value)}
-      className="w-100 h1"
+      style={{
+        ...__.w100.h1.pa0,
+        backgroundColor: color || "transparent"
+      }}
     />
   );
 }
 
 export default function Pallet({ colors, onColorsChange }) {
   return (
-    <Block className="flex ba" colors="b:20">
+    <Block style={__.flex.ba} colors="b:20">
       {_.map(colors, (color, key) => (
         <ColorPicker
           key={key}

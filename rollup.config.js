@@ -39,16 +39,7 @@ export default {
       exclude: "node_modules/**"
     }),
     resolve(),
-    commonjs({
-      // "react-is" is used by styled-components
-      namedExports: {
-        "node_modules/react-is/index.js": [
-          "ForwardRef",
-          "isElement",
-          "isValidElementType"
-        ]
-      }
-    }),
+    commonjs(),
     postcss()
   ]
 };

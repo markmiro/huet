@@ -1,6 +1,7 @@
 import React, { useContext } from "react";
 import styled from "styled-components";
 import { BackgroundContext } from "./reactContexts";
+import __ from "../atoms";
 
 const Container = styled.div`
   & svg {
@@ -14,9 +15,7 @@ const Icon = ({ name, contrast, ramp, className, style, size = "1em" }) => {
 
   return (
     <Container className={className} style={style}>
-      <span className="ba" style={{ color, borderStyle: "dotted" }}>
-        {name}
-      </span>
+      <span style={{ ...__.ba, color, borderStyle: "dotted" }}>{name}</span>
     </Container>
   );
 };
