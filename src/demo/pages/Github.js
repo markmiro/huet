@@ -1,6 +1,7 @@
 import React, { useContext } from "react";
 import { BackgroundContext, Contrast } from "../../huet";
 import Icon from "unstable/private/Icon";
+import __ from "../../unstable/atoms";
 
 export default function Github() {
   const parentBg = useContext(BackgroundContext);
@@ -115,8 +116,8 @@ function Experiments() {
         as="button"
         border={20}
         text={70}
-        className="pa2 tc br2 ba mt3 w-100 f4"
         style={{
+          ...__.pa2.tc.br2.ba.mt3.w100.f4,
           background: `linear-gradient(transparent, ${parentBg.contrast(5)})`,
           boxShadow: `0 1px 2px ${theme.ramps.gray(0).alpha(0.15)}`,
           maxWidth: "100%"
