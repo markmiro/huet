@@ -203,7 +203,7 @@ function VideoPreview({ className, style }) {
         }}
       />
       <div className="flex flex-column">
-        <Contrast className="f6 b mb1 mw6 clamp2">
+        <Contrast className="f6 b mb1 mw6 hh-clamp-2-lines">
           Why Everything You Thought You Knew About Quantum Physics is Different
           - with Philip Ball
         </Contrast>

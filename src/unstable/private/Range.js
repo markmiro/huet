@@ -18,7 +18,7 @@ const Range = ({
   const rangeBg = parentBg.contrast(10);
   return (
     <div
-      className={`flex flex-column max-input ${className}`}
+      className={`flex flex-column hh-max-input ${className}`}
       style={{ style }}
     >
       {label && (

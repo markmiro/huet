@@ -13,7 +13,7 @@ const Select = ({ value, onChange, label, children, className }) => {
       <Contrast
         bg={10}
         text={50}
-        className="relative dib w-100 flex justify-between input"
+        className="relative dib w-100 flex justify-between hh-input"
       >
         <select
           value={finalValue}

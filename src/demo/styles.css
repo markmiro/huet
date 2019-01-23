@@ -1,25 +1,25 @@
-* {
-  box-sizing: border-box;
-}
-html,
-body,
-#root {
-  min-height: 100vh;
-}
-body {
+.hh-root {
   margin: 0;
   font-family: system-ui;
 }
 
-p,
-ul {
+.hh-root * {
+  box-sizing: border-box;
+}
+
+.hh-100 {
+  min-height: 100vh;
+}
+
+.hh-root p,
+.hh-root ul {
   line-height: 1.25;
 }
 
-.input,
-input,
-select,
-button {
+.hh-input,
+.hh-root input,
+.hh-root select,
+.hh-root button {
   -webkit-appearance: none;
   font-size: inherit;
   font-family: inherit;
@@ -28,11 +28,11 @@ button {
   max-width: 30em;
 }
 
-.max-input {
+.hh-max-input {
   max-width: 30em;
 }
 
-input[type="range"] {
+.hh-root input[type="range"] {
   /* Reset */
   -webkit-appearance: none; /* Hides the slider so that custom slider can be made */
   width: 100%; /* Specific width is required for Firefox. */
@@ -40,11 +40,11 @@ input[type="range"] {
   /* Style */
   display: block;
 }
-input[type="range"]:focus {
+.hh-root input[type="range"]:focus {
   outline: none;
 }
 
-input[type="range"]::-webkit-slider-thumb {
+.hh-root input[type="range"]::-webkit-slider-thumb {
   /* Reset */
   -webkit-appearance: none;
   /* Style */
@@ -52,34 +52,34 @@ input[type="range"]::-webkit-slider-thumb {
   width: 1px;
   height: 1em;
 }
-input::-webkit-color-swatch {
+.hh-root input::-webkit-color-swatch {
   border: none;
 }
 
-select {
+.hh-root select {
   border-radius: 0;
   padding: 1px;
   border: 0;
   background: none;
 }
 
-button {
+.hh-root button {
   border: 0;
   background: none;
 }
-button:focus {
+.hh-root button:focus {
   position: relative;
   z-index: 1;
 }
 
-.clamp2 {
+.hh-clamp-2-lines {
   display: -webkit-box;
   -webkit-line-clamp: 2;
   overflow: hidden;
   -webkit-box-orient: vertical;
 }
 
-@keyframes fade-in {
+@keyframes hh-fade-in {
   from {
     opacity: 0;
   }

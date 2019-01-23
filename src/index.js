@@ -81,7 +81,7 @@ function App() {
           style={{
             // So page refresh is visible
             animationDuration: "0.5s",
-            animationName: "fade-in"
+            animationName: "hh-fade-in"
           }}
         >
           <Suspense fallback={<div>Loading...</div>}>

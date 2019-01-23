@@ -87,7 +87,7 @@ export default function Themer({
 
   return (
     <ThemeContext.Provider value={themerTheme}>
-      <div className="Themer">
+      <div className="hh-root hh-Themer">
         <Contrast
           className="f7 flex flex-column"
           outline={20}
