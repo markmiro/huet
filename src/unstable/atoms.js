@@ -80,6 +80,12 @@ const atoms = {
     borderWidth: "1px"
   },
 
+  br0: { borderRadius: 0 },
+  br1: { borderRadius: ".125rem" },
+  br2: { borderRadius: ".25rem" },
+  br3: { borderRadius: ".5rem" },
+  br4: { borderRadius: "1rem" },
+
   // Display
   di: { display: "inline" },
   db: { display: "block" },
@@ -107,6 +113,9 @@ const atoms = {
   // Font
   ...make("f", "fontSize", fontScale),
   b: { fontWeight: "bold" },
+
+  // Text align
+  tc: { textAlign: "center" },
 
   // Flex
   flex: { display: "flex" },
