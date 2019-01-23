@@ -1,32 +1,6 @@
 import React, { useContext } from "react";
 import styled from "styled-components";
 import { BackgroundContext, Contrast, Block } from "../../huet";
-
-const Button = styled.button`
-  &:hover {
-    ${({ contrast, ramps }) => `
-      border-color: ${contrast(50, ramps.blue)} !important;
-      color: ${contrast(20, ramps.blue).contrast(70, ramps.blue)} !important;
-      background: linear-gradient(${contrast(20, ramps.blue)}, ${contrast(
-      40,
-      ramps.blue
-    )})
-      !important;
-    `}
-  }
-`;
-
-const Button2 = styled.button`
-  ${({ contrast, ramps }) => `
-      border-color: ${contrast(80, ramps.blue)} !important;
-      color: ;
-      background: linear-gradient(${contrast(50, ramps.blue)}, ${contrast(
-    60,
-    ramps.blue
-  )})
-      !important;
-    `}
-`;
 import __ from "../../unstable/atoms";
 
 export default function Basic() {
