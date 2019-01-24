@@ -79,6 +79,10 @@ const atoms = {
     borderStyle: "solid",
     borderWidth: "1px"
   },
+  bn: {
+    borderStyle: "none",
+    borderWidth: 0
+  },
 
   br0: { borderRadius: 0 },
   br1: { borderRadius: ".125rem" },
