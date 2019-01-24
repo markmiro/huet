@@ -2,6 +2,7 @@ import React, { useContext } from "react";
 import { BackgroundContext } from "./reactContexts";
 import Contrast from "../Contrast.jsx";
 import __ from "../atoms";
+import { rangeClass, inputStyle, maxInputWidthStyle } from "../styles.js";
 
 const Range = ({
   label,
@@ -19,8 +20,8 @@ const Range = ({
   const rangeBg = parentBg.contrast(10);
   return (
     <div
-      className={`hh-max-input ${className}`}
-      style={{ ...__.flex.flex_column, ...style }}
+      className={className}
+      style={{ ...__.flex.flex_column, ...maxInputWidthStyle, ...style }}
     >
       {label && (
         <Contrast text={100} style={__.mb1.flex.justify_between}>
@@ -38,6 +39,7 @@ const Range = ({
             as="input"
             type="number"
             style={{
+              ...inputStyle,
               width: "5em",
               fontSize: "inherit",
               ...__.mr1
@@ -49,7 +51,9 @@ const Range = ({
         )}
         <input
           type="range"
+          className={rangeClass}
           style={{
+            ...inputStyle,
             backgroundColor: rangeBg,
             color: rangeBg.contrast(100),
             ...__.self_stretch

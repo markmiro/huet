@@ -1,8 +1,15 @@
 import React from "react";
+import { rule } from "../../unstable/nano";
+
+const lineHeightAdjust = rule({
+  "p, ul": {
+    lineHeight: 1.25
+  }
+});
 
 export default function Explanation() {
   return (
-    <div className="center measure f4">
+    <div className={`center measure f4 ${lineHeightAdjust}`}>
       <h1>How and Why</h1>
       <p>This project combines a few ideas:</p>
       <ul>

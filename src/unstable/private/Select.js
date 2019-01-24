@@ -1,6 +1,7 @@
 import React from "react";
 import Contrast from "../Contrast.jsx";
 import __ from "../atoms";
+import { inputStyle } from "../styles";
 
 const Select = ({ value, onChange, label, children, className, style }) => {
   const selectedChild =
@@ -14,13 +15,20 @@ const Select = ({ value, onChange, label, children, className, style }) => {
       <Contrast
         bg={10}
         text={50}
-        className="hh-input"
-        style={__.relative.dib.w100.flex.justify_between}
+        style={{
+          ...inputStyle,
+          ...__.relative.dib.w100.flex.justify_between
+        }}
       >
         <select
           value={finalValue}
-          style={__.o0.absolute.w100.h100.top0.left0}
           onChange={e => onChange && onChange(e.target.value)}
+          style={{
+            ...__.o0.absolute.w100.h100.top0.left0.br0,
+            padding: 1,
+            border: 0,
+            background: "none"
+          }}
         >
           {children}
           {!selectedChild && <option value="">None</option>}

@@ -2,6 +2,7 @@ import React from "react";
 import _ from "lodash";
 import Block from "../Block.jsx";
 import __ from "../atoms";
+import { colorClass } from "../styles";
 
 function ColorPicker({ color, onChange }) {
   return (
@@ -9,6 +10,7 @@ function ColorPicker({ color, onChange }) {
       type="color"
       value={color}
       onChange={e => onChange(e.target.value)}
+      className={colorClass}
       style={{
         ...__.w100.h1.pa0,
         backgroundColor: color || "transparent"

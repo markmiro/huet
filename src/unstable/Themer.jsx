@@ -13,9 +13,8 @@ import Checkbox from "./private/Checkbox";
 import ColorRamp from "./private/ColorRamp";
 import Pallet from "./private/Pallet";
 
-import "./Themer.css";
-import "../demo/styles.css";
 import __ from "./atoms";
+import { themerClass, resetClass } from "../unstable/styles";
 
 export default function Themer({
   themeConfigs,
@@ -87,7 +86,7 @@ export default function Themer({
 
   return (
     <ThemeContext.Provider value={themerTheme}>
-      <div className="hh-root hh-Themer">
+      <div className={themerClass + resetClass}>
         <Contrast
           outline={20}
           bg={0}

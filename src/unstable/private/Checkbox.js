@@ -14,7 +14,11 @@ const Checkbox = ({
     <Contrast
       as="label"
       className={className}
-      style={{ ...__.inline_flex.items_center.relative, ...style }}
+      style={{
+        ...__.inline_flex.items_center.relative,
+        cursor: "default",
+        ...style
+      }}
       text={contrast}
     >
       <input

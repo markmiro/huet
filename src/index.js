@@ -3,7 +3,6 @@ import ReactDOM from "react-dom";
 
 // General setup
 import "tachyons/css/tachyons.css";
-import "./demo/styles.css";
 import "./demo/globals";
 import ErrorBoundary from "./unstable/private/ErrorBoundary";
 import useBrowserState from "./unstable/private/useBrowserState";
@@ -14,6 +13,7 @@ import { Color, Theme, Block, Contrast, Themer } from "./huet";
 
 // Components
 import Select from "./unstable/private/Select";
+import { resetClass } from "./unstable/styles";
 
 const pages = {
   basic: {
@@ -57,7 +57,7 @@ function App() {
         themeConfig={themeConfig}
         onChangeThemeConfig={setThemeConfig}
       />
-      <Block theme={theme}>
+      <Block theme={theme} className={resetClass}>
         <Contrast
           bg={10}
           border={100}
@@ -77,13 +77,7 @@ function App() {
             ))}
           </Select>
         </Contrast>
-        <div
-          style={{
-            // So page refresh is visible
-            animationDuration: "0.5s",
-            animationName: "hh-fade-in"
-          }}
-        >
+        <div>
           <Suspense fallback={<div>Loading...</div>}>
             {React.createElement(pages[pageKey].component)}
           </Suspense>

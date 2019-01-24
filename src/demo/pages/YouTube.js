@@ -3,6 +3,14 @@ import styled from "styled-components";
 import { ThemeContext, BackgroundContext, Contrast } from "../../huet";
 import Icon from "unstable/private/Icon";
 import YouTubeLogo from "../YouTubeLogo";
+import { rule } from "../../unstable/nano";
+
+const clamp2Lines = rule({
+  display: "-webkit-box",
+  WebkitLineClamp: "2",
+  overflow: "hidden",
+  WebkitBoxOrient: "vertical"
+});
 
 export default function YouTube() {
   return (
@@ -203,7 +211,7 @@ function VideoPreview({ className, style }) {
         }}
       />
       <div className="flex flex-column">
-        <Contrast className="f6 b mb1 mw6 hh-clamp-2-lines">
+        <Contrast className={`f6 b mb1 mw6 ${clamp2Lines}`}>
           Why Everything You Thought You Knew About Quantum Physics is Different
           - with Philip Ball
         </Contrast>

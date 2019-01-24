@@ -1,6 +1,7 @@
 import React from "react";
 import Contrast from "../Contrast.jsx";
 import __ from "../atoms";
+import { inputStyle } from "../styles";
 
 export function ButtonGroup({ children, className, style }) {
   const items = React.Children.map(children, (child, i) => {
@@ -40,8 +41,11 @@ export default function Button({
         onClick && onClick(e);
       }}
       {...rest}
-      className={className}
-      style={{ ...__.flex.justify_center, ...style }}
+      style={{
+        ...inputStyle,
+        ...__.flex.justify_center.bn,
+        ...style
+      }}
     >
       {children}
     </Contrast>
