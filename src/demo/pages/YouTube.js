@@ -1,9 +1,8 @@
 import React, { useContext } from "react";
-import styled from "styled-components";
 import { ThemeContext, BackgroundContext, Contrast } from "../../huet";
 import Icon from "unstable/private/Icon";
 import YouTubeLogo from "../YouTubeLogo";
-import { rule } from "../../unstable/nano";
+import { rule, drule } from "../../unstable/nano";
 
 const clamp2Lines = rule({
   display: "-webkit-box",
@@ -125,21 +124,19 @@ function Comment() {
   );
 }
 
-const Input = styled.input`
-  &::placeholder {
-    opacity: 1; // For Firefox
-    color: ${({ placeholderColor }) => placeholderColor};
-  }
-`;
-
 function SearchInput() {
   const parentBg = useContext(BackgroundContext);
   const bgColor = parentBg.contrast(5);
   return (
-    <Input
-      className="ba ph1 flex-auto"
+    <input
+      className={`ba ph1 flex-auto ${rule({
+        // TODO: prevent this from creating extra classes that aren't necessary
+        "::placeholder": {
+          opacity: 1, // For Firefox
+          color: parentBg.contrast(20).toString()
+        }
+      })}`}
       placeholder="Search"
-      placeholderColor={bgColor.contrast(20)}
       style={{
         backgroundColor: bgColor,
         borderColor: parentBg.contrast(15),
