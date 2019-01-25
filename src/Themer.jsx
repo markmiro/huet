@@ -14,9 +14,9 @@ import ColorRamp from "./private/ColorRamp";
 import Pallet from "./private/Pallet";
 import __ from "./private/atoms";
 import { themerClass, resetClass } from "./private/styles";
+import themeConfigs from "./private/themes";
 
 const basicTheme = themeConfigs.basic;
-import themeConfigs from "./private/themes";
 
 export default function Themer({
   themeConfig,

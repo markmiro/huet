@@ -11,7 +11,7 @@ export default function Block({
   debug,
   style,
   // TODO: default `colors` to "bg=100 bg/fg=100"
-  contrast,
+  contrast = "bg=100 bg/fg=100",
   base = "gray",
   children,
   ...rest
