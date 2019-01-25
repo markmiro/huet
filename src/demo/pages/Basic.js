@@ -20,7 +20,7 @@ export default function Basic() {
         <Block
           key={rampKey}
           as="button"
-          contrast="b:80 bg:60 bg/fg:white"
+          contrast="b=80 bg=60 bg/fg=white"
           base={rampKey}
           style={p => ({
             ...__.pa1.tc.w100.f4.br2.mt2.ba,

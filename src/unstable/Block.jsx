@@ -13,7 +13,7 @@ function Bla({
   theme,
   debug,
   style,
-  // TODO: default `colors` to "bg:100 bg/fg:100"
+  // TODO: default `colors` to "bg=100 bg/fg=100"
   colors,
   base = "gray",
   children,
@@ -135,10 +135,10 @@ function parseColorsToStyle(relativeToColor, str, base) {
     parent: relativeToColor
   };
   things.forEach(thing => {
-    // thing: 'bg/fg:10-red'
+    // thing: 'bg/fg=10-red'
 
     // key: 'bg' value: '10-red'
-    const [key, value] = thing.split(":");
+    const [key, value] = thing.split("=");
 
     // contrast: '10' rampKey: 'red'
     const [contrast, rampKey = base] = (() => {
@@ -166,7 +166,7 @@ function parseColorsToStyle(relativeToColor, str, base) {
 
     if (parentKey === "fg") {
       throw new Error(
-        `Can't use "fg" as the parent as in "fg/bg:100". This limitation exists to prevent accidental mistakes assuming you meant "bg/fg:100". However, if you think you have a legitimate use case, please create an issue on Github.`
+        `Can't use "fg" as the parent as in "fg/bg=100". This limitation exists to prevent accidental mistakes assuming you meant "bg/fg=100". However, if you think you have a legitimate use case, please create an issue on Github.`
       );
     }
 
