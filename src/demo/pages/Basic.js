@@ -16,20 +16,24 @@ export default function Basic() {
       <Contrast bg={100} bgRamp="white" style={__.pa1.tc.w100.f4}>
         Button
       </Contrast>
-      {Object.keys(theme.ramps).map(rampKey => (
-        <Block
-          key={rampKey}
-          as="button"
-          contrast="b=80 bg=60 bg/fg=white"
-          base={rampKey}
-          style={p => ({
-            ...__.pa1.tc.w100.f4.br2.mt2.ba,
-            background: `linear-gradient(${p.contrast(60)}, ${p.contrast(70)})`
-          })}
-        >
-          Button
-        </Block>
-      ))}
+      {Object.keys(theme.ramps)
+        .filter(rampKey => theme.ramps[rampKey].config.mode === "colored")
+        .map(rampKey => (
+          <Block
+            key={rampKey}
+            as="button"
+            contrast="b=80 bg=60 bg/fg=white"
+            base={rampKey}
+            style={p => ({
+              ...__.pa1.tc.w100.f4.br2.mt2.ba,
+              background: `linear-gradient(${p.contrast(60)}, ${p.contrast(
+                70
+              )})`
+            })}
+          >
+            Button
+          </Block>
+        ))}
     </div>
   );
 }

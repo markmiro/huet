@@ -14,7 +14,7 @@ function Bla({
   debug,
   style,
   // TODO: default `colors` to "bg=100 bg/fg=100"
-  colors,
+  contrast,
   base = "gray",
   children,
   ...rest
@@ -53,11 +53,11 @@ function Bla({
     throw new Error("Unsupported style prop value");
   }
 
-  if (colors) {
-    // TODO: consider making "colors" prop values depend on the value of stuff set in style?
+  if (contrast) {
+    // TODO: consider making "contrast" prop values depend on the value of stuff set in style?
     returnStyle = {
       ...returnStyle,
-      ...parseColorsToStyle(relativeToColor, colors, base)
+      ...parseColorsToStyle(relativeToColor, contrast, base)
     };
   }
 
