@@ -25,8 +25,8 @@ export default class ErrorBoundary extends React.Component {
       // You can render any custom fallback UI
       return (
         <div
-          style={__.pa2}
           style={{
+            ...__.pa2,
             background: "white",
             color: "black"
           }}

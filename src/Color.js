@@ -42,7 +42,7 @@ export default class Color extends BaseColor {
       throw new Error("`theme` is required");
     }
 
-    if (baseRamp && (!"startL" in baseRamp || !"endL" in baseRamp)) {
+    if (baseRamp && (!("startL" in baseRamp) || !("endL" in baseRamp))) {
       throw new Error("`baseRamp` can't be a direct ramp");
     } else if (
       !baseRamp &&

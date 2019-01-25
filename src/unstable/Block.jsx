@@ -153,6 +153,7 @@ function parseColorsToStyle(relativeToColor, str, base) {
       if (Number.isInteger(firstAsInt)) {
         return [firstAsInt];
       } else {
+        // eslint-disable-next-line no-sparse-arrays
         return [, first];
       }
     })();
