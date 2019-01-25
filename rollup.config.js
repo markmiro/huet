@@ -1,19 +1,31 @@
+const path = require("path");
+const pkg = require("./package.json");
 // https://medium.com/@tomaszmularczyk89/guide-to-building-a-react-components-library-with-rollup-and-styled-jsx-694ec66bd2
+
 const replace = require("rollup-plugin-replace");
 const babel = require("rollup-plugin-babel");
 const resolve = require("rollup-plugin-node-resolve");
 const commonjs = require("rollup-plugin-commonjs");
-const postcss = require("rollup-plugin-postcss");
-const NODE_ENV = process.env.NODE_ENV || "development";
-const outputFile =
-  NODE_ENV === "production"
-    ? "./lib/huet.prod.cjs.js"
-    : "./lib/huet.dev.cjs.js";
+const terser = require("rollup-plugin-terser").terser;
+const filesize = require("rollup-plugin-filesize");
+const NodeLicense = require("rollup-plugin-node-license");
+const visualizer = require("rollup-plugin-visualizer");
+const banner = require("rollup-plugin-banner").default;
 
-const outputFileEs =
-  NODE_ENV === "production"
-    ? "./lib/huet.prod.esm.js"
-    : "./lib/huet.dev.esm.js";
+const NODE_ENV = process.env.NODE_ENV || "development";
+const isProd = NODE_ENV === "production";
+
+const outputPrefix = "./lib/huet";
+const outputFile = isProd
+  ? outputPrefix + ".prod.cjs.js"
+  : outputPrefix + ".dev.cjs.js";
+const outputFileEs = isProd
+  ? outputPrefix + ".prod.esm.js"
+  : outputPrefix + ".dev.esm.js";
+
+const str = `${pkg.name} v${pkg.version} (${pkg.license} license)
+By: ${pkg.author}
+${pkg.homepage}`;
 
 export default {
   input: "./src/huet.js",
@@ -40,6 +52,13 @@ export default {
     }),
     resolve(),
     commonjs(),
-    postcss()
+    isProd && terser(),
+    isProd && new NodeLicense(),
+    banner(str),
+    isProd &&
+      filesize({
+        showMinifiedSize: false // Already minifying using terser
+      }),
+    isProd && visualizer()
   ]
 };
