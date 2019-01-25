@@ -9,7 +9,7 @@ import useBrowserState from "./private/useBrowserState";
 import { resetClass } from "./private/styles";
 
 // Theme stuff
-import themeConfigs from "./demo/themes.js";
+import themeConfigs from "./private/themes";
 import { Color, Theme, Block, Contrast, Themer } from "./huet";
 
 // Components

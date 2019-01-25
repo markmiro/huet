@@ -13,12 +13,14 @@ import Checkbox from "./private/Checkbox";
 import ColorRamp from "./private/ColorRamp";
 import Pallet from "./private/Pallet";
 import __ from "./private/atoms";
-
 import { themerClass, resetClass } from "./private/styles";
 
+const basicTheme = themeConfigs.basic;
+import themeConfigs from "./private/themes";
+
 export default function Themer({
-  themeConfigs,
   themeConfig,
+  themeConfigs = { [themeConfig.name]: themeConfig },
   onChangeThemeConfig
 }) {
   const [isExpanded, setIsExpanded] = useBrowserState(false);
@@ -50,7 +52,6 @@ export default function Themer({
   const themeKey = Object.keys(themeConfigs).find(
     themeKey => themeConfigs[themeKey].name === themeConfig.name
   );
-
   const isThemeModified = themeConfig !== themeConfigs[themeKey];
 
   function setThemeKey(themeKey) {
@@ -79,7 +80,7 @@ export default function Themer({
     shouldThemeSelf
       ? { ...themeConfig, isPicking: false }
       : {
-          ...themeConfigs.basic,
+          ...basicTheme,
           bgRampValue: 1
         }
   );
