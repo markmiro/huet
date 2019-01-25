@@ -1,8 +1,8 @@
 import React from "react";
 import saveAs from "file-saver";
 
-import Theme from "../Theme";
-import { ThemeContext } from "../unstable/private/reactContexts";
+import Theme from "./Theme";
+import { ThemeContext } from "./reactContexts";
 import Contrast from "./Contrast.jsx";
 
 import useBrowserState, { reset } from "./private/useBrowserState";
@@ -12,9 +12,9 @@ import Button, { ButtonGroup } from "./private/Button";
 import Checkbox from "./private/Checkbox";
 import ColorRamp from "./private/ColorRamp";
 import Pallet from "./private/Pallet";
+import __ from "./private/atoms";
 
-import __ from "./atoms";
-import { themerClass, resetClass } from "../unstable/styles";
+import { themerClass, resetClass } from "./private/styles";
 
 export default function Themer({
   themeConfigs,

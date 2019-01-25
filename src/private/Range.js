@@ -1,8 +1,8 @@
 import React, { useContext } from "react";
-import { BackgroundContext } from "./reactContexts";
+import { BackgroundContext } from "../reactContexts";
 import Contrast from "../Contrast.jsx";
-import __ from "../atoms";
-import { rangeClass, inputStyle, maxInputWidthStyle } from "../styles.js";
+import __ from "./atoms";
+import { rangeClass, inputStyle, maxInputWidthStyle } from "./styles.js";
 
 const Range = ({
   label,

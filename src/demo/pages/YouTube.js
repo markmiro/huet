@@ -1,8 +1,8 @@
 import React, { useContext } from "react";
 import { ThemeContext, BackgroundContext, Contrast } from "../../huet";
-import Icon from "unstable/private/Icon";
+import { rule } from "../../private/nano";
+import Icon from "../../private/Icon";
 import YouTubeLogo from "../YouTubeLogo";
-import { rule } from "../../unstable/nano";
 
 const clamp2Lines = rule({
   display: "-webkit-box",

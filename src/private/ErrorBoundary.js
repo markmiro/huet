@@ -1,7 +1,7 @@
 // NOTE: not using huet stuff here because we don't want this to have errors when huet has errors.
 import React from "react";
 import { reset } from "./useBrowserState";
-import __ from "../atoms";
+import __ from "./atoms";
 
 export default class ErrorBoundary extends React.Component {
   constructor(props) {

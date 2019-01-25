@@ -1,6 +1,6 @@
 import React from "react";
 import Contrast from "../Contrast.jsx";
-import __ from "../atoms";
+import __ from "./atoms";
 
 const Checkbox = ({
   label,

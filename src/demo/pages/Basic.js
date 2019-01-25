@@ -1,6 +1,6 @@
 import React, { useContext } from "react";
 import { BackgroundContext, Contrast, Block } from "../../huet";
-import __ from "../../unstable/atoms";
+import __ from "../../private/atoms";
 
 export default function Basic() {
   const parentBg = useContext(BackgroundContext);

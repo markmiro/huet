@@ -1,8 +1,8 @@
 import React from "react";
 import _ from "lodash";
 import Block from "../Block.jsx";
-import __ from "../atoms";
-import { colorClass } from "../styles";
+import __ from "./atoms";
+import { colorClass } from "./styles";
 
 function ColorPicker({ color, onChange }) {
   return (

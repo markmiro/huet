@@ -8,8 +8,8 @@ import {
   Contrast,
   Block
 } from "../../huet";
-import useBrowserState from "unstable/private/useBrowserState";
-import Select from "unstable/private/Select";
+import useBrowserState from "../../private/useBrowserState";
+import Select from "../../private/Select";
 
 const sharedDoubleFractionSteps = [100 / 16, 100 / 8, 100 / 4, 100 / 2];
 const doubleSteps = [0, 4, 8, 16, 32, 64, 100];

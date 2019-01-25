@@ -1,6 +1,6 @@
 import React, { useContext } from "react";
-import { BackgroundContext } from "./reactContexts";
-import __ from "../atoms";
+import { BackgroundContext } from "../reactContexts";
+import __ from "./atoms";
 
 const Icon = ({ name, contrast, ramp, className, style, size = "1em" }) => {
   const parentBg = useContext(BackgroundContext);

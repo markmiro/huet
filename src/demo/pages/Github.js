@@ -1,7 +1,7 @@
 import React, { useContext } from "react";
 import { BackgroundContext, Contrast } from "../../huet";
-import Icon from "unstable/private/Icon";
-import __ from "../../unstable/atoms";
+import Icon from "../../private/Icon";
+import __ from "../../private/atoms";
 
 export default function Github() {
   const parentBg = useContext(BackgroundContext);

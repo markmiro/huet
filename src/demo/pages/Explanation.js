@@ -1,5 +1,5 @@
 import React from "react";
-import { rule } from "../../unstable/nano";
+import { rule } from "../../private/nano";
 
 const lineHeightAdjust = rule({
   "p, ul": {

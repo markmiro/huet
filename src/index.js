@@ -4,16 +4,16 @@ import ReactDOM from "react-dom";
 // General setup
 import "tachyons/css/tachyons.css";
 import "./demo/globals";
-import ErrorBoundary from "./unstable/private/ErrorBoundary";
-import useBrowserState from "./unstable/private/useBrowserState";
+import ErrorBoundary from "./private/ErrorBoundary";
+import useBrowserState from "./private/useBrowserState";
+import { resetClass } from "./private/styles";
 
 // Theme stuff
 import themeConfigs from "./demo/themes.js";
 import { Color, Theme, Block, Contrast, Themer } from "./huet";
 
 // Components
-import Select from "./unstable/private/Select";
-import { resetClass } from "./unstable/styles";
+import Select from "./private/Select";
 
 const pages = {
   basic: {

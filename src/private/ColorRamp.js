@@ -2,9 +2,9 @@ import React, { useContext } from "react";
 import _ from "lodash";
 import Contrast from "../Contrast.jsx";
 import Block from "../Block.jsx";
-import { getLightness } from "../../Color";
-import { BackgroundContext } from "./reactContexts";
-import __ from "../atoms";
+import { getLightness } from "../Color";
+import { BackgroundContext } from "../reactContexts";
+import __ from "./atoms";
 
 export function Star({ lightness }) {
   return (

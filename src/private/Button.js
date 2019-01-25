@@ -1,7 +1,7 @@
 import React from "react";
 import Contrast from "../Contrast.jsx";
-import __ from "../atoms";
-import { inputStyle } from "../styles";
+import __ from "./atoms";
+import { inputStyle } from "./styles";
 
 export function ButtonGroup({ children, className, style }) {
   const items = React.Children.map(children, (child, i) => {

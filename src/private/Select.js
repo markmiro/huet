@@ -1,7 +1,7 @@
 import React from "react";
 import Contrast from "../Contrast.jsx";
-import __ from "../atoms";
-import { inputStyle } from "../styles";
+import __ from "./atoms";
+import { inputStyle } from "./styles";
 
 const Select = ({ value, onChange, label, children, className, style }) => {
   const selectedChild =
