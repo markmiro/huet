@@ -1,14 +1,11 @@
-import React from "react";
+import React, { useContext } from "react";
 import _ from "lodash";
 import Color from "../Color";
 import { ThemeContext, BackgroundContext } from "./private/reactContexts";
 // TODO: consider separating out the `theme` setting part because it makes things extra complicated
 // when also dealing with the option of setting the BackgroundContext via the style or `colors` props
 
-function Bla({
-  parentTheme,
-  parentBg,
-
+export default function Block({
   as = "div",
   theme,
   debug,
@@ -22,6 +19,9 @@ function Bla({
   if (debug) {
     debugger;
   }
+
+  const parentTheme = useContext(ThemeContext);
+  const parentBg = useContext(BackgroundContext);
 
   let finalTheme;
   let relativeToColor;
@@ -101,20 +101,6 @@ function Bla({
   // Return element with props and children from above
 
   return React.createElement(as, props, returnChildren);
-}
-
-export default function Block(props) {
-  return (
-    <ThemeContext.Consumer>
-      {parentTheme => (
-        <BackgroundContext.Consumer>
-          {parentBg => (
-            <Bla parentTheme={parentTheme} parentBg={parentBg} {...props} />
-          )}
-        </BackgroundContext.Consumer>
-      )}
-    </ThemeContext.Consumer>
-  );
 }
 
 // ---
