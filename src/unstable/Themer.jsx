@@ -157,7 +157,10 @@ export default function Themer({
             </Contrast>
             <div style={__.pa2}>
               <div style={__.mb1}>Pallet</div>
-              <Pallet colors={themeConfig.pallet} onColorsChange={setPallet} />
+              <Pallet
+                contrast={themeConfig.pallet}
+                onColorsChange={setPallet}
+              />
               <div style={__.mt2.mb1}>Color ramps</div>
               <div style={__.flex.flex_wrap.mt1}>
                 <div style={__.w100}>

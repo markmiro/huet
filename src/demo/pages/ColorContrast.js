@@ -69,7 +69,7 @@ export default function ColorContrast() {
           <div className="flex mt1">
             <Block
               as="button"
-              colors="bg:10 bg/fg:100"
+              contrast="bg:10 bg/fg:100"
               className="h2"
               onClick={() => setPalletKey("none")}
             >
@@ -78,7 +78,7 @@ export default function ColorContrast() {
             {Object.keys(debouncedTheme.pallet).map(key => (
               <Block
                 as="button"
-                colors="b:20"
+                contrast="b:20"
                 key={key}
                 className="w2 h2 ba ml1"
                 onClick={() => setPalletKey(key)}

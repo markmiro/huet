@@ -21,7 +21,7 @@ function ColorPicker({ color, onChange }) {
 
 export default function Pallet({ colors, onColorsChange }) {
   return (
-    <Block style={__.flex.ba} colors="b:20">
+    <Block style={__.flex.ba} contrast="b:20">
       {_.map(colors, (color, key) => (
         <ColorPicker
           key={key}
