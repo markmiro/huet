@@ -88,7 +88,7 @@ export default class Color extends BaseColor {
     }
 
     const { theme } = this;
-    const baseRamp = this.bgColor ? this.bgColor.baseRamp : theme.ramps.gray;
+    const rootBaseRamp = theme.ramps[theme.bgRamp];
 
     const [min, max] = this._getMinMax(ramp);
     const [bgMin, bgMax] = this._getMinMax(this.ramp);
@@ -97,21 +97,21 @@ export default class Color extends BaseColor {
     const normalizedLightness = (this.lightness - bgMin) / (bgMax - bgMin);
     // __1 _.5 __1
     const contrastNormalizer =
-      theme.rescaleContrastToGrayRange || ramp !== baseRamp
+      theme.rescaleContrastToGrayRange || ramp !== rootBaseRamp
         ? Math.abs(0.5 - normalizedLightness) + 0.5
         : 1;
     const contrastRescale = (max - min) / 100;
     const midpoint = (min + max) / 2;
     const direction = this.lightness < midpoint ? 1 : -1;
     const colorContrastMinMax =
-      ramp === baseRamp
+      ramp === rootBaseRamp
         ? 1
         : this.lightness < midpoint
         ? theme.maxColorLightness / 100
         : 1 - theme.minColorLightness / 100;
 
     const contrastMultiplier =
-      ramp === baseRamp || theme.contrastMultiplier < 1
+      ramp === rootBaseRamp || theme.contrastMultiplier < 1
         ? theme.contrastMultiplier
         : 1;
 
