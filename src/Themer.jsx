@@ -69,7 +69,7 @@ export default function Themer({
     const blob = new Blob([str], {
       type: "text/plain;charset=utf-8"
     });
-    saveAs(blob, themeConfigs[themeKey].name + "Huet Theme.json");
+    saveAs(blob, themeConfigs[themeKey].name + " Huet Theme.json");
   }
   function importTheme() {}
   function resetTheme() {
