@@ -1,7 +1,7 @@
 import React, { useEffect } from "react";
 import Theme from "./Theme";
 import Color from "./Color";
-import Text from "./Text.jsx";
+import Block from "./Block.jsx";
 import Themer from "./Themer.jsx";
 import ErrorBoundary from "./private/ErrorBoundary";
 import useBrowserState from "./private/useBrowserState";
@@ -34,7 +34,7 @@ export default function Body({
           />
         </ErrorBoundary>
       )}
-      <Text theme={theme} {...rest} />
+      <Block theme={theme} {...rest} />
     </>
   );
 }

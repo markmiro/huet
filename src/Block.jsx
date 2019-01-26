@@ -5,13 +5,30 @@ import { ThemeContext, BackgroundContext } from "./reactContexts";
 // TODO: consider separating out the `theme` setting part because it makes things extra complicated
 // when also dealing with the option of setting the BackgroundContext via the style or `colors` props
 
+/*
+  By default we want to have 100% contrast text.
+  If we have a bg, we want the text color to be based on it.
+  Otherwise, text color should be based on the parent bg.
+
+  However, we don't need to create a style for text if the bg
+  hasn't changed  through multiple iterations of bg.Then again,
+  maybe the user should use a <div> in those cases (where neither bg or fg needs to be changed).
+
+  Finally, if the user changes the base, we'll want to recalculate the fg color anyways (even
+  if the bg color is the same).
+
+  So, in conclusion:
+  - Set `contrast` to "fg=100" by default
+  - If user sets bg in `contrast`, then calculate contrast based on that by default.
+    In other words, "bg=100" means the same as "bg=100 fg/bg=100"
+*/
+
 export default function Block({
   as = "div",
   theme,
   debug,
   style,
-  // TODO: default `colors` to "bg=100 bg/fg=100"
-  contrast = "bg=100 bg/fg=100",
+  contrast = "fg=100",
   base = "gray",
   children,
   ...rest
@@ -169,6 +186,10 @@ function parseColorsToStyle(relativeToColor, str, base) {
     colors[childKey] = color;
 
     returnStyle[keyToCss[childKey]] = color;
+
+    if (childKey === "bg") {
+      returnStyle.color = color.contrast(100);
+    }
   });
 
   return returnStyle;
