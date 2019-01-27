@@ -42,8 +42,8 @@ const shared = {
   },
   bgRamp: "gray",
   bgRampValue: 1,
-  minColorLightness: 20,
-  maxColorLightness: 80,
+  minColorLightness: 45,
+  maxColorLightness: 65,
   contrastMultiplier: 1,
   saturationContrastMultiplier: 1,
   rescaleContrastToGrayRange: true
