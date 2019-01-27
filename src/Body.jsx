@@ -5,9 +5,10 @@ import Block from "./Block.jsx";
 import Themer from "./Themer.jsx";
 import ErrorBoundary from "./private/ErrorBoundary";
 import useBrowserState from "./private/useBrowserState";
+import themeConfigs from "./private/themes";
 
 export default function Body({
-  initialThemeConfig,
+  initialThemeConfig = themeConfigs.basic,
   showThemeConfigEditor,
   setDocumentBodyColors,
   ...rest
