@@ -7,7 +7,7 @@ import ErrorBoundary from "./private/ErrorBoundary";
 import useBrowserState from "./private/useBrowserState";
 
 export default function Body({
-  themeConfig: initialThemeConfig,
+  initialThemeConfig,
   showThemeConfigEditor,
   setDocumentBodyColors,
   ...rest
