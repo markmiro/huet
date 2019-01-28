@@ -8,7 +8,7 @@ import Contrast from "./Contrast.jsx";
 import useBrowserState, { reset } from "./private/useBrowserState";
 import Range from "./private/Range";
 import Select from "./private/Select";
-import Button, { ButtonGroup } from "./private/Button";
+import Button, { ButtonGroup, JsonUploadButton } from "./private/Button";
 import Checkbox from "./private/Checkbox";
 import ColorRamp from "./private/ColorRamp";
 import Pallet from "./private/Pallet";
@@ -32,7 +32,6 @@ export default function Themer({
     return newValue => {
       onChangeThemeConfig({
         ...themeConfig,
-        rescaleContrastToGrayRange: themeConfig.rescaleContrastToGrayRange,
         [key]: newValue
       });
     };
@@ -71,7 +70,6 @@ export default function Themer({
     });
     saveAs(blob, themeConfigs[themeKey].name + " Huet Theme.json");
   }
-  function importTheme() {}
   function resetTheme() {
     onChangeThemeConfig(themeConfigs[themeKey]);
   }
@@ -143,7 +141,11 @@ export default function Themer({
                     <Button onClick={resetTheme}>Reset</Button>
                   )}
                   <Button onClick={exportTheme}>Export</Button>
-                  <Button onClick={importTheme}>Import</Button>
+                  <JsonUploadButton
+                    onUpload={themeConfig => onChangeThemeConfig(themeConfig)}
+                  >
+                    Import
+                  </JsonUploadButton>
                 </ButtonGroup>
               </div>
               <Contrast border={20} style={__.bb.mv2} />

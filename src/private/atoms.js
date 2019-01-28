@@ -97,6 +97,7 @@ const atoms = {
 
   // Opacity
   o0: { opacity: 0 },
+  opacity0: { opacity: 0 },
 
   // Size
   ...make("w", "width", sizeScale),

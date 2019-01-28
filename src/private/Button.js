@@ -1,7 +1,8 @@
 import React from "react";
 import Contrast from "../Contrast.jsx";
 import __ from "./atoms";
-import { inputStyle } from "./styles";
+import { inputStyle, invisibleScreenClass } from "./styles";
+import displayError from "./displayError";
 
 export function ButtonGroup({ children, className, style }) {
   const items = React.Children.map(children, (child, i) => {
@@ -16,7 +17,31 @@ export function ButtonGroup({ children, className, style }) {
   );
 }
 
+export function JsonUploadButton({ children, className, style, onUpload }) {
+  return (
+    <Button as="div" className={className} style={{ ...__.relative, ...style }}>
+      {children}
+      <input
+        type="file"
+        className={invisibleScreenClass}
+        onChange={e => {
+          const reader = new FileReader();
+          reader.onload = () => onUpload(JSON.parse(reader.result));
+
+          const file = e.target.files[0];
+          if (file.type === "application/json") {
+            reader.readAsText(file);
+          } else {
+            displayError("Only JSON files are accepted.");
+          }
+        }}
+      />
+    </Button>
+  );
+}
+
 export default function Button({
+  as = "button",
   className,
   style,
   children,
@@ -27,7 +52,7 @@ export default function Button({
 }) {
   return (
     <Contrast
-      as="button"
+      as={as}
       bgRamp={isActive ? "blue" : "gray"}
       bg={10}
       text={50}

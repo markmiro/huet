@@ -1,4 +1,5 @@
 import { rule } from "./nano";
+import __ from "./atoms";
 
 // Don't want inputs streching to unreasonable sizes
 const MAX_INPUT_WIDTH = "30em";
@@ -17,7 +18,8 @@ export const inputStyle = {
   fontFamily: "inherit",
   border: 0,
   padding: "0.3em 0.5em",
-  maxWidth: MAX_INPUT_WIDTH
+  maxWidth: MAX_INPUT_WIDTH,
+  cursor: "default"
 };
 
 export const rangeClass = rule({
@@ -71,4 +73,8 @@ export const themerClass = rule({
     display: "block",
     ...resetStyle["*"]
   }
+});
+
+export const invisibleScreenClass = rule({
+  ...__.absolute.w100.h100.left0.top0.opacity0
 });
