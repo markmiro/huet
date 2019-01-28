@@ -63,6 +63,11 @@
     "test": "react-scripts test --env=jsdom",
     "eject": "react-scripts eject"
   },
+  "files": [
+    "lib",
+    "index.cjs.js",
+    "index.esm.js"
+  ],
   "browserslist": [
     ">0.2%",
     "not dead",
