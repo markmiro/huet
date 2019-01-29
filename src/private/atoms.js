@@ -118,6 +118,7 @@ const atoms = {
   // Font
   ...make("f", "fontSize", fontScale),
   b: { fontWeight: "bold" },
+  i: { fontStyle: "italic" },
 
   // Text align
   tc: { textAlign: "center" },
