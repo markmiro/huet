@@ -24,7 +24,7 @@ const Range = ({
       style={{ ...__.flex.flex_column, ...maxInputWidthStyle, ...style }}
     >
       {label && (
-        <Contrast text={100} style={__.mb1.flex.justify_between}>
+        <Contrast text={100} style={__.i.mb1.flex.justify_between}>
           {label}
           <Contrast style={__.di} text={30}>
             ({min.toFixed(decimals)}-{max.toFixed(decimals)})
@@ -42,6 +42,7 @@ const Range = ({
               ...inputStyle,
               width: "5em",
               fontSize: "inherit",
+              cursor: "initial",
               ...__.mr1
             }}
             value={value.toFixed(decimals)}

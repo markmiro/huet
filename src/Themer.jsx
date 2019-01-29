@@ -4,25 +4,20 @@ import saveAs from "file-saver";
 import Theme from "./Theme";
 import { ThemeContext } from "./reactContexts";
 import Contrast from "./Contrast.jsx";
+import Block from "./Block";
 
 import useBrowserState, { reset } from "./private/useBrowserState";
+import Input from "./private/Input";
 import Range from "./private/Range";
-import Select from "./private/Select";
 import Button, { ButtonGroup, JsonUploadButton } from "./private/Button";
 import Checkbox from "./private/Checkbox";
 import ColorRamp from "./private/ColorRamp";
 import Pallet from "./private/Pallet";
 import __ from "./private/atoms";
 import { themerClass, resetClass } from "./private/styles";
-import themeConfigs from "./private/themes";
+import baseThemeConfig from "./private/baseThemeConfig";
 
-const basicTheme = themeConfigs.basic;
-
-export default function Themer({
-  themeConfig,
-  themeConfigs = { [themeConfig.name]: themeConfig },
-  onChangeThemeConfig
-}) {
+export default function Themer({ themeConfig, onChangeThemeConfig }) {
   const [isExpanded, setIsExpanded] = useBrowserState(false);
   const [shouldThemeSelf, setShouldThemeSelf] = useBrowserState(false);
 
@@ -37,6 +32,7 @@ export default function Themer({
     };
   }
 
+  const setName = modify("name");
   const setBgRampValue = modify("bgRampValue");
   const setContrastMultiplier = modify("contrastMultiplier");
   const setSaturationContrastMultiplier = modify(
@@ -47,40 +43,16 @@ export default function Themer({
   const setMaxColorLightness = modify("maxColorLightness");
   const setRescaleContrastToGrayRange = modify("rescaleContrastToGrayRange");
 
-  // TODO: find a better way?
-  const themeKey = Object.keys(themeConfigs).find(
-    themeKey => themeConfigs[themeKey].name === themeConfig.name
-  );
-  const isThemeModified = themeConfig !== themeConfigs[themeKey];
-
-  function setThemeKey(themeKey) {
-    onChangeThemeConfig(themeConfigs[themeKey]);
-    // setRamps(theme.ramps);
-    // // setBgRampValue(theme.bgRampValue);
-    // // setContrastMultiplier(theme.contrastMultiplier);
-    // // setSaturationContrastMultiplier(theme.saturationContrastMultiplier);
-    // setMinColorLightness(theme.minColorLightness);
-    // setMaxColorLightness(theme.maxColorLightness);
-  }
-
   function exportTheme() {
     const str = JSON.stringify(themeConfig, null, "  ");
     const blob = new Blob([str], {
       type: "text/plain;charset=utf-8"
     });
-    saveAs(blob, themeConfigs[themeKey].name + " Huet Theme.json");
-  }
-  function resetTheme() {
-    onChangeThemeConfig(themeConfigs[themeKey]);
+    saveAs(blob, themeConfig.name + " Huet Theme.json");
   }
 
   const themerTheme = new Theme(
-    shouldThemeSelf
-      ? { ...themeConfig, isPicking: false }
-      : {
-          ...basicTheme,
-          bgRampValue: 1
-        }
+    shouldThemeSelf ? { ...themeConfig } : baseThemeConfig
   );
 
   return (
@@ -122,33 +94,13 @@ export default function Themer({
               overflowX: "hidden"
             }}
           >
-            <Contrast bg={10} style={__.pa2}>
-              <div style={__.flex.justify_end.items_end.flex_wrap}>
-                <Select
-                  label="Theme"
-                  value={themeKey}
-                  onChange={setThemeKey}
-                  style={__.flex_auto}
-                >
-                  {Object.keys(themeConfigs).map(key => (
-                    <option key={key} value={key}>
-                      {themeConfigs[key].name}
-                    </option>
-                  ))}
-                </Select>
-                <ButtonGroup style={__.mt1.ml1}>
-                  {isThemeModified && (
-                    <Button onClick={resetTheme}>Reset</Button>
-                  )}
-                  <Button onClick={exportTheme}>Export</Button>
-                  <JsonUploadButton
-                    onUpload={themeConfig => onChangeThemeConfig(themeConfig)}
-                  >
-                    Import
-                  </JsonUploadButton>
-                </ButtonGroup>
-              </div>
-              <Contrast border={20} style={__.bb.mv2} />
+            <div style={__.pa2}>
+              <Input
+                label="Name"
+                style={__.flex_auto}
+                value={themeConfig.name}
+                onChange={setName}
+              />
               <Range
                 label="Page background lightness"
                 min={0}
@@ -156,12 +108,11 @@ export default function Themer({
                 decimals={2}
                 value={themeConfig.bgRampValue}
                 onChange={setBgRampValue}
+                style={__.mt2}
               />
-            </Contrast>
-            <div style={__.pa2}>
-              <div style={__.mb1}>Pallet</div>
+              <div style={__.i.mt2.mb1}>Pallet</div>
               <Pallet colors={themeConfig.pallet} onColorsChange={setPallet} />
-              <div style={__.mt2.mb1}>Color ramps</div>
+              <div style={__.i.mt2.mb1}>Color ramps</div>
               <div style={__.flex.flex_wrap.mt1}>
                 <div style={__.w100}>
                   <Contrast
@@ -225,22 +176,34 @@ export default function Themer({
                 </Contrast>
               </div>
             </div>
-            <Contrast style={__.bt.pa2.flex.justify_between} border={10}>
+            <Block contrast="b=10" style={__.bt} />
+            <Block contrast="bg=10" style={__.pa2}>
               <Checkbox
                 label="Theme the themer"
                 isChecked={shouldThemeSelf}
                 onChange={setShouldThemeSelf}
+                style={__.mb2}
               />
-              <Button
-                bg={50}
-                bgRamp="red"
-                textRamp="white"
-                onClick={reset}
-                verify
-              >
-                Reset Settings
-              </Button>
-            </Contrast>
+              <div style={__.flex.justify_between}>
+                <ButtonGroup>
+                  <Button
+                    bg={50}
+                    bgRamp="red"
+                    textRamp="white"
+                    onClick={reset}
+                    verify
+                  >
+                    Reset Colors
+                  </Button>
+                  <Button onClick={exportTheme}>Export Theme</Button>
+                  <JsonUploadButton
+                    onUpload={themeConfig => onChangeThemeConfig(themeConfig)}
+                  >
+                    Import Theme
+                  </JsonUploadButton>
+                </ButtonGroup>
+              </div>
+            </Block>
           </div>
         </Contrast>
       </div>

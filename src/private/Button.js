@@ -68,7 +68,7 @@ export default function Button({
       {...rest}
       style={{
         ...inputStyle,
-        ...__.flex.justify_center.bn,
+        ...__.flex.justify_center,
         ...style
       }}
     >

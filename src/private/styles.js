@@ -16,8 +16,10 @@ export const inputStyle = {
   WebkitAppearance: "none",
   fontSize: "inherit",
   fontFamily: "inherit",
-  border: 0,
   padding: "0.3em 0.5em",
+  borderWidth: 1,
+  borderStyle: "solid",
+  borderColor: "transparent",
   maxWidth: MAX_INPUT_WIDTH,
   cursor: "default"
 };

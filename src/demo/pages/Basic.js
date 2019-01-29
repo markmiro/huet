@@ -7,6 +7,9 @@ export default function Basic() {
   const theme = parentBg.theme;
   const red = parentBg.contrast(10, theme.ramps.red);
   const hundredContrast = parentBg.contrast(100);
+  const rampKeys = Object.keys(theme.ramps).filter(
+    rampKey => theme.ramps[rampKey].config.mode === "colored"
+  );
   return (
     <div style={__.pa4}>
       Basic
@@ -16,24 +19,36 @@ export default function Basic() {
       <Contrast bg={100} bgRamp="white" style={__.pa1.tc.w100.f4}>
         Button
       </Contrast>
-      {Object.keys(theme.ramps)
-        .filter(rampKey => theme.ramps[rampKey].config.mode === "colored")
-        .map(rampKey => (
+      <div style={__.pa3}>
+        {rampKeys.map(rampKey => (
           <Block
             key={rampKey}
-            as="button"
-            contrast="b=80 bg=60 bg/fg=white"
+            contrast="b=100 bg=100 bg/fg=white"
             base={rampKey}
-            style={p => ({
-              ...__.pa1.tc.w100.f4.br2.mt2.ba,
-              background: `linear-gradient(${p.contrast(60)}, ${p.contrast(
-                70
-              )})`
-            })}
+            style={__.pa2}
           >
-            Button
+            {rampKeys.map(rampKey => (
+              <Block as="span" key={rampKey} contrast="fg=100" base={rampKey}>
+                △⁄■◉✓
+              </Block>
+            ))}
           </Block>
         ))}
+      </div>
+      {rampKeys.map(rampKey => (
+        <Block
+          key={rampKey}
+          as="button"
+          contrast="b=80 bg=60 bg/fg=white"
+          base={rampKey}
+          style={p => ({
+            ...__.pa1.tc.w100.f4.br2.mt2.ba,
+            background: `linear-gradient(${p.contrast(60)}, ${p.contrast(70)})`
+          })}
+        >
+          Button
+        </Block>
+      ))}
     </div>
   );
 }

@@ -11,7 +11,7 @@ import { resetClass } from "./private/styles";
 // Theme stuff
 import { Color, Theme, Block, Contrast } from "./huet";
 import Themer from "./Themer";
-import themeConfigs from "./private/themes";
+import themeConfigs from "./demo/themeConfigs";
 
 // Components
 import Select from "./private/Select";
