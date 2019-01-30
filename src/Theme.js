@@ -51,6 +51,8 @@ function createRamp(themeConfig, rampConfig) {
   return ramp;
 }
 
+// Don't want to expose the underlying chroma-js stuff to the user.
+// The chroma-js scale is a function but also allows chaining and has fields.
 function wrapScaleFunc(scale) {
   return n => new BaseColor(scale(n).hex());
 }
