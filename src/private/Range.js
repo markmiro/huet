@@ -1,4 +1,4 @@
-import React, { useContext } from "react";
+import React, { useContext, useState } from "react";
 import { BackgroundContext } from "../reactContexts";
 import Contrast from "../Contrast.jsx";
 import __ from "./atoms";
@@ -18,15 +18,67 @@ const Range = ({
   const step = 1 / Math.pow(10, decimals);
   const parentBg = useContext(BackgroundContext);
   const rangeBg = parentBg.contrast(10);
+  const [stringNumber, setStringNumber] = useState(value.toFixed(decimals));
+  const isOutOfRange = value < min || value > max;
+
+  const handleInputChange = e => {
+    setStringNumber(e.target.value);
+    const parsed = parseFloat(e.target.value);
+    if (!Number.isFinite(parsed)) return;
+    onChange(parsed);
+  };
+
+  const handleChange = e => {
+    const parsed = parseFloat(e.target.value);
+    if (Number.isFinite(parsed)) {
+      if (onChange) {
+        onChange(parsed);
+      }
+      setStringNumber(parsed.toFixed(decimals));
+    } else {
+      setStringNumber(value.toFixed(decimals));
+    }
+  };
+
+  const handleKey = e => {
+    console.log(e.key, e.shiftKey, e.which);
+    let direction = null;
+    if (e.key === "ArrowUp") direction = 1;
+    if (e.key === "ArrowDown") direction = -1;
+
+    let val;
+    if (direction) {
+      if (e.shiftKey) {
+        val = value + step * 10 * direction;
+      } else {
+        val = value + step * direction;
+      }
+      setStringNumber(val.toFixed(decimals));
+      onChange(val);
+      e.preventDefault();
+    }
+  };
+
   return (
     <div
       className={className}
       style={{ ...__.flex.flex_column, ...maxInputWidthStyle, ...style }}
+      onKeyDown={handleKey}
     >
       {label && (
-        <Contrast text={100} style={__.i.mb1.flex.justify_between}>
+        <Contrast
+          text={100}
+          style={{
+            ...__.i.mb1.flex.justify_between,
+            cursor: "default"
+          }}
+        >
           {label}
-          <Contrast style={__.di} text={30}>
+          <Contrast
+            style={__.di}
+            text={isOutOfRange ? 50 : 30}
+            textRamp={isOutOfRange ? "red" : null}
+          >
             ({min.toFixed(decimals)}-{max.toFixed(decimals)})
           </Contrast>
         </Contrast>
@@ -34,7 +86,8 @@ const Range = ({
       <div style={__.flex.items_center}>
         {!hideInput && (
           <Contrast
-            bg={10}
+            bg={isOutOfRange ? 50 : 10}
+            bgRamp={isOutOfRange ? "red" : null}
             text={50}
             as="input"
             type="number"
@@ -45,9 +98,10 @@ const Range = ({
               cursor: "initial",
               ...__.mr1
             }}
-            value={value.toFixed(decimals)}
+            value={stringNumber}
             step={step}
-            onChange={e => onChange(parseFloat(e.target.value))}
+            onChange={handleInputChange}
+            onBlur={handleChange}
           />
         )}
         <input
@@ -63,7 +117,7 @@ const Range = ({
           max={max}
           step={step}
           value={value}
-          onChange={e => onChange && onChange(parseFloat(e.target.value))}
+          onChange={handleChange}
         />
       </div>
     </div>
