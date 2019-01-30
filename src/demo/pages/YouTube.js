@@ -42,7 +42,7 @@ export default function YouTube() {
               bg={100}
               bgRamp="red"
               textRamp="white"
-              className="pv2 ph3 f6 br1"
+              className="pv2 ph3 f6 br1 bn"
             >
               <b>SUBSCRIBE</b> 108K
             </Contrast>
