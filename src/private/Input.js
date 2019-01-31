@@ -1,4 +1,4 @@
-import React, { useContext } from "react";
+import React from "react";
 import { inputStyle } from "./styles";
 import Block from "../Block";
 import __ from "./atoms";
@@ -22,7 +22,6 @@ export default function Input({
         style={parentBg => ({
           ...inputStyle,
           borderWidth: 1,
-          // borderBottomColor: parentBg.contrast(30),
           borderStyle: "solid",
           cursor: "initial",
           ...style
