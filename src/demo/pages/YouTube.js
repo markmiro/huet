@@ -34,7 +34,7 @@ export default function YouTube() {
           </Contrast>
           <Contrast border={10} className="bt mv3" />
           <div className="flex justify-between">
-            <Contrast text={60} textRamp="blue">
+            <Contrast text={100} textRamp="blue">
               https://2018.jsconf.is/speakers/dan-a...
             </Contrast>
             <Contrast
@@ -166,7 +166,7 @@ function Sidebar() {
             }}
           >
             <Contrast
-              bg={45}
+              bg={100}
               bgRamp="blue"
               className="br-pill"
               style={{

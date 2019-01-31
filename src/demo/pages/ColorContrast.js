@@ -10,12 +10,16 @@ import {
 } from "../../huet";
 import useBrowserState from "../../private/useBrowserState";
 import Select from "../../private/Select";
+import __ from "../../private/atoms";
 
 const sharedDoubleFractionSteps = [100 / 16, 100 / 8, 100 / 4, 100 / 2];
 const doubleSteps = [0, 4, 8, 16, 32, 64, 100];
-const littleSteps = [0, 2, 4, 6, 96, 98, 100];
 
 const stepSizes = {
+  increment20: {
+    graySteps: _.range(0, 120, 20),
+    colorSteps: _.range(0, 120, 20)
+  },
   doubleFraction: {
     graySteps: [
       0,
@@ -31,17 +35,9 @@ const stepSizes = {
     graySteps: doubleSteps,
     colorSteps: doubleSteps
   },
-  littleSteps: {
-    graySteps: littleSteps,
-    colorSteps: littleSteps
-  },
   increment10: {
     graySteps: _.range(0, 110, 10),
     colorSteps: _.range(0, 110, 10)
-  },
-  increment20: {
-    graySteps: _.range(0, 120, 20),
-    colorSteps: _.range(0, 120, 20)
   }
 };
 
@@ -58,11 +54,10 @@ export default function ColorContrast() {
     <div>
       <div className="pa2">
         <Select label="Step sizes" value={stepKey} onChange={setStepKey}>
+          <option value="increment20">20, 40, 80, ...</option>
           <option value="doubleFraction">100/16, 100/8, 100/4...</option>
           <option value="double">0, 4, 8, ..., 92, 96, 100</option>
-          <option value="littleSteps">2, 4, ..., 98, 100</option>
           <option value="increment10">10, 20, 30, ...</option>
-          <option value="increment20">20, 40, 80, ...</option>
         </Select>
         <div className="flex flex-column mt2">
           Background color
@@ -116,8 +111,12 @@ const Things = React.memo(({ colorSteps, graySteps, theme, bgHex }) => {
     <ThemeContext.Provider value={theme}>
       <BackgroundContext.Provider value={new Color({ theme, hex: bgHex })}>
         {graySteps.map(grayStep => (
-          <Contrast key={grayStep} bg={grayStep} className="pa2">
-            <b>{grayStep}</b>
+          <Contrast
+            key={grayStep}
+            bg={grayStep}
+            className="pa2 flex items-center"
+          >
+            <pre style={__.ma0}>{String(grayStep).padStart(5, " ")}</pre>
             <div className="flex flex-wrap">
               {[...indirect, ...direct].map(ramp => (
                 <div key={ramp} className="flex mt1 mr2">
@@ -150,7 +149,7 @@ const Things = React.memo(({ colorSteps, graySteps, theme, bgHex }) => {
                       className="w1 h-100"
                       style={{
                         backgroundColor: theme.ramps[ramp](
-                          theme.minColorLightness / 100
+                          theme.maxSignalContrast / 100
                         )
                       }}
                     />
@@ -158,7 +157,7 @@ const Things = React.memo(({ colorSteps, graySteps, theme, bgHex }) => {
                       className="w1 h-100"
                       style={{
                         backgroundColor: theme.ramps[ramp](
-                          theme.maxColorLightness / 100
+                          1 - theme.maxSignalContrast / 100
                         )
                       }}
                     />
@@ -168,7 +167,76 @@ const Things = React.memo(({ colorSteps, graySteps, theme, bgHex }) => {
             </div>
           </Contrast>
         ))}
+        {[100, 50, 25, 12.5, 6.25].map(bg => (
+          <div className="flex">
+            {Object.keys(theme.ramps).map(key => (
+              <Contrast
+                key={key}
+                className="pa1 tc w-100 f4"
+                bg={bg}
+                bgRamp={key}
+                textRamp="white"
+              >
+                {key}
+              </Contrast>
+            ))}
+          </div>
+        ))}
+        <FormExample theme={theme} />
       </BackgroundContext.Provider>
     </ThemeContext.Provider>
   );
 });
+
+function FormExample({ theme }) {
+  const rampKeys = Object.keys(theme.ramps).filter(
+    rampKey => theme.ramps[rampKey].config.mode === "colored"
+  );
+  return (
+    <div style={__.flex.flex_row}>
+      {[0, 49, 51, 100].map(bg => (
+        <Block contrast={`bg=${bg}`}>
+          <div style={__.pa3}>
+            {rampKeys.map(rampKey => (
+              <div key={rampKey}>
+                <Block as="label" style={__.db.mb1.mt2}>
+                  Name
+                </Block>
+                <Block
+                  as="input"
+                  contrast="b=100 fg=100"
+                  value="Some text"
+                  base={rampKey}
+                  style={{
+                    ...__.ba.br2.pa2,
+                    backgroundColor: "transparent",
+                    width: "20em"
+                  }}
+                />
+                <Block base={rampKey} style={__.f7.mt1}>
+                  This is a message about the field above
+                </Block>
+              </div>
+            ))}
+            {rampKeys.map(rampKey => (
+              <Block
+                key={rampKey}
+                as="button"
+                contrast="bg=12 fg=100 b=100"
+                base={rampKey}
+                style={{
+                  ...__.pa2.tc.w100.br2.mt2.ba.db,
+                  fontSize: "inherit",
+                  fontFamily: "inherit",
+                  maxWidth: "20em"
+                }}
+              >
+                Submit
+              </Block>
+            ))}
+          </div>
+        </Block>
+      ))}
+    </div>
+  );
+}

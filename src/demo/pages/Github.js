@@ -138,12 +138,12 @@ function Experiments() {
           </Contrast>
         ))}
       </div>
-      <div className="flex mt1">
+      <div className="flex">
         {Object.keys(theme.ramps).map(key => (
           <Contrast
             key={key}
             className="pa1 mr1 tc w-100 f4"
-            bg={45}
+            bg={50}
             bgRamp={key}
             textRamp="white"
           >
@@ -151,13 +151,26 @@ function Experiments() {
           </Contrast>
         ))}
       </div>
-      <div className="flex mt1">
+      <div className="flex">
         {Object.keys(theme.ramps).map(key => (
           <Contrast
             key={key}
             className="pa1 mr1 tc w-100 f4"
             bgRamp={key}
-            bg={5}
+            bg={25}
+            textRamp="white"
+          >
+            {key}
+          </Contrast>
+        ))}
+      </div>
+      <div className="flex">
+        {Object.keys(theme.ramps).map(key => (
+          <Contrast
+            key={key}
+            className="pa1 mr1 tc w-100 f4"
+            bgRamp={key}
+            bg={12.5}
             textRamp="white"
           >
             {key}
