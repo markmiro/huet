@@ -1,19 +1,38 @@
+import chroma from "chroma-js";
 /*
   Maybe we can allow the pallet to be generated:
   - Pick min and max lightness
   - Pick base color
 */
 
+const hueStart = 20; // Gets us blues and greens that have 0 in the R in RGB
+const l = 50; // Doesn't really matter which value we put here
+const c = 40; // Over about 45 leads to colors in blue range to
+const colorLabels = ["red", "gold", "green" /*skip teal*/, , "blue", "purple"];
+const hueUnit = 360 / colorLabels.length;
+
+const palletColors = colorLabels.reduce(
+  (acc, label, i) => ({
+    ...acc,
+    [label]: chroma.hcl(hueUnit * i + hueStart, c, l).hex()
+  }),
+  {}
+);
+
+const ramps = colorLabels.reduce(
+  (acc, label) => ({
+    ...acc,
+    [label]: { colors: ["black", label, "white"] }
+  }),
+  {}
+);
+
 export default {
   name: "Default",
   pallet: {
     black: "#000000",
     white: "#ffffff",
-    red: "#f73748",
-    green: "#3c962a",
-    blue: "#3087d6",
-    gold: "#c86c00",
-    purple: "#a46ad3"
+    ...palletColors
   },
   ramps: {
     gray: {
@@ -25,21 +44,7 @@ export default {
       mode: "direct",
       isNeutral: true
     },
-    red: {
-      colors: ["black", "red", "white"]
-    },
-    green: {
-      colors: ["black", "green", "white"]
-    },
-    blue: {
-      colors: ["black", "blue", "white"]
-    },
-    gold: {
-      colors: ["black", "gold", "white"]
-    },
-    purple: {
-      colors: ["black", "purple", "white"]
-    }
+    ...ramps
   },
   bgRamp: "gray",
   bgRampValue: 1,
