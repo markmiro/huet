@@ -179,8 +179,14 @@ export default class Color extends BaseColor {
     hex = chroma
       .lab(
         bgL + (fgL - bgL) * 1, // Read this as just `fgL`
-        bgA + (fgA - bgA) * abContrast,
-        bgB + (fgB - bgB) * abContrast
+        bgA +
+          (fgA - bgA) *
+            abContrast *
+            (ramp === rootBaseRamp ? 1 : theme.saturationMultiplier),
+        bgB +
+          (fgB - bgB) *
+            abContrast *
+            (ramp === rootBaseRamp ? 1 : theme.saturationMultiplier)
       )
       .hex();
 

@@ -51,6 +51,6 @@ export default {
   minColorLightness: 45,
   maxColorLightness: 65,
   contrastMultiplier: 1,
-  saturationContrastMultiplier: 1,
+  saturationMultiplier: 1.75,
   rescaleContrastToGrayRange: true
 };

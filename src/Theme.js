@@ -14,7 +14,7 @@ export default class Theme {
     this.minColorLightness = config.minColorLightness;
     this.maxColorLightness = config.maxColorLightness;
     this.contrastMultiplier = config.contrastMultiplier;
-    this.saturationContrastMultiplier = config.saturationContrastMultiplier;
+    this.saturationMultiplier = config.saturationMultiplier;
     this.rescaleContrastToGrayRange = config.rescaleContrastToGrayRange;
 
     const ramps = mapValues(config.ramps, ramp => createRamp(config, ramp));
