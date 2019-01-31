@@ -36,7 +36,14 @@ export class BaseColor {
 }
 
 export default class Color extends BaseColor {
-  constructor({ theme, bgColor = null, hex, ramp = null, baseRamp = null }) {
+  constructor({
+    theme,
+    bgColor = null,
+    hex,
+    ramp = null,
+    baseRamp = null,
+    lightness = getLightness(hex)
+  }) {
     super(hex);
     if (!theme) {
       throw new Error("`theme` is required");
@@ -60,7 +67,7 @@ export default class Color extends BaseColor {
     this.ramp = ramp;
     this.baseRamp =
       baseRamp || (bgColor && bgColor.baseRamp) || theme.ramps.gray;
-    this.lightness = getLightness(hex);
+    this.lightness = lightness;
   }
 
   // TODO: consider removing `bgRamp` and `bgRampValue from theme
@@ -181,7 +188,8 @@ export default class Color extends BaseColor {
       theme,
       bgColor: this,
       hex,
-      ramp
+      ramp,
+      lightness: targetLightness
     });
   }
 
