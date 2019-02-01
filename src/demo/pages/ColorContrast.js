@@ -193,50 +193,77 @@ function FormExample({ theme }) {
     rampKey => theme.ramps[rampKey].config.mode === "colored"
   );
   return (
-    <div style={__.flex.flex_row}>
-      {[0, 49, 51, 100].map(bg => (
-        <Block contrast={`bg=${bg}`}>
-          <div style={__.pa3}>
-            {rampKeys.map(rampKey => (
-              <div key={rampKey}>
-                <Block as="label" style={__.db.mb1.mt2}>
-                  Name
-                </Block>
+    <div>
+      <div style={__.flex.flex_row}>
+        {[0, 49, 51, 100].map(bg => (
+          <Block contrast={`bg=${bg}`}>
+            <div style={__.pa3}>
+              {rampKeys.map(rampKey => (
+                <div>
+                  {[1, 2, 3, 4, 5, 6, 7].map(fontSize => (
+                    <Block base={rampKey} style={__.di["f" + fontSize]}>
+                      Iig
+                    </Block>
+                  ))}
+                </div>
+              ))}
+              {rampKeys.map(rampKey => (
+                <div key={rampKey}>
+                  <Block as="label" style={__.db.mb1.mt2}>
+                    Name
+                  </Block>
+                  <Block
+                    as="input"
+                    contrast="b=100 fg=100"
+                    value="Some text"
+                    base={rampKey}
+                    style={{
+                      ...__.ba.br2.pa2,
+                      backgroundColor: "transparent",
+                      width: "20em"
+                    }}
+                  />
+                  <Block base={rampKey} style={__.f7.mt1}>
+                    This is a message about the field above
+                  </Block>
+                </div>
+              ))}
+              {rampKeys.map(rampKey => (
                 <Block
-                  as="input"
-                  contrast="b=100 fg=100"
-                  value="Some text"
+                  key={rampKey}
+                  as="button"
+                  contrast="bg=12 fg=100 b=100"
                   base={rampKey}
                   style={{
-                    ...__.ba.br2.pa2,
-                    backgroundColor: "transparent",
-                    width: "20em"
+                    ...__.pa2.tc.w100.br2.mt2.ba.db,
+                    fontSize: "inherit",
+                    fontFamily: "inherit",
+                    maxWidth: "20em"
                   }}
-                />
-                <Block base={rampKey} style={__.f7.mt1}>
-                  This is a message about the field above
+                >
+                  Submit
                 </Block>
-              </div>
-            ))}
+              ))}
+            </div>
+          </Block>
+        ))}
+      </div>
+      <div style={__.flex.flex_row}>
+        {rampKeys.map(rampKey => (
+          <Block
+            key={rampKey}
+            contrast="b=100 bg=100 bg/fg=white"
+            base={rampKey}
+            style={__.pa2}
+          >
             {rampKeys.map(rampKey => (
-              <Block
-                key={rampKey}
-                as="button"
-                contrast="bg=12 fg=100 b=100"
-                base={rampKey}
-                style={{
-                  ...__.pa2.tc.w100.br2.mt2.ba.db,
-                  fontSize: "inherit",
-                  fontFamily: "inherit",
-                  maxWidth: "20em"
-                }}
-              >
-                Submit
+              <Block as="span" key={rampKey} contrast="fg=100" base={rampKey}>
+                △◉✓
               </Block>
             ))}
-          </div>
-        </Block>
-      ))}
+          </Block>
+        ))}
+      </div>
     </div>
   );
 }
