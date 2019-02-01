@@ -149,7 +149,7 @@ const Things = React.memo(({ colorSteps, graySteps, theme, bgHex }) => {
                       className="w1 h-100"
                       style={{
                         backgroundColor: theme.ramps[ramp](
-                          theme.maxSignalContrast / 100
+                          theme.minColorLightness / 100
                         )
                       }}
                     />
@@ -157,7 +157,7 @@ const Things = React.memo(({ colorSteps, graySteps, theme, bgHex }) => {
                       className="w1 h-100"
                       style={{
                         backgroundColor: theme.ramps[ramp](
-                          1 - theme.maxSignalContrast / 100
+                          theme.maxColorLightness / 100
                         )
                       }}
                     />
