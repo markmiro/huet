@@ -234,20 +234,20 @@ export default class Color extends BaseColor {
   }
 
   _getMinMax(ramp) {
-    const { baseRamp } = this;
+    const rootBaseRamp = this.theme.ramps[this.theme.bgRamp];
     // We're not requiring a ramp because we want the `contrast` method to work
     // even if the parent Color instance has just a hex and a theme. This allows us to
     // use our ramps on top of any background color.
     if (!ramp || ramp.config.mode === "direct") {
-      return [baseRamp.startL, baseRamp.endL];
+      return [rootBaseRamp.startL, rootBaseRamp.endL];
     }
 
     if (ramp.config.isNeutral) {
       return [ramp.startL, ramp.endL];
     }
 
-    const min = Math.max(ramp.startL, baseRamp.startL);
-    const max = Math.min(ramp.endL, baseRamp.endL);
+    const min = Math.max(ramp.startL, rootBaseRamp.startL);
+    const max = Math.min(ramp.endL, rootBaseRamp.endL);
     return [min, max];
   }
 }
