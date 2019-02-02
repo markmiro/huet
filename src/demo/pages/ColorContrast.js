@@ -41,6 +41,13 @@ const stepSizes = {
   }
 };
 
+function useColoredRampKeys() {
+  const theme = useContext(ThemeContext);
+  return Object.keys(theme.ramps).filter(
+    rampKey => theme.ramps[rampKey].config.mode === "colored"
+  );
+}
+
 export default function ColorContrast() {
   const parentBg = useContext(BackgroundContext);
   const debouncedTheme = useDebounce(parentBg.theme, 100);
@@ -61,137 +68,122 @@ export default function ColorContrast() {
         </Select>
         <div className="flex flex-column mt2">
           Background color
-          <div className="flex mt1">
-            <Block
-              as="button"
-              contrast="bg=10 bg/fg=100 bg/b=10"
-              className="h2"
-              onClick={() => setPalletKey("none")}
-            >
-              Default
-            </Block>
-            {Object.keys(debouncedTheme.pallet).map(key => (
-              <Block
-                as="button"
-                contrast="b=20"
-                key={key}
-                className="w2 h2 ba ml1"
-                onClick={() => setPalletKey(key)}
-                style={{
-                  backgroundColor: debouncedTheme.pallet[key]
-                }}
-              >
-                {key === palletKey && (
-                  <div
-                    className="w1 h1 br-100"
-                    style={{
-                      backgroundColor: new Color({
-                        theme: debouncedTheme,
-                        hex: bgHex
-                      }).contrast(100, debouncedTheme.ramps.gray)
-                    }}
-                  />
-                )}
-              </Block>
-            ))}
-          </div>
+          <PalletPicker
+            palletKey={palletKey}
+            onPalletKeyChange={setPalletKey}
+          />
         </div>
       </div>
-      <Things {...stepSizes[stepKey]} theme={debouncedTheme} bgHex={bgHex} />
+      <ThemeContext.Provider value={debouncedTheme}>
+        <BackgroundContext.Provider
+          value={new Color({ theme: debouncedTheme, hex: bgHex })}
+        >
+          <div style={{ backgroundColor: bgHex }}>
+            <Matrix {...stepSizes[stepKey]} />
+            <NamedColors />
+            <FormExample />
+            <TextOnColoredBackground />
+          </div>
+        </BackgroundContext.Provider>
+      </ThemeContext.Provider>
     </div>
   );
 }
 
-const Things = React.memo(({ colorSteps, graySteps, theme, bgHex }) => {
+const Matrix = React.memo(({ colorSteps, graySteps }) => {
+  const theme = useContext(ThemeContext);
   const [direct, indirect] = _.partition(
     Object.keys(theme.ramps),
     key => theme.ramps[key].config.mode === "direct"
   );
   return (
-    <ThemeContext.Provider value={theme}>
-      <BackgroundContext.Provider value={new Color({ theme, hex: bgHex })}>
-        {graySteps.map(grayStep => (
-          <Contrast
-            key={grayStep}
-            bg={grayStep}
-            className="pa2 flex items-center"
-          >
-            <pre style={__.ma0}>{String(grayStep).padStart(5, " ")}</pre>
-            <div className="flex flex-wrap">
-              {[...indirect, ...direct].map(ramp => (
-                <div key={ramp} className="flex mt1 mr2">
-                  {theme.ramps[ramp].config.mode === "direct" ? (
+    <div>
+      {graySteps.map(grayStep => (
+        <Contrast
+          key={grayStep}
+          bg={grayStep}
+          className="pa2 flex items-center"
+        >
+          <pre style={__.ma0}>{String(grayStep).padStart(5, " ")}</pre>
+          <div className="flex flex-wrap">
+            {[...indirect, ...direct].map(ramp => (
+              <div key={ramp} className="flex mt1 mr2">
+                {theme.ramps[ramp].config.mode === "direct" ? (
+                  <Contrast
+                    bg={0}
+                    bgRamp={ramp}
+                    text={0}
+                    textRamp={ramp}
+                    className="pa1"
+                  >
+                    Direct
+                  </Contrast>
+                ) : (
+                  colorSteps.map(colorStep => (
                     <Contrast
-                      bg={0}
+                      key={colorStep}
+                      bg={colorStep}
                       bgRamp={ramp}
-                      text={0}
+                      text={colorStep}
                       textRamp={ramp}
                       className="pa1"
                     >
-                      Direct
+                      {colorStep.toString()}
                     </Contrast>
-                  ) : (
-                    colorSteps.map(colorStep => (
-                      <Contrast
-                        key={colorStep}
-                        bg={colorStep}
-                        bgRamp={ramp}
-                        text={colorStep}
-                        textRamp={ramp}
-                        className="pa1"
-                      >
-                        {colorStep.toString()}
-                      </Contrast>
-                    ))
-                  )}
-                  <div className="flex flex-column">
-                    <div
-                      className="w1 h-100"
-                      style={{
-                        backgroundColor: theme.ramps[ramp](
-                          theme.minColorLightness / 100
-                        )
-                      }}
-                    />
-                    <div
-                      className="w1 h-100"
-                      style={{
-                        backgroundColor: theme.ramps[ramp](
-                          theme.maxColorLightness / 100
-                        )
-                      }}
-                    />
-                  </div>
+                  ))
+                )}
+                <div className="flex flex-column">
+                  <div
+                    className="w1 h-100"
+                    style={{
+                      backgroundColor: theme.ramps[ramp](
+                        theme.minColorLightness / 100
+                      )
+                    }}
+                  />
+                  <div
+                    className="w1 h-100"
+                    style={{
+                      backgroundColor: theme.ramps[ramp](
+                        theme.maxColorLightness / 100
+                      )
+                    }}
+                  />
                 </div>
-              ))}
-            </div>
-          </Contrast>
-        ))}
-        {[100, 50, 25, 12.5, 6.25].map(bg => (
-          <div className="flex">
-            {Object.keys(theme.ramps).map(key => (
-              <Contrast
-                key={key}
-                className="pa1 tc w-100 f4"
-                bg={bg}
-                bgRamp={key}
-                textRamp="white"
-              >
-                {key}
-              </Contrast>
+              </div>
             ))}
           </div>
-        ))}
-        <FormExample theme={theme} />
-      </BackgroundContext.Provider>
-    </ThemeContext.Provider>
+        </Contrast>
+      ))}
+    </div>
   );
 });
 
-function FormExample({ theme }) {
-  const rampKeys = Object.keys(theme.ramps).filter(
-    rampKey => theme.ramps[rampKey].config.mode === "colored"
+function NamedColors() {
+  const theme = useContext(ThemeContext);
+  return (
+    <>
+      {[100, 50, 25, 12.5, 6.25].map(bg => (
+        <div className="flex">
+          {Object.keys(theme.ramps).map(key => (
+            <Contrast
+              key={key}
+              className="pa1 tc w-100 f4"
+              bg={bg}
+              bgRamp={key}
+              textRamp="white"
+            >
+              {key}
+            </Contrast>
+          ))}
+        </div>
+      ))}
+    </>
   );
+}
+
+function FormExample() {
+  const rampKeys = useColoredRampKeys();
   return (
     <div>
       <div style={__.flex.flex_row}>
@@ -248,22 +240,64 @@ function FormExample({ theme }) {
           </Block>
         ))}
       </div>
-      <div style={__.flex.flex_row}>
-        {rampKeys.map(rampKey => (
-          <Block
-            key={rampKey}
-            contrast="b=100 bg=100 bg/fg=white"
-            base={rampKey}
-            style={__.pa2}
-          >
-            {rampKeys.map(rampKey => (
-              <Block as="span" key={rampKey} contrast="fg=100" base={rampKey}>
-                △◉✓
-              </Block>
-            ))}
-          </Block>
-        ))}
-      </div>
+    </div>
+  );
+}
+
+function TextOnColoredBackground() {
+  const rampKeys = useColoredRampKeys();
+  return (
+    <div style={__.flex.flex_row}>
+      {rampKeys.map(rampKey => (
+        <Block
+          key={rampKey}
+          contrast="b=100 bg=100 bg/fg=white"
+          base={rampKey}
+          style={__.pa2}
+        >
+          {rampKeys.map(rampKey => (
+            <Block as="span" key={rampKey} contrast="fg=100" base={rampKey}>
+              △◉✓
+            </Block>
+          ))}
+        </Block>
+      ))}
+    </div>
+  );
+}
+
+function Bullet() {
+  return <Block contrast="bg=100" className="w1 h1 br-100" />;
+}
+
+function PalletPicker({ palletKey, onPalletKeyChange }) {
+  const theme = useContext(ThemeContext);
+  return (
+    <div className="flex mt1">
+      <Block
+        as="button"
+        contrast="bg=10 bg/fg=100 bg/b=10"
+        className="h2"
+        onClick={() => onPalletKeyChange("none")}
+      >
+        Default
+      </Block>
+      {Object.keys(theme.pallet).map(key => (
+        <Block
+          as="button"
+          contrast="b=20"
+          key={key}
+          className="w2 h2 ba ml1"
+          onClick={() => onPalletKeyChange(key)}
+          style={{
+            // TODO: either don't use the style BG color for calculations in <Bullet> or somehow wrap
+            // normal HEX colors within <Block> so we can do calculations
+            backgroundColor: new Color({ theme, hex: theme.pallet[key] })
+          }}
+        >
+          {key === palletKey && <Bullet />}
+        </Block>
+      ))}
     </div>
   );
 }
