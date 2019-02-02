@@ -2,6 +2,20 @@ import chroma from "chroma-js";
 import mapValues from "map-values"; // saved 20KB when bundling
 import { getLightness, BaseColor } from "./Color";
 
+const allowed = [
+  "name",
+  "pallet",
+  "ramps",
+  "bgRamp",
+  "bgRampValue",
+  "minColorLightness",
+  "maxColorLightness",
+  "contrastMultiplier",
+  "saturationMultiplier",
+  "rescaleContrastToGrayRange",
+  "rescaleContrastToSignalRange"
+];
+
 export default class Theme {
   /**
    * Creates a theme instance from a themeConfig
@@ -9,15 +23,12 @@ export default class Theme {
    */
   constructor(config) {
     this.config = config;
-
-    this.pallet = config.pallet;
-    this.bgRamp = config.bgRamp;
-    this.bgRampValue = config.bgRampValue;
-    this.minColorLightness = config.minColorLightness;
-    this.maxColorLightness = config.maxColorLightness;
-    this.contrastMultiplier = config.contrastMultiplier;
-    this.saturationMultiplier = config.saturationMultiplier;
-    this.rescaleContrastToGrayRange = config.rescaleContrastToGrayRange;
+    Object.keys(config).map(key => {
+      if (!allowed.includes(key)) {
+        throw new Error(`${key} isn't allowed in Theme`);
+      }
+      this[key] = config[key];
+    });
 
     const ramps = mapValues(config.ramps, ramp => createRamp(config, ramp));
     this.ramps = ramps;
