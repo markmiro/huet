@@ -32,7 +32,7 @@ export default function Github() {
                 borderTopWidth: "0.2em",
                 borderTopColor: parentBg.contrast(
                   60,
-                  parentBg.theme.ramps.gold
+                  parentBg.theme.ramps.yellow
                 ),
                 borderTopLeftRadius: ".2em",
                 borderTopRightRadius: ".2em",

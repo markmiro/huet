@@ -96,6 +96,7 @@ const Matrix = React.memo(({ colorSteps, graySteps }) => {
     Object.keys(theme.ramps),
     key => theme.ramps[key].config.mode === "direct"
   );
+
   return (
     <div>
       {graySteps.map(grayStep => (
@@ -193,8 +194,11 @@ function FormExample() {
               {rampKeys.map(rampKey => (
                 <div>
                   {[1, 2, 3, 4, 5, 6, 7].map(fontSize => (
-                    <Block base={rampKey} style={__.di["f" + fontSize]}>
-                      Iig
+                    <Block
+                      contrast={`fg=${rampKey}`}
+                      style={__.di["f" + fontSize]}
+                    >
+                      Lig
                     </Block>
                   ))}
                 </div>
