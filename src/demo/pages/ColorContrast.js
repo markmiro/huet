@@ -141,7 +141,7 @@ const Matrix = React.memo(({ colorSteps, graySteps }) => {
                     className="w1 h-100"
                     style={{
                       backgroundColor: theme.ramps[ramp](
-                        theme.minColorLightness / 100
+                        theme.minColorLightness
                       )
                     }}
                   />
@@ -149,7 +149,7 @@ const Matrix = React.memo(({ colorSteps, graySteps }) => {
                     className="w1 h-100"
                     style={{
                       backgroundColor: theme.ramps[ramp](
-                        theme.maxColorLightness / 100
+                        theme.maxColorLightness
                       )
                     }}
                   />

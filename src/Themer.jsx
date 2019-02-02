@@ -137,7 +137,8 @@ export default function Themer({ themeConfig, onChangeThemeConfig }) {
                   <Range
                     label="Signal lightness on 'black'"
                     min={0}
-                    max={100}
+                    max={1}
+                    decimals={2}
                     value={themeConfig.maxColorLightness}
                     onChange={setMaxColorLightness}
                     style={__.mt2}
@@ -145,7 +146,8 @@ export default function Themer({ themeConfig, onChangeThemeConfig }) {
                   <Range
                     label="Signal lightness on 'white'"
                     min={0}
-                    max={100}
+                    max={1}
+                    decimals={2}
                     value={themeConfig.minColorLightness}
                     onChange={setMinColorLightness}
                     style={__.mt2}

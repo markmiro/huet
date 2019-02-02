@@ -69,8 +69,8 @@ const themes = {
       white: "#9a8e84"
     },
     bgRampValue: 0,
-    minColorLightness: 30,
-    maxColorLightness: 60
+    minColorLightness: 0.3,
+    maxColorLightness: 0.6
   }
 };
 

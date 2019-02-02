@@ -115,15 +115,15 @@ export default class Color extends BaseColor {
       ramp === rootBaseRamp
         ? 1
         : this.lightness < midpoint
-        ? theme.maxColorLightness / 100
-        : 1 - theme.minColorLightness / 100;
+        ? theme.maxColorLightness
+        : 1 - theme.minColorLightness;
 
     const contrastMultiplier =
       ramp === rootBaseRamp || theme.contrastMultiplier < 1
         ? theme.contrastMultiplier
         : 1;
 
-    const targetLightness =
+    let targetLightness =
       this.lightness +
       contrastAmount *
         direction *
@@ -131,6 +131,13 @@ export default class Color extends BaseColor {
         contrastNormalizer *
         colorContrastMinMax *
         contrastRescale;
+
+    // if (ramp !== rootBaseRamp && !theme.rescaleContrastToSignalRange) {
+    //   if (targetLightness > theme.maxColorLightness)
+    //     targetLightness = theme.maxColorLightness;
+    //   if (targetLightness < theme.minColorLightness)
+    //     targetLightness = theme.minColorLightness;
+    // }
 
     // Rescale targetLightness from ramp range to 0-1
     let scaleValue =
@@ -249,9 +256,9 @@ export default class Color extends BaseColor {
       return [rootBaseRamp.startL, rootBaseRamp.endL];
     }
 
-    if (ramp === rootBaseRamp) {
-      return [ramp.startL, ramp.endL];
-    }
+    // if (ramp === rootBaseRamp) {
+    //   return [ramp.startL, ramp.endL];
+    // }
 
     const min = Math.max(ramp.startL, rootBaseRamp.startL);
     const max = Math.min(ramp.endL, rootBaseRamp.endL);
