@@ -72,5 +72,6 @@ export default {
   maxColorLightness: 50,
   contrastMultiplier: 1,
   saturationMultiplier: 1,
-  rescaleContrastToGrayRange: true
+  rescaleContrastToGrayRange: true,
+  rescaleContrastToSignalRange: true
 };

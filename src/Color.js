@@ -104,8 +104,9 @@ export default class Color extends BaseColor {
     const normalizedLightness = (this.lightness - bgMin) / (bgMax - bgMin);
     // __1 _.5 __1
     const contrastNormalizer =
-      theme.rescaleContrastToGrayRange || ramp !== rootBaseRamp
-        ? Math.abs(0.5 - normalizedLightness) + 0.5
+      (theme.rescaleContrastToGrayRange && ramp === rootBaseRamp) ||
+      (theme.rescaleContrastToSignalRange && ramp !== rootBaseRamp)
+        ? Math.abs(normalizedLightness - 0.5) + 0.5
         : 1;
     const contrastRescale = (max - min) / 100;
     const midpoint = (min + max) / 2;
@@ -170,7 +171,7 @@ export default class Color extends BaseColor {
     const [fgL, fgA, fgB] = chroma(hex).lab();
     // const abDelta = Math.sqrt(Math.pow(bgA - fgA, 2) + Math.pow(bgB - fgB, 2));
     // const lDelta = Math.abs(bgL - fgL);
-    const colorContrastNormalizer = Math.abs(0.5 - normalizedLightness) * 2;
+    const colorContrastNormalizer = Math.abs(normalizedLightness - 0.5) * 2;
 
     const abContrastMultiplier =
       ramp === rootBaseRamp || theme.contrastMultiplier > 1
