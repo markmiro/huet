@@ -171,24 +171,30 @@ export default class Color extends BaseColor {
     // const abDelta = Math.sqrt(Math.pow(bgA - fgA, 2) + Math.pow(bgB - fgB, 2));
     // const lDelta = Math.abs(bgL - fgL);
     const colorContrastNormalizer = Math.abs(0.5 - normalizedLightness) * 2;
+
+    const abContrastMultiplier =
+      ramp.config.isNeutral || theme.contrastMultiplier > 1
+        ? 1
+        : theme.contrastMultiplier;
+
+    const abSaturationMultiplier =
+      ramp.config.isNeutral || theme.saturationMultiplier > 1
+        ? 1
+        : theme.saturationMultiplier;
     // `ab` in abContrast refers to the A and B axes of the LAB color space
     const abContrast =
-      theme.contrastMultiplier < 1
-        ? theme.contrastMultiplier
-        : (colorContrastNormalizer + contrastAmount) / 100;
-    hex = chroma
-      .lab(
-        bgL + (fgL - bgL) * 1, // Read this as just `fgL`
-        bgA +
-          (fgA - bgA) *
-            abContrast *
-            (ramp === rootBaseRamp ? 1 : theme.saturationMultiplier),
-        bgB +
-          (fgB - bgB) *
-            abContrast *
-            (ramp === rootBaseRamp ? 1 : theme.saturationMultiplier)
-      )
-      .hex();
+      ((colorContrastNormalizer + contrastAmount) / 100) *
+      abContrastMultiplier *
+      abSaturationMultiplier;
+
+    const saturationMultiplier =
+      theme.saturationMultiplier > 1 ? theme.saturationMultiplier : 1;
+
+    const l = bgL + (fgL - bgL) * 1; // Read this as just `fgL`
+    const a = (bgA + (fgA - bgA) * abContrast) * saturationMultiplier;
+    const b = (bgB + (fgB - bgB) * abContrast) * saturationMultiplier;
+
+    hex = chroma.lab(l, a, b).hex();
 
     return new Color({
       theme,
