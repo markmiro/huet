@@ -8,6 +8,8 @@ export default class Theme {
    * @param {Object} config
    */
   constructor(config) {
+    this.config = config;
+
     this.pallet = config.pallet;
     this.bgRamp = config.bgRamp;
     this.bgRampValue = config.bgRampValue;

@@ -1,12 +1,12 @@
 import React, { useContext } from "react";
 import _ from "lodash";
-import { useDebounce } from "use-debounce";
 import {
   Color,
   ThemeContext,
   BackgroundContext,
   Contrast,
-  Block
+  Block,
+  Theme
 } from "../../huet";
 import useBrowserState from "../../private/useBrowserState";
 import Select from "../../private/Select";
@@ -50,12 +50,12 @@ function useColoredRampKeys() {
 
 export default function ColorContrast() {
   const parentBg = useContext(BackgroundContext);
-  const debouncedTheme = useDebounce(parentBg.theme, 100);
+  const theme = parentBg.theme;
   const [stepKey, setStepKey] = useBrowserState("increment20");
   const [palletKey, setPalletKey] = useBrowserState("none");
+  const [rampKey, setRampKey] = useBrowserState("gray");
 
-  const bgHex =
-    palletKey === "none" ? parentBg.hex : debouncedTheme.pallet[palletKey];
+  const bgHex = palletKey === "none" ? parentBg.hex : theme.pallet[palletKey];
 
   return (
     <div>
@@ -67,25 +67,28 @@ export default function ColorContrast() {
           <option value="increment10">10, 20, 30, ...</option>
         </Select>
         <div className="flex flex-column mt2">
-          Background color
-          <PalletPicker
-            palletKey={palletKey}
-            onPalletKeyChange={setPalletKey}
-          />
+          Background ramp
+          <RampPicker rampKey={rampKey} onRampKeyChange={setRampKey} />
         </div>
       </div>
-      <ThemeContext.Provider value={debouncedTheme}>
+      {/* <div style={{ background: bgHex }}>
         <BackgroundContext.Provider
-          value={new Color({ theme: debouncedTheme, hex: bgHex })}
+          value={new Color({ theme: theme, hex: bgHex })}
         >
-          <div style={{ backgroundColor: bgHex }}>
-            <Matrix {...stepSizes[stepKey]} />
-            <NamedColors />
-            <FormExample />
-            <TextOnColoredBackground />
-          </div>
+          Hello
         </BackgroundContext.Provider>
-      </ThemeContext.Provider>
+      </div> */}
+      <Block
+        theme={new Theme({ ...theme.config, bgRamp: rampKey })}
+        base={rampKey === "none" ? "gray" : rampKey}
+        contrast="bg=0"
+      >
+        <div style={__.f1.b.tc}>Hello</div>
+        <Matrix {...stepSizes[stepKey]} />
+        <NamedColors />
+        <FormExample />
+        <TextOnColoredBackground />
+      </Block>
     </div>
   );
 }
@@ -300,6 +303,34 @@ function PalletPicker({ palletKey, onPalletKeyChange }) {
           }}
         >
           {key === palletKey && <Bullet />}
+        </Block>
+      ))}
+    </div>
+  );
+}
+
+function RampPicker({ rampKey, onRampKeyChange }) {
+  const theme = useContext(ThemeContext);
+  const rampKeys = useColoredRampKeys();
+  return (
+    <div className="flex mt1">
+      {rampKeys.map(key => (
+        <Block
+          as="button"
+          contrast="b=20"
+          key={key}
+          className="w2 h2 ba ml1"
+          onClick={() => onRampKeyChange(key)}
+          style={{
+            // TODO: either don't use the style BG color for calculations in <Bullet> or somehow wrap
+            // normal HEX colors within <Block> so we can do calculations
+            backgroundColor: new Color({
+              theme,
+              hex: theme.ramps[key](0.5).toString()
+            })
+          }}
+        >
+          {key === rampKey && <Bullet />}
         </Block>
       ))}
     </div>

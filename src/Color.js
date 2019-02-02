@@ -173,12 +173,12 @@ export default class Color extends BaseColor {
     const colorContrastNormalizer = Math.abs(0.5 - normalizedLightness) * 2;
 
     const abContrastMultiplier =
-      ramp.config.isNeutral || theme.contrastMultiplier > 1
+      ramp === rootBaseRamp || theme.contrastMultiplier > 1
         ? 1
         : theme.contrastMultiplier;
 
     const abSaturationMultiplier =
-      ramp.config.isNeutral || theme.saturationMultiplier > 1
+      ramp === rootBaseRamp || theme.saturationMultiplier > 1
         ? 1
         : theme.saturationMultiplier;
     // `ab` in abContrast refers to the A and B axes of the LAB color space
@@ -248,7 +248,7 @@ export default class Color extends BaseColor {
       return [rootBaseRamp.startL, rootBaseRamp.endL];
     }
 
-    if (ramp.config.isNeutral) {
+    if (ramp === rootBaseRamp) {
       return [ramp.startL, ramp.endL];
     }
 

@@ -56,8 +56,7 @@ export default {
   },
   ramps: {
     gray: {
-      colorModel: "hcl",
-      isNeutral: true
+      colorModel: "hcl"
     },
     white: {
       colors: ["white", "black"],
