@@ -95,49 +95,54 @@ export default class Color extends BaseColor {
     }
 
     const { theme } = this;
-    const rootBaseRamp = theme.ramps[theme.bgRamp];
+    const isRootBaseRamp = ramp === theme.ramps[theme.bgRamp];
 
     const [min, max] = this._getMinMax(ramp);
     const [bgMin, bgMax] = this._getMinMax(this.ramp);
+    const normalizedLightness = (this.lightness - bgMin) / (bgMax - bgMin); // __0 _.5 __1
 
-    // __0 _.5 __1
-    const normalizedLightness = (this.lightness - bgMin) / (bgMax - bgMin);
-    // __1 _.5 __1
-    const contrastNormalizer =
-      (theme.rescaleContrastToGrayRange && ramp === rootBaseRamp) ||
-      (theme.rescaleContrastToSignalRange && ramp !== rootBaseRamp)
-        ? Math.abs(normalizedLightness - 0.5) + 0.5
-        : 1;
-    const contrastRescale = (max - min) / 100;
-    const midpoint = (min + max) / 2;
-    const direction = this.lightness < midpoint ? 1 : -1;
-    const colorContrastMinMax =
-      ramp === rootBaseRamp
-        ? 1
-        : this.lightness < midpoint
-        ? theme.maxColorLightness
-        : 1 - theme.minColorLightness;
+    // BASICS ---
 
-    const contrastMultiplier =
-      ramp === rootBaseRamp || theme.contrastMultiplier < 1
-        ? theme.contrastMultiplier
-        : 1;
+    const basicMultiplier = (() => {
+      const midpoint = (min + max) / 2;
+      const direction = this.lightness < midpoint ? 1 : -1;
+      const contrastRescale = (max - min) / 100;
+      return direction * contrastRescale;
+    })();
+
+    // ADVANCED ---
+
+    const advancedMultiplier = (() => {
+      let contrastMultiplier = 1;
+      let contrastNormalizer = 1;
+      let colorContrastMinMax = 1;
+
+      if (isRootBaseRamp || theme.contrastMultiplier < 1) {
+        contrastMultiplier = theme.contrastMultiplier;
+      }
+
+      if (
+        (theme.rescaleContrastToGrayRange && isRootBaseRamp) ||
+        (theme.rescaleContrastToSignalRange && !isRootBaseRamp)
+      ) {
+        contrastNormalizer = Math.abs(normalizedLightness - 0.5) + 0.5; // __1 _.5 __1
+      }
+
+      if (!isRootBaseRamp) {
+        const midpoint = (min + max) / 2;
+        colorContrastMinMax =
+          this.lightness < midpoint
+            ? theme.maxColorLightness
+            : 1 - theme.minColorLightness;
+      }
+
+      return contrastMultiplier * contrastNormalizer * colorContrastMinMax;
+    })();
+
+    // PUT IT ALL TOGETHER ---
 
     let targetLightness =
-      this.lightness +
-      contrastAmount *
-        direction *
-        contrastMultiplier *
-        contrastNormalizer *
-        colorContrastMinMax *
-        contrastRescale;
-
-    // if (ramp !== rootBaseRamp && !theme.rescaleContrastToSignalRange) {
-    //   if (targetLightness > theme.maxColorLightness)
-    //     targetLightness = theme.maxColorLightness;
-    //   if (targetLightness < theme.minColorLightness)
-    //     targetLightness = theme.minColorLightness;
-    // }
+      this.lightness + contrastAmount * basicMultiplier * advancedMultiplier;
 
     // Rescale targetLightness from ramp range to 0-1
     let scaleValue =
@@ -145,48 +150,17 @@ export default class Color extends BaseColor {
 
     let hex = ramp(scaleValue).hex;
 
-    /*
-    TODO:
-    The problem with abContrast is that sometimes the starting differenence between fgAB and bgAB
-    is small and sometimes it's large. What we'd like to do is to adjust by just the amount where there is
-    a difference. The problem, though is figuring this out what the maxiumum possible AB difference could be
-    and normalize to that.
-
-    Most ramps start at the gray dark value, then shoot out to their "perfect" color value before
-    coming back into the gray light values.
-
-    The "middle" where there is the most contrast between the "gray" and the colored ramp is based on
-    where that "perfect" color is in it's own ramp. It might be 50% between the dark gray and light gray.
-    It might be 90% between dark gray and light gray.
-
-    So to figure this out, we'd need to get the scale value of the "perfect" color. This would be our midpoint.
-    We'd probably want to calculate this value as part of the startL, endL calculations.
-
-    This also means we'd probably want to limit ramps to just 3 colors unless they're direct ramps. We might even
-    want to forget about the concept of ramps altogether too. Or, we'd want to allow a user's theme to range from
-    just using ramps directly to being completely "managed". Managed mode will effectively only allow you to set the hues
-    you want to use and the min and max lightness of the colors.
-
-    Maybe we can compare the distance between the AB of both fg and bg and compare the L between them too.
-    We want to do our fancy math when the difference between the AB stuff is bigger than that of the L value since
-    this would mean that the the AB difference is too high for the desired contrast
-
-    We might want to keep the min and max color lightness set to the same value and be the average or mean
-    lightness of all "perfect" color lightnesses.
-    */
     const [bgL, bgA, bgB] = chroma(this.hex).lab();
     const [fgL, fgA, fgB] = chroma(hex).lab();
-    // const abDelta = Math.sqrt(Math.pow(bgA - fgA, 2) + Math.pow(bgB - fgB, 2));
-    // const lDelta = Math.abs(bgL - fgL);
-    const colorContrastNormalizer = Math.abs(normalizedLightness - 0.5) * 2;
+    const colorContrastNormalizer = Math.abs(normalizedLightness - 0.5) * 2; // __1 __0 __1
 
     const abContrastMultiplier =
-      ramp === rootBaseRamp || theme.contrastMultiplier > 1
+      isRootBaseRamp || theme.contrastMultiplier > 1
         ? 1
         : theme.contrastMultiplier;
 
     const abSaturationMultiplier =
-      ramp === rootBaseRamp || theme.saturationMultiplier > 1
+      isRootBaseRamp || theme.saturationMultiplier > 1
         ? 1
         : theme.saturationMultiplier;
     // `ab` in abContrast refers to the A and B axes of the LAB color space
