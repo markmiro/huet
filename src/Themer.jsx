@@ -132,15 +132,7 @@ export default function Themer({ themeConfig, onChangeThemeConfig }) {
                 </div>
                 <Contrast style={__.w100} border={20}>
                   <Range
-                    label="Dark color min lightness"
-                    min={0}
-                    max={100}
-                    value={themeConfig.minColorLightness}
-                    onChange={setMinColorLightness}
-                    style={__.mt2}
-                  />
-                  <Range
-                    label="Light color max lightness"
+                    label="Signal lightness on 'black'"
                     min={0}
                     max={100}
                     value={themeConfig.maxColorLightness}
@@ -148,21 +140,29 @@ export default function Themer({ themeConfig, onChangeThemeConfig }) {
                     style={__.mt2}
                   />
                   <Range
-                    label="Lightness contrast multiplier"
+                    label="Signal lightness on 'white'"
                     min={0}
-                    max={2}
-                    decimals={2}
-                    value={themeConfig.contrastMultiplier}
-                    onChange={setContrastMultiplier}
+                    max={100}
+                    value={themeConfig.minColorLightness}
+                    onChange={setMinColorLightness}
                     style={__.mt2}
                   />
-                  <Range
-                    label="Saturation multiplier"
+                  {/* <Range
+                    label="Signal saturation"
                     min={0}
-                    max={2}
+                    max={1}
                     decimals={2}
                     value={themeConfig.saturationMultiplier}
                     onChange={setSaturationMultiplier}
+                    style={__.mt2}
+                  /> */}
+                  <Range
+                    label="Contrast"
+                    min={0}
+                    max={1}
+                    decimals={2}
+                    value={themeConfig.contrastMultiplier}
+                    onChange={setContrastMultiplier}
                     style={__.mt2}
                   />
                   <Checkbox
