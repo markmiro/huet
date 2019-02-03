@@ -111,6 +111,15 @@ export default function Themer({ themeConfig, onChangeThemeConfig }) {
                 onChange={setBgRampValue}
                 style={__.mt2}
               />
+              <Range
+                label="Contrast"
+                min={0}
+                max={1}
+                decimals={2}
+                value={themeConfig.contrastMultiplier}
+                onChange={setContrastMultiplier}
+                style={__.mt2}
+              />
               <div style={__.i.mt2.mb1}>Pallet</div>
               <Pallet colors={themeConfig.pallet} onColorsChange={setPallet} />
               <div style={__.i.mt2.mb1}>Color ramps</div>
@@ -160,25 +169,17 @@ export default function Themer({ themeConfig, onChangeThemeConfig }) {
                     value={themeConfig.saturationMultiplier}
                     onChange={setSaturationMultiplier}
                     style={__.mt2}
-                  <Range
-                    label="Contrast"
-                    min={0}
-                    max={1}
-                    decimals={2}
-                    value={themeConfig.contrastMultiplier}
-                    onChange={setContrastMultiplier}
-                    style={__.mt2}
-                  />
-                  <Checkbox
-                    label="Rescale gray contrast to background"
-                    isChecked={themeConfig.rescaleContrastToGrayRange}
-                    onChange={setRescaleContrastToGrayRange}
-                    style={__.mt2}
                   />
                   <Checkbox
                     label="Rescale signal contrast to background"
                     isChecked={themeConfig.rescaleContrastToSignalRange}
                     onChange={setRescaleContrastToSignalRange}
+                    style={__.mt2}
+                  />
+                  <Checkbox
+                    label="Rescale base contrast to background"
+                    isChecked={themeConfig.rescaleContrastToGrayRange}
+                    onChange={setRescaleContrastToGrayRange}
                     style={__.mt2}
                   />
                 </Contrast>
