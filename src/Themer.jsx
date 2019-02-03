@@ -152,7 +152,7 @@ export default function Themer({ themeConfig, onChangeThemeConfig }) {
                     onChange={setMinColorLightness}
                     style={__.mt2}
                   />
-                  {/* <Range
+                  <Range
                     label="Signal saturation"
                     min={0}
                     max={1}
@@ -160,7 +160,6 @@ export default function Themer({ themeConfig, onChangeThemeConfig }) {
                     value={themeConfig.saturationMultiplier}
                     onChange={setSaturationMultiplier}
                     style={__.mt2}
-                  /> */}
                   <Range
                     label="Contrast"
                     min={0}
