@@ -58,7 +58,7 @@ const fontScale = [
   ".875rem",
   ".75rem"
 ];
-const spaceScale = [0, ".25rem", ".5rem", "1rem"];
+const spaceScale = [0, ".25rem", ".5rem", "1rem", "2rem", "4rem"];
 const sizeScale = [0, "1rem", "2rem", "4rem"];
 
 const atoms = {
@@ -89,6 +89,7 @@ const atoms = {
   br2: { borderRadius: ".25rem" },
   br3: { borderRadius: ".5rem" },
   br4: { borderRadius: "1rem" },
+  br100: { borderRadius: "100%" },
 
   // Display
   di: { display: "inline" },
