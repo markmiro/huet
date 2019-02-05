@@ -1,4 +1,4 @@
-import React, { useContext } from "react";
+import React from "react";
 import { Block } from "../../huet";
 import __ from "../../private/atoms";
 
@@ -141,7 +141,6 @@ function Form() {
 }
 
 export default function Basic() {
-  const rampKey = "red";
   return (
     <div
       style={{

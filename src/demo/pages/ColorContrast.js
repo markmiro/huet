@@ -266,38 +266,6 @@ function Bullet() {
   return <Block contrast="bg=100" className="w1 h1 br-100" />;
 }
 
-function PalletPicker({ palletKey, onPalletKeyChange }) {
-  const theme = useContext(ThemeContext);
-  return (
-    <div className="flex mt1">
-      <Block
-        as="button"
-        contrast="bg=10 bg/fg=100 bg/b=10"
-        className="h2"
-        onClick={() => onPalletKeyChange("none")}
-      >
-        Default
-      </Block>
-      {Object.keys(theme.pallet).map(key => (
-        <Block
-          as="button"
-          contrast="b=20"
-          key={key}
-          className="w2 h2 ba ml1"
-          onClick={() => onPalletKeyChange(key)}
-          style={{
-            // TODO: either don't use the style BG color for calculations in <Bullet> or somehow wrap
-            // normal HEX colors within <Block> so we can do calculations
-            backgroundColor: new Color({ theme, hex: theme.pallet[key] })
-          }}
-        >
-          {key === palletKey && <Bullet />}
-        </Block>
-      ))}
-    </div>
-  );
-}
-
 function RampPicker({ rampKey, onRampKeyChange }) {
   const theme = useContext(ThemeContext);
   const rampKeys = useColoredRampKeys();

@@ -23,7 +23,7 @@ export default class Theme {
    */
   constructor(config) {
     this.config = config;
-    Object.keys(config).map(key => {
+    Object.keys(config).forEach(key => {
       if (!allowed.includes(key)) {
         throw new Error(`${key} isn't allowed in Theme`);
       }
