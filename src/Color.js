@@ -189,7 +189,8 @@ export default class Color extends BaseColor {
       theme,
       bgColor: this,
       hex,
-      ramp
+      ramp,
+      lightness: targetLightness
     });
   }
 
