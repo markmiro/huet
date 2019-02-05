@@ -52,10 +52,7 @@ export default function ColorContrast() {
   const parentBg = useContext(BackgroundContext);
   const theme = parentBg.theme;
   const [stepKey, setStepKey] = useBrowserState("increment20");
-  const [palletKey, setPalletKey] = useBrowserState("none");
   const [rampKey, setRampKey] = useBrowserState("gray");
-
-  const bgHex = palletKey === "none" ? parentBg.hex : theme.pallet[palletKey];
 
   return (
     <div>
@@ -71,19 +68,11 @@ export default function ColorContrast() {
           <RampPicker rampKey={rampKey} onRampKeyChange={setRampKey} />
         </div>
       </div>
-      {/* <div style={{ background: bgHex }}>
-        <BackgroundContext.Provider
-          value={new Color({ theme: theme, hex: bgHex })}
-        >
-          Hello
-        </BackgroundContext.Provider>
-      </div> */}
       <Block
         theme={new Theme({ ...theme.config, bgRamp: rampKey })}
         base={rampKey === "none" ? "gray" : rampKey}
         contrast="bg=0"
       >
-        <div style={__.f1.b.tc}>Hello</div>
         <Matrix {...stepSizes[stepKey]} />
         <NamedColors />
         <FormExample />
