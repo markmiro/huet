@@ -170,7 +170,14 @@ export default class Color extends BaseColor {
       abSaturationMultiplier;
 
     const saturationMultiplier =
-      theme.saturationMultiplier > 1 ? theme.saturationMultiplier : 1;
+      theme.saturationMultiplier > 1 && !isRootBaseRamp
+        ? Math.max(
+            1,
+            theme.saturationMultiplier *
+              (contrastAmount / 100) *
+              Math.min(theme.contrastMultiplier, 1)
+          )
+        : 1;
 
     const l = bgL + (fgL - bgL) * 1; // Read this as just `fgL`
     const a = (bgA + (fgA - bgA) * abContrast) * saturationMultiplier;
