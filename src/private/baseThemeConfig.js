@@ -40,7 +40,7 @@ const palletColors = colorLabels.reduce(
 const ramps = colorLabels.reduce(
   (acc, label) => ({
     ...acc,
-    [label]: { colors: ["realBlack", label, "realWhite"] }
+    [label]: { colors: ["black", label, "white"] }
   }),
   {}
 );
@@ -50,13 +50,13 @@ export default {
   pallet: {
     black: "#000000",
     white: "#ffffff",
-    realBlack: "#000000",
-    realWhite: "#ffffff",
+    // realBlack: "#000000",
+    // realWhite: "#ffffff",
     ...palletColors
   },
   ramps: {
     gray: {
-      colorModel: "hcl"
+      colorModel: "lab"
     },
     white: {
       colors: ["white", "black"],
