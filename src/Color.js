@@ -163,9 +163,11 @@ export default class Color extends BaseColor {
       isRootBaseRamp || theme.saturationMultiplier > 1
         ? 1
         : theme.saturationMultiplier;
+
     // `ab` in abContrast refers to the A and B axes of the LAB color space
+    const x = contrastAmount / 100;
     const abContrast =
-      ((colorContrastNormalizer + contrastAmount) / 100) *
+      ((colorContrastNormalizer + x) / (1 + x)) *
       abContrastMultiplier *
       abSaturationMultiplier;
 
