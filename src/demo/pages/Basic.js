@@ -1,6 +1,12 @@
-import React from "react";
+import React, { useContext } from "react";
+import { Icon } from "react-icons-kit";
+import { ic_sentiment_satisfied } from "react-icons-kit/md/ic_sentiment_satisfied";
+import { ic_notifications } from "react-icons-kit/md/ic_notifications";
+import { ic_check_circle } from "react-icons-kit/md/ic_check_circle";
+import { u1F432 } from "react-icons-kit/noto_emoji_regular/u1F432";
 import { Block } from "../../huet";
 import __ from "../../private/atoms";
+import { BackgroundContext } from "../../reactContexts";
 
 function Section({ title, children }) {
   return (
@@ -99,6 +105,7 @@ function Form() {
         as="input"
         contrast="b=25 fg=100"
         value="foobar"
+        readOnly
         style={{
           ...__.ba.br2.pa2,
           backgroundColor: "transparent",
@@ -113,6 +120,7 @@ function Form() {
       </Block>
       <Block
         as="input"
+        readOnly
         contrast="b=100-red fg=100"
         value="foo@bar"
         style={{
@@ -126,9 +134,9 @@ function Form() {
       </Block>
       <Block
         as="button"
-        contrast="bg=100-blue bg/fg=white"
+        contrast="bg=100 bg/fg=white"
         style={{
-          ...__.pa2.tc.w100.br2.mt3.bn.db,
+          ...__.pa2.tc.w100.br2.mt3.bn.db.flex.justify_center.items_center,
           fontSize: "inherit",
           fontFamily: "inherit",
           maxWidth: "20em"
@@ -136,7 +144,73 @@ function Form() {
       >
         Submit
       </Block>
+      <Block contrast="fg=50" style={{ ...__.mt1, fontSize: "75%" }}>
+        By signing up you agree to the{" "}
+        <Block as="a" href="#" base="blue">
+          Terms and Conditions
+        </Block>
+        .
+      </Block>
     </>
+  );
+}
+
+function Charts() {
+  const parentBg = useContext(BackgroundContext);
+  const { ramps } = parentBg.theme;
+  return (
+    <div>
+      <svg
+        width="500"
+        height="200"
+        xmlns="http://www.w3.org/2000/svg"
+        version="1.1"
+      >
+        <rect
+          x="10%"
+          y="40%"
+          width="20%"
+          height="60%"
+          fill={parentBg.contrast(100, ramps.red)}
+        />
+        <rect
+          x="40%"
+          y="20%"
+          width="20%"
+          height="80%"
+          fill={parentBg.contrast(100, ramps.green)}
+        />
+        <rect
+          x="70%"
+          y="0%"
+          width="20%"
+          height="100%"
+          fill={parentBg.contrast(100, ramps.blue)}
+        />
+        <line
+          x1="0"
+          y1="0"
+          x2="0"
+          y2="100%"
+          stroke={parentBg.contrast(50)}
+          strokeWidth="2"
+        />
+        <line
+          x1="0"
+          y1="100%"
+          x2="100%"
+          y2="100%"
+          stroke={parentBg.contrast(50)}
+          strokeWidth="2"
+        />
+      </svg>
+      <p>
+        <small>
+          Note: The above chart might not be accessible to people with color
+          blindness.
+        </small>
+      </p>
+    </div>
   );
 }
 
@@ -151,17 +225,81 @@ export default function Basic() {
       }}
     >
       <h1 style={__.f1}>Examples</h1>
+      <Section title="Nav">
+        <Block
+          contrast="bg=100"
+          style={__.pa3.flex.items_center.justify_between}
+        >
+          <Block contrast="fg=50">
+            <Icon icon={ic_sentiment_satisfied} style={__.mr2} size={32} />
+          </Block>
+          <div style={__.flex.items_center}>
+            <div style={__.mr3}>
+              Home &nbsp;&nbsp; About &nbsp;&nbsp; Contact
+            </div>
+            <Block
+              as="input"
+              readOnly
+              contrast="bg=25 bg/b=25 bg/fg=50"
+              value="Search"
+              style={{
+                ...__.ba.br2.pa2.mr3,
+                backgroundColor: "transparent",
+                width: "15em"
+              }}
+            />
+            <div style={{ position: "relative" }}>
+              <Icon icon={ic_notifications} size={24} />
+              <Block
+                base="red"
+                contrast="bg=100 b=0"
+                style={{
+                  ...__.ba.br100.absolute,
+                  width: 10,
+                  height: 10,
+                  right: 0,
+                  top: 0
+                }}
+              />
+            </div>
+          </div>
+        </Block>
+      </Section>
       <Section title="Form">
         <Form />
       </Section>
       <Section title="Alert">
         {["red", "yellow", "green"].map(base => (
           <Block
+            key={base}
             base={base}
             contrast="b=50 bg=25"
             style={__.mt3.pa3.ba.br2.flex.justify_between.items_center}
           >
-            Hold up! We need to notify you about something.
+            <div>
+              Hold up! We need to notify you about something.
+              <br />
+              Click{" "}
+              <Block as="a" href="#" base="blue">
+                this link
+              </Block>{" "}
+              to find out more.
+              <br />
+              <Block
+                base="red"
+                contrast="bg=100 bg/fg=100-gray"
+                style={{ ...__.pv2.ph3.br2.mt1, display: "inline-block" }}
+              >
+                Cancel
+              </Block>
+              <Block
+                base="green"
+                contrast="bg=100 bg/fg=100-gray"
+                style={{ ...__.pv2.ph3.br2.mt1.ml1, display: "inline-block" }}
+              >
+                Continue
+              </Block>
+            </div>
             <Block
               base={base}
               contrast="bg=12"
@@ -175,7 +313,9 @@ export default function Basic() {
       <Section title="Code">
         <Code />
       </Section>
-      <Section title="Icons" />
+      <Section title="SVG Chart">
+        <Charts />
+      </Section>
     </div>
   );
 }
