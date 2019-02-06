@@ -1,6 +1,8 @@
 import React, { useContext } from "react";
+import { Icon } from "react-icons-kit";
+import { github } from "react-icons-kit/icomoon/github";
 import { BackgroundContext, Contrast } from "../../huet";
-import Icon from "../../private/Icon";
+// import Icon from "../../private/Icon";
 import __ from "../../private/atoms";
 
 export default function Github() {
@@ -11,7 +13,7 @@ export default function Github() {
     <div className="flex-auto">
       <Contrast bg={5}>
         <Contrast bg={70} className="pa3 flex items-center">
-          <Icon name="github" size="2em" className="mr3" />
+          <Icon icon={github} size={"2em"} className="mr3" />
           Pull requests &nbsp; Issues &nbsp; Marketplace &nbsp; Explore
         </Contrast>
         <div

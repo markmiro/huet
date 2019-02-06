@@ -1,7 +1,15 @@
 import React, { useContext } from "react";
+import { Icon } from "react-icons-kit";
+import { ic_menu } from "react-icons-kit/md/ic_menu";
+import { ic_search } from "react-icons-kit/md/ic_search";
+import { ic_apps } from "react-icons-kit/md/ic_apps";
+import { ic_video_call } from "react-icons-kit/md/ic_video_call";
+import { ic_chat_bubble } from "react-icons-kit/md/ic_chat_bubble";
+import { ic_notifications } from "react-icons-kit/md/ic_notifications";
 import { ThemeContext, BackgroundContext, Contrast } from "../../huet";
 import { rule } from "../../private/nano";
-import Icon from "../../private/Icon";
+// import Icon from "../../private/Icon";
+
 import YouTubeLogo from "../YouTubeLogo";
 
 const clamp2Lines = rule({
@@ -49,7 +57,7 @@ export default function YouTube() {
           </div>
           <div className="flex items-center mb3">
             <Contrast>23 Comments</Contrast>{" "}
-            <Icon name="sort" size="1.5em" contrast={60} className="ml4 mr1" />{" "}
+            {/* <Icon name="sort" size="1.5em" contrast={60} className="ml4 mr1" />{" "} */}
             <Contrast text={60} className="f7">
               SORT BY
             </Contrast>
@@ -89,20 +97,24 @@ function Header({ className, style }) {
       }}
     >
       <div className="flex items-center">
-        <Icon name="burger" size="1em" contrast={40} className="mr3" />
+        <Icon icon={ic_menu} size="1.5em" className="mr3" />
         <YouTubeLogo style={{ height: "1.5em" }} />
       </div>
       <div className="flex-ns w-40 dn flex-auto-m mh4">
         <SearchInput />
         <Contrast as="button" bg={6} border={15} className="flex ph3 bt bb br">
-          <Icon name="search" size="1.2em" contrast={50} />
+          <Contrast text={50}>
+            <Icon icon={ic_search} size="1.2em" />
+          </Contrast>
         </Contrast>
       </div>
       <div className="flex flex-none items-center">
-        <Icon name="apps" size="1.5em" contrast={40} className="mr3" />
-        <Icon name="video_call" size="1.5em" contrast={40} className="mr3" />
-        <Icon name="chat" size="1.5em" contrast={40} className="mr3" />
-        <Icon name="notifications" size="1.5em" contrast={40} className="mr3" />
+        <Contrast text={50} className="flex flex-none items-center">
+          <Icon icon={ic_video_call} size="1.5em" className="mr3" />
+          <Icon icon={ic_apps} size="1.5em" className="mr3" />
+          <Icon icon={ic_chat_bubble} size="1.2em" className="mr3" />
+          <Icon icon={ic_notifications} size="1.5em" className="mr3" />
+        </Contrast>
         <Contrast
           bg={40}
           className={`w2 h2 br-100 ${className}`}
@@ -133,7 +145,7 @@ function SearchInput() {
         // TODO: prevent this from creating extra classes that aren't necessary
         "::placeholder": {
           opacity: 1, // For Firefox
-          color: parentBg.contrast(20).toString()
+          color: bgColor.contrast(20).toString()
         }
       })}`}
       placeholder="Search"
