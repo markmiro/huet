@@ -40,7 +40,7 @@ const pages = {
 };
 
 function App() {
-  const [themeConfig, setThemeConfig] = useBrowserState(themeConfigs.basic);
+  const [themeConfig, setThemeConfig] = useBrowserState(themeConfigs[0]);
   const [pageKey, setPageKey] = useBrowserState("colorContrast");
 
   const theme = new Theme(themeConfig);
@@ -53,11 +53,7 @@ function App() {
 
   return (
     <>
-      <Themer
-        themeConfigs={themeConfigs}
-        themeConfig={themeConfig}
-        onChangeThemeConfig={setThemeConfig}
-      />
+      <Themer themeConfig={themeConfig} onChangeThemeConfig={setThemeConfig} />
       <Block theme={theme} className={resetClass}>
         <Contrast
           bg={10}

@@ -13,6 +13,7 @@ import Button, { ButtonGroup, JsonUploadButton } from "./private/Button";
 import Checkbox from "./private/Checkbox";
 import ColorRamp from "./private/ColorRamp";
 import Pallet from "./private/Pallet";
+import Themes from "./private/Themes";
 import __ from "./private/atoms";
 import { themerClass, resetClass } from "./private/styles";
 import baseThemeConfig from "./private/baseThemeConfig";
@@ -95,6 +96,7 @@ export default function Themer({ themeConfig, onChangeThemeConfig }) {
               overflowX: "hidden"
             }}
           >
+            <Themes onConfigSelect={onChangeThemeConfig} />
             <div style={__.pa2}>
               <Input
                 label="Name"
