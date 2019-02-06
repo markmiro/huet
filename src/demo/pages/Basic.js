@@ -269,14 +269,14 @@ export default function Basic() {
         <Form />
       </Section>
       <Section title="Alert">
-        {["red", "yellow", "green"].map(base => (
+        {["red", "yellow", "green", "blue", "purple"].map(base => (
           <Block
             key={base}
             base={base}
             contrast="b=50 bg=25"
             style={__.mt3.pa3.ba.br2.flex.justify_between.items_center}
           >
-            <div>
+            <div style={{ lineHeight: 1.4 }}>
               Hold up! We need to notify you about something.
               <br />
               Click{" "}
@@ -284,21 +284,6 @@ export default function Basic() {
                 this link
               </Block>{" "}
               to find out more.
-              <br />
-              <Block
-                base="red"
-                contrast="bg=100 bg/fg=100-gray"
-                style={{ ...__.pv2.ph3.br2.mt1, display: "inline-block" }}
-              >
-                Cancel
-              </Block>
-              <Block
-                base="green"
-                contrast="bg=100 bg/fg=100-gray"
-                style={{ ...__.pv2.ph3.br2.mt1.ml1, display: "inline-block" }}
-              >
-                Continue
-              </Block>
             </div>
             <Block
               base={base}

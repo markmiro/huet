@@ -7,7 +7,7 @@ import chroma from "chroma-js";
 
 const hueStart = 20; // Gets us blues and greens that have 0 in the R in RGB
 const l = 50; // Doesn't really matter which value we put here
-const c = 150; // Over about 45 leads to colors in blue range to
+const c = 60; // Over about 45 leads to colors in blue range to
 
 /* eslint-disable no-sparse-arrays */
 const colorLabels = ["red", "yellow", "green", , "blue", "purple"]; // skip teal

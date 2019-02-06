@@ -61,11 +61,11 @@ const themes = [
     pallet: {
       black: "#001b4f",
       white: "#b6e8e8",
-      red: "#e13639",
+      red: "#ff6669",
       yellow: "#a09c5c",
       green: "#319647",
-      blue: "#3d46d5",
-      purple: "#bf6598"
+      blue: "#496eff",
+      purple: "#af5bff"
     },
     bgRampValue: 0,
     minColorLightness: 0.44,
@@ -147,7 +147,7 @@ const themes = [
       yellow: "#987a1d",
       green: "#459700",
       blue: "#0073ff",
-      purple: "#de4180"
+      purple: "#aa5dff"
     },
     bgRamp: "gray",
     bgRampValue: 0,
@@ -165,7 +165,7 @@ const themes = [
       yellow: "#988753",
       green: "#009700",
       blue: "#00a3ff",
-      purple: "#d400ff"
+      purple: "#af60ff"
     },
     minColorLightness: 0.26,
     maxColorLightness: 0.47
