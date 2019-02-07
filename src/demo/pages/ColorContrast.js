@@ -157,7 +157,7 @@ function NamedColors() {
   return (
     <>
       {[100, 50, 25, 12.5, 6.25].map(bg => (
-        <div className="flex">
+        <div key={bg} className="flex">
           {Object.keys(theme.ramps).map(key => (
             <Contrast
               key={key}
@@ -181,12 +181,13 @@ function FormExample() {
     <div>
       <div style={__.flex.flex_row}>
         {[0, 49, 51, 100].map(bg => (
-          <Block contrast={`bg=${bg}`}>
+          <Block key={bg} contrast={`bg=${bg}`}>
             <div style={__.pa3}>
               {rampKeys.map(rampKey => (
-                <div>
+                <div key={rampKey}>
                   {[1, 2, 3, 4, 5, 6, 7].map(fontSize => (
                     <Block
+                      key={fontSize}
                       contrast={`fg=${rampKey}`}
                       style={__.di["f" + fontSize]}
                     >
@@ -204,6 +205,7 @@ function FormExample() {
                     as="input"
                     contrast="b=100 fg=100"
                     value="Some text"
+                    readOnly
                     base={rampKey}
                     style={{
                       ...__.ba.br2.pa2,
