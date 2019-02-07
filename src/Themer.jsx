@@ -186,6 +186,7 @@ export default function Themer({ themeConfig, onChangeThemeConfig }) {
                     isChecked={themeConfig.rescaleSaturationToGrayRange}
                     onChange={setRescaleSaturationToGrayRange}
                     style={__.mt2}
+                    note="Experimental"
                   />
                   <Checkbox
                     label="Rescale base contrast to background"
