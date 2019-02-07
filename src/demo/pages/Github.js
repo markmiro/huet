@@ -13,7 +13,7 @@ export default function Github() {
     <div className="flex-auto">
       <Contrast bg={5}>
         <Contrast bg={70} className="pa3 flex items-center">
-          <Icon icon={github} size={"2em"} className="mr3" />
+          <Icon icon={github} size="2em" className="mr3" />
           Pull requests &nbsp; Issues &nbsp; Marketplace &nbsp; Explore
         </Contrast>
         <div
