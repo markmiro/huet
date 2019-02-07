@@ -1,4 +1,4 @@
-import React, { useContext, useState } from "react";
+import React, { useContext, useState, useEffect } from "react";
 import { BackgroundContext } from "../reactContexts";
 import Contrast from "../Contrast.jsx";
 import __ from "./atoms";
@@ -18,8 +18,13 @@ const Range = ({
   const step = 1 / Math.pow(10, decimals);
   const parentBg = useContext(BackgroundContext);
   const rangeBg = parentBg.contrast(10);
+  const [isTyping, setIsTyping] = useState(false);
   const [stringNumber, setStringNumber] = useState(value.toFixed(decimals));
   const isOutOfRange = value < min || value > max;
+
+  useEffect(() => {
+    if (!isTyping) setStringNumber(value.toFixed(decimals));
+  }, [value]);
 
   const handleInputChange = e => {
     setStringNumber(e.target.value);
@@ -28,15 +33,10 @@ const Range = ({
     onChange(parsed);
   };
 
-  const handleChange = e => {
+  const handleRangeChange = e => {
     const parsed = parseFloat(e.target.value);
-    if (Number.isFinite(parsed)) {
-      if (onChange) {
-        onChange(parsed);
-      }
-      setStringNumber(parsed.toFixed(decimals));
-    } else {
-      setStringNumber(value.toFixed(decimals));
+    if (onChange) {
+      onChange(parsed);
     }
   };
 
@@ -100,8 +100,9 @@ const Range = ({
             }}
             value={stringNumber}
             step={step}
+            onFocus={() => setIsTyping(true)}
+            onBlur={() => setIsTyping(false)}
             onChange={handleInputChange}
-            onBlur={handleChange}
           />
         )}
         <input
@@ -117,7 +118,7 @@ const Range = ({
           max={max}
           step={step}
           value={value}
-          onChange={handleChange}
+          onChange={handleRangeChange}
         />
       </div>
     </div>
