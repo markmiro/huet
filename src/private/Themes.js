@@ -95,7 +95,7 @@ export default function Themes({ onConfigSelect }) {
       <Labeled title="Themes" />
       <Checkbox
         label="Show middle grays"
-        isChecked={showMiddleGrays}
+        value={showMiddleGrays}
         onChange={setShowMiddleGrays}
       />
       {finalConfigs.map(config => (

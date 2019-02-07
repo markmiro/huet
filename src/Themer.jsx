@@ -177,20 +177,20 @@ export default function Themer({ themeConfig, onChangeThemeConfig }) {
                   />
                   <Checkbox
                     label="Rescale signal contrast to background"
-                    isChecked={themeConfig.rescaleContrastToSignalRange}
+                    value={themeConfig.rescaleContrastToSignalRange}
                     onChange={setRescaleContrastToSignalRange}
                     style={__.mt2}
                   />
                   <Checkbox
                     label="Rescale signal saturation to background"
-                    isChecked={themeConfig.rescaleSaturationToGrayRange}
+                    value={themeConfig.rescaleSaturationToGrayRange}
                     onChange={setRescaleSaturationToGrayRange}
                     style={__.mt2}
                     note="Experimental"
                   />
                   <Checkbox
                     label="Rescale base contrast to background"
-                    isChecked={themeConfig.rescaleContrastToGrayRange}
+                    value={themeConfig.rescaleContrastToGrayRange}
                     onChange={setRescaleContrastToGrayRange}
                     style={__.mt2}
                   />
@@ -201,7 +201,7 @@ export default function Themer({ themeConfig, onChangeThemeConfig }) {
             <Block contrast="bg=10" style={__.pa2}>
               <Checkbox
                 label="Theme the themer"
-                isChecked={shouldThemeSelf}
+                value={shouldThemeSelf}
                 onChange={setShouldThemeSelf}
                 style={__.mb2}
               />

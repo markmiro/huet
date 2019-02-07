@@ -5,7 +5,7 @@ import __ from "./atoms";
 
 const Checkbox = ({
   label,
-  isChecked,
+  value,
   onChange,
   style,
   className,
@@ -25,12 +25,12 @@ const Checkbox = ({
     >
       <input
         type="checkbox"
-        checked={isChecked}
+        checked={value}
         onChange={e => onChange && onChange(e.target.checked)}
         style={__.absolute.top0.left0.w0.h100}
       />
       <span style={{ ...__.mr1, fontSize: "1.25em", lineHeight: 1 }}>
-        {isChecked ? "☒" : "☐"}
+        {value ? "☒" : "☐"}
       </span>
       <div>
         {label}
