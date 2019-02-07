@@ -41,6 +41,9 @@ export default function Themer({ themeConfig, onChangeThemeConfig }) {
   const setstartSignalLightness = modify("startSignalLightness");
   const setendSignalLightness = modify("endSignalLightness");
   const setRescaleContrastToGrayRange = modify("rescaleContrastToGrayRange");
+  const setRescaleSaturationToGrayRange = modify(
+    "rescaleSaturationToGrayRange"
+  );
   const setRescaleContrastToSignalRange = modify(
     "rescaleContrastToSignalRange"
   );
@@ -176,6 +179,12 @@ export default function Themer({ themeConfig, onChangeThemeConfig }) {
                     label="Rescale signal contrast to background"
                     isChecked={themeConfig.rescaleContrastToSignalRange}
                     onChange={setRescaleContrastToSignalRange}
+                    style={__.mt2}
+                  />
+                  <Checkbox
+                    label="Rescale signal saturation to background"
+                    isChecked={themeConfig.rescaleSaturationToGrayRange}
+                    onChange={setRescaleSaturationToGrayRange}
                     style={__.mt2}
                   />
                   <Checkbox

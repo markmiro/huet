@@ -213,8 +213,8 @@ const themes = [
     },
     startSignalLightness: 0.47,
     endSignalLightness: 0.75,
-    contrastMultiplier: 1.5,
-    saturationMultiplier: 1.5
+    saturationMultiplier: 1.5,
+    contrastMultiplier: 1.5
   }
 ];
 

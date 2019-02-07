@@ -152,7 +152,6 @@ export default class Color extends BaseColor {
 
     const [bgL, bgA, bgB] = chroma(this.hex).lab();
     const [fgL, fgA, fgB] = chroma(hex).lab();
-    const colorContrastNormalizer = Math.abs(normalizedLightness - 0.5) * 2; // __1 __0 __1
 
     const abContrastMultiplier =
       isRootBaseRamp || theme.contrastMultiplier > 1
@@ -165,9 +164,8 @@ export default class Color extends BaseColor {
         : theme.saturationMultiplier;
 
     // `ab` in abContrast refers to the A and B axes of the LAB color space
-    const x = contrastAmount / 100;
     const abContrast =
-      ((colorContrastNormalizer + x) / (1 + x)) *
+      (theme.rescaleSaturationToGrayRange ? contrastAmount / 100 : 1) *
       abContrastMultiplier *
       abSaturationMultiplier;
 

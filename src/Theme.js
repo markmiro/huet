@@ -12,8 +12,9 @@ const allowed = [
   "endSignalLightness",
   "contrastMultiplier",
   "saturationMultiplier",
-  "rescaleContrastToGrayRange",
-  "rescaleContrastToSignalRange"
+  "rescaleSaturationToGrayRange",
+  "rescaleContrastToSignalRange",
+  "rescaleContrastToGrayRange"
 ];
 
 export default class Theme {
