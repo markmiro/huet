@@ -1,11 +1,10 @@
-import React, { useState } from "react";
+import React from "react";
 import __ from "./atoms";
 import themeConfigs from "../demo/themeConfigs";
 import Theme from "../Theme";
 import Block from "../Block";
 import Checkbox from "./Checkbox";
 import useBrowserState from "./useBrowserState";
-import { hidden } from "ansi-colors";
 
 function Labeled({ title, children }) {
   return (
@@ -17,8 +16,7 @@ function Labeled({ title, children }) {
 }
 
 const ThemePreview = React.memo(
-  ({ config, showMiddle = false, isSelected = false, onClick = () => {} }) => {
-    const [isHovering, setIsHovering] = useState(false);
+  ({ config, showMiddle = false, onClick = () => {} }) => {
     const theme = new Theme(config);
     return (
       <Block
@@ -30,8 +28,6 @@ const ThemePreview = React.memo(
           boxShadow: `0 2px 20px ${parentBg.contrast(100).alpha(0.2)}`
         })}
         onClick={() => onClick(config.name)}
-        onMouseOver={() => setIsHovering(true)}
-        onMouseOut={() => setIsHovering(false)}
       >
         <div style={{ ...__.flex, height: "0.5em" }}>
           {Object.keys(theme.pallet).map(palletKey => (
