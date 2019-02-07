@@ -38,8 +38,8 @@ export default function Themer({ themeConfig, onChangeThemeConfig }) {
   const setContrastMultiplier = modify("contrastMultiplier");
   const setSaturationMultiplier = modify("saturationMultiplier");
   const setPallet = modify("pallet");
-  const setMinColorLightness = modify("minColorLightness");
-  const setMaxColorLightness = modify("maxColorLightness");
+  const setstartSignalLightness = modify("startSignalLightness");
+  const setendSignalLightness = modify("endSignalLightness");
   const setRescaleContrastToGrayRange = modify("rescaleContrastToGrayRange");
   const setRescaleContrastToSignalRange = modify(
     "rescaleContrastToSignalRange"
@@ -150,8 +150,8 @@ export default function Themer({ themeConfig, onChangeThemeConfig }) {
                     min={0}
                     max={1}
                     decimals={2}
-                    value={themeConfig.maxColorLightness}
-                    onChange={setMaxColorLightness}
+                    value={themeConfig.endSignalLightness}
+                    onChange={setendSignalLightness}
                     style={__.mt2}
                   />
                   <Range
@@ -159,8 +159,8 @@ export default function Themer({ themeConfig, onChangeThemeConfig }) {
                     min={0}
                     max={1}
                     decimals={2}
-                    value={themeConfig.minColorLightness}
-                    onChange={setMinColorLightness}
+                    value={themeConfig.startSignalLightness}
+                    onChange={setstartSignalLightness}
                     style={__.mt2}
                   />
                   <Range

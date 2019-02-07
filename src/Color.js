@@ -132,8 +132,8 @@ export default class Color extends BaseColor {
         const midpoint = (min + max) / 2;
         colorContrastMinMax =
           this.lightness < midpoint
-            ? theme.maxColorLightness
-            : 1 - theme.minColorLightness;
+            ? theme.endSignalLightness
+            : 1 - theme.startSignalLightness;
       }
 
       return contrastMultiplier * contrastNormalizer * colorContrastMinMax;
