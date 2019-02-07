@@ -3,7 +3,6 @@
   "description": "Color UIs by specifying colors relatively (using HCL, a perceptually accurate color model)",
   "version": "1.0.0-alpha.7",
   "author": "Mark Miro",
-  "license": "MIT",
   "keywords": [
     "huet",
     "react",
