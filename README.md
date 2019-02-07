@@ -1,5 +1,7 @@
 # Huet ([alpha](#future-developments))
 
+**NOTE: THIS PROJECT IS UNDER ACTIVE CONSTRUCTION AND LIKELY DOESN'T WORK**
+
 Huet is named to resemble the word duet. The idea is to have colors work in harmony together.
 
 ## Why Huet?
