@@ -44,9 +44,12 @@ function createRamp(themeConfig, rampConfig) {
   };
 
   // TODO: if ramp is a "colored", then convert it based on the min and max colors.
-  const hexColors = config.colors.map(
-    colorName => themeConfig.pallet[colorName]
-  );
+  const hexColors = config.colors.map(colorName => {
+    if (colorName in themeConfig.pallet) {
+      return themeConfig.pallet[colorName];
+    }
+    throw new Error(`Couldn't find color "${colorName}" in themeConfig.pallet`);
+  });
 
   const scale = chroma.scale(hexColors);
   if (config.colorModel) scale.mode(config.colorModel);

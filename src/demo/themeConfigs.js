@@ -1,5 +1,37 @@
 import shared from "../private/baseThemeConfig.js";
 
+function rgbCubeTheme(shared) {
+  const palletColors = {
+    red: "#ff0000",
+    yellow: "#ffff00",
+    green: "#00ff00",
+    cyan: "#00ffff",
+    blue: "#0000ff",
+    purple: "#ff00ff"
+  };
+
+  const ramps = Object.keys(palletColors).reduce(
+    (acc, label) => ({
+      ...acc,
+      [label]: { colors: ["black", label, "white"] }
+    }),
+    {}
+  );
+
+  return {
+    ...shared,
+    name: "RGB Cube Corners",
+    pallet: {
+      ...shared.pallet,
+      ...palletColors
+    },
+    ramps: {
+      ...shared.ramps,
+      ...ramps
+    }
+  };
+}
+
 const themes = [
   {
     ...shared
@@ -9,13 +41,12 @@ const themes = [
     name: "Base Inverted",
     bgRampValue: 0
   },
+  rgbCubeTheme(shared),
   {
     ...shared,
     name: "High Contrast",
     pallet: {
       ...shared.pallet,
-      black: "#000000",
-      white: "#ffffff",
       red: "#ff0030",
       yellow: "#b77a00",
       green: "#009700",

@@ -21,17 +21,6 @@ const palletColors = colorLabels.reduce(
   {}
 );
 
-// const palletColors = {
-//   red: "#ff0000",
-//   yellow: "#ffff00",
-//   green: "#00ff00",
-//   cyan: "#00ffff",
-//   blue: "#0000ff",
-//   magenta: "#ff00ff"
-// };
-
-// const colorLabels = Object.keys(palletColors);
-
 const ramps = colorLabels.reduce(
   (acc, label) => ({
     ...acc,
