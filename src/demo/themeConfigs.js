@@ -2,8 +2,12 @@ import shared from "../private/baseThemeConfig.js";
 
 const themes = [
   {
+    ...shared
+  },
+  {
     ...shared,
-    name: "Basic"
+    name: "Base Inverted",
+    bgRampValue: 0
   },
   {
     ...shared,

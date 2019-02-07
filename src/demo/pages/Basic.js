@@ -2,11 +2,10 @@ import React, { useContext } from "react";
 import { Icon } from "react-icons-kit";
 import { ic_sentiment_satisfied } from "react-icons-kit/md/ic_sentiment_satisfied";
 import { ic_notifications } from "react-icons-kit/md/ic_notifications";
-import { ic_check_circle } from "react-icons-kit/md/ic_check_circle";
-import { u1F432 } from "react-icons-kit/noto_emoji_regular/u1F432";
 import { Block } from "../../huet";
 import __ from "../../private/atoms";
-import { BackgroundContext } from "../../reactContexts";
+import Theme from "../../Theme";
+import { BackgroundContext, ThemeContext } from "../../reactContexts";
 
 function Section({ title, children }) {
   return (
@@ -96,6 +95,7 @@ function Code() {
 }
 
 function Form() {
+  const theme = useContext(ThemeContext);
   return (
     <>
       <Block as="label" style={__.db.mb1.mt2}>
@@ -143,6 +143,24 @@ function Form() {
         }}
       >
         Submit
+      </Block>
+      <Block
+        theme={
+          new Theme({
+            ...theme.config,
+            contrastMultiplier: theme.config.contrastMultiplier * 0.5
+          })
+        }
+        as="button"
+        contrast="bg=100 bg/fg=white"
+        style={{
+          ...__.pa2.tc.w100.br2.mt2.bn.db.flex.justify_center.items_center,
+          fontSize: "inherit",
+          fontFamily: "inherit",
+          maxWidth: "20em"
+        }}
+      >
+        Submit Disabled
       </Block>
       <Block contrast="fg=50" style={{ ...__.mt1, fontSize: "75%" }}>
         By signing up you agree to the{" "}
@@ -242,11 +260,14 @@ export default function Basic() {
               readOnly
               contrast="bg=25 bg/b=25 bg/fg=50"
               value="Search"
-              style={{
+              style={parentBg => ({
                 ...__.ba.br2.pa2.mr3,
                 backgroundColor: "transparent",
+                boxShadow: `inset 0 2px 10px ${parentBg.theme.ramps
+                  .gray(0)
+                  .alpha(0.2)}`,
                 width: "15em"
-              }}
+              })}
             />
             <div style={{ position: "relative" }}>
               <Icon icon={ic_notifications} size={24} />
