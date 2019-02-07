@@ -232,6 +232,66 @@ function Charts() {
   );
 }
 
+function NamedColors() {
+  const theme = useContext(ThemeContext);
+  return (
+    <>
+      {[100, 50, 25, 12.5, 6.25].map(contrast => (
+        <div key={contrast} style={__.flex.mb2}>
+          {Object.keys(theme.ramps).map(rampKey => (
+            <Block
+              key={rampKey}
+              contrast={`bg=${contrast}-${rampKey} bg/fg=white`}
+              style={__.pa1.tc.w100.f4.mr2.br1}
+            >
+              {rampKey}
+            </Block>
+          ))}
+        </div>
+      ))}
+    </>
+  );
+}
+
+function Nav() {
+  return (
+    <Block contrast="bg=100" style={__.pa3.flex.items_center.justify_between}>
+      <Block contrast="fg=50">
+        <Icon icon={ic_sentiment_satisfied} style={__.mr2} size={32} />
+      </Block>
+      <div style={__.flex.items_center}>
+        <div style={__.mr3}>Home &nbsp;&nbsp; About &nbsp;&nbsp; Contact</div>
+        <Block
+          as="input"
+          readOnly
+          contrast="bg=25 bg/b=25 bg/fg=50"
+          value="Search"
+          style={parentBg => ({
+            ...__.ba.br2.pa2.mr3,
+            backgroundColor: "transparent",
+            boxShadow: `inset 0 2px 10px ${parentBg.shadowColor(0.2)}`,
+            width: "15em"
+          })}
+        />
+        <div style={{ position: "relative" }}>
+          <Icon icon={ic_notifications} size={24} />
+          <Block
+            base="red"
+            contrast="bg=100 b=0"
+            style={{
+              ...__.ba.br100.absolute,
+              width: 10,
+              height: 10,
+              right: 0,
+              top: 0
+            }}
+          />
+        </div>
+      </div>
+    </Block>
+  );
+}
+
 export default function Basic() {
   return (
     <div
@@ -243,48 +303,11 @@ export default function Basic() {
       }}
     >
       <h1 style={__.f1}>Examples</h1>
+      <Section title="Colors">
+        <NamedColors />
+      </Section>
       <Section title="Nav">
-        <Block
-          contrast="bg=100"
-          style={__.pa3.flex.items_center.justify_between}
-        >
-          <Block contrast="fg=50">
-            <Icon icon={ic_sentiment_satisfied} style={__.mr2} size={32} />
-          </Block>
-          <div style={__.flex.items_center}>
-            <div style={__.mr3}>
-              Home &nbsp;&nbsp; About &nbsp;&nbsp; Contact
-            </div>
-            <Block
-              as="input"
-              readOnly
-              contrast="bg=25 bg/b=25 bg/fg=50"
-              value="Search"
-              style={parentBg => ({
-                ...__.ba.br2.pa2.mr3,
-                backgroundColor: "transparent",
-                boxShadow: `inset 0 2px 10px ${parentBg.theme.ramps
-                  .gray(0)
-                  .alpha(0.2)}`,
-                width: "15em"
-              })}
-            />
-            <div style={{ position: "relative" }}>
-              <Icon icon={ic_notifications} size={24} />
-              <Block
-                base="red"
-                contrast="bg=100 b=0"
-                style={{
-                  ...__.ba.br100.absolute,
-                  width: 10,
-                  height: 10,
-                  right: 0,
-                  top: 0
-                }}
-              />
-            </div>
-          </div>
-        </Block>
+        <Nav />
       </Section>
       <Section title="Form">
         <Form />

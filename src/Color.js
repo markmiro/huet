@@ -231,6 +231,12 @@ export default class Color extends BaseColor {
       .hex();
   }
 
+  shadowColor(alpha) {
+    return this.theme.ramps
+      .gray(0)
+      .alpha(this.theme.contrastMultiplier * alpha);
+  }
+
   _getMinMax(ramp) {
     const rootBaseRamp = this.theme.ramps[this.theme.bgRamp];
     // We're not requiring a ramp because we want the `contrast` method to work
