@@ -45,8 +45,6 @@ export default {
   pallet: {
     black: "#000000",
     white: "#ffffff",
-    // realBlack: "#000000",
-    // realWhite: "#ffffff",
     ...palletColors
   },
   ramps: {

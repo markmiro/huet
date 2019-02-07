@@ -13,6 +13,7 @@ const themes = [
     ...shared,
     name: "High Contrast",
     pallet: {
+      ...shared.pallet,
       black: "#000000",
       white: "#ffffff",
       red: "#ff0030",
@@ -31,6 +32,7 @@ const themes = [
     ...shared,
     name: "Radioactive",
     pallet: {
+      ...shared.pallet,
       black: "#69707f",
       white: "#c1ff00",
       red: "#ff88a4",
@@ -47,6 +49,7 @@ const themes = [
     ...shared,
     name: "Terminal",
     pallet: {
+      ...shared.pallet,
       black: "#0d171d",
       white: "#7fff8b",
       red: "#f54f75",
@@ -63,6 +66,7 @@ const themes = [
     ...shared,
     name: "Deep Dive",
     pallet: {
+      ...shared.pallet,
       black: "#001b4f",
       white: "#b6e8e8",
       red: "#ff6669",
@@ -79,6 +83,7 @@ const themes = [
     ...shared,
     name: "Paperback",
     pallet: {
+      ...shared.pallet,
       black: "#3d3531",
       white: "#e2c1b1",
       red: "#e13639",
@@ -91,26 +96,11 @@ const themes = [
     startSignalLightness: 0.36,
     endSignalLightness: 0.55
   },
-  // {
-  //   ...shared,
-  //   name: "Beach",
-  //   pallet: {
-  //     black: "#b9a194",
-  //     white: "#f1f9ff",
-  //     red: "#e13639",
-  //     yellow: "#bd7f33",
-  //     green: "#00878e",
-  //     blue: "#3865da",
-  //     purple: "#7630c8"
-  //   },
-  //   bgRampValue: 0,
-  //   startSignalLightness: 0.15,
-  //   endSignalLightness: 0.57
-  // },
   {
     ...shared,
     name: "Dracula",
     pallet: {
+      ...shared.pallet,
       black: "#37233b",
       white: "#f0c9e7",
       red: "#e13639",
@@ -127,6 +117,7 @@ const themes = [
     ...shared,
     name: "Orange",
     pallet: {
+      ...shared.pallet,
       black: "#4e556d",
       white: "#ff7c49",
       red: "#e32850",
@@ -145,6 +136,7 @@ const themes = [
     ...shared,
     name: "Fade",
     pallet: {
+      ...shared.pallet,
       black: "#3c3d43",
       white: "#b2bdff",
       red: "#ff3200",
@@ -163,6 +155,7 @@ const themes = [
     ...shared,
     name: "Blueprint",
     pallet: {
+      ...shared.pallet,
       black: "#384cd2",
       white: "#ffffff",
       red: "#ff0030",
@@ -178,6 +171,7 @@ const themes = [
     ...shared,
     name: "IKEA",
     pallet: {
+      ...shared.pallet,
       black: "#0d0086",
       white: "#ffc900",
       red: "#ff0034",
