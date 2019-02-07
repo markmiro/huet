@@ -2,7 +2,7 @@ import React from "react";
 import __ from "./atoms";
 import themeConfigs from "../demo/themeConfigs";
 import Theme from "../Theme";
-import Block from "../Block";
+import Block from "../Block.jsx";
 import Checkbox from "./Checkbox";
 import useBrowserState from "./useBrowserState";
 

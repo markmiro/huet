@@ -4,7 +4,7 @@ import saveAs from "file-saver";
 import Theme from "./Theme";
 import { ThemeContext } from "./reactContexts";
 import Contrast from "./Contrast.jsx";
-import Block from "./Block";
+import Block from "./Block.jsx";
 
 import useBrowserState, { reset } from "./private/useBrowserState";
 import Input from "./private/Input";
