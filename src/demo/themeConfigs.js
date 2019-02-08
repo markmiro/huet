@@ -129,7 +129,7 @@ const themes = [
   },
   {
     ...shared,
-    name: "Dracula",
+    name: "Royal Purple",
     pallet: {
       ...shared.pallet,
       black: "#37233b",
@@ -146,10 +146,10 @@ const themes = [
   },
   {
     ...shared,
-    name: "Orange",
+    name: "Orange Boost",
     pallet: {
       ...shared.pallet,
-      black: "#4e556d",
+      black: "#474b56",
       white: "#ff7c49",
       red: "#e32850",
       yellow: "#af7000",
@@ -165,7 +165,7 @@ const themes = [
   },
   {
     ...shared,
-    name: "Fade",
+    name: "Faded Future",
     pallet: {
       ...shared.pallet,
       black: "#3c3d43",
@@ -200,7 +200,7 @@ const themes = [
   },
   {
     ...shared,
-    name: "IKEA",
+    name: "A Box of Macaroni",
     pallet: {
       ...shared.pallet,
       black: "#0d0086",
