@@ -1,6 +1,7 @@
 import chroma from "chroma-js";
 import mapValues from "map-values"; // saved 20KB when bundling
 import { getLightness, BaseColor } from "./Color";
+import baseConfig from "./private/baseThemeConfig";
 
 const allowed = [
   "name",
@@ -22,7 +23,7 @@ export default class Theme {
    * Creates a theme instance from a themeConfig
    * @param {Object} config
    */
-  constructor(config) {
+  constructor(config = baseConfig) {
     this.config = config;
     Object.keys(config).forEach(key => {
       if (!allowed.includes(key)) {
