@@ -9,14 +9,16 @@ import useBrowserState from "./private/useBrowserState";
 import { resetClass } from "./private/styles";
 
 // Theme stuff
-import { Color, Theme, Block, Contrast } from "./huet";
-import Themer from "./Themer";
-import themeConfigs from "./demo/themeConfigs";
+import { Body, Block, Contrast } from "./huet";
 
 // Components
 import Select from "./private/Select";
 
 const pages = {
+  minimal: {
+    name: "Minimal",
+    component: () => <Block contrast="bg=100">Hello</Block>
+  },
   basic: {
     name: "Basic",
     component: lazy(() => import("./demo/pages/Basic"))
@@ -40,47 +42,34 @@ const pages = {
 };
 
 function App() {
-  const [themeConfig, setThemeConfig] = useBrowserState(themeConfigs[0]);
   const [pageKey, setPageKey] = useBrowserState("colorContrast");
 
-  const theme = new Theme(themeConfig);
-  const parentBg = Color.fromTheme(theme);
-
-  useEffect(() => {
-    document.body.style.backgroundColor = parentBg;
-    document.body.style.color = parentBg.contrast(100);
-  }, [parentBg]);
-
   return (
-    <>
-      <Themer themeConfig={themeConfig} onChangeThemeConfig={setThemeConfig} />
-      <Block theme={theme} className={resetClass}>
-        <Contrast
-          bg={10}
-          border={100}
-          className="bb"
-          style={{ position: "relative", zIndex: 2 }}
+    <Body setDocumentBodyColors showThemeConfigEditor className={resetClass}>
+      <Block
+        contrast="bg=10 b=100"
+        className="bb"
+        style={{ position: "relative", zIndex: 2 }}
+      >
+        <Select
+          label="Example Demos"
+          className="pa2 pb3"
+          value={pageKey}
+          onChange={setPageKey}
         >
-          <Select
-            label="Example Demos"
-            className="pa2 pb3"
-            value={pageKey}
-            onChange={setPageKey}
-          >
-            {Object.keys(pages).map(pageKey => (
-              <option key={pageKey} value={pageKey}>
-                {pages[pageKey].name}
-              </option>
-            ))}
-          </Select>
-        </Contrast>
-        <div>
-          <Suspense fallback={<div>Loading...</div>}>
-            {React.createElement(pages[pageKey].component)}
-          </Suspense>
-        </div>
+          {Object.keys(pages).map(pageKey => (
+            <option key={pageKey} value={pageKey}>
+              {pages[pageKey].name}
+            </option>
+          ))}
+        </Select>
       </Block>
-    </>
+      <div>
+        <Suspense fallback={<div>Loading...</div>}>
+          {React.createElement(pages[pageKey].component)}
+        </Suspense>
+      </div>
+    </Body>
   );
 }
 
