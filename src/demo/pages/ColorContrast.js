@@ -57,6 +57,9 @@ export default function ColorContrast() {
   return (
     <div>
       <div className="pa2">
+        <Block as="h1" contrast="b=25" style={__.f2.pb2.bb.mv0.mb2}>
+          {theme.name}
+        </Block>
         <Select label="Step sizes" value={stepKey} onChange={setStepKey}>
           <option value="increment20">20, 40, 80, ...</option>
           <option value="doubleFraction">100/16, 100/8, 100/4...</option>

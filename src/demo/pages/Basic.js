@@ -293,6 +293,7 @@ function Nav() {
 }
 
 export default function Basic() {
+  const { name } = useContext(ThemeContext);
   return (
     <div
       style={{
@@ -302,7 +303,7 @@ export default function Basic() {
         marginRight: "auto"
       }}
     >
-      <h1 style={__.f1}>Examples</h1>
+      <h1 style={{ ...__.f1.pb1.bb, borderBottomWidth: ".125em" }}>{name}</h1>
       <Section title="Colors">
         <NamedColors />
       </Section>
