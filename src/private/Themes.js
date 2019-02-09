@@ -9,26 +9,62 @@ import useBrowserState from "./useBrowserState";
 function Labeled({ title, children }) {
   return (
     <>
-      <label style={__.i.mb1}>{title}</label>
+      <label style={__.i}>{title}</label>
       {children}
     </>
   );
 }
 
+function Arrow({ size = "1em", top = null, left = null, direction = "up" }) {
+  const directionToAngle = {
+    up: 45,
+    right: 45 + 90,
+    down: 45 + 180,
+    left: 45 + 180 + 90
+  };
+  const angle = directionToAngle[direction];
+
+  const positionStyle =
+    top || left
+      ? {
+          ...__.absolute,
+          top,
+          left
+        }
+      : null;
+  return (
+    <div
+      style={{
+        width: size,
+        height: size,
+        background: "transparent",
+        transform: `translate(-50%, -50%) rotate(${angle}deg)`,
+        borderColor: "transparent",
+        borderWidth: `calc(${size} / 2)`,
+        borderStyle: "solid",
+        borderTopColor: "currentColor",
+        borderLeftColor: "currentColor",
+        ...positionStyle
+      }}
+    />
+  );
+}
+
 const ThemePreview = React.memo(
-  ({ config, showMiddle = false, onClick = () => {} }) => {
+  ({ config, showMiddle = false, onClick = () => {}, isSelected }) => {
     const theme = new Theme(config);
     return (
       <Block
         as="button"
         theme={theme}
-        contrast="bg=0 b=12"
+        contrast={`bg=0 b=${isSelected ? 100 : 12}`}
         style={parentBg => ({
-          ...__.w100.ba,
-          boxShadow: `0 2px 20px ${parentBg.contrast(100).alpha(0.2)}`
+          ...__.w100.ba.relative,
+          boxShadow: `0 2px 10px ${parentBg.contrast(100).alpha(0.2)}`
         })}
         onClick={() => onClick(config.name)}
       >
+        {isSelected && <Arrow top="100%" left="50%" direction="up" />}
         <div style={{ ...__.flex, height: "0.5em" }}>
           {Object.keys(theme.pallet).map(palletKey => (
             <div
@@ -91,52 +127,35 @@ export default function Themes({ onConfigSelect }) {
     themeConfigs[0].name
   );
   return (
-    <div style={__.pa2}>
-      <Labeled title="Themes" />
-      <Checkbox
-        label="Show middle grays"
-        value={showMiddleGrays}
-        onChange={setShowMiddleGrays}
-      />
-      {finalConfigs.map(config => (
-        <div key={config.name} style={__.mt2.relative}>
-          {config.name === selectedConfigName && (
-            <>
-              <Block
-                contrast="bg=100"
-                style={{
-                  ...__.absolute,
-                  width: ".5rem",
-                  height: ".5rem",
-                  top: "50%",
-                  left: "-.75rem",
-                  transform: "translateY(-50%) rotate(45deg)"
-                }}
-              />
-              <Block
-                contrast="bg=100"
-                style={{
-                  ...__.absolute,
-                  width: ".5rem",
-                  height: ".5rem",
-                  top: "50%",
-                  right: "-.75rem",
-                  transform: "translateY(-50%) rotate(45deg)"
-                }}
-              />
-            </>
-          )}
-          <ThemePreview
-            config={config}
-            showMiddle={showMiddleGrays}
-            isSelected={config.name === selectedConfigName}
-            onClick={() => {
-              setSelectedConfigName(config.name);
-              onConfigSelect(config);
-            }}
-          />
-        </div>
-      ))}
+    <div>
+      <div style={__.ma2.mb0}>
+        <Labeled title="Themes" />
+      </div>
+      <div style={{ ...__.flex, overflowX: "scroll" }}>
+        {finalConfigs.map(config => (
+          <div
+            key={config.name}
+            style={{ ...__.ma2.relative, flexBasis: "70%", flexShrink: 0 }}
+          >
+            <ThemePreview
+              config={config}
+              showMiddle={showMiddleGrays}
+              isSelected={config.name === selectedConfigName}
+              onClick={() => {
+                setSelectedConfigName(config.name);
+                onConfigSelect(config);
+              }}
+            />
+          </div>
+        ))}
+      </div>
+      <div style={__.ma2}>
+        <Checkbox
+          label="Show middle grays"
+          value={showMiddleGrays}
+          onChange={setShowMiddleGrays}
+        />
+      </div>
     </div>
   );
 }

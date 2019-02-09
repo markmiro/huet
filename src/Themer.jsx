@@ -88,7 +88,7 @@ export default function Themer({ themeConfig, onChangeThemeConfig }) {
             }}
             onClick={() => setIsExpanded(v => !v)}
           >
-            <div style={__.pv2.ph2.b}>Huet Themer (alpha)</div>
+            <div style={__.pv2.ph2.b}>Huet Theme Configurator</div>
             <Contrast bg={20} style={__.flex.justify_center.items_center.ph3.b}>
               {isExpanded ? "↓" : "↑"}
             </Contrast>
@@ -100,6 +100,33 @@ export default function Themer({ themeConfig, onChangeThemeConfig }) {
             }}
           >
             <Themes onConfigSelect={onChangeThemeConfig} />
+            <Block contrast="bg=10" style={__.pa2}>
+              <Checkbox
+                label="Theme the themer"
+                value={shouldThemeSelf}
+                onChange={setShouldThemeSelf}
+                style={__.mb2}
+              />
+              <div style={__.flex.justify_between}>
+                <ButtonGroup>
+                  <Button
+                    bg={50}
+                    bgRamp="red"
+                    textRamp="white"
+                    onClick={reset}
+                    verify
+                  >
+                    Reset Colors
+                  </Button>
+                  <Button onClick={exportTheme}>Export Theme</Button>
+                  <JsonUploadButton
+                    onUpload={themeConfig => onChangeThemeConfig(themeConfig)}
+                  >
+                    Import Theme
+                  </JsonUploadButton>
+                </ButtonGroup>
+              </div>
+            </Block>
             <div style={__.pa2}>
               <Input
                 label="Name"
@@ -198,33 +225,6 @@ export default function Themer({ themeConfig, onChangeThemeConfig }) {
               </div>
             </div>
             <Block contrast="b=10" style={__.bt} />
-            <Block contrast="bg=10" style={__.pa2}>
-              <Checkbox
-                label="Theme the themer"
-                value={shouldThemeSelf}
-                onChange={setShouldThemeSelf}
-                style={__.mb2}
-              />
-              <div style={__.flex.justify_between}>
-                <ButtonGroup>
-                  <Button
-                    bg={50}
-                    bgRamp="red"
-                    textRamp="white"
-                    onClick={reset}
-                    verify
-                  >
-                    Reset Colors
-                  </Button>
-                  <Button onClick={exportTheme}>Export Theme</Button>
-                  <JsonUploadButton
-                    onUpload={themeConfig => onChangeThemeConfig(themeConfig)}
-                  >
-                    Import Theme
-                  </JsonUploadButton>
-                </ButtonGroup>
-              </div>
-            </Block>
           </div>
         </Contrast>
       </div>
