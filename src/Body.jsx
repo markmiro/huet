@@ -2,14 +2,13 @@ import React, { useEffect } from "react";
 import Theme from "./Theme";
 import Color from "./Color";
 import Block from "./Block.jsx";
-import Themer from "./Themer.jsx";
-import ErrorBoundary from "./private/ErrorBoundary";
 import useBrowserState from "./private/useBrowserState";
 import baseThemeConfig from "./private/baseThemeConfig";
 
+export const ThemeConfiguratorContext = React.createContext();
+
 export default function Body({
   initialThemeConfig = baseThemeConfig,
-  showThemeConfigEditor,
   setDocumentBodyColors,
   ...rest
 }) {
@@ -26,16 +25,8 @@ export default function Body({
   }, [parentBg, setDocumentBodyColors]);
 
   return (
-    <>
-      {showThemeConfigEditor && (
-        <ErrorBoundary>
-          <Themer
-            themeConfig={themeConfig}
-            onChangeThemeConfig={setThemeConfig}
-          />
-        </ErrorBoundary>
-      )}
+    <ThemeConfiguratorContext.Provider value={[themeConfig, setThemeConfig]}>
       <Block theme={theme} {...rest} />
-    </>
+    </ThemeConfiguratorContext.Provider>
   );
 }

@@ -1,4 +1,4 @@
-import React, { useEffect, lazy, Suspense } from "react";
+import React, { lazy, Suspense } from "react";
 import ReactDOM from "react-dom";
 
 // General setup
@@ -9,7 +9,7 @@ import useBrowserState from "./private/useBrowserState";
 import { resetClass } from "./private/styles";
 
 // Theme stuff
-import { Body, Block, Contrast } from "./huet";
+import { Body, Block, ThemeConfigurator } from "./huet";
 
 // Components
 import Select from "./private/Select";
@@ -45,38 +45,43 @@ function App() {
   const [pageKey, setPageKey] = useBrowserState("colorContrast");
 
   return (
-    <Body setDocumentBodyColors showThemeConfigEditor className={resetClass}>
-      <Block
-        contrast="bg=10 b=100"
-        className="bb"
-        style={{ position: "relative", zIndex: 2 }}
-      >
-        <Select
-          label="Example Demos"
-          className="pa2 pb3"
-          value={pageKey}
-          onChange={setPageKey}
+    <Body setDocumentBodyColors className={`${resetClass} flex`}>
+      <div className="w-100">
+        <Block
+          contrast="bg=10 b=100"
+          className="bb"
+          style={{ position: "relative", zIndex: 2 }}
         >
-          {Object.keys(pages).map(pageKey => (
-            <option key={pageKey} value={pageKey}>
-              {pages[pageKey].name}
-            </option>
-          ))}
-        </Select>
-      </Block>
-      <div>
-        <Suspense fallback={<div>Loading...</div>}>
-          {React.createElement(pages[pageKey].component)}
-        </Suspense>
+          <Select
+            label="Example Demos"
+            className="pa2 pb3"
+            value={pageKey}
+            onChange={setPageKey}
+          >
+            {Object.keys(pages).map(pageKey => (
+              <option key={pageKey} value={pageKey}>
+                {pages[pageKey].name}
+              </option>
+            ))}
+          </Select>
+        </Block>
+        <div>
+          <Suspense fallback={<div>Loading...</div>}>
+            {React.createElement(pages[pageKey].component)}
+          </Suspense>
+        </div>
       </div>
+      <ThemeConfigurator />
     </Body>
   );
 }
 
 const rootElement = document.getElementById("root");
 ReactDOM.render(
-  <ErrorBoundary>
-    <App />
-  </ErrorBoundary>,
+  <React.StrictMode>
+    <ErrorBoundary>
+      <App />
+    </ErrorBoundary>
+  </React.StrictMode>,
   rootElement
 );
