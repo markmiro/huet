@@ -37,12 +37,8 @@ const Contrast = props => {
   const parentBg = useContext(BackgroundContext) || Color.fromTheme(theme);
 
   function contrast(parentColor, contrastAmount, rampKey) {
-    const ramp = rampKey ? theme.ramps[rampKey] : theme.ramps.gray;
-    if (ramp.config.mode === "direct") {
-      return parentColor.direct(ramp);
-    } else {
-      return parentColor.contrast(contrastAmount, ramp);
-    }
+    const ramp = rampKey ? theme.ramps[rampKey] : undefined;
+    return parentColor.contrast(contrastAmount, ramp);
   }
 
   // ---

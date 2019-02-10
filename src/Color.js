@@ -82,9 +82,6 @@ export default class Color extends BaseColor {
 
   contrast(contrastAmount = 100, ramp = this.baseRamp) {
     if (ramp.config.mode === "direct") {
-      console.warn(
-        'You should be using the "direct" method instead since the "contrast" parameter won\'t do anything here'
-      );
       return this.direct(ramp);
     }
 
@@ -181,8 +178,7 @@ export default class Color extends BaseColor {
       theme,
       bgColor: this,
       lab: finalLab,
-      ramp,
-      lightness: targetLightness
+      ramp
     });
   }
 

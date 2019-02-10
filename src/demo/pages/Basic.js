@@ -292,6 +292,37 @@ function Nav() {
   );
 }
 
+function Alert() {
+  return (
+    <>
+      {["red", "yellow", "green", "blue", "purple"].map(base => (
+        <Block
+          key={base}
+          base={base}
+          contrast="b=50 bg=25"
+          style={__.mt3.pa3.ba.br2.flex.justify_between.items_center}
+        >
+          <div style={{ lineHeight: 1.4 }}>
+            Hold up! We need to notify you about something.
+            <br />
+            Click{" "}
+            <Block as="a" href="#" base="blue">
+              this link
+            </Block>{" "}
+            to find out more.
+          </div>
+          <Block
+            contrast="bg=12"
+            style={__.w2.h2.br100.flex.flex.items_center.justify_center}
+          >
+            ✕
+          </Block>
+        </Block>
+      ))}
+    </>
+  );
+}
+
 export default function Basic() {
   const { name } = useContext(ThemeContext);
   return (
@@ -314,31 +345,7 @@ export default function Basic() {
         <Form />
       </Section>
       <Section title="Alert">
-        {["red", "yellow", "green", "blue", "purple"].map(base => (
-          <Block
-            key={base}
-            base={base}
-            contrast="b=50 bg=25"
-            style={__.mt3.pa3.ba.br2.flex.justify_between.items_center}
-          >
-            <div style={{ lineHeight: 1.4 }}>
-              Hold up! We need to notify you about something.
-              <br />
-              Click{" "}
-              <Block as="a" href="#" base="blue">
-                this link
-              </Block>{" "}
-              to find out more.
-            </div>
-            <Block
-              base={base}
-              contrast="bg=12"
-              style={__.w2.h2.br100.flex.flex.items_center.justify_center}
-            >
-              ✕
-            </Block>
-          </Block>
-        ))}
+        <Alert />
       </Section>
       <Section title="Code">
         <Code />

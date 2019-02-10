@@ -27,7 +27,7 @@ export default function Block({
   debug,
   style,
   contrast = "fg=100",
-  base = "gray",
+  base,
   children,
   ...rest
 }) {
@@ -127,7 +127,7 @@ const keyToCss = {
   o: "outlineColor"
 };
 
-function parseColorsToStyle(relativeToColor, str, base) {
+function parseColorsToStyle(relativeToColor, str, base = null) {
   const theme = relativeToColor.theme;
 
   const things = str.split(" ");
@@ -173,14 +173,10 @@ function parseColorsToStyle(relativeToColor, str, base) {
 
     const parentColor = colors[parentKey];
 
-    const ramp = theme.ramps[rampKey];
-
-    let color;
-    if (ramp.config.mode === "direct") {
-      color = parentColor.direct(ramp);
-    } else {
-      color = parentColor.contrast(contrast, ramp);
-    }
+    const color = parentColor.contrast(
+      contrast,
+      rampKey ? theme.ramps[rampKey] : undefined
+    );
     colors[childKey] = color;
 
     returnStyle[keyToCss[childKey]] = color;
