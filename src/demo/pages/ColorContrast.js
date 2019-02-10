@@ -182,7 +182,7 @@ function FormExample() {
   const rampKeys = useColoredRampKeys();
   return (
     <div>
-      <div style={__.flex.flex_row}>
+      <div style={{ ...__.flex.flex_row, overflow: "scroll" }}>
         {[0, 49, 51, 100].map(bg => (
           <Block key={bg} contrast={`bg=${bg}`}>
             <div style={__.pa3}>

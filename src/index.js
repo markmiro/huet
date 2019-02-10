@@ -46,7 +46,7 @@ function App() {
 
   return (
     <Body setDocumentBodyColors className={`${resetClass} flex`}>
-      <div className="w-100">
+      <div className="w-100" style={{ overflow: "hidden" }}>
         <Block
           contrast="bg=10 b=100"
           className="bb"
