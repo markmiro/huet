@@ -87,6 +87,7 @@ export default function Themer({ themeConfig, onChangeThemeConfig }) {
         })}
       >
         <Block
+          as="button"
           contrast="bg=100"
           style={{
             flexShrink: 0,
