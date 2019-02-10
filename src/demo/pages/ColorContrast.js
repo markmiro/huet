@@ -79,7 +79,7 @@ export default function ColorContrast() {
         <Matrix {...stepSizes[stepKey]} />
         <NamedColors />
         <FormExample />
-        <TextOnColoredBackground />
+        {/* <TextOnColoredBackground /> */}
       </Block>
     </div>
   );
