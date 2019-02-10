@@ -113,7 +113,7 @@ export function InnerRamp({ ramp }) {
               key={i}
               style={{
                 ...__.h100,
-                backgroundColor: chroma(ramp((first + second) / 2)).hex(),
+                backgroundColor: chroma.lab(...ramp((first + second) / 2)),
                 width: `${(second - first) * 100}%`
               }}
             />
