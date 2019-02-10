@@ -12,7 +12,7 @@ const allowed = [
   "startSignalLightness",
   "endSignalLightness",
   "contrastMultiplier",
-  "saturationMultiplier",
+  "signalSaturationMultiplier",
   "rescaleSaturationToGrayRange",
   "rescaleContrastToSignalRange",
   "rescaleContrastToGrayRange"

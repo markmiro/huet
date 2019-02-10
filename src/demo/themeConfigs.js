@@ -57,7 +57,7 @@ const themes = [
   //   startSignalLightness: 0.3,
   //   endSignalLightness: 0.7,
   //   contrastMultiplier: 2,
-  //   saturationMultiplier: 2
+  //   signalSaturationMultiplier: 2
   // },
   // {
   //   ...shared,
@@ -184,7 +184,7 @@ const themes = [
     startSignalLightness: 0.27,
     endSignalLightness: 0.76,
     contrastMultiplier: 1,
-    saturationMultiplier: 0.83
+    signalSaturationMultiplier: 0.83
   },
   // {
   //   ...shared,
@@ -203,7 +203,7 @@ const themes = [
   //   bgRampValue: 0,
   //   startSignalLightness: 0.36,
   //   endSignalLightness: 0.72,
-  //   saturationMultiplier: 0.59
+  //   signalSaturationMultiplier: 0.59
   // },
   {
     ...shared,
@@ -220,7 +220,7 @@ const themes = [
     },
     startSignalLightness: 0.47,
     endSignalLightness: 0.75,
-    saturationMultiplier: 1.5,
+    signalSaturationMultiplier: 1.5,
     contrastMultiplier: 1.5
   },
   // {

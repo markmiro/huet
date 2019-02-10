@@ -34,7 +34,7 @@ export default function Themer({ themeConfig, onChangeThemeConfig }) {
   const setName = modify("name");
   const setBgRampValue = modify("bgRampValue");
   const setContrastMultiplier = modify("contrastMultiplier");
-  const setSaturationMultiplier = modify("saturationMultiplier");
+  const setSaturationMultiplier = modify("signalSaturationMultiplier");
   const setPallet = modify("pallet");
   const setstartSignalLightness = modify("startSignalLightness");
   const setendSignalLightness = modify("endSignalLightness");
@@ -206,7 +206,7 @@ export default function Themer({ themeConfig, onChangeThemeConfig }) {
                   min={0}
                   max={1}
                   decimals={2}
-                  value={themeConfig.saturationMultiplier}
+                  value={themeConfig.signalSaturationMultiplier}
                   onChange={setSaturationMultiplier}
                   style={__.mt2}
                 />

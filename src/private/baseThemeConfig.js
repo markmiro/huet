@@ -53,7 +53,7 @@ export default {
   startSignalLightness: 0.5,
   endSignalLightness: 0.5,
   contrastMultiplier: 1,
-  saturationMultiplier: 1,
+  signalSaturationMultiplier: 1,
   rescaleContrastToSignalRange: true,
   rescaleSaturationToGrayRange: false,
   rescaleContrastToGrayRange: true
