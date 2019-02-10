@@ -1,6 +1,6 @@
 import chroma from "chroma-js";
 import mapValues from "map-values"; // saved 20KB when bundling
-import { getLightness, BaseColor } from "./Color";
+import { getLightness } from "./Color";
 import baseConfig from "./private/baseThemeConfig";
 
 const allowed = [
@@ -75,7 +75,7 @@ function createRamp(themeConfig, rampConfig) {
 // Don't want to expose the underlying chroma-js stuff to the user.
 // The chroma-js scale is a function but also allows chaining and has fields.
 function wrapScaleFunc(scale) {
-  return n => new BaseColor(scale(n).hex());
+  return n => scale(n).lab();
 }
 
 function createRampWithScale(scale) {

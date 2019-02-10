@@ -17,34 +17,28 @@ import Theme from "./Theme";
 // ---
 
 export class BaseColor {
-  constructor(hex) {
-    if (!hex) {
-      throw new Error("`hex` is required");
+  constructor(lab) {
+    if (!lab) {
+      throw new Error("`lab` is required");
     }
-    this.hex = hex;
+    this.lab = lab;
   }
 
   alpha(a) {
-    return chroma(this.hex)
+    return chroma
+      .lab(...this.lab)
       .alpha(a)
       .hex();
   }
 
   toString() {
-    return this.hex;
+    return chroma.lab(...this.lab).hex();
   }
 }
 
 export default class Color extends BaseColor {
-  constructor({
-    theme,
-    bgColor = null,
-    hex,
-    ramp = null,
-    baseRamp = null,
-    lightness = getLightness(hex)
-  }) {
-    super(hex);
+  constructor({ theme, bgColor = null, lab, ramp = null, baseRamp = null }) {
+    super(lab);
     if (!theme) {
       throw new Error("`theme` is required");
     }
@@ -67,7 +61,7 @@ export default class Color extends BaseColor {
     this.ramp = ramp;
     this.baseRamp =
       baseRamp || (bgColor && bgColor.baseRamp) || theme.ramps.gray;
-    this.lightness = lightness;
+    this.lightness = lab[0];
   }
 
   // TODO: consider removing `bgRamp` and `bgRampValue from theme
@@ -76,11 +70,11 @@ export default class Color extends BaseColor {
       throw new Error('Need to give me a Theme instance, not a "theme config"');
     }
     const ramp = theme.ramps[theme.bgRamp];
-    const hex = ramp(theme.bgRampValue).hex;
+    const lab = ramp(theme.bgRampValue);
     return new Color({
       theme,
       bgColor: null,
-      hex,
+      lab,
       ramp,
       baseRamp: ramp
     });
@@ -148,10 +142,8 @@ export default class Color extends BaseColor {
     let scaleValue =
       (targetLightness - ramp.startL) / (ramp.endL - ramp.startL);
 
-    let hex = ramp(scaleValue).hex;
-
-    const [bgL, bgA, bgB] = chroma(this.hex).lab();
-    const [fgL, fgA, fgB] = chroma(hex).lab();
+    const [bgL, bgA, bgB] = this.lab;
+    const [fgL, fgA, fgB] = ramp(scaleValue);
 
     const abContrastMultiplier =
       isRootBaseRamp || theme.contrastMultiplier > 1
@@ -183,12 +175,12 @@ export default class Color extends BaseColor {
     const a = (bgA + (fgA - bgA) * abContrast) * saturationMultiplier;
     const b = (bgB + (fgB - bgB) * abContrast) * saturationMultiplier;
 
-    hex = chroma.lab(l, a, b).hex();
+    const finalLab = [l, a, b];
 
     return new Color({
       theme,
       bgColor: this,
-      hex,
+      lab: finalLab,
       ramp,
       lightness: targetLightness
     });
@@ -198,17 +190,22 @@ export default class Color extends BaseColor {
     if (ramp.config.mode !== "direct") throw new Error("Not allowed");
 
     const { theme, baseRamp } = this;
-    let hex = ramp(
+    const [fgL, fgA, fgB] = ramp(
       (this.lightness - baseRamp.startL) / (baseRamp.endL - baseRamp.startL)
-    ).hex;
-    hex = chroma
-      .mix(this.hex, hex, Math.min(theme.contrastMultiplier, 1), "lab")
-      .hex();
+    );
+    const [bgL, bgA, bgB] = this.lab;
+    const mix = Math.min(theme.contrastMultiplier, 1);
+
+    const lab = [
+      bgL + (fgL - bgL) * mix,
+      bgA + (fgA - bgA) * mix,
+      bgB + (fgB - bgB) * mix
+    ];
 
     return new Color({
       theme,
       bgColor: this,
-      hex,
+      lab,
       ramp
     });
   }
@@ -217,21 +214,22 @@ export default class Color extends BaseColor {
     return new Color({
       theme: this.theme,
       bgColor: this.bgColor,
-      hex: this.hex,
+      lab: this.lab,
       ramp: this.ramp,
       baseRamp: ramp
     });
   }
 
   alpha(amount) {
-    return chroma(this.hex)
+    return chroma
+      .lab(...this.lab)
       .alpha(amount * this.theme.contrastMultiplier)
       .hex();
   }
 
-  shadowColor(alpha) {
-    return this.theme.ramps
-      .gray(0)
+  shadowColor(alpha = 1) {
+    return chroma
+      .lab(this.theme.ramps.gray(0))
       .alpha(this.theme.contrastMultiplier * alpha);
   }
 

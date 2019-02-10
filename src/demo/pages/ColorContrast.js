@@ -288,7 +288,7 @@ function RampPicker({ rampKey, onRampKeyChange }) {
             // normal HEX colors within <Block> so we can do calculations
             backgroundColor: new Color({
               theme,
-              hex: theme.ramps[key](0.5).toString()
+              lab: theme.ramps[key](0.5)
             })
           }}
         >

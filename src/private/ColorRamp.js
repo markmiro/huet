@@ -1,5 +1,6 @@
 import React, { useContext } from "react";
 import _ from "lodash";
+import chroma from "chroma-js";
 import Contrast from "../Contrast.jsx";
 import Block from "../Block.jsx";
 import { getLightness } from "../Color";
@@ -112,7 +113,7 @@ export function InnerRamp({ ramp }) {
               key={i}
               style={{
                 ...__.h100,
-                backgroundColor: ramp((first + second) / 2),
+                backgroundColor: chroma(ramp((first + second) / 2)).hex(),
                 width: `${(second - first) * 100}%`
               }}
             />
@@ -126,7 +127,7 @@ export function InnerRamp({ ramp }) {
           style={{
             ...__.h100.w100,
             background: `linear-gradient(to right, ${_.range(0, 1.2, 0.2)
-              .map(i => ramp(i))
+              .map(i => chroma.lab(...ramp(i)))
               .join(",")})`
           }}
         />

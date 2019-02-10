@@ -110,7 +110,7 @@ function Experiments() {
         bg={30}
         className="h2 mt2"
         style={{
-          boxShadow: `0 5px 10px ${theme.ramps.gray(0).alpha(0.2)}`
+          boxShadow: `0 5px 10px ${parentBg.shadowColor(0.2)}`
         }}
       />
 
@@ -121,7 +121,7 @@ function Experiments() {
         style={{
           ...__.pa2.tc.br2.ba.mt3.w100.f4,
           background: `linear-gradient(transparent, ${parentBg.contrast(5)})`,
-          boxShadow: `0 1px 2px ${theme.ramps.gray(0).alpha(0.15)}`,
+          boxShadow: `0 1px 2px ${parentBg.shadowColor(0.15)}`,
           maxWidth: "100%"
         }}
       >
