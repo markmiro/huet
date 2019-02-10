@@ -2,7 +2,6 @@ import React, { useContext } from "react";
 import { Icon } from "react-icons-kit";
 import { github } from "react-icons-kit/icomoon/github";
 import { BackgroundContext, Contrast } from "../../huet";
-// import Icon from "../../private/Icon";
 import __ from "../../private/atoms";
 
 export default function Github() {

@@ -8,7 +8,6 @@ import { ic_chat_bubble } from "react-icons-kit/md/ic_chat_bubble";
 import { ic_notifications } from "react-icons-kit/md/ic_notifications";
 import { ThemeContext, BackgroundContext, Contrast } from "../../huet";
 import { rule } from "../../private/nano";
-// import Icon from "../../private/Icon";
 
 import YouTubeLogo from "../YouTubeLogo";
 
