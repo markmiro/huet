@@ -6,7 +6,7 @@ import { ic_apps } from "react-icons-kit/md/ic_apps";
 import { ic_video_call } from "react-icons-kit/md/ic_video_call";
 import { ic_chat_bubble } from "react-icons-kit/md/ic_chat_bubble";
 import { ic_notifications } from "react-icons-kit/md/ic_notifications";
-import { ThemeContext, BackgroundContext, Contrast } from "../../huet";
+import { BackgroundContext, Contrast } from "../../huet";
 import { rule } from "../../private/nano";
 
 import YouTubeLogo from "../YouTubeLogo";
@@ -82,13 +82,13 @@ export default function YouTube() {
 }
 
 function Header({ className, style }) {
-  const theme = useContext(ThemeContext);
+  const parentBg = useContext(BackgroundContext);
   return (
     <Contrast
       bg={5}
       className={`pa3 flex justify-between ${className}`}
       style={{
-        boxShadow: `0 0 10px ${theme.ramps.gray(0).alpha(0.3)}`,
+        boxShadow: `0 0 10px ${parentBg.shadowColor(0.3)}`,
         position: "sticky",
         top: 0,
         zIndex: 1,
@@ -152,14 +152,14 @@ function SearchInput() {
         backgroundColor: bgColor,
         borderColor: parentBg.contrast(15),
         color: bgColor.contrast(100),
-        boxShadow: `inset 0 2px 6px ${parentBg.theme.ramps.gray(0).alpha(0.1)}`
+        boxShadow: `inset 0 2px 6px ${parentBg.shadowColor(0.1)}`
       }}
     />
   );
 }
 
 function Sidebar() {
-  const theme = useContext(ThemeContext);
+  const parentBg = useContext(BackgroundContext);
   return (
     <div>
       <div className="flex justify-between mb3">
@@ -186,7 +186,7 @@ function Sidebar() {
                 position: "absolute",
                 top: "50%",
                 transform: "translate(85%,-50%)",
-                boxShadow: `0px 2px 4px ${theme.ramps.gray(0).alpha(0.3)}`
+                boxShadow: `0px 2px 4px ${parentBg.shadowColor(0.3)}`
               }}
             />
           </Contrast>
