@@ -42,7 +42,7 @@ const pages = {
 };
 
 function App() {
-  const [pageKey, setPageKey] = useBrowserState("colorContrast");
+  const [pageKey, setPageKey] = useBrowserState("basic");
 
   return (
     <Body setDocumentBodyColors className={`${resetClass} flex`}>

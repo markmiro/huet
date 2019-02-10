@@ -17,8 +17,8 @@ import { themerClass } from "./private/styles";
 import baseThemeConfig from "./private/baseThemeConfig";
 
 export default function Themer({ themeConfig, onChangeThemeConfig }) {
-  const [isExpanded, setIsExpanded] = useBrowserState(false);
-  const [shouldThemeSelf, setShouldThemeSelf] = useBrowserState(false);
+  const [isExpanded, setIsExpanded] = useBrowserState(true);
+  const [shouldThemeSelf, setShouldThemeSelf] = useBrowserState(true);
 
   const theme = new Theme(themeConfig);
 
