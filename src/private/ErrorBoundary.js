@@ -31,7 +31,10 @@ export default class ErrorBoundary extends React.Component {
             color: "black"
           }}
         >
-          <h1 style={__.f6.mt0.mb1}>Something went wrong.</h1>
+          <h1 style={__.f6.mt0.mb1}>
+            {this.props.componentName && this.props.componentName + ": "}
+            Something went wrong.
+          </h1>
           <button
             onClick={reset}
             style={{

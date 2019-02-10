@@ -76,7 +76,7 @@ const ThemePreview = React.memo(
             />
           ))}
         </div>
-        <h1 style={__.b.mh2.pv2}>{theme.name}</h1>
+        <h1 style={__.mh2.pv2}>{theme.name}</h1>
         <Block
           style={parentBg => ({
             marginTop: "-.5rem",
