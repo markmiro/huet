@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useRef, useEffect } from "react";
 import __ from "./atoms";
 import themeConfigs from "../demo/themeConfigs";
 import Theme from "../Theme";
@@ -126,16 +126,34 @@ export default function Themes({ onConfigSelect }) {
   const [selectedConfigName, setSelectedConfigName] = useBrowserState(
     themeConfigs[0].name
   );
+
+  const scrollContainerRef = useRef(null);
+
+  useEffect(() => {
+    if (!scrollContainerRef.current.childNodes.length) {
+      throw new Error("Expecting at least one child");
+    }
+    const width = scrollContainerRef.current.childNodes[0].getBoundingClientRect()
+      .width;
+    const currentIndex = finalConfigs.findIndex(
+      config => config.name === selectedConfigName
+    );
+    scrollContainerRef.current.scrollTo({
+      left: width * currentIndex,
+      behavior: "smooth"
+    });
+  }, [selectedConfigName]);
+
   return (
     <div>
       <div style={__.ma2.mb0}>
         <Labeled title="Themes" />
       </div>
-      <div style={{ ...__.flex, overflowX: "scroll" }}>
-        {finalConfigs.map(config => (
+      <div ref={scrollContainerRef} style={{ ...__.flex, overflowX: "scroll" }}>
+        {finalConfigs.map((config, i) => (
           <div
             key={config.name}
-            style={{ ...__.ma2.relative, flexBasis: "70%", flexShrink: 0 }}
+            style={{ ...__.pa2.relative, flexBasis: "80%", flexShrink: 0 }}
           >
             <ThemePreview
               config={config}
@@ -148,13 +166,6 @@ export default function Themes({ onConfigSelect }) {
             />
           </div>
         ))}
-      </div>
-      <div style={__.ma2}>
-        <Checkbox
-          label="Show middle grays"
-          value={showMiddleGrays}
-          onChange={setShowMiddleGrays}
-        />
       </div>
     </div>
   );
