@@ -16,6 +16,50 @@ import Theme from "./Theme";
 
 // ---
 
+function setAtPath(map, path, value) {
+  let running = map;
+  for (let i = 0; i < path.length; i++) {
+    const key = path[i];
+    if (i === path.length - 1) {
+      running.set(key, value);
+    } else {
+      running.set(key, new Map());
+      running = running.get(key);
+    }
+  }
+}
+
+function getAtPath(map, path) {
+  let running = map;
+  for (let i = 0; i < path.length; i++) {
+    const key = path[i];
+    if (!running.has(key)) return;
+    running = running.get(key);
+  }
+  return running;
+}
+
+window.cached = new Map();
+window.cachedSize = 0;
+window.cacheMiss = 0;
+window.cacheHit = 0;
+const cache = {
+  set(path, value) {
+    setAtPath(window.cached, path, value);
+    window.cachedSize++;
+
+    if (window.cached.size > 150) {
+      const iter = window.cached.keys();
+      for (let i = 0; i < 20; i++) {
+        window.cached.delete(iter.next().value);
+      }
+    }
+  },
+  get(path) {
+    return getAtPath(window.cached, path);
+  }
+};
+
 export class BaseColor {
   constructor(lab) {
     if (!lab) {
@@ -83,6 +127,15 @@ export default class Color extends BaseColor {
   contrast(contrastAmount = 100, ramp = this.baseRamp) {
     if (ramp.config.mode === "direct") {
       return this.direct(ramp);
+    }
+
+    const cachedColor = cache.get([this.lab, contrastAmount, ramp]);
+
+    if (cachedColor) {
+      window.cacheHit++;
+      return cachedColor;
+    } else {
+      window.cacheMiss++;
     }
 
     const { theme } = this;
@@ -174,12 +227,16 @@ export default class Color extends BaseColor {
 
     const finalLab = [l, a, b];
 
-    return new Color({
+    const color = new Color({
       theme,
       bgColor: this,
       lab: finalLab,
       ramp
     });
+
+    cache.set([this.lab, contrastAmount, ramp], color);
+
+    return color;
   }
 
   direct(ramp) {
