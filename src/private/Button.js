@@ -76,3 +76,89 @@ export default function Button({
     </Contrast>
   );
 }
+
+// <Block
+//   huetStyle={{
+//     base: "red",
+//     bg: 50,
+//     fgContrast: 10,
+//     fgRamp: "red",
+//     b: 5,
+//     bRamp: "blue"
+//   }}
+// >
+//   Hello
+// </Block>;
+
+// <div
+//   style={parentBg.style({
+//     base: "red",
+//     bg: 50,
+//     fgContrast: 10,
+//     fgRamp: "red",
+//     b: 5,
+//     bRamp: "blue"
+//   })}
+// >
+//   Hello
+// </div>;
+
+// <Block style={huet => huet(__.base_red.bgc1.fgc_2.bc1)}>Hello</Block>;
+
+// <Body themeConfig={themeConfig} atoms={atoms}>
+//   {/* Purely JS with React component */}
+//   <Block
+//     style={contrast => ({
+//       backgroundColor: contrast(100),
+//       color: contrast('backgroundColor', 100),
+//     })}
+//   >
+//     Hello
+//   </Block>
+//   {/* For composability with existing styles */}
+//   <Block
+//     huetStyle={{
+//       padding: '.5em',
+//       $base: 'red',
+//       '--bg': 100,
+//       '--bgFg': 100,
+//       '--fgBase':
+//     }}
+//   >
+//     Hello
+//   </Block>
+//   {/* If not importing $ into current module */}
+//   <Block atoms={$ => $.bg2.bgFg5}>Hello</Block>
+//   {/* If importing $ into current module */}
+//   <Block atoms={$.bg2.bgFg5}>Hello</Block>
+// </Body>;
+
+// <Body themeConfig={themeConfig} atoms={atoms} cssMode="inline">
+//   <Block
+//     css={contrast => ({
+//       backgroundColor: contrast(100),
+//       color: contrast(100, 'red'),
+//       "::placeholder": {
+//         color: contrast(80),
+//       }
+//     })}
+//   >
+//     Hello
+//   </Block>
+//   <Block atoms='$bg-2 $bg/fg2'>Hello</Block>
+// </Body>;
+
+// <Body themeConfig={themeConfig} atoms={atoms} cssMode="inline">
+//   <Block
+//     css={contrast => ({
+//       backgroundColor: 'var(--bg)',
+//       color: contrast(100, 'red'),
+//       "::placeholder": {
+//         color: 'var(--fg)',
+//       }
+//     })}
+//   >
+//     Hello
+//   </Block>
+//   <Block atoms='bg:2 bg/fg:2'>Hello</Block>
+// </Body>;
