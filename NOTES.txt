@@ -20,9 +20,7 @@ FEATURES
 * Manage lots of themes.
 * Visual tool for visually tweaking themes and/or creating new ones.
 * Easily re-theme your UI.
-* Allow end-users to re-theme your UI to a degree that wasn't possible before.
-* Experimental <Block /> React component for replacing "divs" so you can use a terse language for specifying colors.
-
+* Allow end-users to re-theme your UI to a degree that wasn't possible before. * Experimental <Block /> React component for replacing "divs" so you can use a terse language for specifying colors.
 CAVEATS
 * Pseudo selectors are a pain to work with
 * You don't get to pick the final colors of your components directly
