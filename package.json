@@ -58,10 +58,11 @@
     "watch": "rollup -c --watch",
     "build:prod": "NODE_ENV=production rollup -c",
     "build:dev": "NODE_ENV=development rollup -c",
-    "release": "npm run build:dev && npm run build:prod",
+    "release": "npm run build:dev && npm run build:prod && npm run docs",
     "prepublishOnly": "npm run release",
     "start": "react-scripts start",
-    "build": "react-scripts build && mv build/* docs",
+    "docs": "npm run build && rm -rf doc && mv build/* docs",
+    "build": "react-scripts build",
     "test": "react-scripts test --env=jsdom",
     "eject": "react-scripts eject"
   },
