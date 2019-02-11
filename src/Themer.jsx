@@ -1,5 +1,6 @@
 import React from "react";
 import saveAs from "file-saver";
+import { detect } from "detect-browser";
 
 import Theme from "./Theme";
 import Block from "./Block.jsx";
@@ -15,6 +16,11 @@ import Themes from "./private/Themes";
 import __ from "./private/atoms";
 import { themerClass } from "./private/styles";
 import baseThemeConfig from "./private/baseThemeConfig";
+
+const browser = detect();
+if (browser && !["chrome", "firefox"].includes(browser.name)) {
+  alert("Warning: Only Chrome and Firefox are suppported for now.");
+}
 
 export default function Themer({ themeConfig, onChangeThemeConfig }) {
   const [isExpanded, setIsExpanded] = useBrowserState(true);
