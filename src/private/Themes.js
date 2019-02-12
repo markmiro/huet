@@ -1,10 +1,11 @@
-import React, { useRef, useEffect } from "react";
+import React, { useRef, useEffect, useMemo } from "react";
 import __ from "./atoms";
 import themeConfigs from "../demo/themeConfigs";
 import Theme from "../Theme";
 import Block from "../Block.jsx";
 import Checkbox from "./Checkbox";
 import useBrowserState from "./useBrowserState";
+import { ThemeContext, BackgroundContext } from "../reactContexts";
 
 function Labeled({ title, children }) {
   return (
@@ -55,8 +56,8 @@ const ThemePreview = React.memo(
     const theme = new Theme(config);
     return (
       <Block
-        as="button"
         theme={theme}
+        as="button"
         contrast={`bg=0 b=${isSelected ? 100 : 12}`}
         style={parentBg => ({
           ...__.w100.ba.relative,
@@ -150,20 +151,29 @@ export default function Themes({ onConfigSelect }) {
         <Labeled title="Themes" />
       </div>
       <div ref={scrollContainerRef} style={{ ...__.flex, overflowX: "scroll" }}>
-        {finalConfigs.map((config, i) => (
+        {finalConfigs.map(config => (
           <div
             key={config.name}
             style={{ ...__.pa2.relative, flexBasis: "80%", flexShrink: 0 }}
           >
-            <ThemePreview
-              config={config}
-              showMiddle={showMiddleGrays}
-              isSelected={config.name === selectedConfigName}
-              onClick={() => {
-                setSelectedConfigName(config.name);
-                onConfigSelect(config);
-              }}
-            />
+            <ThemeContext.Provider value={null}>
+              <BackgroundContext.Provider value={null}>
+                <ThemePreview
+                  config={config}
+                  showMiddle={showMiddleGrays}
+                  isSelected={config.name === selectedConfigName}
+                  onClick={useMemo(
+                    () => () => {
+                      window.cache.log();
+                      window.cache.reset();
+                      setSelectedConfigName(config.name);
+                      onConfigSelect(config);
+                    },
+                    [config]
+                  )}
+                />
+              </BackgroundContext.Provider>
+            </ThemeContext.Provider>
           </div>
         ))}
       </div>
