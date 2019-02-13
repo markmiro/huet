@@ -124,15 +124,6 @@ export default function Themer() {
         >
           <Themes />
           <Block contrast="bg=10" style={__.pa2}>
-            {/* <Button
-              bg={50}
-              bgRamp="red"
-              textRamp="white"
-              onClick={reset}
-              verify
-            >
-              Reset Colors
-            </Button> */}
             <Input
               label="Theme Name"
               style={__.flex_auto.mb2}
@@ -247,6 +238,15 @@ export default function Themer() {
                   onChange={setShouldThemeSelf}
                   style={__.mb2}
                 />
+                <Button
+                  bg={50}
+                  bgRamp="red"
+                  textRamp="white"
+                  onClick={reset}
+                  verify
+                >
+                  Clear Local Storage
+                </Button>
               </Block>
             </div>
           </div>
