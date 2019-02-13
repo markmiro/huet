@@ -79,7 +79,6 @@ export default function ColorContrast() {
         <Matrix {...stepSizes[stepKey]} />
         <NamedColors />
         <FormExample />
-        {/* <TextOnColoredBackground /> */}
       </Block>
     </div>
   );
@@ -241,28 +240,6 @@ function FormExample() {
           </Block>
         ))}
       </div>
-    </div>
-  );
-}
-
-function TextOnColoredBackground() {
-  const rampKeys = useColoredRampKeys();
-  return (
-    <div style={__.flex.flex_row}>
-      {rampKeys.map(rampKey => (
-        <Block
-          key={rampKey}
-          contrast="b=100 bg=100 bg/fg=white"
-          base={rampKey}
-          style={__.pa2}
-        >
-          {rampKeys.map(rampKey => (
-            <Block as="span" key={rampKey} contrast="fg=100" base={rampKey}>
-              △◉✓
-            </Block>
-          ))}
-        </Block>
-      ))}
     </div>
   );
 }

@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useEffect } from "react";
 import Theme from "./Theme";
 import Color from "./Color";
 import Block from "./Block.jsx";

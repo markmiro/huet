@@ -3,7 +3,6 @@ import __ from "./atoms";
 import themeConfigs from "../demo/themeConfigs";
 import Theme from "../Theme";
 import Block from "../Block.jsx";
-import Checkbox from "./Checkbox";
 import useBrowserState from "./useBrowserState";
 import { ThemeContext, BackgroundContext } from "../reactContexts";
 
@@ -52,7 +51,7 @@ function Arrow({ size = "1em", top = null, left = null, direction = "up" }) {
 }
 
 const ThemePreview = React.memo(
-  ({ config, showMiddle = false, onClick = () => {}, isSelected }) => {
+  ({ config, onClick = () => {}, isSelected }) => {
     const theme = new Theme(config);
     return (
       <Block
@@ -86,35 +85,27 @@ const ThemePreview = React.memo(
           })}
         />
         <Block style={__.flex}>
-          {(showMiddle ? [0, 49, 51, 100] : [0]).map(contrast => (
-            <Block
-              key={contrast}
-              contrast={`bg=${contrast}`}
-              style={__.pa2.w100.flex.flex_column}
-            >
-              {Object.keys(theme.ramps)
-                .filter(
-                  rampKey => theme.ramps[rampKey].config.mode === "colored"
-                )
-                .map(rampKey => (
-                  <div key={rampKey} style={__.flex}>
-                    {[100, 75, 50, 25].map((contrastInner, i) => (
-                      <Block
-                        key={contrastInner}
-                        base={rampKey}
-                        contrast={`bg=${contrastInner}`}
-                        style={{
-                          ...__.w100,
-                          marginRight: i === 0 ? 1 : 0,
-                          marginTop: 1,
-                          height: rampKey === "gray" ? "1.5rem" : "0.5rem"
-                        }}
-                      />
-                    ))}
-                  </div>
-                ))}
-            </Block>
-          ))}
+          <div style={__.pa2.w100.flex.flex_column}>
+            {Object.keys(theme.ramps)
+              .filter(rampKey => theme.ramps[rampKey].config.mode === "colored")
+              .map(rampKey => (
+                <div key={rampKey} style={__.flex}>
+                  {[100, 75, 50, 25].map((contrastInner, i) => (
+                    <Block
+                      key={contrastInner}
+                      base={rampKey}
+                      contrast={`bg=${contrastInner}`}
+                      style={{
+                        ...__.w100,
+                        marginRight: i === 0 ? 1 : 0,
+                        marginTop: 1,
+                        height: rampKey === "gray" ? "1.5rem" : "0.5rem"
+                      }}
+                    />
+                  ))}
+                </div>
+              ))}
+          </div>
         </Block>
       </Block>
     );
@@ -123,7 +114,6 @@ const ThemePreview = React.memo(
 
 export default function Themes({ onConfigSelect }) {
   const finalConfigs = themeConfigs;
-  const [showMiddleGrays, setShowMiddleGrays] = useBrowserState(false);
   const [selectedConfigName, setSelectedConfigName] = useBrowserState(
     themeConfigs[0].name
   );
@@ -160,7 +150,6 @@ export default function Themes({ onConfigSelect }) {
               <BackgroundContext.Provider value={null}>
                 <ThemePreview
                   config={config}
-                  showMiddle={showMiddleGrays}
                   isSelected={config.name === selectedConfigName}
                   onClick={useMemo(
                     () => () => {
