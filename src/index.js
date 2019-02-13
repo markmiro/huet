@@ -12,6 +12,7 @@ import { resetClass } from "./private/styles";
 import { Body, Block, ThemeConfigurator } from "./huet";
 
 // Components
+import __ from "./private/atoms";
 import Select from "./private/Select";
 
 const pages = {
@@ -45,16 +46,15 @@ function App() {
   const [pageKey, setPageKey] = useBrowserState("basic");
 
   return (
-    <Body setDocumentBodyColors className={`${resetClass} flex`}>
-      <div className="w-100" style={{ overflow: "hidden" }}>
+    <Body setDocumentBodyColors className={resetClass} style={__.flex}>
+      <div style={{ ...__.w100, overflow: "hidden" }}>
         <Block
           contrast="bg=10 b=100"
-          className="bb"
-          style={{ position: "relative", zIndex: 2 }}
+          style={{ ...__.bb, position: "relative", zIndex: 2 }}
         >
           <Select
             label="Example Demos"
-            className="pa2 pb3"
+            style={__.pa2.pb3}
             value={pageKey}
             onChange={setPageKey}
           >

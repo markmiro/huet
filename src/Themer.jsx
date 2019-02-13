@@ -27,9 +27,12 @@ if (browser && !["chrome", "firefox"].includes(browser.name)) {
 const baseTheme = new Theme(baseThemeConfig);
 
 export default function Themer() {
+  const [isMounted, setIsMounted] = useState(false);
   const [theme, setThemeConfig] = useContext(ThemeConfiguratorContext);
   const [isExpanded, setIsExpanded] = useBrowserState(true);
   const [shouldThemeSelf, setShouldThemeSelf] = useBrowserState(true);
+
+  useEffect(() => setIsMounted(true), []);
 
   const themeConfig = theme.config;
 
@@ -73,14 +76,21 @@ export default function Themer() {
     <div
       className={themerClass}
       style={{
-        position: "absolute",
         right: 0,
+        bottom: 0,
+        height: "auto",
+        position: "fixed",
         ...(isExpanded && {
-          height: "100vh",
+          top: 0,
+          right: null,
           position: "sticky",
-          right: null
+          height: "100vh",
+          transitionProperty: "opacity, transform, height",
+          transitionDuration: "200ms",
+          transitionTimingFunction: "ease-out",
+          transform: isMounted ? "translateY(0)" : "translateY(2em)",
+          opacity: isMounted ? 1 : 0
         }),
-        top: 0,
         zIndex: 999
       }}
     >
@@ -112,7 +122,7 @@ export default function Themer() {
             contrast="bg=20"
             style={__.flex.justify_center.items_center.ph3.b}
           >
-            {isExpanded ? "↑" : "↓"}
+            {isExpanded ? "↓" : "↑"}
           </Block>
         </Block>
         <div
