@@ -26,7 +26,7 @@ function getAtPath(map, path) {
 // ---
 
 export default class Cache {
-  constructor(resetAtItemCount = 1000) {
+  constructor(resetAtItemCount = 500) {
     this.resetAtItemCount = resetAtItemCount;
     this.reset();
   }
