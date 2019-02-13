@@ -3,7 +3,7 @@ import _ from "lodash";
 
 let counter = 0;
 function increment() {
-  return "useBrowserState_" + counter++;
+  return "useBrowserState_huet_" + counter++;
 }
 
 export function reset() {
@@ -13,7 +13,8 @@ export function reset() {
 
 export default function useBrowserState(defaultValue, { at } = {}) {
   const [defaultKey] = useState(
-    () => increment() + "_" + btoa(JSON.stringify(defaultValue))
+    // Need to slice since keys can get really big
+    () => increment() + "_" + btoa(JSON.stringify(defaultValue).slice(500))
   );
   // if (!at) {
   //   throw new Error("Need to store somewhere! 'at' param is missing.");
@@ -48,12 +49,9 @@ export default function useBrowserState(defaultValue, { at } = {}) {
     []
   );
 
-  useEffect(
-    () => {
-      debounceSaveToLocalStorage(key, value);
-    },
-    [value]
-  );
+  useEffect(() => {
+    debounceSaveToLocalStorage(key, value);
+  }, [value]);
 
   function setValueAndStorage(newValueOrFunc) {
     setValue(newValueOrFunc);
