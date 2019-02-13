@@ -58,6 +58,7 @@ export default function Themer() {
   );
 
   function exportTheme() {
+    // TODO: generate id with timestamp
     const str = JSON.stringify(themeConfig, null, "  ");
     const blob = new Blob([str], {
       type: "text/plain;charset=utf-8"
@@ -121,7 +122,7 @@ export default function Themer() {
             display: isExpanded ? null : "none"
           }}
         >
-          <Themes onConfigSelect={setThemeConfig} />
+          <Themes />
           <Block contrast="bg=10" style={__.pa2}>
             {/* <Button
               bg={50}

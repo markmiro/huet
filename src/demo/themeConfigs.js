@@ -33,16 +33,16 @@ import shared from "../private/baseThemeConfig.js";
 // }
 
 const themes = [
-  {
-    ...shared
-  },
+  shared,
   {
     ...shared,
+    id: 2,
     name: "Base Inverted",
     bgRampValue: 0
   },
   // rgbCubeTheme(shared),
   // {
+  //   id: 3,
   //   ...shared,
   //   name: "High Contrast",
   //   pallet: {
@@ -60,6 +60,7 @@ const themes = [
   //   signalSaturationMultiplier: 2
   // },
   // {
+  //   id: 4,
   //   ...shared,
   //   name: "Radioactive",
   //   pallet: {
@@ -78,6 +79,7 @@ const themes = [
   // },
   {
     ...shared,
+    id: 5,
     name: "Blueprint",
     pallet: {
       ...shared.pallet,
@@ -101,6 +103,7 @@ const themes = [
   },
   {
     ...shared,
+    id: 6,
     name: "Terminal",
     pallet: {
       ...shared.pallet,
@@ -118,6 +121,7 @@ const themes = [
   },
   {
     ...shared,
+    id: 7,
     name: "Paperback",
     pallet: {
       ...shared.pallet,
@@ -135,6 +139,7 @@ const themes = [
   },
   {
     ...shared,
+    id: 8,
     name: "Deep Dive",
     pallet: {
       ...shared.pallet,
@@ -152,6 +157,7 @@ const themes = [
   },
   // {
   //   ...shared,
+  //   id: 9,
   //   name: "Royal Purple",
   //   pallet: {
   //     ...shared.pallet,
@@ -169,6 +175,7 @@ const themes = [
   // },
   {
     ...shared,
+    id: 10,
     name: "Orange Boost",
     pallet: {
       ...shared.pallet,
@@ -188,6 +195,7 @@ const themes = [
   },
   // {
   //   ...shared,
+  //   id: 11,
   //   name: "Faded Future",
   //   pallet: {
   //     ...shared.pallet,
@@ -207,6 +215,7 @@ const themes = [
   // },
   {
     ...shared,
+    id: 12,
     name: "A Box of Macaroni",
     pallet: {
       ...shared.pallet,
@@ -225,6 +234,7 @@ const themes = [
   },
   // {
   //   ...shared,
+  //   id: 13,
   //   name: "Sunset",
   //   pallet: {
   //     ...shared.pallet,
@@ -249,6 +259,7 @@ const themes = [
   // },
   {
     ...shared,
+    id: 14,
     name: "Astro",
     pallet: {
       ...shared.pallet,

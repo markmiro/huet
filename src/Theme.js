@@ -4,6 +4,7 @@ import { getLightness } from "./Color";
 import baseConfig from "./private/baseThemeConfig";
 
 const allowed = [
+  "id",
   "name",
   "pallet",
   "ramps",

@@ -39,6 +39,8 @@ export default function useBrowserState(defaultValue, { at } = {}) {
     const storedValue = JSON.parse(
       storedString === "undefined" ? null : storedString
     );
+    // Allow reference equality check to work by returning the default value rather than localStorage stuff
+    if (storedString === JSON.stringify(defaultValue)) return defaultValue;
     return storedValue !== null ? storedValue : defaultValue;
   });
 
