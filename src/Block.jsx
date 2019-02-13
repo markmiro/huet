@@ -72,7 +72,7 @@ export default function Block({
     // TODO: consider making "contrast" prop values depend on the value of stuff set in style?
     returnStyle = {
       ...returnStyle,
-      ...parseColorsToStyle(relativeToColor, contrast, base)
+      ...parseColorsToStyle(relativeToColor, contrast)
     };
   }
 
@@ -127,7 +127,7 @@ const keyToCss = {
   o: "outlineColor"
 };
 
-function parseColorsToStyle(relativeToColor, str, base = null) {
+function parseColorsToStyle(relativeToColor, str) {
   const theme = relativeToColor.theme;
 
   const things = str.split(" ");
@@ -142,7 +142,7 @@ function parseColorsToStyle(relativeToColor, str, base = null) {
     const [key, value] = thing.split("=");
 
     // contrast: '10' rampKey: 'red'
-    const [contrast, rampKey = base] = (() => {
+    const [contrast, rampKey] = (() => {
       // 10-red || 10 || red
       const [first, second] = value.split("-");
       if (first && second) {
