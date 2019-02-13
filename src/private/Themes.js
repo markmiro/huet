@@ -113,7 +113,6 @@ const ThemePreview = React.memo(
 );
 
 export default function Themes({ onConfigSelect }) {
-  const finalConfigs = themeConfigs;
   const [selectedConfigName, setSelectedConfigName] = useBrowserState(
     themeConfigs[0].name
   );
@@ -126,7 +125,7 @@ export default function Themes({ onConfigSelect }) {
     }
     const width = scrollContainerRef.current.childNodes[0].getBoundingClientRect()
       .width;
-    const currentIndex = finalConfigs.findIndex(
+    const currentIndex = themeConfigs.findIndex(
       config => config.name === selectedConfigName
     );
     scrollContainerRef.current.scrollTo({
@@ -141,7 +140,7 @@ export default function Themes({ onConfigSelect }) {
         <Labeled title="Themes" />
       </div>
       <div ref={scrollContainerRef} style={{ ...__.flex, overflowX: "scroll" }}>
-        {finalConfigs.map(config => (
+        {themeConfigs.map(config => (
           <div
             key={config.name}
             style={{ ...__.pa2.relative, flexBasis: "80%", flexShrink: 0 }}
@@ -153,8 +152,6 @@ export default function Themes({ onConfigSelect }) {
                   isSelected={config.name === selectedConfigName}
                   onClick={useMemo(
                     () => () => {
-                      window.cache.log();
-                      window.cache.reset();
                       setSelectedConfigName(config.name);
                       onConfigSelect(config);
                     },
