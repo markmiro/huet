@@ -23,11 +23,13 @@ if (browser && !["chrome", "firefox"].includes(browser.name)) {
   alert("Warning: Only Chrome and Firefox are suppported for now.");
 }
 
-export default function Themer({ themeConfig, onChangeThemeConfig }) {
+const baseTheme = new Theme(baseThemeConfig);
+
+export default function Themer({ theme, onChangeThemeConfig }) {
   const [isExpanded, setIsExpanded] = useBrowserState(true);
   const [shouldThemeSelf, setShouldThemeSelf] = useBrowserState(true);
 
-  const theme = new Theme(themeConfig);
+  const themeConfig = theme.config;
 
   function modify(key) {
     return newValue => {
@@ -61,9 +63,8 @@ export default function Themer({ themeConfig, onChangeThemeConfig }) {
     saveAs(blob, themeConfig.name + " Huet Theme.json");
   }
 
-  const themerTheme = new Theme(
-    shouldThemeSelf ? themeConfig : baseThemeConfig
-  );
+  // TODO: consider reusing parent theme instead of just creating a new one
+  const themerTheme = shouldThemeSelf ? theme : baseTheme;
 
   return (
     <div
@@ -137,9 +138,7 @@ export default function Themer({ themeConfig, onChangeThemeConfig }) {
             />
             <ButtonGroup>
               <Button onClick={exportTheme}>Export Theme</Button>
-              <JsonUploadButton
-                onUpload={themeConfig => onChangeThemeConfig(themeConfig)}
-              >
+              <JsonUploadButton onUpload={onChangeThemeConfig}>
                 Import Theme
               </JsonUploadButton>
             </ButtonGroup>
