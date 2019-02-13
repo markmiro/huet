@@ -5,7 +5,7 @@ import Block from "../Block.jsx";
 import { ThemeContext, BackgroundContext } from "../reactContexts";
 import __ from "./atoms";
 import { ThemeConfiguratorContext } from "../Body.jsx";
-import Button from "./Button";
+import Button, { TextButton } from "./Button";
 import useBrowserState from "./useBrowserState";
 import baseThemeConfig from "./baseThemeConfig";
 
@@ -153,29 +153,16 @@ function Section({ children }) {
 
 const ThemePreview = React.memo(({ config, isSelected, onClick, onRemove }) => {
   const theme = new Theme(config);
+  const isBaseTheme = config.id === baseThemeConfig.id;
   return (
     <ThemeFrame theme={theme} isSelected={isSelected} onClick={onClick}>
       <Pallet />
       <Title>
         {theme.name}
-        {isSelected && config.id !== baseThemeConfig.id && (
-          <Button
-            bg={0}
-            bgRamp={null}
-            textRamp="red"
-            text={100}
-            as="button"
-            base="red"
-            onClick={onRemove}
-            verify
-            style={{
-              ...__.pa0,
-              textDecoration: "underline",
-              cursor: "pointer"
-            }}
-          >
+        {isSelected && !isBaseTheme && (
+          <TextButton base="red" onClick={onRemove} verify>
             Remove
-          </Button>
+          </TextButton>
         )}
       </Title>
       <Section>

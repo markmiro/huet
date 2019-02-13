@@ -1,5 +1,6 @@
 import React from "react";
 import Contrast from "../Contrast.jsx";
+import Block from "../Block.jsx";
 import __ from "./atoms";
 import { inputStyle, invisibleScreenClass } from "./styles";
 import displayError from "./displayError";
@@ -40,6 +41,22 @@ export function JsonUploadButton({ children, className, style, onUpload }) {
   );
 }
 
+function doubleCheck(boolOrMessage, cb) {
+  if (boolOrMessage && !cb)
+    throw new Error(
+      "Need a callback, otherwise `doubleCheck(boolOrMessage, cb)` doesn't do anything."
+    );
+  return e => {
+    if (boolOrMessage) {
+      const didAccept = window.confirm(
+        boolOrMessage === true ? "Are you sure?" : boolOrMessage
+      );
+      if (!didAccept) return;
+    }
+    cb && cb(e);
+  };
+}
+
 export default function Button({
   as = "button",
   className,
@@ -56,15 +73,7 @@ export default function Button({
       bgRamp={isActive ? "blue" : "gray"}
       bg={10}
       text={50}
-      onClick={e => {
-        if (verify) {
-          const didAccept = window.confirm(
-            verify === true ? "Are you sure?" : verify
-          );
-          if (!didAccept) return;
-        }
-        onClick && onClick(e);
-      }}
+      onClick={doubleCheck(verify, onClick)}
       {...rest}
       style={{
         ...inputStyle,
@@ -74,6 +83,25 @@ export default function Button({
     >
       {children}
     </Contrast>
+  );
+}
+
+export function TextButton({ as = "button", onClick, style, verify, ...rest }) {
+  return (
+    <Block
+      as={as}
+      base="blue"
+      style={{
+        backgroundColor: "transparent",
+        padding: 0,
+        border: 0,
+        textDecoration: "underline",
+        cursor: "pointer",
+        ...style
+      }}
+      onClick={doubleCheck(verify, onClick)}
+      {...rest}
+    />
   );
 }
 
