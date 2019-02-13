@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useContext } from "react";
 import saveAs from "file-saver";
 import chroma from "chroma-js";
 import { detect } from "detect-browser";
@@ -17,6 +17,7 @@ import Themes from "./private/Themes";
 import __ from "./private/atoms";
 import { themerClass } from "./private/styles";
 import baseThemeConfig from "./private/baseThemeConfig";
+import { ThemeConfiguratorContext } from "./Body.jsx";
 
 const browser = detect();
 if (browser && !["chrome", "firefox"].includes(browser.name)) {
@@ -25,7 +26,8 @@ if (browser && !["chrome", "firefox"].includes(browser.name)) {
 
 const baseTheme = new Theme(baseThemeConfig);
 
-export default function Themer({ theme, onChangeThemeConfig }) {
+export default function Themer() {
+  const [theme, setThemeConfig] = useContext(ThemeConfiguratorContext);
   const [isExpanded, setIsExpanded] = useBrowserState(true);
   const [shouldThemeSelf, setShouldThemeSelf] = useBrowserState(true);
 
@@ -33,7 +35,7 @@ export default function Themer({ theme, onChangeThemeConfig }) {
 
   function modify(key) {
     return newValue => {
-      onChangeThemeConfig({
+      setThemeConfig({
         ...themeConfig,
         [key]: newValue
       });
@@ -119,7 +121,7 @@ export default function Themer({ theme, onChangeThemeConfig }) {
             display: isExpanded ? null : "none"
           }}
         >
-          <Themes onConfigSelect={onChangeThemeConfig} />
+          <Themes onConfigSelect={setThemeConfig} />
           <Block contrast="bg=10" style={__.pa2}>
             {/* <Button
               bg={50}
@@ -138,7 +140,7 @@ export default function Themer({ theme, onChangeThemeConfig }) {
             />
             <ButtonGroup>
               <Button onClick={exportTheme}>Export Theme</Button>
-              <JsonUploadButton onUpload={onChangeThemeConfig}>
+              <JsonUploadButton onUpload={setThemeConfig}>
                 Import Theme
               </JsonUploadButton>
             </ButtonGroup>
