@@ -1,48 +1,7 @@
-import React, { useContext } from "react";
 import _ from "lodash";
 import chroma from "chroma-js";
-import Contrast from "../Contrast.jsx";
-import Block from "../Block.jsx";
 import { getLightness } from "../Color";
-import { BackgroundContext } from "../reactContexts";
 import __ from "./atoms";
-
-export function Star({ lightness }) {
-  return (
-    <Contrast
-      bg={50}
-      border={10}
-      style={{
-        ...__.absolute.ba,
-        width: 10,
-        height: 10,
-        top: "50%",
-        left: `${lightness}%`,
-        transform: "translate(-50%, -50%) rotate(45deg)"
-      }}
-    />
-  );
-}
-
-export function Bracket({ lightness, direction }) {
-  const parentBg = useContext(BackgroundContext);
-  const borderColor = parentBg.contrast(100);
-  return (
-    <div
-      style={{
-        ...__.absolute.bt.bb,
-        ...(direction === "left" ? __.bl : __.br),
-        borderColor,
-        height: "120%",
-        width: ".3em",
-        top: "50%",
-        left: `${lightness}%`,
-        transform: "translate(-50%, -50%)",
-        textShadow: `0 0 10px 5px ${borderColor.contrast(100)}`
-      }}
-    />
-  );
-}
 
 function RampColorMarker({ color, grayRamp }) {
   const size = "1em";
@@ -63,23 +22,6 @@ function RampColorMarker({ color, grayRamp }) {
         top: "50%",
         left: `calc(${l * 100}% - ${size} * ${l})`,
         transform: "translateY(-50%)"
-      })}
-    />
-  );
-}
-
-export function ContrastRange({ lightness, contrast }) {
-  return (
-    <Contrast
-      bg={100}
-      border={10}
-      style={{
-        ...__.absolute.bt,
-        height: 2,
-        width: `${Math.abs(contrast * 2)}%`,
-        top: "50%",
-        left: `${lightness}%`,
-        transform: "translate(-50%, -50%)"
       }}
     />
   );
@@ -99,7 +41,7 @@ function pairs(ramp) {
   return _.chunk([first, ..._.flatMap(middle, duplicate), last], 2);
 }
 
-export function InnerRamp({ ramp }) {
+const InnerRamp = React.memo(function InnerRamp({ ramp }) {
   if (!ramp) return null;
 
   const type = ramp.config.classes ? "classes" : "normal";
@@ -133,7 +75,7 @@ export function InnerRamp({ ramp }) {
         />
       );
   }
-}
+});
 
 const ColorRamp = ({ ramp, theme }) => {
   return (

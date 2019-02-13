@@ -1,5 +1,9 @@
 import chroma from "chroma-js";
 import Theme from "./Theme";
+import Cache from "./private/cache";
+
+const cache = new Cache();
+window.cache = cache;
 
 /*
   Rationale:
@@ -13,7 +17,6 @@ import Theme from "./Theme";
   colors. We'll pick a color that's on the plane between the ramp of the color you want and the
   ramp of the parent color.
 */
-
 // ---
 
 export class BaseColor {
@@ -22,17 +25,18 @@ export class BaseColor {
       throw new Error("`lab` is required");
     }
     this.lab = lab;
+    this.hex = chroma.lab(...this.lab).hex();
   }
 
   alpha(a) {
-    return chroma
-      .lab(...this.lab)
+    // TODO: maybe just do string ops to do #RRGGBBAA
+    return chroma(this.hex)
       .alpha(a)
       .hex();
   }
 
   toString() {
-    return chroma.lab(...this.lab).hex();
+    return this.hex;
   }
 }
 
@@ -85,124 +89,129 @@ export default class Color extends BaseColor {
       return this.direct(ramp);
     }
 
-    const { theme } = this;
-    const isRootBaseRamp = ramp === theme.ramps[theme.bgRamp];
+    // Two parent colors (in hex) may be the same, but we still gotta compare the base ramps, hence caching on `this.baseRamp`
+    return cache.at([this.hex, this.baseRamp, contrastAmount, ramp], () => {
+      const { theme } = this;
+      const isRootBaseRamp = ramp === theme.ramps[theme.bgRamp];
 
-    const [min, max] = this._getMinMax(ramp);
-    const [bgMin, bgMax] = this._getMinMax(this.ramp);
-    const normalizedLightness = (this.lightness - bgMin) / (bgMax - bgMin); // __0 _.5 __1
+      const [min, max] = this._getMinMax(ramp);
+      const [bgMin, bgMax] = this._getMinMax(this.ramp);
+      const normalizedLightness = (this.lightness - bgMin) / (bgMax - bgMin); // __0 _.5 __1
 
-    // BASICS ---
+      // BASICS ---
 
-    const basicMultiplier = (() => {
-      const midpoint = (min + max) / 2;
-      const direction = this.lightness < midpoint ? 1 : -1;
-      const contrastRescale = (max - min) / 100;
-      return direction * contrastRescale;
-    })();
-
-    // ADVANCED ---
-
-    const advancedMultiplier = (() => {
-      let contrastMultiplier = 1;
-      let contrastNormalizer = 1;
-      let colorContrastMinMax = 1;
-
-      if (isRootBaseRamp || theme.contrastMultiplier < 1) {
-        contrastMultiplier = theme.contrastMultiplier;
-      }
-
-      if (
-        (theme.rescaleContrastToGrayRange && isRootBaseRamp) ||
-        (theme.rescaleContrastToSignalRange && !isRootBaseRamp)
-      ) {
-        contrastNormalizer = Math.abs(normalizedLightness - 0.5) + 0.5; // __1 _.5 __1
-      }
-
-      if (!isRootBaseRamp) {
+      const basicMultiplier = (() => {
         const midpoint = (min + max) / 2;
-        colorContrastMinMax =
-          this.lightness < midpoint
-            ? theme.endSignalLightness
-            : 1 - theme.startSignalLightness;
-      }
+        const direction = this.lightness < midpoint ? 1 : -1;
+        const contrastRescale = (max - min) / 100;
+        return direction * contrastRescale;
+      })();
 
-      return contrastMultiplier * contrastNormalizer * colorContrastMinMax;
-    })();
+      // ADVANCED ---
 
-    // PUT IT ALL TOGETHER ---
+      const advancedMultiplier = (() => {
+        let contrastMultiplier = 1;
+        let contrastNormalizer = 1;
+        let colorContrastMinMax = 1;
 
-    let targetLightness =
-      this.lightness + contrastAmount * basicMultiplier * advancedMultiplier;
+        if (isRootBaseRamp || theme.contrastMultiplier < 1) {
+          contrastMultiplier = theme.contrastMultiplier;
+        }
 
-    // Rescale targetLightness from ramp range to 0-1
-    let scaleValue =
-      (targetLightness - ramp.startL) / (ramp.endL - ramp.startL);
+        if (
+          (theme.rescaleContrastToGrayRange && isRootBaseRamp) ||
+          (theme.rescaleContrastToSignalRange && !isRootBaseRamp)
+        ) {
+          contrastNormalizer = Math.abs(normalizedLightness - 0.5) + 0.5; // __1 _.5 __1
+        }
 
-    const [bgL, bgA, bgB] = this.lab;
-    const [fgL, fgA, fgB] = ramp(scaleValue);
+        if (!isRootBaseRamp) {
+          const midpoint = (min + max) / 2;
+          colorContrastMinMax =
+            this.lightness < midpoint
+              ? theme.endSignalLightness
+              : 1 - theme.startSignalLightness;
+        }
 
-    const abContrastMultiplier =
-      isRootBaseRamp || theme.contrastMultiplier > 1
-        ? 1
-        : theme.contrastMultiplier;
+        return contrastMultiplier * contrastNormalizer * colorContrastMinMax;
+      })();
 
-    const abSaturationMultiplier =
-      isRootBaseRamp || theme.signalSaturationMultiplier > 1
-        ? 1
-        : theme.signalSaturationMultiplier;
+      // PUT IT ALL TOGETHER ---
 
-    // `ab` in abContrast refers to the A and B axes of the LAB color space
-    const abContrast =
-      (theme.rescaleSaturationToGrayRange ? contrastAmount / 100 : 1) *
-      abContrastMultiplier *
-      abSaturationMultiplier;
+      let targetLightness =
+        this.lightness + contrastAmount * basicMultiplier * advancedMultiplier;
 
-    const signalSaturationMultiplier =
-      theme.signalSaturationMultiplier > 1 && !isRootBaseRamp
-        ? Math.max(
-            1,
-            theme.signalSaturationMultiplier *
-              (contrastAmount / 100) *
-              Math.min(theme.contrastMultiplier, 1)
-          )
-        : 1;
+      // Rescale targetLightness from ramp range to 0-1
+      let scaleValue =
+        (targetLightness - ramp.startL) / (ramp.endL - ramp.startL);
 
-    const l = bgL + (fgL - bgL) * 1; // Read this as just `fgL`
-    const a = (bgA + (fgA - bgA) * abContrast) * signalSaturationMultiplier;
-    const b = (bgB + (fgB - bgB) * abContrast) * signalSaturationMultiplier;
+      const [bgL, bgA, bgB] = this.lab;
+      const [fgL, fgA, fgB] = ramp(scaleValue);
 
-    const finalLab = [l, a, b];
+      const abContrastMultiplier =
+        isRootBaseRamp || theme.contrastMultiplier > 1
+          ? 1
+          : theme.contrastMultiplier;
 
-    return new Color({
-      theme,
-      bgColor: this,
-      lab: finalLab,
-      ramp
+      const abSaturationMultiplier =
+        isRootBaseRamp || theme.signalSaturationMultiplier > 1
+          ? 1
+          : theme.signalSaturationMultiplier;
+
+      // `ab` in abContrast refers to the A and B axes of the LAB color space
+      const abContrast =
+        (theme.rescaleSaturationToGrayRange ? contrastAmount / 100 : 1) *
+        abContrastMultiplier *
+        abSaturationMultiplier;
+
+      const signalSaturationMultiplier =
+        theme.signalSaturationMultiplier > 1 && !isRootBaseRamp
+          ? Math.max(
+              1,
+              theme.signalSaturationMultiplier *
+                (contrastAmount / 100) *
+                Math.min(theme.contrastMultiplier, 1)
+            )
+          : 1;
+
+      const l = bgL + (fgL - bgL) * 1; // Read this as just `fgL`
+      const a = (bgA + (fgA - bgA) * abContrast) * signalSaturationMultiplier;
+      const b = (bgB + (fgB - bgB) * abContrast) * signalSaturationMultiplier;
+
+      const finalLab = [l, a, b];
+
+      return new Color({
+        theme,
+        bgColor: this,
+        lab: finalLab,
+        ramp
+      });
     });
   }
 
   direct(ramp) {
-    if (ramp.config.mode !== "direct") throw new Error("Not allowed");
+    return cache.at([this.hex, ramp], () => {
+      if (ramp.config.mode !== "direct") throw new Error("Not allowed");
 
-    const { theme, baseRamp } = this;
-    const [fgL, fgA, fgB] = ramp(
-      (this.lightness - baseRamp.startL) / (baseRamp.endL - baseRamp.startL)
-    );
-    const [bgL, bgA, bgB] = this.lab;
-    const mix = Math.min(theme.contrastMultiplier, 1);
+      const { theme, baseRamp } = this;
+      const [fgL, fgA, fgB] = ramp(
+        (this.lightness - baseRamp.startL) / (baseRamp.endL - baseRamp.startL)
+      );
+      const [bgL, bgA, bgB] = this.lab;
+      const mix = Math.min(theme.contrastMultiplier, 1);
 
-    const lab = [
-      bgL + (fgL - bgL) * mix,
-      bgA + (fgA - bgA) * mix,
-      bgB + (fgB - bgB) * mix
-    ];
+      const lab = [
+        bgL + (fgL - bgL) * mix,
+        bgA + (fgA - bgA) * mix,
+        bgB + (fgB - bgB) * mix
+      ];
 
-    return new Color({
-      theme,
-      bgColor: this,
-      lab,
-      ramp
+      return new Color({
+        theme,
+        bgColor: this,
+        lab,
+        ramp
+      });
     });
   }
 
