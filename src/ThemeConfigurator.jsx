@@ -1,4 +1,4 @@
-import React, { useContext } from "react";
+import React from "react";
 import ErrorBoundary from "./private/ErrorBoundary";
 import Themer from "./Themer.jsx";
 import { ThemeContext, BackgroundContext } from "./reactContexts.js";
