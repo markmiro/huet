@@ -1,5 +1,6 @@
 import React from "react";
 import saveAs from "file-saver";
+import chroma from "chroma-js";
 import { detect } from "detect-browser";
 
 import Theme from "./Theme";
@@ -22,11 +23,13 @@ if (browser && !["chrome", "firefox"].includes(browser.name)) {
   alert("Warning: Only Chrome and Firefox are suppported for now.");
 }
 
-export default function Themer({ themeConfig, onChangeThemeConfig }) {
+const baseTheme = new Theme(baseThemeConfig);
+
+export default function Themer({ theme, onChangeThemeConfig }) {
   const [isExpanded, setIsExpanded] = useBrowserState(true);
   const [shouldThemeSelf, setShouldThemeSelf] = useBrowserState(true);
 
-  const theme = new Theme(themeConfig);
+  const themeConfig = theme.config;
 
   function modify(key) {
     return newValue => {
@@ -60,9 +63,8 @@ export default function Themer({ themeConfig, onChangeThemeConfig }) {
     saveAs(blob, themeConfig.name + " Huet Theme.json");
   }
 
-  const themerTheme = new Theme(
-    shouldThemeSelf ? themeConfig : baseThemeConfig
-  );
+  // TODO: consider reusing parent theme instead of just creating a new one
+  const themerTheme = shouldThemeSelf ? theme : baseTheme;
 
   return (
     <div
@@ -119,48 +121,49 @@ export default function Themer({ themeConfig, onChangeThemeConfig }) {
         >
           <Themes onConfigSelect={onChangeThemeConfig} />
           <Block contrast="bg=10" style={__.pa2}>
-            <Checkbox
-              label="Theme the themer"
-              value={shouldThemeSelf}
-              onChange={setShouldThemeSelf}
-              style={__.mb2}
-            />
-            <div style={__.flex.justify_between}>
-              <ButtonGroup>
-                <Button
-                  bg={50}
-                  bgRamp="red"
-                  textRamp="white"
-                  onClick={reset}
-                  verify
-                >
-                  Reset Colors
-                </Button>
-                <Button onClick={exportTheme}>Export Theme</Button>
-                <JsonUploadButton
-                  onUpload={themeConfig => onChangeThemeConfig(themeConfig)}
-                >
-                  Import Theme
-                </JsonUploadButton>
-              </ButtonGroup>
-            </div>
-          </Block>
-          <div style={__.pa2}>
+            {/* <Button
+              bg={50}
+              bgRamp="red"
+              textRamp="white"
+              onClick={reset}
+              verify
+            >
+              Reset Colors
+            </Button> */}
             <Input
-              label="Name"
-              style={__.flex_auto}
+              label="Theme Name"
+              style={__.flex_auto.mb2}
               value={themeConfig.name}
               onChange={setName}
             />
-            <Range
-              label="Page background lightness"
-              min={0}
-              max={1}
-              decimals={2}
-              value={themeConfig.bgRampValue}
-              onChange={setBgRampValue}
-              style={__.mt2}
-            />
+            <ButtonGroup>
+              <Button onClick={exportTheme}>Export Theme</Button>
+              <JsonUploadButton onUpload={onChangeThemeConfig}>
+                Import Theme
+              </JsonUploadButton>
+            </ButtonGroup>
+          </Block>
+          <div style={__.pa2}>
+            <div style={__.i.mt2.mb1}>Background color</div>
+            <ButtonGroup>
+              {[0, 0.25, 0.75, 1].map(scaleValue => (
+                <Button
+                  key={scaleValue}
+                  style={{
+                    ...__.ba,
+                    backgroundColor: chroma.lab(
+                      ...theme.ramps.gray(scaleValue)
+                    ),
+                    color:
+                      theme.ramps.gray(scaleValue)[0] > 50
+                        ? theme.pallet.black
+                        : theme.pallet.white
+                  }}
+                >
+                  {scaleValue * 100}%
+                </Button>
+              ))}
+            </ButtonGroup>
             <Range
               label="Contrast"
               min={0}
@@ -234,6 +237,12 @@ export default function Themer({ themeConfig, onChangeThemeConfig }) {
                   value={themeConfig.rescaleContrastToGrayRange}
                   onChange={setRescaleContrastToGrayRange}
                   style={__.mt2}
+                />
+                <Checkbox
+                  label="Theme the themer"
+                  value={shouldThemeSelf}
+                  onChange={setShouldThemeSelf}
+                  style={__.mb2}
                 />
               </Block>
             </div>

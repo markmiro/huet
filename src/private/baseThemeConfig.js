@@ -58,3 +58,12 @@ export default {
   rescaleSaturationToGrayRange: false,
   rescaleContrastToGrayRange: true
 };
+
+/*
+Ramp modes:
+- furthest
+- signal
+- punched
+- constant
+- direct
+*/

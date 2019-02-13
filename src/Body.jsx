@@ -1,4 +1,4 @@
-import React, { useEffect } from "react";
+import React, { useState, useEffect } from "react";
 import Theme from "./Theme";
 import Color from "./Color";
 import Block from "./Block.jsx";
@@ -13,7 +13,6 @@ export default function Body({
   ...rest
 }) {
   const [themeConfig, setThemeConfig] = useBrowserState(initialThemeConfig);
-
   const theme = new Theme(themeConfig);
   const parentBg = Color.fromTheme(theme);
 
@@ -25,7 +24,7 @@ export default function Body({
   }, [parentBg, setDocumentBodyColors]);
 
   return (
-    <ThemeConfiguratorContext.Provider value={[themeConfig, setThemeConfig]}>
+    <ThemeConfiguratorContext.Provider value={[theme, setThemeConfig]}>
       <Block theme={theme} {...rest} />
     </ThemeConfiguratorContext.Provider>
   );
