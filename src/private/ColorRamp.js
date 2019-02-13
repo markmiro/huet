@@ -1,5 +1,7 @@
+import React from "react";
 import _ from "lodash";
 import chroma from "chroma-js";
+import Block from "../Block";
 import { getLightness } from "../Color";
 import __ from "./atoms";
 
@@ -22,7 +24,7 @@ function RampColorMarker({ color, grayRamp }) {
         top: "50%",
         left: `calc(${l * 100}% - ${size} * ${l})`,
         transform: "translateY(-50%)"
-      }}
+      })}
     />
   );
 }
