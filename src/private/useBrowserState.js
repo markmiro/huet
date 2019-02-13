@@ -1,4 +1,4 @@
-import { useState, useCallback, useEffect } from "react";
+import React, { useState, useCallback, useEffect } from "react";
 import _ from "lodash";
 
 let counter = 0;
@@ -9,6 +9,45 @@ function increment() {
 export function reset() {
   localStorage.clear();
   window.location.reload();
+}
+
+let incrementUnsaved;
+let decrementUnsaved;
+
+export function useIsBrowserStateSaving() {
+  const [keys, setKeys] = useState([]);
+  const isSaving = keys.length > 0;
+
+  useEffect(() => {
+    incrementUnsaved = key =>
+      setKeys(keys => (keys.includes(key) ? keys : [...keys, key]));
+    decrementUnsaved = key => setKeys(keys => keys.filter(k => k !== key));
+  }, []);
+
+  useEffect(() => {
+    const beforeUnload = e => {
+      if (isSaving) {
+        e.preventDefault();
+        return "We're still saving...";
+      }
+    };
+    window.addEventListener("beforeunload", beforeUnload);
+    return () => window.removeEventListener("beforeunload", beforeUnload);
+  }, [isSaving]);
+
+  return isSaving;
+}
+
+function countedDebounce(fn, delay) {
+  const debounced = _.debounce((...args) => {
+    decrementUnsaved(fn);
+    fn(...args);
+  }, delay);
+
+  return (...args) => {
+    incrementUnsaved(fn);
+    debounced(...args);
+  };
 }
 
 export default function useBrowserState(defaultValue, { at } = {}) {
@@ -45,9 +84,9 @@ export default function useBrowserState(defaultValue, { at } = {}) {
   });
 
   const debounceSaveToLocalStorage = useCallback(
-    _.debounce((key, value) => {
+    countedDebounce((key, value) => {
       localStorage.setItem(key, JSON.stringify(value));
-    }, 500),
+    }, 1000),
     []
   );
 

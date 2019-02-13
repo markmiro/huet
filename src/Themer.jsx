@@ -1,4 +1,4 @@
-import React, { useContext } from "react";
+import React, { useState, useEffect, useContext } from "react";
 import saveAs from "file-saver";
 import chroma from "chroma-js";
 import { detect } from "detect-browser";
@@ -6,7 +6,10 @@ import { detect } from "detect-browser";
 import Theme from "./Theme";
 import Block from "./Block.jsx";
 
-import useBrowserState, { reset } from "./private/useBrowserState";
+import useBrowserState, {
+  reset,
+  useIsBrowserStateSaving
+} from "./private/useBrowserState";
 import Input from "./private/Input";
 import Range from "./private/Range";
 import Button, { ButtonGroup, JsonUploadButton } from "./private/Button";
@@ -25,6 +28,25 @@ if (browser && !["chrome", "firefox"].includes(browser.name)) {
 }
 
 const baseTheme = new Theme(baseThemeConfig);
+
+function BrowserStateActivity() {
+  const count = useIsBrowserStateSaving();
+  return (
+    <Block
+      base="green"
+      contrast="bg=25"
+      style={{
+        ...__.di.br3.ph2,
+        fontWeight: "normal",
+        transitionProperty: "opacity",
+        transitionDuration: "400ms",
+        opacity: count ? 0 : 1
+      }}
+    >
+      Saved
+    </Block>
+  );
+}
 
 export default function Themer() {
   const [isMounted, setIsMounted] = useState(false);
@@ -117,7 +139,9 @@ export default function Themer() {
           }}
           onClick={() => setIsExpanded(v => !v)}
         >
-          <div style={__.pv2.ph2.b}>Huet Theme Configurator</div>
+          <div style={__.pv2.ph2.b}>
+            Huet Theme Configurator <BrowserStateActivity />
+          </div>
           <Block
             contrast="bg=20"
             style={__.flex.justify_center.items_center.ph3.b}
