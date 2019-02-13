@@ -2,6 +2,7 @@ import React, { useState, useRef, useContext, useEffect, useMemo } from "react";
 import defaultThemeConfigs from "../demo/themeConfigs";
 import Theme from "../Theme";
 import Block from "../Block.jsx";
+import Arrow from "./Arrow.jsx";
 import { ThemeContext, BackgroundContext } from "../reactContexts";
 import __ from "./atoms";
 import { ThemeConfiguratorContext } from "../Body.jsx";
@@ -18,41 +19,6 @@ function Labeled({ title, children }) {
   );
 }
 
-function Arrow({ size = "1em", top = null, left = null, direction = "up" }) {
-  const directionToAngle = {
-    up: 45,
-    right: 45 + 90,
-    down: 45 + 180,
-    left: 45 + 180 + 90
-  };
-  const angle = directionToAngle[direction];
-
-  const positionStyle =
-    top || left
-      ? {
-          ...__.absolute,
-          top,
-          left
-        }
-      : null;
-  return (
-    <div
-      style={{
-        width: size,
-        height: size,
-        background: "transparent",
-        transform: `translate(-50%, -50%) rotate(${angle}deg)`,
-        borderColor: "transparent",
-        borderWidth: `calc(${size} / 2)`,
-        borderStyle: "solid",
-        borderTopColor: "currentColor",
-        borderLeftColor: "currentColor",
-        ...positionStyle
-      }}
-    />
-  );
-}
-
 function ThemeFrame({ theme, isSelected, children, onClick }) {
   const style = parentBg => ({
     ...__.w100.h100.ba.relative,
@@ -63,7 +29,7 @@ function ThemeFrame({ theme, isSelected, children, onClick }) {
       {isSelected ? (
         <Block theme={theme} as="div" contrast="bg=0 b=100" style={style}>
           {children}
-          <Arrow top="100%" left="50%" direction="up" />
+          <Arrow direction="up" style={__.abc} />
         </Block>
       ) : (
         <Block

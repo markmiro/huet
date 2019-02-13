@@ -155,6 +155,56 @@ const atoms = {
   },
   self_stretch: {
     alignSelf: "stretch"
+  },
+
+  // Pinning
+  at: {
+    position: "absolute",
+    top: 0
+  },
+  ab: {
+    position: "absolute",
+    bottom: 0
+  },
+  al: {
+    position: "absolute",
+    left: 0
+  },
+  ar: {
+    position: "absolute",
+    right: 0
+  },
+
+  // Pinning and centering
+  ac: {
+    position: "absolute",
+    left: "50%",
+    right: "50%",
+    transform: "translate(-50%, -50%)"
+  },
+  atc: {
+    position: "absolute",
+    top: 0,
+    left: "50%",
+    transform: "translateX(-50%)"
+  },
+  abc: {
+    position: "absolute",
+    bottom: 0,
+    left: "50%",
+    transform: "translateX(-50%)"
+  },
+  alc: {
+    position: "absolute",
+    left: 0,
+    top: "50%",
+    transform: "translateY(-50%)"
+  },
+  arc: {
+    position: "absolute",
+    right: 0,
+    top: "50%",
+    transform: "translateY(-50%)"
   }
 };
 
