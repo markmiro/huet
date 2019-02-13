@@ -236,19 +236,17 @@ function NamedColors() {
   const theme = useContext(ThemeContext);
   return (
     <>
-      {[100, 50, 25, 12.5, 6.25].map(contrast => (
-        <div key={contrast} style={__.flex.mb2}>
-          {Object.keys(theme.ramps).map(rampKey => (
-            <Block
-              key={rampKey}
-              contrast={`bg=${contrast}-${rampKey} bg/fg=white`}
-              style={__.pa1.tc.w100.f4.mr2.br1}
-            >
-              {rampKey}
-            </Block>
-          ))}
-        </div>
-      ))}
+      <div style={__.flex.mb2}>
+        {Object.keys(theme.ramps).map(rampKey => (
+          <Block
+            key={rampKey}
+            contrast={`bg=100-${rampKey} bg/fg=white`}
+            style={__.pa1.tc.w100.f4.mr2.br1}
+          >
+            {rampKey}
+          </Block>
+        ))}
+      </div>
     </>
   );
 }
