@@ -1,4 +1,10 @@
-import React, { useState, useRef, useContext, useEffect } from "react";
+import React, {
+  useState,
+  useRef,
+  useContext,
+  useEffect,
+  useCallback
+} from "react";
 import saveAs from "file-saver";
 import defaultThemeConfigs from "../demo/themeConfigs";
 import Theme from "../Theme";
@@ -12,6 +18,9 @@ import useBrowserState from "./useBrowserState";
 import baseThemeConfig from "./baseThemeConfig";
 import Input from "./Input";
 import { HSpace } from "./AllExceptFirst";
+import Cache from "./cache";
+
+const cache = new Cache(30);
 
 function ThemeFrame({ theme, isSelected, children, onClick, isHidden }) {
   const style = parentBg => ({
@@ -222,7 +231,7 @@ export default function Themes() {
   const isSelectedAndModified = config =>
     isSelected(config) && config !== selectedConfig;
 
-  function exportTheme() {
+  const exportTheme = useCallback(() => {
     // Generating a random id
     const configWithNewId = { ...selectedConfig, id: Math.random() };
     const str = JSON.stringify(configWithNewId, null, "  ");
@@ -230,30 +239,43 @@ export default function Themes() {
       type: "text/plain;charset=utf-8"
     });
     saveAs(blob, selectedConfig.name + " Huet Theme.json");
-  }
+  });
 
   return (
     <>
       <div ref={scrollContainerRef} style={{ ...__.flex, overflowX: "scroll" }}>
         {themeConfigs.map((config, i) => {
-          const setThemeConfigMemo = () => setSelectedConfig(config);
+          const onSelect = () => setSelectedConfig(config);
+
+          const onRemove = () => {
+            const newThemeConfigs = themeConfigs.filter(
+              config => !isSelected(config)
+            );
+            setThemeConfigs(newThemeConfigs);
+            setSelectedConfig(
+              newThemeConfigs[Math.min(i, newThemeConfigs.length - 1)]
+            );
+          };
+
+          const onCreate = () => {
+            const newConfig = {
+              ...selectedConfig,
+              id: Math.random(),
+              name:
+                config.name === selectedConfig.name
+                  ? config.name + " Copy"
+                  : selectedConfig.name
+            };
+            setThemeConfigs([newConfig, ...themeConfigs]);
+            setSelectedConfig(newConfig);
+          };
+
           return isSelectedAndModified(config) ? (
             <ModifiedThemePreview
               key={config.id}
               config={selectedConfig}
-              onReset={setThemeConfigMemo}
-              onCreate={() => {
-                const newConfig = {
-                  ...selectedConfig,
-                  id: Math.random(),
-                  name:
-                    config.name === selectedConfig.name
-                      ? config.name + " Copy"
-                      : selectedConfig.name
-                };
-                setThemeConfigs([newConfig, ...themeConfigs]);
-                setSelectedConfig(newConfig);
-              }}
+              onReset={onSelect}
+              onCreate={onCreate}
             />
           ) : (
             <ThemeContext.Provider value={null} key={config.id}>
@@ -261,16 +283,8 @@ export default function Themes() {
                 <ThemePreview
                   config={config}
                   isSelected={isSelected(config)}
-                  onClick={setThemeConfigMemo}
-                  onRemove={() => {
-                    const newThemeConfigs = themeConfigs.filter(
-                      config => !isSelected(config)
-                    );
-                    setThemeConfigs(newThemeConfigs);
-                    setSelectedConfig(
-                      newThemeConfigs[Math.min(i, newThemeConfigs.length - 1)]
-                    );
-                  }}
+                  onClick={cache.at([config], () => onSelect)}
+                  onRemove={cache.at([config], () => onRemove)}
                 />
               </BackgroundContext.Provider>
             </ThemeContext.Provider>
