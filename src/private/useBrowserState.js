@@ -11,8 +11,8 @@ export function reset() {
   window.location.reload();
 }
 
-let incrementUnsaved;
-let decrementUnsaved;
+let incrementUnsaved = () => {};
+let decrementUnsaved = () => {};
 
 export function useIsBrowserStateSaving() {
   const [keys, setKeys] = useState([]);
