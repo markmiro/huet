@@ -2,7 +2,7 @@ import React from "react";
 import Contrast from "../Contrast.jsx";
 import Block from "../Block.jsx";
 import __ from "./atoms";
-import { inputStyle, invisibleScreenClass } from "./styles";
+import { inputStyle, invisibleScreenClass, focusWithinClass } from "./styles";
 import displayError from "./displayError";
 
 export function ButtonGroup({ children, className, style }) {
@@ -20,7 +20,11 @@ export function ButtonGroup({ children, className, style }) {
 
 export function JsonUploadButton({ children, className, style, onUpload }) {
   return (
-    <Button as="div" className={className} style={{ ...__.relative, ...style }}>
+    <Button
+      as="div"
+      className={`${focusWithinClass} + ${className}`}
+      style={{ ...__.relative, ...style }}
+    >
       {children}
       <input
         type="file"
@@ -59,7 +63,6 @@ function doubleCheck(boolOrMessage, cb) {
 
 export default function Button({
   as = "button",
-  className,
   style,
   children,
   isActive,

@@ -33,9 +33,6 @@ export const rangeClass = rule({
   // Style
   display: "block",
 
-  ":focus": {
-    outline: "none !important"
-  },
   "::-webkit-slider-thumb": {
     // Reset
     WebkitAppearance: "none !important",
@@ -44,6 +41,18 @@ export const rangeClass = rule({
     width: "1px !important",
     height: "1em !important"
   }
+});
+
+const focusStyle = {
+  outline: "1px solid #00000033",
+  outlineOffset: -1,
+  border: "1px solid #ffffff66 !important",
+  boxShadow: "0px 1px 10px #00000066 !important",
+  zIndex: 1
+};
+
+export const focusWithinClass = rule({
+  ":focus-within": focusStyle
 });
 
 export const colorClass = rule({
@@ -74,7 +83,8 @@ export const themerClass = rule({
     all: "unset",
     display: "block",
     ...resetStyle["*"]
-  }
+  },
+  "*:focus": focusStyle
 });
 
 export const invisibleScreenClass = rule({
