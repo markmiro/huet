@@ -27,7 +27,7 @@ const Checkbox = ({
         type="checkbox"
         checked={value}
         onChange={e => onChange && onChange(e.target.checked)}
-        style={__.absolute.top0.left0.w0.h100}
+        style={__.absolute.top0.left0.w100.h100}
       />
       <span style={{ ...__.mr1, fontSize: "1.25em", lineHeight: 1 }}>
         {value ? "☒" : "☐"}
