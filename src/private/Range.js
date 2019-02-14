@@ -1,6 +1,6 @@
 import React, { useContext, useState, useEffect, useMemo } from "react";
 import { BackgroundContext } from "../reactContexts";
-import Contrast from "../Contrast.jsx";
+import Contrast from "../Contrast";
 import __ from "./atoms";
 import { rangeClass, inputStyle, maxInputWidthStyle } from "./styles.js";
 import Labeled from "./Labeled";

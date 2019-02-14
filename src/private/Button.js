@@ -1,6 +1,6 @@
 import React from "react";
-import Contrast from "../Contrast.jsx";
-import Block from "../Block.jsx";
+import Contrast from "../Contrast";
+import Block from "../Block";
 import __ from "./atoms";
 import { inputStyle, invisibleScreenClass, focusWithinClass } from "./styles";
 import displayError from "./displayError";

@@ -1,9 +1,9 @@
 import React from "react";
 import _ from "lodash";
-import Block from "../Block.jsx";
+import Block from "../Block";
 import __ from "./atoms";
 import { colorClass } from "./styles";
-import { HSpace } from "./AllExceptFirst.jsx";
+import { HSpace } from "./AllExceptFirst";
 
 function ColorPicker({ color, onChange }) {
   return (

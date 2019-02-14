@@ -1,7 +1,7 @@
 import React from "react";
 import { detect } from "detect-browser";
 import ErrorBoundary from "./private/ErrorBoundary";
-import Themer from "./Themer.jsx";
+import Themer from "./Themer";
 
 const browser = detect();
 if (browser && !["chrome", "firefox"].includes(browser.name)) {

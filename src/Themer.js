@@ -1,8 +1,8 @@
 import React, { useContext } from "react";
 
 import Theme from "./Theme";
-import Block from "./Block.jsx";
-import { ThemeConfiguratorContext } from "./Body.jsx";
+import Block from "./Block";
+import { ThemeConfiguratorContext } from "./Body.js";
 
 import useBrowserState, { reset } from "./private/useBrowserState";
 import Range from "./private/Range";
@@ -13,7 +13,7 @@ import Pallet from "./private/Pallet";
 import Themes from "./private/Themes";
 import __ from "./private/atoms";
 import baseThemeConfig from "./private/baseThemeConfig";
-import Labeled from "./private/Labeled.jsx";
+import Labeled from "./private/Labeled";
 import ThemerShell from "./private/ThemerShell";
 import { VSpace } from "./private/AllExceptFirst";
 import BgColors from "./private/BgColors";

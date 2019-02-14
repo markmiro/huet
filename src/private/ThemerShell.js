@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from "react";
-import Block from "../Block.jsx";
+import Block from "../Block";
 import useBrowserState, { useIsBrowserStateSaving } from "./useBrowserState";
 import __ from "./atoms";
 import { themerClass } from "./styles";

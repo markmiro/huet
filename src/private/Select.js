@@ -1,5 +1,5 @@
 import React from "react";
-import Contrast from "../Contrast.jsx";
+import Contrast from "../Contrast";
 import __ from "./atoms";
 import { inputStyle } from "./styles";
 
