@@ -55,7 +55,9 @@ const shadowBorderStyle = parentBg => ({
 export default function ThemerShell({ children }) {
   const [isExpanded, setIsExpanded] = useBrowserState(true);
   const [isMounted, setIsMounted] = useState(false);
+
   useEffect(() => setIsMounted(true), []);
+
   if (!isExpanded) {
     return (
       <Block className={themerClass} style={shadowBorderStyle}>
@@ -63,6 +65,7 @@ export default function ThemerShell({ children }) {
       </Block>
     );
   }
+
   return (
     <Block
       className={themerClass}

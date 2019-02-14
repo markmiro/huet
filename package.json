@@ -57,7 +57,7 @@
   "scripts": {
     "watch": "rollup -c --watch",
     "start-docs": "react-scripts start",
-    "build-docs-local": "PUBLIC_URL=/ react-scripts build && serve -s build",
+    "build-docs": "PUBLIC_URL=/ react-scripts build && serve -s build",
     "test": "react-scripts test --env=jsdom",
     "eject": "react-scripts eject",
     "prepublishOnly": "npm run _release",
