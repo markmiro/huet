@@ -61,8 +61,8 @@ export default function Button({
     <Contrast
       as={as}
       bgRamp={isActive ? "blue" : "gray"}
-      bg={10}
-      text={50}
+      bg={12}
+      text={100}
       onClick={doubleCheck(verify, onClick)}
       {...rest}
       style={{
