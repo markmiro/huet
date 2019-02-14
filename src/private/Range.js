@@ -4,6 +4,7 @@ import Contrast from "../Contrast";
 import __ from "./atoms";
 import { rangeClass, inputStyle, maxInputWidthStyle } from "./styles.js";
 import Labeled from "./Labeled";
+import Block from "../Block";
 
 const Range = ({
   label,
@@ -17,8 +18,6 @@ const Range = ({
   hideInput = false
 }) => {
   const step = 1 / Math.pow(10, decimals);
-  const parentBg = useContext(BackgroundContext);
-  const rangeBg = parentBg.contrast(10);
   const [isTyping, setIsTyping] = useState(false);
   const [stringNumber, setStringNumber] = useState(value.toFixed(decimals));
   const isOutOfRange = value < min || value > max;
@@ -65,7 +64,7 @@ const Range = ({
       <div style={__.flex.justify_between}>
         {label}
         <Contrast
-          text={isOutOfRange ? 50 : 30}
+          text={isOutOfRange ? 100 : 50}
           textRamp={isOutOfRange ? "red" : null}
         >
           ({min.toFixed(decimals)}-{max.toFixed(decimals)})
@@ -84,11 +83,10 @@ const Range = ({
     >
       <div style={__.flex.items_center}>
         {!hideInput && (
-          <Contrast
+          <Block
             aria-hidden
-            bg={isOutOfRange ? 50 : 10}
-            bgRamp={isOutOfRange ? "red" : null}
-            text={50}
+            base={isOutOfRange ? "red" : null}
+            contrast={isOutOfRange ? "b=100 bg=12" : "b=20"}
             as="input"
             type="number"
             style={{
@@ -96,7 +94,7 @@ const Range = ({
               width: "5em",
               fontSize: "inherit",
               cursor: "initial",
-              ...__.mr1
+              ...__.mr2.ba
             }}
             value={stringNumber}
             step={step}
@@ -105,14 +103,14 @@ const Range = ({
             onChange={handleInputChange}
           />
         )}
-        <input
+        <Block
+          as="input"
+          contrast="b=20"
           aria-label={label}
           type="range"
           className={rangeClass}
           style={{
             ...inputStyle,
-            backgroundColor: rangeBg,
-            color: rangeBg.contrast(100),
             ...__.self_stretch
           }}
           min={min}

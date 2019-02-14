@@ -15,7 +15,8 @@ function ColorPicker({ color, onChange }) {
       onChange={e => onChange(e.target.value)}
       className={colorClass}
       style={{
-        ...__.w100.h1.pa0.ba,
+        ...__.w100.h1.pa0.ba.br1,
+        overflow: "hidden",
         backgroundColor: color || "transparent"
       }}
     />

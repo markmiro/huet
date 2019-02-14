@@ -19,9 +19,11 @@ export const inputStyle = {
   padding: "0.3em 0.5em",
   borderWidth: 1,
   borderStyle: "solid",
-  borderColor: "transparent",
+  // borderColor: "transparent",
+  width: "100%",
   maxWidth: MAX_INPUT_WIDTH,
-  cursor: "default"
+  cursor: "default",
+  ...__.br1
 };
 
 export const rangeClass = rule({

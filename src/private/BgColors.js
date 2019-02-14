@@ -24,7 +24,7 @@ function BgColorPreview({ scaleValue, isSelected, onClick }) {
         ...__.ba.w100.relative.h2,
         backgroundColor: color,
         borderColor: color.contrast(isSelected ? 100 : 12),
-        color: color.contrast(100, theme.ramps.white),
+        color: color.contrast(75),
         boxShadow: `0 2px 10px ${color.shadowColor(0.2)}`
       }}
       onClick={onClick}
@@ -34,7 +34,11 @@ function BgColorPreview({ scaleValue, isSelected, onClick }) {
         <Arrow
           direction="up"
           size=".5em"
-          style={{ ...__.abc, transform: "translate(-50%, 1px)" }}
+          style={{
+            ...__.abc,
+            transform: "translate(-50%, 1px)",
+            color: color.contrast(100)
+          }}
         />
       )}
     </Button>
@@ -43,7 +47,7 @@ function BgColorPreview({ scaleValue, isSelected, onClick }) {
 
 export default function BgColors({ bgRampValue, onRampValueChange }) {
   return (
-    <HSpace growEach style={__.flex}>
+    <HSpace growEach style={__.flex} size="2">
       {[0, 0.25, 0.75, 1].map(scaleValue => (
         <BgColorPreview
           key={scaleValue}

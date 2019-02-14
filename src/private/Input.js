@@ -21,7 +21,7 @@ export default function Input({
       <Block
         aria-label={label}
         as="input"
-        contrast="bg=10 bg/fg=50"
+        contrast="b=20"
         className={className}
         style={{
           ...inputStyle,

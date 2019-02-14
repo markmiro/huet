@@ -58,7 +58,7 @@ export default function Themer() {
         <Block contrast="bg=12">
           <Themes />
         </Block>
-        <VSpace size="2" style={__.pa2}>
+        <VSpace size="2" style={__.pa3}>
           <Labeled label="Background color">
             <BgColors
               bgRampValue={themeConfig.bgRampValue}
@@ -124,7 +124,7 @@ export default function Themer() {
             value={shouldThemeSelf}
             onChange={setShouldThemeSelf}
           />
-          <Button bg={50} bgRamp="red" textRamp="white" onClick={reset} verify>
+          <Button bg={100} bgRamp="red" textRamp="white" onClick={reset} verify>
             Clear Local Storage
           </Button>
         </VSpace>

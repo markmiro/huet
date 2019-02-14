@@ -67,6 +67,7 @@ export default function Button({
       {...rest}
       style={{
         ...inputStyle,
+        borderColor: "transparent",
         ...__.flex.justify_center,
         ...style
       }}

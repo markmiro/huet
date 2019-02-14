@@ -36,7 +36,7 @@ const Checkbox = ({
       <div>
         {label}
         {note && (
-          <Block contrast="fg=50" as="small" style={__.db.i}>
+          <Block contrast="fg=50" as="small" style={__.db}>
             {note}
           </Block>
         )}

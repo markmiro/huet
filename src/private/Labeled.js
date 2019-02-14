@@ -1,5 +1,6 @@
 import React from "react";
 import __ from "./atoms";
+import Block from "../Block";
 
 export default function Labeled({ label, children, className, style }) {
   if (!label) {
@@ -11,7 +12,7 @@ export default function Labeled({ label, children, className, style }) {
   }
   return (
     <label className={className} style={style}>
-      <div style={{ ...__.i.mb1, cursor: "default" }}>{label}</div>
+      <Block style={{ ...__.mb1, cursor: "default" }}>{label}</Block>
       {children}
     </label>
   );

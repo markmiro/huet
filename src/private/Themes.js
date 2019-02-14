@@ -15,8 +15,9 @@ import { HSpace } from "./AllExceptFirst";
 
 function ThemeFrame({ theme, isSelected, children, onClick, isHidden }) {
   const style = parentBg => ({
-    ...__.w100.h100.ba.relative,
-    boxShadow: `0 2px 10px ${parentBg.contrast(100).alpha(0.2)}`
+    ...__.w100.h100.ba.br2.relative,
+    boxShadow: `0 2px 10px ${parentBg.contrast(100).alpha(0.2)}`,
+    overflow: "hidden"
   });
 
   const width = 22;
@@ -24,11 +25,11 @@ function ThemeFrame({ theme, isSelected, children, onClick, isHidden }) {
   return (
     <div
       style={{
-        ...__.pa2.flex.relative,
+        ...__.pv3.pl3.flex.relative,
         flexBasis: `${22}em`,
         flexShrink: 0,
         transitionProperty: "transform, margin, opacity",
-        transitionDuration: "200ms",
+        transitionDuration: "150ms",
         transitionTimingFunction: "ease-out",
         ...(isHidden && {
           pointerEvents: "none",
@@ -42,7 +43,7 @@ function ThemeFrame({ theme, isSelected, children, onClick, isHidden }) {
       {isSelected ? (
         <Block theme={theme} as="div" contrast="bg=0 b=100" style={style}>
           {children}
-          <Arrow direction="up" style={__.abc} />
+          <Arrow direction="up" size=".75em" style={__.abc} />
         </Block>
       ) : (
         <Block
@@ -108,7 +109,6 @@ function ColorMatrix() {
               contrast={`bg=${contrastInner}`}
               style={{
                 ...__.w100,
-                marginRight: i === 0 ? 1 : 0,
                 marginTop: 1,
                 height: rampKey === "gray" ? "1.5rem" : "0.5rem"
               }}
@@ -137,7 +137,7 @@ const ThemePreview = React.memo(({ config, isSelected, onClick, onRemove }) => {
 
   function startRemove() {
     setIsHidden(true);
-    setTimeout(onRemove, 300);
+    setTimeout(onRemove, 200);
   }
 
   return (
@@ -235,18 +235,6 @@ export default function Themes() {
   return (
     <>
       <div ref={scrollContainerRef} style={{ ...__.flex, overflowX: "scroll" }}>
-        {/* <ThemeFrame>
-          <div style={__.pa2.w100.h100.flex.flex_column.justify_center}>
-            <JsonUploadButton
-              onUpload={themeConfig => {
-                setThemeConfigs([themeConfig, ...themeConfigs]);
-                setSelectedConfig(themeConfig);
-              }}
-            >
-              Import Theme
-            </JsonUploadButton>
-          </div>
-        </ThemeFrame> */}
         {themeConfigs.map((config, i) => {
           const setThemeConfigMemo = () => setSelectedConfig(config);
           return isSelectedAndModified(config) ? (
@@ -288,16 +276,19 @@ export default function Themes() {
             </ThemeContext.Provider>
           );
         })}
+        <div style={__.pr3} />
       </div>
-      <div style={__.ph2.pb2}>
+      <div style={__.ph3.pb3}>
         <Input
           label="Theme Name"
-          style={__.flex_auto.mb1}
+          style={__.flex_auto.mb2}
           value={selectedConfig.name}
           onChange={name => setSelectedConfig({ ...selectedConfig, name })}
         />
-        <HSpace>
-          <Button onClick={exportTheme}>Export Theme</Button>
+        <HSpace growEach>
+          <Button onClick={exportTheme} style={__.w100}>
+            Export Theme
+          </Button>
           <JsonUploadButton
             onUpload={themeConfig => {
               setThemeConfigs([themeConfig, ...themeConfigs]);

@@ -52,7 +52,7 @@ const InnerRamp = React.memo(function InnerRamp({ ramp }) {
   switch (type) {
     case "classes":
       return (
-        <div style={__.h100.w100.flex}>
+        <div style={__.br1.h100.w100.flex}>
           {pairs(ramp).map(([first, second], i) => (
             <div
               key={i}
@@ -70,7 +70,7 @@ const InnerRamp = React.memo(function InnerRamp({ ramp }) {
       return (
         <div
           style={{
-            ...__.h100.w100,
+            ...__.br1.h100.w100,
             background: `linear-gradient(to right, ${_.range(0, 1.2, 0.2)
               .map(i => chroma.lab(...ramp(i)))
               .join(",")})`
