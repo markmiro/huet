@@ -1,4 +1,4 @@
-import React, { useState, useRef, useContext, useEffect, useMemo } from "react";
+import React, { useState, useRef, useContext, useEffect } from "react";
 import saveAs from "file-saver";
 import defaultThemeConfigs from "../demo/themeConfigs";
 import Theme from "../Theme";

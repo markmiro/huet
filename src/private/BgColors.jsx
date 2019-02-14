@@ -20,7 +20,6 @@ function BgColorPreview({ scaleValue, isSelected, onClick }) {
 
   return (
     <Button
-      key={scaleValue}
       style={{
         ...__.ba.w100.relative.h2,
         backgroundColor: color,
@@ -47,6 +46,7 @@ export default function BgColors({ bgRampValue, onRampValueChange }) {
     <HSpace growEach style={__.flex}>
       {[0, 0.25, 0.75, 1].map(scaleValue => (
         <BgColorPreview
+          key={scaleValue}
           scaleValue={scaleValue}
           isSelected={bgRampValue === scaleValue}
           onClick={() => onRampValueChange(scaleValue)}

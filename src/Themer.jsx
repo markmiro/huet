@@ -1,4 +1,4 @@
-import React, { useContext, useReducer } from "react";
+import React, { useContext } from "react";
 
 import Theme from "./Theme";
 import Block from "./Block.jsx";
@@ -35,6 +35,7 @@ export default function Themer() {
     };
   }
 
+  // Consider useReducer?
   const setBgRampValue = modify("bgRampValue");
   const setContrastMultiplier = modify("contrastMultiplier");
   const setSaturationMultiplier = modify("signalSaturationMultiplier");
