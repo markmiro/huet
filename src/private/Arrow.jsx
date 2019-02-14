@@ -1,5 +1,9 @@
 import React from "react";
 
+// TODO: consider making this component into an atom
+// How this component works:
+// https://css-tricks.com/snippets/css/css-triangle
+
 const directionToCss = {
   up: {
     baseProp: "borderBottom",
