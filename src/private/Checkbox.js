@@ -24,6 +24,7 @@ const Checkbox = ({
       text={contrast}
     >
       <input
+        aria-label={label}
         type="checkbox"
         checked={value}
         onChange={e => onChange && onChange(e.target.checked)}

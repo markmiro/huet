@@ -1,8 +1,9 @@
-import React from "react";
+import React, { useContext } from "react";
 import _ from "lodash";
 import chroma from "chroma-js";
-import Block from "../Block";
 import { getLightness } from "../Color";
+import { ThemeContext } from "../reactContexts";
+import Block from "../Block";
 import __ from "./atoms";
 
 function RampColorMarker({ color, grayRamp }) {
@@ -102,4 +103,22 @@ const ColorRamp = ({ ramp, theme }) => {
   );
 };
 
-export default ColorRamp;
+export default function ColorRamps() {
+  const theme = useContext(ThemeContext);
+  return (
+    <div style={__.w100}>
+      <Block
+        contrast="b=10"
+        style={{
+          height: "4px",
+          marginBottom: 6,
+          background: "linear-gradient(to right, black, white)",
+          ...__.w100
+        }}
+      />
+      {Object.keys(theme.ramps).map(key => (
+        <ColorRamp key={key} ramp={theme.ramps[key]} theme={theme} />
+      ))}
+    </div>
+  );
+}

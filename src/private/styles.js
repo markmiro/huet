@@ -77,8 +77,16 @@ export const resetClass = rule(resetStyle);
 
 export const themerClass = rule({
   all: "initial",
-  height: "100%",
   ...resetStyle,
+  ...__.f7,
+  right: 0,
+  bottom: 0,
+  position: "fixed",
+  zIndex: 999,
+  transitionProperty: "opacity, transform, height",
+  transitionDuration: "200ms",
+  transitionTimingFunction: "ease-out",
+
   "*": {
     all: "unset",
     display: "block",

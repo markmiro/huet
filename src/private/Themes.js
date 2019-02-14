@@ -10,15 +10,6 @@ import Button, { TextButton } from "./Button";
 import useBrowserState from "./useBrowserState";
 import baseThemeConfig from "./baseThemeConfig";
 
-function Labeled({ title, children }) {
-  return (
-    <>
-      <label style={__.i}>{title}</label>
-      {children}
-    </>
-  );
-}
-
 function ThemeFrame({ theme, isSelected, children, onClick }) {
   const style = parentBg => ({
     ...__.w100.h100.ba.relative,
@@ -36,7 +27,7 @@ function ThemeFrame({ theme, isSelected, children, onClick }) {
           theme={theme}
           as="button"
           onClick={onClick}
-          contrast={"bg=0 b=12"}
+          contrast="bg=0 b=12"
           style={style}
         >
           <div style={__.h100}>{children}</div>
@@ -196,54 +187,46 @@ export default function Themes() {
     isSelected(config) && config !== selectedConfig;
 
   return (
-    <div>
-      <div style={__.ma2.mb0}>
-        <Labeled title="Themes" />
-      </div>
-      <div
-        ref={scrollContainerRef}
-        style={{ ...__.flex.pb1, overflowX: "scroll" }}
-      >
-        {themeConfigs.map(config => {
-          const setThemeConfigMemo = () => setThemeConfig(config);
-          return isSelectedAndModified(config) ? (
-            <ModifiedThemePreview
-              key={config.id}
-              config={selectedConfig}
-              onReset={setThemeConfigMemo}
-              onCreate={() => {
-                const newConfig = {
-                  ...selectedConfig,
-                  id: Math.random(),
-                  name:
-                    config.name === selectedConfig.name
-                      ? config.name + " Copy"
-                      : selectedConfig.name
-                };
-                setThemeConfigs([newConfig, ...themeConfigs]);
-                setThemeConfig(newConfig);
-              }}
-            />
-          ) : (
-            <ThemeContext.Provider value={null} key={config.id}>
-              <BackgroundContext.Provider value={null}>
-                <ThemePreview
-                  config={config}
-                  isSelected={isSelected(config)}
-                  onClick={setThemeConfigMemo}
-                  onRemove={() => {
-                    const newThemeConfigs = themeConfigs.filter(
-                      config => !isSelected(config)
-                    );
-                    setThemeConfigs(newThemeConfigs);
-                    setThemeConfig(newThemeConfigs[0]);
-                  }}
-                />
-              </BackgroundContext.Provider>
-            </ThemeContext.Provider>
-          );
-        })}
-      </div>
+    <div ref={scrollContainerRef} style={{ ...__.flex, overflowX: "scroll" }}>
+      {themeConfigs.map(config => {
+        const setThemeConfigMemo = () => setThemeConfig(config);
+        return isSelectedAndModified(config) ? (
+          <ModifiedThemePreview
+            key={config.id}
+            config={selectedConfig}
+            onReset={setThemeConfigMemo}
+            onCreate={() => {
+              const newConfig = {
+                ...selectedConfig,
+                id: Math.random(),
+                name:
+                  config.name === selectedConfig.name
+                    ? config.name + " Copy"
+                    : selectedConfig.name
+              };
+              setThemeConfigs([newConfig, ...themeConfigs]);
+              setThemeConfig(newConfig);
+            }}
+          />
+        ) : (
+          <ThemeContext.Provider value={null} key={config.id}>
+            <BackgroundContext.Provider value={null}>
+              <ThemePreview
+                config={config}
+                isSelected={isSelected(config)}
+                onClick={setThemeConfigMemo}
+                onRemove={() => {
+                  const newThemeConfigs = themeConfigs.filter(
+                    config => !isSelected(config)
+                  );
+                  setThemeConfigs(newThemeConfigs);
+                  setThemeConfig(newThemeConfigs[0]);
+                }}
+              />
+            </BackgroundContext.Provider>
+          </ThemeContext.Provider>
+        );
+      })}
     </div>
   );
 }

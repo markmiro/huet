@@ -1,60 +1,30 @@
-import React, { useState, useEffect, useContext } from "react";
+import React, { useContext, useReducer } from "react";
 import saveAs from "file-saver";
-import chroma from "chroma-js";
-import { detect } from "detect-browser";
 
 import Theme from "./Theme";
 import Block from "./Block.jsx";
+import { ThemeConfiguratorContext } from "./Body.jsx";
 
-import useBrowserState, {
-  reset,
-  useIsBrowserStateSaving
-} from "./private/useBrowserState";
+import useBrowserState, { reset } from "./private/useBrowserState";
 import Input from "./private/Input";
 import Range from "./private/Range";
-import Button, { ButtonGroup, JsonUploadButton } from "./private/Button";
+import Button, { JsonUploadButton } from "./private/Button";
 import Checkbox from "./private/Checkbox";
-import ColorRamp from "./private/ColorRamp";
+import ColorRamps from "./private/ColorRamps";
 import Pallet from "./private/Pallet";
 import Themes from "./private/Themes";
 import __ from "./private/atoms";
-import { themerClass } from "./private/styles";
 import baseThemeConfig from "./private/baseThemeConfig";
-import { ThemeConfiguratorContext } from "./Body.jsx";
-
-const browser = detect();
-if (browser && !["chrome", "firefox"].includes(browser.name)) {
-  alert("Warning: Only Chrome and Firefox are suppported for now.");
-}
+import Labeled from "./private/Labeled";
+import ThemerShell from "./private/ThemerShell";
+import { VSpace, HSpace } from "./private/AllExceptFirst";
+import BgColors from "./private/BgColors";
 
 const baseTheme = new Theme(baseThemeConfig);
 
-function BrowserStateActivity() {
-  const count = useIsBrowserStateSaving();
-  return (
-    <Block
-      base="green"
-      contrast="bg=25"
-      style={{
-        ...__.di.br3.ph2,
-        fontWeight: "normal",
-        transitionProperty: "opacity",
-        transitionDuration: "400ms",
-        opacity: count ? 0 : 1
-      }}
-    >
-      Saved
-    </Block>
-  );
-}
-
 export default function Themer() {
-  const [isMounted, setIsMounted] = useState(false);
   const [theme, setThemeConfig] = useContext(ThemeConfiguratorContext);
-  const [isExpanded, setIsExpanded] = useBrowserState(true);
   const [shouldThemeSelf, setShouldThemeSelf] = useBrowserState(true);
-
-  useEffect(() => setIsMounted(true), []);
 
   const themeConfig = theme.config;
 
@@ -91,201 +61,99 @@ export default function Themer() {
     saveAs(blob, themeConfig.name + " Huet Theme.json");
   }
 
-  // TODO: consider reusing parent theme instead of just creating a new one
   const themerTheme = shouldThemeSelf ? theme : baseTheme;
 
   return (
-    <div
-      className={themerClass}
-      style={{
-        right: 0,
-        bottom: 0,
-        height: "auto",
-        position: "fixed",
-        ...(isExpanded && {
-          top: 0,
-          right: null,
-          position: "sticky",
-          height: "100vh",
-          transitionProperty: "opacity, transform, height",
-          transitionDuration: "200ms",
-          transitionTimingFunction: "ease-out",
-          transform: isMounted ? "translateY(0)" : "translateY(2em)",
-          opacity: isMounted ? 1 : 0
-        }),
-        zIndex: 999
-      }}
-    >
-      <Block
-        contrast="bg=0"
-        theme={themerTheme}
-        style={parentBg => ({
-          ...__.f7.flex.flex_column,
-          boxShadow: `0 5px 30px ${parentBg.contrast(100).alpha(0.125)}`,
-          outlineWidth: 1,
-          outlineStyle: "solid",
-          outlineColor: parentBg.contrast(25),
-          maxHeight: "100%",
-          width: "30em"
-        })}
-      >
-        <Block
-          as="button"
-          contrast="bg=100"
-          style={{
-            flexShrink: 0,
-            userSelect: "none",
-            ...__.db.flex.justify_between
-          }}
-          onClick={() => setIsExpanded(v => !v)}
-        >
-          <div style={__.pv2.ph2.b}>
-            Huet Theme Configurator <BrowserStateActivity />
-          </div>
-          <Block
-            contrast="bg=20"
-            style={__.flex.justify_center.items_center.ph3.b}
-          >
-            {isExpanded ? "↓" : "↑"}
-          </Block>
-        </Block>
-        <div
-          style={{
-            overflowY: "scroll",
-            overflowX: "hidden",
-            display: isExpanded ? null : "none"
-          }}
-        >
+    <Block theme={themerTheme} contrast="bg=0">
+      <ThemerShell>
+        <Block contrast="bg=12">
           <Themes />
-          <Block contrast="bg=10" style={__.pa2}>
+          <div style={__.ph2.pb2}>
             <Input
               label="Theme Name"
-              style={__.flex_auto.mb2}
+              style={__.flex_auto.mb1}
               value={themeConfig.name}
               onChange={setName}
             />
-            <ButtonGroup>
+            <HSpace>
               <Button onClick={exportTheme}>Export Theme</Button>
               <JsonUploadButton onUpload={setThemeConfig}>
                 Import Theme
               </JsonUploadButton>
-            </ButtonGroup>
-          </Block>
-          <div style={__.pa2}>
-            <div style={__.i.mt2.mb1}>Background color</div>
-            <ButtonGroup>
-              {[0, 0.25, 0.75, 1].map(scaleValue => (
-                <Button
-                  key={scaleValue}
-                  style={{
-                    ...__.ba,
-                    backgroundColor: chroma.lab(
-                      ...theme.ramps.gray(scaleValue)
-                    ),
-                    color:
-                      theme.ramps.gray(scaleValue)[0] > 50
-                        ? theme.pallet.black
-                        : theme.pallet.white
-                  }}
-                >
-                  {scaleValue * 100}%
-                </Button>
-              ))}
-            </ButtonGroup>
-            <Range
-              label="Contrast"
-              min={0}
-              max={1}
-              decimals={2}
-              value={themeConfig.contrastMultiplier}
-              onChange={setContrastMultiplier}
-              style={__.mt2}
-            />
-            <div style={__.i.mt2.mb1}>Pallet</div>
-            <Pallet colors={themeConfig.pallet} onColorsChange={setPallet} />
-            <div style={__.i.mt2.mb1}>Color ramps</div>
-            <div style={__.flex.flex_wrap.mt1}>
-              <div style={__.w100}>
-                <Block
-                  contrast="b=10"
-                  style={{
-                    height: "4px",
-                    marginBottom: 6,
-                    background: "linear-gradient(to right, black, white)",
-                    ...__.w100
-                  }}
-                />
-                {Object.keys(theme.ramps).map(key => (
-                  <ColorRamp key={key} ramp={theme.ramps[key]} theme={theme} />
-                ))}
-              </div>
-              <Block contrast="b=20" style={__.w100}>
-                <Range
-                  label="Signal lightness on 'black'"
-                  min={0}
-                  max={1}
-                  decimals={2}
-                  value={themeConfig.endSignalLightness}
-                  onChange={setendSignalLightness}
-                  style={__.mt2}
-                />
-                <Range
-                  label="Signal lightness on 'white'"
-                  min={0}
-                  max={1}
-                  decimals={2}
-                  value={themeConfig.startSignalLightness}
-                  onChange={setstartSignalLightness}
-                  style={__.mt2}
-                />
-                <Range
-                  label="Signal saturation"
-                  min={0}
-                  max={1}
-                  decimals={2}
-                  value={themeConfig.signalSaturationMultiplier}
-                  onChange={setSaturationMultiplier}
-                  style={__.mt2}
-                />
-                <Checkbox
-                  label="Rescale signal contrast to background"
-                  value={themeConfig.rescaleContrastToSignalRange}
-                  onChange={setRescaleContrastToSignalRange}
-                  style={__.mt2}
-                />
-                <Checkbox
-                  label="Rescale signal saturation to background"
-                  value={themeConfig.rescaleSaturationToGrayRange}
-                  onChange={setRescaleSaturationToGrayRange}
-                  style={__.mt2}
-                  note="Experimental: makes colors too desaturated"
-                />
-                <Checkbox
-                  label="Rescale base contrast to background"
-                  value={themeConfig.rescaleContrastToGrayRange}
-                  onChange={setRescaleContrastToGrayRange}
-                  style={__.mt2}
-                />
-                <Checkbox
-                  label="Theme the themer"
-                  value={shouldThemeSelf}
-                  onChange={setShouldThemeSelf}
-                  style={__.mb2}
-                />
-                <Button
-                  bg={50}
-                  bgRamp="red"
-                  textRamp="white"
-                  onClick={reset}
-                  verify
-                >
-                  Clear Local Storage
-                </Button>
-              </Block>
-            </div>
+            </HSpace>
           </div>
-        </div>
-      </Block>
-    </div>
+        </Block>
+        <VSpace size="2" style={__.pa2}>
+          <Labeled label="Background color">
+            <BgColors
+              bgRampValue={themeConfig.bgRampValue}
+              onRampValueChange={setBgRampValue}
+            />
+          </Labeled>
+          <Range
+            label="Contrast"
+            min={0}
+            max={1}
+            decimals={2}
+            value={themeConfig.contrastMultiplier}
+            onChange={setContrastMultiplier}
+          />
+          <Labeled label="Pallet">
+            <Pallet colors={themeConfig.pallet} onColorsChange={setPallet} />
+          </Labeled>
+          <Labeled label="Color ramps">
+            <ColorRamps />
+          </Labeled>
+          <Range
+            label="Signal lightness on 'black'"
+            min={0}
+            max={1}
+            decimals={2}
+            value={themeConfig.endSignalLightness}
+            onChange={setendSignalLightness}
+          />
+          <Range
+            label="Signal lightness on 'white'"
+            min={0}
+            max={1}
+            decimals={2}
+            value={themeConfig.startSignalLightness}
+            onChange={setstartSignalLightness}
+          />
+          <Range
+            label="Signal saturation"
+            min={0}
+            max={1}
+            decimals={2}
+            value={themeConfig.signalSaturationMultiplier}
+            onChange={setSaturationMultiplier}
+          />
+          <Checkbox
+            label="Rescale signal contrast to background"
+            value={themeConfig.rescaleContrastToSignalRange}
+            onChange={setRescaleContrastToSignalRange}
+          />
+          <Checkbox
+            label="Rescale signal saturation to background"
+            value={themeConfig.rescaleSaturationToGrayRange}
+            onChange={setRescaleSaturationToGrayRange}
+            note="Experimental: makes colors too desaturated"
+          />
+          <Checkbox
+            label="Rescale base contrast to background"
+            value={themeConfig.rescaleContrastToGrayRange}
+            onChange={setRescaleContrastToGrayRange}
+          />
+          <Checkbox
+            label="Theme the themer"
+            value={shouldThemeSelf}
+            onChange={setShouldThemeSelf}
+          />
+          <Button bg={50} bgRamp="red" textRamp="white" onClick={reset} verify>
+            Clear Local Storage
+          </Button>
+        </VSpace>
+      </ThemerShell>
+    </Block>
   );
 }

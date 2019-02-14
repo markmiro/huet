@@ -5,19 +5,6 @@ import __ from "./atoms";
 import { inputStyle, invisibleScreenClass, focusWithinClass } from "./styles";
 import displayError from "./displayError";
 
-export function ButtonGroup({ children, className, style }) {
-  const items = React.Children.map(children, (child, i) => {
-    const isFirst = i === 0;
-    return <div style={isFirst ? null : __.ml1}>{child}</div>;
-  });
-
-  return (
-    <div className={className} style={{ ...__.flex, marginRight: 1, ...style }}>
-      {items}
-    </div>
-  );
-}
-
 export function JsonUploadButton({ children, className, style, onUpload }) {
   return (
     <Button

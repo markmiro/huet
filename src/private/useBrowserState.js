@@ -55,6 +55,8 @@ export default function useBrowserState(defaultValue, { at } = {}) {
     // Need to slice since keys can get really big
     () => increment() + "_" + btoa(JSON.stringify(defaultValue).slice(500))
   );
+
+  // TODO: decide what to do about this
   // if (!at) {
   //   throw new Error("Need to store somewhere! 'at' param is missing.");
   //   try {
@@ -71,6 +73,7 @@ export default function useBrowserState(defaultValue, { at } = {}) {
   //       .join(".");
   //   }
   // }
+
   const key = at || defaultKey;
 
   const [value, setValue] = useState(() => {

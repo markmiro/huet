@@ -1,17 +1,17 @@
 import React from "react";
+import { detect } from "detect-browser";
 import ErrorBoundary from "./private/ErrorBoundary";
 import Themer from "./Themer.jsx";
-import { ThemeContext, BackgroundContext } from "./reactContexts.js";
+
+const browser = detect();
+if (browser && !["chrome", "firefox"].includes(browser.name)) {
+  alert("Warning: Only Chrome and Firefox are suppported for now.");
+}
 
 export default function ThemeConfigurator() {
   return (
     <ErrorBoundary componentName="Theme Configurator">
-      {/* Reset context to prevent wasted renders */}
-      <ThemeContext.Provider value={null}>
-        <BackgroundContext.Provider value={null}>
-          <Themer />
-        </BackgroundContext.Provider>
-      </ThemeContext.Provider>
+      <Themer />
     </ErrorBoundary>
   );
 }

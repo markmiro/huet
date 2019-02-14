@@ -1,8 +1,9 @@
-import React, { useContext, useState, useEffect } from "react";
+import React, { useContext, useState, useEffect, useMemo } from "react";
 import { BackgroundContext } from "../reactContexts";
 import Contrast from "../Contrast.jsx";
 import __ from "./atoms";
 import { rangeClass, inputStyle, maxInputWidthStyle } from "./styles.js";
+import Labeled from "./Labeled";
 
 const Range = ({
   label,
@@ -59,33 +60,32 @@ const Range = ({
     }
   };
 
+  const labelBody = useMemo(
+    () => (
+      <div style={__.flex.justify_between}>
+        {label}
+        <Contrast
+          text={isOutOfRange ? 50 : 30}
+          textRamp={isOutOfRange ? "red" : null}
+        >
+          ({min.toFixed(decimals)}-{max.toFixed(decimals)})
+        </Contrast>
+      </div>
+    ),
+    [label, isOutOfRange, decimals]
+  );
+
   return (
-    <div
+    <Labeled
+      label={label && labelBody}
       className={className}
       style={{ ...__.flex.flex_column, ...maxInputWidthStyle, ...style }}
       onKeyDown={handleKey}
     >
-      {label && (
-        <Contrast
-          text={100}
-          style={{
-            ...__.i.mb1.flex.justify_between,
-            cursor: "default"
-          }}
-        >
-          {label}
-          <Contrast
-            style={__.di}
-            text={isOutOfRange ? 50 : 30}
-            textRamp={isOutOfRange ? "red" : null}
-          >
-            ({min.toFixed(decimals)}-{max.toFixed(decimals)})
-          </Contrast>
-        </Contrast>
-      )}
       <div style={__.flex.items_center}>
         {!hideInput && (
           <Contrast
+            aria-hidden
             bg={isOutOfRange ? 50 : 10}
             bgRamp={isOutOfRange ? "red" : null}
             text={50}
@@ -106,6 +106,7 @@ const Range = ({
           />
         )}
         <input
+          aria-label={label}
           type="range"
           className={rangeClass}
           style={{
@@ -121,7 +122,7 @@ const Range = ({
           onChange={handleRangeChange}
         />
       </div>
-    </div>
+    </Labeled>
   );
 };
 

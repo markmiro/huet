@@ -297,7 +297,7 @@ function Alert() {
         <Block
           key={base}
           base={base}
-          contrast="b=50 bg=25"
+          contrast="b=25 bg=12"
           style={__.mt3.pa3.ba.br2.flex.justify_between.items_center}
         >
           <div style={{ lineHeight: 1.4 }}>
