@@ -1,23 +1,21 @@
 import React, { useContext, useReducer } from "react";
-import saveAs from "file-saver";
 
 import Theme from "./Theme";
 import Block from "./Block.jsx";
 import { ThemeConfiguratorContext } from "./Body.jsx";
 
 import useBrowserState, { reset } from "./private/useBrowserState";
-import Input from "./private/Input";
 import Range from "./private/Range";
-import Button, { JsonUploadButton } from "./private/Button";
+import Button from "./private/Button";
 import Checkbox from "./private/Checkbox";
 import ColorRamps from "./private/ColorRamps";
 import Pallet from "./private/Pallet";
 import Themes from "./private/Themes";
 import __ from "./private/atoms";
 import baseThemeConfig from "./private/baseThemeConfig";
-import Labeled from "./private/Labeled";
+import Labeled from "./private/Labeled.jsx";
 import ThemerShell from "./private/ThemerShell";
-import { VSpace, HSpace } from "./private/AllExceptFirst";
+import { VSpace } from "./private/AllExceptFirst";
 import BgColors from "./private/BgColors";
 
 const baseTheme = new Theme(baseThemeConfig);
@@ -37,7 +35,6 @@ export default function Themer() {
     };
   }
 
-  const setName = modify("name");
   const setBgRampValue = modify("bgRampValue");
   const setContrastMultiplier = modify("contrastMultiplier");
   const setSaturationMultiplier = modify("signalSaturationMultiplier");
@@ -52,15 +49,6 @@ export default function Themer() {
     "rescaleContrastToSignalRange"
   );
 
-  function exportTheme() {
-    // TODO: generate id with timestamp
-    const str = JSON.stringify(themeConfig, null, "  ");
-    const blob = new Blob([str], {
-      type: "text/plain;charset=utf-8"
-    });
-    saveAs(blob, themeConfig.name + " Huet Theme.json");
-  }
-
   const themerTheme = shouldThemeSelf ? theme : baseTheme;
 
   return (
@@ -68,20 +56,6 @@ export default function Themer() {
       <ThemerShell>
         <Block contrast="bg=12">
           <Themes />
-          <div style={__.ph2.pb2}>
-            <Input
-              label="Theme Name"
-              style={__.flex_auto.mb1}
-              value={themeConfig.name}
-              onChange={setName}
-            />
-            <HSpace>
-              <Button onClick={exportTheme}>Export Theme</Button>
-              <JsonUploadButton onUpload={setThemeConfig}>
-                Import Theme
-              </JsonUploadButton>
-            </HSpace>
-          </div>
         </Block>
         <VSpace size="2" style={__.pa2}>
           <Labeled label="Background color">

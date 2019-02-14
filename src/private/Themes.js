@@ -1,4 +1,5 @@
 import React, { useState, useRef, useContext, useEffect, useMemo } from "react";
+import saveAs from "file-saver";
 import defaultThemeConfigs from "../demo/themeConfigs";
 import Theme from "../Theme";
 import Block from "../Block.jsx";
@@ -6,17 +7,38 @@ import Arrow from "./Arrow.jsx";
 import { ThemeContext, BackgroundContext } from "../reactContexts";
 import __ from "./atoms";
 import { ThemeConfiguratorContext } from "../Body.jsx";
-import Button, { TextButton } from "./Button";
+import Button, { TextButton, JsonUploadButton } from "./Button";
 import useBrowserState from "./useBrowserState";
 import baseThemeConfig from "./baseThemeConfig";
+import Input from "./Input";
+import { HSpace } from "./AllExceptFirst";
 
-function ThemeFrame({ theme, isSelected, children, onClick }) {
+function ThemeFrame({ theme, isSelected, children, onClick, isHidden }) {
   const style = parentBg => ({
     ...__.w100.h100.ba.relative,
     boxShadow: `0 2px 10px ${parentBg.contrast(100).alpha(0.2)}`
   });
+
+  const width = 22;
+
   return (
-    <div style={{ ...__.pa2.flex.relative, flexBasis: "22em", flexShrink: 0 }}>
+    <div
+      style={{
+        ...__.pa2.flex.relative,
+        flexBasis: `${22}em`,
+        flexShrink: 0,
+        transitionProperty: "transform, margin, opacity",
+        transitionDuration: "200ms",
+        transitionTimingFunction: "ease-out",
+        ...(isHidden && {
+          pointerEvents: "none",
+          transform: `scaleX(0)`,
+          opacity: 0,
+          marginLeft: `-${width / 2}em`,
+          marginRight: `-${width / 2}em`
+        })
+      }}
+    >
       {isSelected ? (
         <Block theme={theme} as="div" contrast="bg=0 b=100" style={style}>
           {children}
@@ -109,15 +131,27 @@ function Section({ children }) {
 }
 
 const ThemePreview = React.memo(({ config, isSelected, onClick, onRemove }) => {
+  const [isHidden, setIsHidden] = useState(false);
   const theme = new Theme(config);
   const isBaseTheme = config.id === baseThemeConfig.id;
+
+  function startRemove() {
+    setIsHidden(true);
+    setTimeout(onRemove, 300);
+  }
+
   return (
-    <ThemeFrame theme={theme} isSelected={isSelected} onClick={onClick}>
+    <ThemeFrame
+      theme={theme}
+      isSelected={isSelected}
+      onClick={onClick}
+      isHidden={isHidden}
+    >
       <Pallet />
       <Title>
         {theme.name}
         {isSelected && !isBaseTheme && (
-          <TextButton base="red" onClick={onRemove} verify>
+          <TextButton base="red" onClick={startRemove} verify>
             Remove
           </TextButton>
         )}
@@ -156,7 +190,7 @@ function ModifiedThemePreview({ config, onReset, onCreate }) {
 
 export default function Themes() {
   const [themeConfigs, setThemeConfigs] = useBrowserState(defaultThemeConfigs);
-  const [theme, setThemeConfig] = useContext(ThemeConfiguratorContext);
+  const [theme, setSelectedConfig] = useContext(ThemeConfiguratorContext);
   const selectedConfig = theme.config;
 
   const scrollContainerRef = useRef(null);
@@ -166,6 +200,8 @@ export default function Themes() {
   //   themeConfigs.find(config => config.id === selectedConfig.id);
 
   useEffect(() => {
+    // Want to show the import dialog, so only show current them if it's not the default one
+    // if (selectedConfig.id === baseThemeConfig.id) return;
     if (!scrollContainerRef.current.childNodes.length) {
       throw new Error("Expecting at least one child");
     }
@@ -186,47 +222,92 @@ export default function Themes() {
   const isSelectedAndModified = config =>
     isSelected(config) && config !== selectedConfig;
 
+  function exportTheme() {
+    // Generating a random id
+    const configWithNewId = { ...selectedConfig, id: Math.random() };
+    const str = JSON.stringify(configWithNewId, null, "  ");
+    const blob = new Blob([str], {
+      type: "text/plain;charset=utf-8"
+    });
+    saveAs(blob, selectedConfig.name + " Huet Theme.json");
+  }
+
   return (
-    <div ref={scrollContainerRef} style={{ ...__.flex, overflowX: "scroll" }}>
-      {themeConfigs.map(config => {
-        const setThemeConfigMemo = () => setThemeConfig(config);
-        return isSelectedAndModified(config) ? (
-          <ModifiedThemePreview
-            key={config.id}
-            config={selectedConfig}
-            onReset={setThemeConfigMemo}
-            onCreate={() => {
-              const newConfig = {
-                ...selectedConfig,
-                id: Math.random(),
-                name:
-                  config.name === selectedConfig.name
-                    ? config.name + " Copy"
-                    : selectedConfig.name
-              };
-              setThemeConfigs([newConfig, ...themeConfigs]);
-              setThemeConfig(newConfig);
+    <>
+      <div ref={scrollContainerRef} style={{ ...__.flex, overflowX: "scroll" }}>
+        {/* <ThemeFrame>
+          <div style={__.pa2.w100.h100.flex.flex_column.justify_center}>
+            <JsonUploadButton
+              onUpload={themeConfig => {
+                setThemeConfigs([themeConfig, ...themeConfigs]);
+                setSelectedConfig(themeConfig);
+              }}
+            >
+              Import Theme
+            </JsonUploadButton>
+          </div>
+        </ThemeFrame> */}
+        {themeConfigs.map((config, i) => {
+          const setThemeConfigMemo = () => setSelectedConfig(config);
+          return isSelectedAndModified(config) ? (
+            <ModifiedThemePreview
+              key={config.id}
+              config={selectedConfig}
+              onReset={setThemeConfigMemo}
+              onCreate={() => {
+                const newConfig = {
+                  ...selectedConfig,
+                  id: Math.random(),
+                  name:
+                    config.name === selectedConfig.name
+                      ? config.name + " Copy"
+                      : selectedConfig.name
+                };
+                setThemeConfigs([newConfig, ...themeConfigs]);
+                setSelectedConfig(newConfig);
+              }}
+            />
+          ) : (
+            <ThemeContext.Provider value={null} key={config.id}>
+              <BackgroundContext.Provider value={null}>
+                <ThemePreview
+                  config={config}
+                  isSelected={isSelected(config)}
+                  onClick={setThemeConfigMemo}
+                  onRemove={() => {
+                    const newThemeConfigs = themeConfigs.filter(
+                      config => !isSelected(config)
+                    );
+                    setThemeConfigs(newThemeConfigs);
+                    setSelectedConfig(
+                      newThemeConfigs[Math.min(i, newThemeConfigs.length - 1)]
+                    );
+                  }}
+                />
+              </BackgroundContext.Provider>
+            </ThemeContext.Provider>
+          );
+        })}
+      </div>
+      <div style={__.ph2.pb2}>
+        <Input
+          label="Theme Name"
+          style={__.flex_auto.mb1}
+          value={selectedConfig.name}
+          onChange={name => setSelectedConfig({ ...selectedConfig, name })}
+        />
+        <HSpace>
+          <Button onClick={exportTheme}>Export Theme</Button>
+          <JsonUploadButton
+            onUpload={themeConfig => {
+              setThemeConfigs([themeConfig, ...themeConfigs]);
+              setSelectedConfig(themeConfig);
             }}
-          />
-        ) : (
-          <ThemeContext.Provider value={null} key={config.id}>
-            <BackgroundContext.Provider value={null}>
-              <ThemePreview
-                config={config}
-                isSelected={isSelected(config)}
-                onClick={setThemeConfigMemo}
-                onRemove={() => {
-                  const newThemeConfigs = themeConfigs.filter(
-                    config => !isSelected(config)
-                  );
-                  setThemeConfigs(newThemeConfigs);
-                  setThemeConfig(newThemeConfigs[0]);
-                }}
-              />
-            </BackgroundContext.Provider>
-          </ThemeContext.Provider>
-        );
-      })}
-    </div>
+          >
+            Import Theme
+          </JsonUploadButton>
+        </HSpace>
+      </div>
+    </>
   );
 }
