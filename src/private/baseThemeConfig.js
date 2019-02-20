@@ -30,7 +30,7 @@ const ramps = colorLabels.reduce(
 );
 
 export default {
-  id: 1,
+  id: 0,
   name: "Base",
   pallet: {
     black: "#000000",

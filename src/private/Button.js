@@ -60,7 +60,7 @@ export default function Button({
   return (
     <Contrast
       as={as}
-      bgRamp={isActive ? "blue" : "gray"}
+      bgRamp={isActive ? "blue" : "null"}
       bg={12}
       text={100}
       onClick={doubleCheck(verify, onClick)}

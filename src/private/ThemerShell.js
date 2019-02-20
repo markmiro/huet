@@ -74,7 +74,6 @@ export default function ThemerShell({ children }) {
         top: 0,
         right: null,
         position: "sticky",
-        width: "30em",
         height: "100vh",
         maxHeight: "100%",
         ...shadowBorderStyle(parentBg),
@@ -83,14 +82,7 @@ export default function ThemerShell({ children }) {
       })}
     >
       <TitleBar isExpanded onClick={() => setIsExpanded(v => !v)} />
-      <div
-        style={{
-          overflowY: "scroll",
-          overflowX: "hidden"
-        }}
-      >
-        {children}
-      </div>
+      {children}
     </Block>
   );
 }

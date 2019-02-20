@@ -1,17 +1,18 @@
 import React from "react";
 import __ from "./atoms";
+import Block from "../Block";
 
-export default function AllExceptFirst({ style, styleEach, children }) {
+export default function AllExceptFirst({ styleExcept, styleEach, children }) {
   return [
     React.Children.map(children, (child, i) => (
-      <div
-        style={{
-          ...(i > 0 && style),
+      <Block
+        style={parentBg => ({
+          ...(i > 0 && styleExcept),
           ...styleEach
-        }}
+        })}
       >
         {child}
-      </div>
+      </Block>
     ))
   ];
 }
@@ -21,7 +22,7 @@ export function HSpace({ size = 1, growEach, children, style, className }) {
     <div className={className} style={{ ...__.flex.flex_row, ...style }}>
       <AllExceptFirst
         styleEach={growEach ? { flexGrow: 1 } : null}
-        style={__["ml" + size]}
+        styleExcept={__["ml" + size]}
       >
         {children}
       </AllExceptFirst>
@@ -32,7 +33,7 @@ export function HSpace({ size = 1, growEach, children, style, className }) {
 export function VSpace({ size = 1, children, style, className }) {
   return (
     <div className={className} style={{ ...__.flex.flex_column, ...style }}>
-      <AllExceptFirst style={__["mt" + size]}>{children}</AllExceptFirst>
+      <AllExceptFirst styleExcept={__["mt" + size]}>{children}</AllExceptFirst>
     </div>
   );
 }

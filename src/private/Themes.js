@@ -158,7 +158,7 @@ const ThemePreview = React.memo(({ config, isSelected, onClick, onRemove }) => {
     >
       <Pallet />
       <Title>
-        {theme.name}
+        {theme.name} {theme.id}
         {isSelected && !isBaseTheme && (
           <TextButton base="red" onClick={startRemove} verify>
             Remove
@@ -197,7 +197,7 @@ function ModifiedThemePreview({ config, onReset, onCreate }) {
   );
 }
 
-export default function Themes() {
+export default function Themes({ label }) {
   const [themeConfigs, setThemeConfigs] = useBrowserState(defaultThemeConfigs);
   const [theme, setSelectedConfig] = useContext(ThemeConfiguratorContext);
   const selectedConfig = theme.config;
@@ -294,7 +294,7 @@ export default function Themes() {
       </div>
       <div style={__.ph3.pb3}>
         <Input
-          label="Theme Name"
+          label={label}
           style={__.flex_auto.mb2}
           value={selectedConfig.name}
           onChange={name => setSelectedConfig({ ...selectedConfig, name })}

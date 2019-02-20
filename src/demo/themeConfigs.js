@@ -59,24 +59,24 @@ const themes = [
   //   contrastMultiplier: 2,
   //   signalSaturationMultiplier: 2
   // },
-  // {
-  //   id: 4,
-  //   ...shared,
-  //   name: "Radioactive",
-  //   pallet: {
-  //     ...shared.pallet,
-  //     black: "#69707f",
-  //     white: "#c1ff00",
-  //     red: "#ff88a4",
-  //     yellow: "#b1bd2d",
-  //     green: "#59c866",
-  //     blue: "#83beff",
-  //     purple: "#d2a8ff"
-  //   },
-  //   bgRampValue: 0,
-  //   startSignalLightness: 0.46,
-  //   endSignalLightness: 0.61
-  // },
+  {
+    ...shared,
+    id: 4,
+    name: "Radioactive",
+    pallet: {
+      ...shared.pallet,
+      black: "#69707f",
+      white: "#c1ff00",
+      red: "#ff88a4",
+      yellow: "#b1bd2d",
+      green: "#59c866",
+      blue: "#83beff",
+      purple: "#d2a8ff"
+    },
+    bgRampValue: 0,
+    startSignalLightness: 0.46,
+    endSignalLightness: 0.61
+  },
   {
     ...shared,
     id: 5,
@@ -155,24 +155,24 @@ const themes = [
     startSignalLightness: 0.44,
     endSignalLightness: 0.63
   },
-  // {
-  //   ...shared,
-  //   id: 9,
-  //   name: "Royal Purple",
-  //   pallet: {
-  //     ...shared.pallet,
-  //     black: "#37233b",
-  //     white: "#f0c9e7",
-  //     red: "#e13639",
-  //     yellow: "#bd7f33",
-  //     green: "#00878e",
-  //     blue: "#3865da",
-  //     purple: "#7630c8"
-  //   },
-  //   bgRampValue: 0,
-  //   startSignalLightness: 0.5,
-  //   endSignalLightness: 0.5
-  // },
+  {
+    ...shared,
+    id: 9,
+    name: "Royal Purple",
+    pallet: {
+      ...shared.pallet,
+      black: "#37233b",
+      white: "#f0c9e7",
+      red: "#e13639",
+      yellow: "#bd7f33",
+      green: "#00878e",
+      blue: "#3865da",
+      purple: "#7630c8"
+    },
+    bgRampValue: 0,
+    startSignalLightness: 0.5,
+    endSignalLightness: 0.5
+  },
   {
     ...shared,
     id: 10,
@@ -193,26 +193,26 @@ const themes = [
     contrastMultiplier: 1,
     signalSaturationMultiplier: 0.83
   },
-  // {
-  //   ...shared,
-  //   id: 11,
-  //   name: "Faded Future",
-  //   pallet: {
-  //     ...shared.pallet,
-  //     black: "#3c3d43",
-  //     white: "#b2bdff",
-  //     red: "#ff3200",
-  //     yellow: "#987a1d",
-  //     green: "#459700",
-  //     blue: "#0073ff",
-  //     purple: "#aa5dff"
-  //   },
-  //   bgRamp: "gray",
-  //   bgRampValue: 0,
-  //   startSignalLightness: 0.36,
-  //   endSignalLightness: 0.72,
-  //   signalSaturationMultiplier: 0.59
-  // },
+  {
+    ...shared,
+    id: 11,
+    name: "Faded Future",
+    pallet: {
+      ...shared.pallet,
+      black: "#3c3d43",
+      white: "#b2bdff",
+      red: "#ff3200",
+      yellow: "#987a1d",
+      green: "#459700",
+      blue: "#0073ff",
+      purple: "#aa5dff"
+    },
+    bgRamp: "gray",
+    bgRampValue: 0,
+    startSignalLightness: 0.36,
+    endSignalLightness: 0.72,
+    signalSaturationMultiplier: 0.59
+  },
   {
     ...shared,
     id: 12,
@@ -232,31 +232,31 @@ const themes = [
     signalSaturationMultiplier: 1.5,
     contrastMultiplier: 1.5
   },
-  // {
-  //   ...shared,
-  //   id: 13,
-  //   name: "Sunset",
-  //   pallet: {
-  //     ...shared.pallet,
-  //     black: "#242744",
-  //     white: "#ffe173",
-  //     red: "#f20031",
-  //     yellow: "#c16000",
-  //     green: "#008d29",
-  //     blue: "#12889d",
-  //     purple: "#b555c8"
-  //   },
-  //   ramps: {
-  //     ...shared.ramps,
-  //     gray: {
-  //       ...shared.ramps.gray,
-  //       colorModel: "hcl"
-  //     }
-  //   },
-  //   bgRampValue: 0,
-  //   startSignalLightness: 0.42,
-  //   endSignalLightness: 0.58
-  // },
+  {
+    ...shared,
+    id: 13,
+    name: "Sunset",
+    pallet: {
+      ...shared.pallet,
+      black: "#242744",
+      white: "#ffe173",
+      red: "#f20031",
+      yellow: "#c16000",
+      green: "#008d29",
+      blue: "#12889d",
+      purple: "#b555c8"
+    },
+    ramps: {
+      ...shared.ramps,
+      gray: {
+        ...shared.ramps.gray,
+        colorModel: "hcl"
+      }
+    },
+    bgRampValue: 0,
+    startSignalLightness: 0.42,
+    endSignalLightness: 0.58
+  },
   {
     ...shared,
     id: 14,
