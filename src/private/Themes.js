@@ -229,7 +229,8 @@ export default function Themes({ label }) {
 
   const isSelected = config => config.id === selectedConfig.id;
   const isSelectedAndModified = config =>
-    isSelected(config) && config !== selectedConfig;
+    isSelected(config) &&
+    JSON.stringify(config) !== JSON.stringify(selectedConfig);
 
   const exportTheme = useCallback(() => {
     // Generating a random id
