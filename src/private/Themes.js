@@ -158,7 +158,7 @@ const ThemePreview = React.memo(({ config, isSelected, onClick, onRemove }) => {
     >
       <Pallet />
       <Title>
-        {theme.name} {theme.id}
+        {theme.name}
         {isSelected && !isBaseTheme && (
           <TextButton base="red" onClick={startRemove} verify>
             Remove
@@ -230,6 +230,8 @@ export default function Themes({ label }) {
   const isSelected = config => config.id === selectedConfig.id;
   const isSelectedAndModified = config =>
     isSelected(config) &&
+    // TODO: consider deep comparison
+    // http://www.mattzeunert.com/2016/01/28/javascript-deep-equal.html
     JSON.stringify(config) !== JSON.stringify(selectedConfig);
 
   const exportTheme = useCallback(() => {
