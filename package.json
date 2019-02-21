@@ -64,7 +64,7 @@
     "_build:prod": "NODE_ENV=production rollup -c",
     "_build:dev": "NODE_ENV=development rollup -c",
     "_build": "react-scripts build",
-    "_docs": "npm run _build && rm -rf docs && mv build/* docs",
+    "_docs": "npm run _build && rm -rf docs/* && mv build/* docs",
     "_release": "npm run _build:dev && npm run _build:prod && npm run _docs"
   },
   "files": [
