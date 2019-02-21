@@ -2,7 +2,7 @@
   "name": "huet",
   "homepage": "https://markmiro.com/huet",
   "description": "Color UIs by specifying colors relatively (using HCL, a perceptually accurate color model)",
-  "version": "1.0.0-beta.1",
+  "version": "1.0.0-beta.2",
   "author": "Mark Miro",
   "keywords": [
     "huet",
