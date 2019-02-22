@@ -53,7 +53,6 @@ export default {
   startSignalLightness: 0.49,
   endSignalLightness: 0.49,
   contrastMultiplier: 1,
-  signalSaturationMultiplier: 1,
   rescaleSaturationToGrayRange: false,
   rescaleContrastToGrayRange: true
 };

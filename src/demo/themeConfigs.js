@@ -57,7 +57,6 @@ const themes = [
   //   startSignalLightness: 0.3,
   //   endSignalLightness: 0.7,
   //   contrastMultiplier: 2,
-  //   signalSaturationMultiplier: 2
   // },
   {
     ...shared,
@@ -190,8 +189,7 @@ const themes = [
     bgRampValue: 0,
     startSignalLightness: 0.27,
     endSignalLightness: 0.76,
-    contrastMultiplier: 1,
-    signalSaturationMultiplier: 0.83
+    contrastMultiplier: 1
   },
   {
     ...shared,
@@ -210,8 +208,7 @@ const themes = [
     bgRamp: "gray",
     bgRampValue: 0,
     startSignalLightness: 0.36,
-    endSignalLightness: 0.72,
-    signalSaturationMultiplier: 0.59
+    endSignalLightness: 0.72
   },
   {
     ...shared,
@@ -227,9 +224,8 @@ const themes = [
       blue: "#6599ff",
       purple: "#d400ff"
     },
-    startSignalLightness: 0.47,
-    endSignalLightness: 0.75,
-    signalSaturationMultiplier: 1.5,
+    startSignalLightness: 0.6,
+    endSignalLightness: 0.6,
     contrastMultiplier: 1.5
   },
   {

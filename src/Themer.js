@@ -122,11 +122,6 @@ const definitions = {
       </div>
     )
   },
-  signalSaturationMultiplier: {
-    label: "Signal Saturation",
-    description:
-      "Normally keep this at 1. However, it's a good quick way to mute a loud theme. It only applies to signal colors."
-  },
   rescaleSaturationToGrayRange: {
     label: "Rescale signal saturation to background",
     description:
@@ -183,7 +178,6 @@ export default function Themer() {
   // Consider useReducer?
   const setBgRampValue = modify("bgRampValue");
   const setContrastMultiplier = modify("contrastMultiplier");
-  const setSaturationMultiplier = modify("signalSaturationMultiplier");
   const setPallet = modify("pallet");
   const setStartSignalLightness = modify("startSignalLightness");
   const setEndSignalLightness = modify("endSignalLightness");
@@ -249,14 +243,6 @@ export default function Themer() {
                 label={definitions["startSignalLightness"].label}
                 value={themeConfig.startSignalLightness}
                 onChange={setStartSignalLightness}
-                min={0}
-                max={1}
-                decimals={2}
-              />
-              <Range
-                label={definitions["signalSaturationMultiplier"].label}
-                value={themeConfig.signalSaturationMultiplier}
-                onChange={setSaturationMultiplier}
                 min={0}
                 max={1}
                 decimals={2}

@@ -150,30 +150,14 @@ export default class Color extends BaseColor {
           ? 1
           : theme.contrastMultiplier;
 
-      const abSaturationMultiplier =
-        isRootBaseRamp || theme.signalSaturationMultiplier > 1
-          ? 1
-          : theme.signalSaturationMultiplier;
-
       // `ab` in abContrast refers to the A and B axes of the LAB color space
       const abContrast =
         (theme.rescaleSaturationToGrayRange ? contrastAmount / 100 : 1) *
-        abContrastMultiplier *
-        abSaturationMultiplier;
-
-      const signalSaturationMultiplier =
-        theme.signalSaturationMultiplier > 1 && !isRootBaseRamp
-          ? Math.max(
-              1,
-              theme.signalSaturationMultiplier *
-                (contrastAmount / 100) *
-                Math.min(theme.contrastMultiplier, 1)
-            )
-          : 1;
+        abContrastMultiplier;
 
       const l = bgL + (fgL - bgL) * 1; // Read this as just `fgL`
-      const a = (bgA + (fgA - bgA) * abContrast) * signalSaturationMultiplier;
-      const b = (bgB + (fgB - bgB) * abContrast) * signalSaturationMultiplier;
+      const a = bgA + (fgA - bgA) * abContrast;
+      const b = bgB + (fgB - bgB) * abContrast;
 
       const finalLab = [l, a, b];
 
