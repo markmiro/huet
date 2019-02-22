@@ -108,7 +108,10 @@ function ColorMatrix() {
   const theme = useContext(ThemeContext);
   return [
     Object.keys(theme.ramps)
-      .filter(rampKey => theme.ramps[rampKey].config.mode === rampModes.SIGNAL)
+      .filter(rampKey => {
+        const mode = theme.ramps[rampKey].config.mode;
+        return mode === rampModes.SIGNAL || mode === rampModes.FURTHEST;
+      })
       .map(rampKey => (
         <div key={rampKey} style={__.flex}>
           {[100, 75, 50, 25].map((contrastInner, i) => (

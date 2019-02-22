@@ -44,9 +44,10 @@ const stepSizes = {
 
 function useColoredRampKeys() {
   const theme = useContext(ThemeContext);
-  return Object.keys(theme.ramps).filter(
-    rampKey => theme.ramps[rampKey].config.mode === rampModes.SIGNAL
-  );
+  return Object.keys(theme.ramps).filter(rampKey => {
+    const mode = theme.ramps[rampKey].config.mode;
+    return mode === rampModes.SIGNAL || mode === rampModes.FURTHEST;
+  });
 }
 
 export default function ColorContrast() {
