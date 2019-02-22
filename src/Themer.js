@@ -131,11 +131,6 @@ const definitions = {
     label: "Rescale signal saturation to background",
     description:
       "This is an experimental setting for a reason. If we can guarantee that all signal ramps will always have only colors, then it's somewhat straightforward to implement. Use this setting if you have a lot of backgrounds at 50% contrast or so. This will help signal colors not pop too much."
-  },
-  rescaleContrastToGrayRange: {
-    label: "Rescale base contrast to background",
-    description:
-      "Reduces the rendered color's contrast when the signal color is on top of a very gray color. The upside is that the color's contrast is accurate relative to it's parent and other surrounding elements. The downside is that you get reduced contrast (accessibility), and not the contrast you actually wanted."
   }
 };
 
@@ -192,7 +187,6 @@ export default function Themer() {
   const setPallet = modify("pallet");
   const setStartSignalLightness = modify("startSignalLightness");
   const setEndSignalLightness = modify("endSignalLightness");
-  const setRescaleContrastToGrayRange = modify("rescaleContrastToGrayRange");
   const setRescaleSaturationToGrayRange = modify(
     "rescaleSaturationToGrayRange"
   );
@@ -272,11 +266,6 @@ export default function Themer() {
                 value={themeConfig.rescaleSaturationToGrayRange}
                 onChange={setRescaleSaturationToGrayRange}
                 note="Experimental: makes colors too desaturated"
-              />
-              <Checkbox
-                label={definitions["rescaleContrastToGrayRange"].label}
-                value={themeConfig.rescaleContrastToGrayRange}
-                onChange={setRescaleContrastToGrayRange}
               />
               <Checkbox
                 label="Theme the themer"
