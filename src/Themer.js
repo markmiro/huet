@@ -190,7 +190,11 @@ export default function Themer() {
   const [showHelp, setShowHelp] = useBrowserState(false);
 
   return (
-    <Block theme={themerTheme} contrast="bg=0" style={{ flexShrink: 0 }}>
+    <Block
+      theme={themerTheme}
+      contrast="bg=0"
+      style={{ flexShrink: 0, width: "fit-content" }}
+    >
       <ThemerShell>
         <div style={__.flex}>
           {showHelp && <Help theme={theme} />}
