@@ -24,7 +24,7 @@ const palletColors = colorLabels.reduce(
 const ramps = colorLabels.reduce(
   (acc, label) => ({
     ...acc,
-    [label]: { colors: ["black", label, "white"] }
+    [label]: { colors: ["black", label, "white"], mode: "signal" }
   }),
   {}
 );
@@ -58,12 +58,3 @@ export default {
   rescaleSaturationToGrayRange: false,
   rescaleContrastToGrayRange: true
 };
-
-/*
-Ramp modes:
-- furthest
-- signal
-- punched
-- constant
-- direct
-*/

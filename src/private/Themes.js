@@ -7,7 +7,7 @@ import React, {
 } from "react";
 import saveAs from "file-saver";
 import defaultThemeConfigs from "../demo/themeConfigs";
-import Theme from "../Theme";
+import Theme, { rampModes } from "../Theme";
 import Block from "../Block";
 import Arrow from "./Arrow";
 import { ThemeContext, BackgroundContext } from "../reactContexts";
@@ -108,7 +108,7 @@ function ColorMatrix() {
   const theme = useContext(ThemeContext);
   return [
     Object.keys(theme.ramps)
-      .filter(rampKey => theme.ramps[rampKey].config.mode === "colored")
+      .filter(rampKey => theme.ramps[rampKey].config.mode === rampModes.SIGNAL)
       .map(rampKey => (
         <div key={rampKey} style={__.flex}>
           {[100, 75, 50, 25].map((contrastInner, i) => (
