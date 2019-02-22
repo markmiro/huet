@@ -15,7 +15,6 @@ const allowed = [
   "contrastMultiplier",
   "signalSaturationMultiplier",
   "rescaleSaturationToGrayRange",
-  "rescaleContrastToSignalRange",
   "rescaleContrastToGrayRange"
 ];
 

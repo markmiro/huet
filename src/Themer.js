@@ -127,11 +127,6 @@ const definitions = {
     description:
       "Normally keep this at 1. However, it's a good quick way to mute a loud theme. It only applies to signal colors."
   },
-  rescaleContrastToSignalRange: {
-    label: "Rescale signal contrast to background",
-    description:
-      "Reduces the rendered color's contrast when the signal color is on top of a very gray color. The upside is that the color's contrast is accurate relative to it's parent and other surrounding elements. The downside is that you get reduced contrast (accessibility), and not the contrast you actually wanted."
-  },
   rescaleSaturationToGrayRange: {
     label: "Rescale signal saturation to background",
     description:
@@ -139,11 +134,8 @@ const definitions = {
   },
   rescaleContrastToGrayRange: {
     label: "Rescale base contrast to background",
-    description: (
-      <div>
-        See: <div style={__.mono.di}>rescaleContrastToSignalRange</div>
-      </div>
-    )
+    description:
+      "Reduces the rendered color's contrast when the signal color is on top of a very gray color. The upside is that the color's contrast is accurate relative to it's parent and other surrounding elements. The downside is that you get reduced contrast (accessibility), and not the contrast you actually wanted."
   }
 };
 
@@ -203,9 +195,6 @@ export default function Themer() {
   const setRescaleContrastToGrayRange = modify("rescaleContrastToGrayRange");
   const setRescaleSaturationToGrayRange = modify(
     "rescaleSaturationToGrayRange"
-  );
-  const setRescaleContrastToSignalRange = modify(
-    "rescaleContrastToSignalRange"
   );
 
   const themerTheme = shouldThemeSelf ? theme : baseTheme;
@@ -277,11 +266,6 @@ export default function Themer() {
                 min={0}
                 max={1}
                 decimals={2}
-              />
-              <Checkbox
-                label={definitions["rescaleContrastToSignalRange"].label}
-                value={themeConfig.rescaleContrastToSignalRange}
-                onChange={setRescaleContrastToSignalRange}
               />
               <Checkbox
                 label={definitions["rescaleSaturationToGrayRange"].label}

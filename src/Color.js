@@ -118,10 +118,7 @@ export default class Color extends BaseColor {
           contrastMultiplier = theme.contrastMultiplier;
         }
 
-        if (
-          (theme.rescaleContrastToGrayRange && isRootBaseRamp) ||
-          (theme.rescaleContrastToSignalRange && !isRootBaseRamp)
-        ) {
+        if (theme.rescaleContrastToGrayRange && isRootBaseRamp) {
           contrastNormalizer = Math.abs(normalizedLightness - 0.5) + 0.5; // __1 _.5 __1
         }
 
