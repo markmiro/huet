@@ -44,8 +44,7 @@ export default {
     white: {
       colors: ["white", "black"],
       classes: [0, 0.7, 1],
-      mode: "direct",
-      isNeutral: true
+      mode: "direct"
     },
     ...ramps
   },

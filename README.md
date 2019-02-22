@@ -50,7 +50,6 @@ The [default theme]() lets you use Huet without having to create your own theme.
     white: '#ffffff',
     ramps: {
       gray: {
-        isNeutral: true,
         colors: ['black', 'white'], // dark color first
       },
     }
