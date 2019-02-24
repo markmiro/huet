@@ -91,6 +91,8 @@ const Range = ({
             type="number"
             style={{
               ...inputStyle,
+              color: "inherit",
+              background: "transparent",
               width: "5em",
               fontSize: "inherit",
               cursor: "initial",
