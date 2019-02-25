@@ -29,6 +29,7 @@ module.exports = {
     "react/jsx-no-target-blank": "on",
     "lodash/prefer-lodash-method": "off",
     "lodash/import-scope": "off", // Using a plugin to do this during build
+    "lodash/prefer-noop": "off",
     "lodash/prefer-lodash-chain": "off", // Chaining has better aesthetic, but bundle would be bigger?
     "no-mutating-methods": "on",
     // TODO: Check these: sort-imports and import/order
