@@ -19,7 +19,11 @@ export function JsonUploadButton({ children, className, style, onUpload }) {
         className={invisibleScreenClass}
         onChange={e => {
           const reader = new FileReader();
-          reader.onload = () => onUpload(JSON.parse(reader.result));
+          const eventListener = () => {
+            onUpload(JSON.parse(reader.result));
+            reader.removeEventListener("load", eventListener);
+          };
+          reader.addEventListener("load", eventListener);
 
           const file = e.target.files[0];
           if (file.type === "application/json") {
