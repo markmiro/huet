@@ -1,42 +1,65 @@
-import React, { useState, useRef, useContext, useEffect, useMemo } from "react";
+import React, {
+  useState,
+  useRef,
+  useContext,
+  useEffect,
+  useCallback
+} from "react";
+import saveAs from "file-saver";
 import defaultThemeConfigs from "../demo/themeConfigs";
-import Theme from "../Theme";
-import Block from "../Block.jsx";
-import Arrow from "./Arrow.jsx";
+import Theme, { rampModes } from "../Theme";
+import Block from "../Block";
+import Arrow from "./Arrow";
 import { ThemeContext, BackgroundContext } from "../reactContexts";
 import __ from "./atoms";
-import { ThemeConfiguratorContext } from "../Body.jsx";
-import Button, { TextButton } from "./Button";
+import { ThemeConfiguratorContext } from "../Body";
+import Button, { TextButton, JsonUploadButton } from "./Button";
 import useBrowserState from "./useBrowserState";
 import baseThemeConfig from "./baseThemeConfig";
+import Input from "./Input";
+import { HSpace } from "./AllExceptFirst";
+import Cache from "./cache";
 
-function Labeled({ title, children }) {
-  return (
-    <>
-      <label style={__.i}>{title}</label>
-      {children}
-    </>
-  );
-}
+const cache = new Cache(30);
 
-function ThemeFrame({ theme, isSelected, children, onClick }) {
+function ThemeFrame({ theme, isSelected, children, onClick, isHidden }) {
   const style = parentBg => ({
-    ...__.w100.h100.ba.relative,
-    boxShadow: `0 2px 10px ${parentBg.contrast(100).alpha(0.2)}`
+    ...__.w100.h100.ba.br2.relative,
+    boxShadow: `0 2px 10px ${parentBg.contrast(100).alpha(0.2)}`,
+    overflow: "hidden"
   });
+
+  const width = 22;
+
   return (
-    <div style={{ ...__.pa2.flex.relative, flexBasis: "22em", flexShrink: 0 }}>
+    <div
+      style={{
+        ...__.pv3.pl3.flex.relative,
+        flexBasis: `${22}em`,
+        flexShrink: 0,
+        transitionProperty: "transform, margin, opacity",
+        transitionDuration: "150ms",
+        transitionTimingFunction: "ease-out",
+        ...(isHidden && {
+          pointerEvents: "none",
+          transform: `scaleX(0)`,
+          opacity: 0,
+          marginLeft: `-${width / 2}em`,
+          marginRight: `-${width / 2}em`
+        })
+      }}
+    >
       {isSelected ? (
         <Block theme={theme} as="div" contrast="bg=0 b=100" style={style}>
           {children}
-          <Arrow direction="up" style={__.abc} />
+          <Arrow direction="up" size=".75em" style={__.abc} />
         </Block>
       ) : (
         <Block
           theme={theme}
           as="button"
           onClick={onClick}
-          contrast={"bg=0 b=12"}
+          contrast="bg=0 b=12"
           style={style}
         >
           <div style={__.h100}>{children}</div>
@@ -85,7 +108,10 @@ function ColorMatrix() {
   const theme = useContext(ThemeContext);
   return [
     Object.keys(theme.ramps)
-      .filter(rampKey => theme.ramps[rampKey].config.mode === "colored")
+      .filter(rampKey => {
+        const mode = theme.ramps[rampKey].config.mode;
+        return mode === rampModes.SIGNAL || mode === rampModes.FURTHEST;
+      })
       .map(rampKey => (
         <div key={rampKey} style={__.flex}>
           {[100, 75, 50, 25].map((contrastInner, i) => (
@@ -95,7 +121,6 @@ function ColorMatrix() {
               contrast={`bg=${contrastInner}`}
               style={{
                 ...__.w100,
-                marginRight: i === 0 ? 1 : 0,
                 marginTop: 1,
                 height: rampKey === "gray" ? "1.5rem" : "0.5rem"
               }}
@@ -118,15 +143,27 @@ function Section({ children }) {
 }
 
 const ThemePreview = React.memo(({ config, isSelected, onClick, onRemove }) => {
+  const [isHidden, setIsHidden] = useState(false);
   const theme = new Theme(config);
   const isBaseTheme = config.id === baseThemeConfig.id;
+
+  function startRemove() {
+    setIsHidden(true);
+    setTimeout(onRemove, 200);
+  }
+
   return (
-    <ThemeFrame theme={theme} isSelected={isSelected} onClick={onClick}>
+    <ThemeFrame
+      theme={theme}
+      isSelected={isSelected}
+      onClick={onClick}
+      isHidden={isHidden}
+    >
       <Pallet />
       <Title>
         {theme.name}
         {isSelected && !isBaseTheme && (
-          <TextButton base="red" onClick={onRemove} verify>
+          <TextButton base="red" onClick={startRemove} verify>
             Remove
           </TextButton>
         )}
@@ -163,9 +200,9 @@ function ModifiedThemePreview({ config, onReset, onCreate }) {
   );
 }
 
-export default function Themes() {
+export default function Themes({ label }) {
   const [themeConfigs, setThemeConfigs] = useBrowserState(defaultThemeConfigs);
-  const [theme, setThemeConfig] = useContext(ThemeConfiguratorContext);
+  const [theme, setSelectedConfig] = useContext(ThemeConfiguratorContext);
   const selectedConfig = theme.config;
 
   const scrollContainerRef = useRef(null);
@@ -175,6 +212,8 @@ export default function Themes() {
   //   themeConfigs.find(config => config.id === selectedConfig.id);
 
   useEffect(() => {
+    // Want to show the import dialog, so only show current them if it's not the default one
+    // if (selectedConfig.id === baseThemeConfig.id) return;
     if (!scrollContainerRef.current.childNodes.length) {
       throw new Error("Expecting at least one child");
     }
@@ -193,36 +232,56 @@ export default function Themes() {
 
   const isSelected = config => config.id === selectedConfig.id;
   const isSelectedAndModified = config =>
-    isSelected(config) && config !== selectedConfig;
+    isSelected(config) &&
+    // TODO: consider deep comparison
+    // http://www.mattzeunert.com/2016/01/28/javascript-deep-equal.html
+    JSON.stringify(config) !== JSON.stringify(selectedConfig);
+
+  const exportTheme = useCallback(() => {
+    // Generating a random id
+    const configWithNewId = { ...selectedConfig, id: Math.random() };
+    const str = JSON.stringify(configWithNewId, null, "  ");
+    const blob = new Blob([str], {
+      type: "text/plain;charset=utf-8"
+    });
+    saveAs(blob, selectedConfig.name + " Huet Theme.json");
+  });
 
   return (
-    <div>
-      <div style={__.ma2.mb0}>
-        <Labeled title="Themes" />
-      </div>
-      <div
-        ref={scrollContainerRef}
-        style={{ ...__.flex.pb1, overflowX: "scroll" }}
-      >
-        {themeConfigs.map(config => {
-          const setThemeConfigMemo = () => setThemeConfig(config);
+    <>
+      <div ref={scrollContainerRef} style={{ ...__.flex, overflowX: "scroll" }}>
+        {themeConfigs.map((config, i) => {
+          const onSelect = () => setSelectedConfig(config);
+
+          const onRemove = () => {
+            const newThemeConfigs = themeConfigs.filter(
+              config => !isSelected(config)
+            );
+            setThemeConfigs(newThemeConfigs);
+            setSelectedConfig(
+              newThemeConfigs[Math.min(i, newThemeConfigs.length - 1)]
+            );
+          };
+
+          const onCreate = () => {
+            const newConfig = {
+              ...selectedConfig,
+              id: Math.random(),
+              name:
+                config.name === selectedConfig.name
+                  ? config.name + " Copy"
+                  : selectedConfig.name
+            };
+            setThemeConfigs([newConfig, ...themeConfigs]);
+            setSelectedConfig(newConfig);
+          };
+
           return isSelectedAndModified(config) ? (
             <ModifiedThemePreview
               key={config.id}
               config={selectedConfig}
-              onReset={setThemeConfigMemo}
-              onCreate={() => {
-                const newConfig = {
-                  ...selectedConfig,
-                  id: Math.random(),
-                  name:
-                    config.name === selectedConfig.name
-                      ? config.name + " Copy"
-                      : selectedConfig.name
-                };
-                setThemeConfigs([newConfig, ...themeConfigs]);
-                setThemeConfig(newConfig);
-              }}
+              onReset={onSelect}
+              onCreate={onCreate}
             />
           ) : (
             <ThemeContext.Provider value={null} key={config.id}>
@@ -230,20 +289,36 @@ export default function Themes() {
                 <ThemePreview
                   config={config}
                   isSelected={isSelected(config)}
-                  onClick={setThemeConfigMemo}
-                  onRemove={() => {
-                    const newThemeConfigs = themeConfigs.filter(
-                      config => !isSelected(config)
-                    );
-                    setThemeConfigs(newThemeConfigs);
-                    setThemeConfig(newThemeConfigs[0]);
-                  }}
+                  onClick={cache.at([config], () => onSelect)}
+                  onRemove={cache.at([config], () => onRemove)}
                 />
               </BackgroundContext.Provider>
             </ThemeContext.Provider>
           );
         })}
+        <div style={__.pr3} />
       </div>
-    </div>
+      <div style={__.ph3.pb3}>
+        <Input
+          label={label}
+          style={__.flex_auto.mb2}
+          value={selectedConfig.name}
+          onChange={name => setSelectedConfig({ ...selectedConfig, name })}
+        />
+        <HSpace growEach>
+          <Button onClick={exportTheme} style={__.w100}>
+            Export Theme
+          </Button>
+          <JsonUploadButton
+            onUpload={themeConfig => {
+              setThemeConfigs([themeConfig, ...themeConfigs]);
+              setSelectedConfig(themeConfig);
+            }}
+          >
+            Import Theme
+          </JsonUploadButton>
+        </HSpace>
+      </div>
+    </>
   );
 }

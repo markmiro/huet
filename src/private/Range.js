@@ -1,8 +1,10 @@
-import React, { useContext, useState, useEffect } from "react";
+import React, { useContext, useState, useEffect, useMemo } from "react";
 import { BackgroundContext } from "../reactContexts";
-import Contrast from "../Contrast.jsx";
+import Contrast from "../Contrast";
 import __ from "./atoms";
 import { rangeClass, inputStyle, maxInputWidthStyle } from "./styles.js";
+import Labeled from "./Labeled";
+import Block from "../Block";
 
 const Range = ({
   label,
@@ -16,8 +18,6 @@ const Range = ({
   hideInput = false
 }) => {
   const step = 1 / Math.pow(10, decimals);
-  const parentBg = useContext(BackgroundContext);
-  const rangeBg = parentBg.contrast(10);
   const [isTyping, setIsTyping] = useState(false);
   const [stringNumber, setStringNumber] = useState(value.toFixed(decimals));
   const isOutOfRange = value < min || value > max;
@@ -59,44 +59,44 @@ const Range = ({
     }
   };
 
+  const labelBody = useMemo(
+    () => (
+      <div style={__.flex.justify_between}>
+        {label}
+        <Contrast
+          text={isOutOfRange ? 100 : 50}
+          textRamp={isOutOfRange ? "red" : null}
+        >
+          ({min.toFixed(decimals)}-{max.toFixed(decimals)})
+        </Contrast>
+      </div>
+    ),
+    [label, isOutOfRange, decimals]
+  );
+
   return (
-    <div
+    <Labeled
+      label={label && labelBody}
       className={className}
       style={{ ...__.flex.flex_column, ...maxInputWidthStyle, ...style }}
       onKeyDown={handleKey}
     >
-      {label && (
-        <Contrast
-          text={100}
-          style={{
-            ...__.i.mb1.flex.justify_between,
-            cursor: "default"
-          }}
-        >
-          {label}
-          <Contrast
-            style={__.di}
-            text={isOutOfRange ? 50 : 30}
-            textRamp={isOutOfRange ? "red" : null}
-          >
-            ({min.toFixed(decimals)}-{max.toFixed(decimals)})
-          </Contrast>
-        </Contrast>
-      )}
       <div style={__.flex.items_center}>
         {!hideInput && (
-          <Contrast
-            bg={isOutOfRange ? 50 : 10}
-            bgRamp={isOutOfRange ? "red" : null}
-            text={50}
+          <Block
+            aria-hidden
+            base={isOutOfRange ? "red" : null}
+            contrast={isOutOfRange ? "b=100 bg=12" : "b=20"}
             as="input"
             type="number"
             style={{
               ...inputStyle,
+              color: "inherit",
+              background: "transparent",
               width: "5em",
               fontSize: "inherit",
               cursor: "initial",
-              ...__.mr1
+              ...__.mr2.ba
             }}
             value={stringNumber}
             step={step}
@@ -105,13 +105,14 @@ const Range = ({
             onChange={handleInputChange}
           />
         )}
-        <input
+        <Block
+          as="input"
+          contrast="b=20"
+          aria-label={label}
           type="range"
           className={rangeClass}
           style={{
             ...inputStyle,
-            backgroundColor: rangeBg,
-            color: rangeBg.contrast(100),
             ...__.self_stretch
           }}
           min={min}
@@ -121,7 +122,7 @@ const Range = ({
           onChange={handleRangeChange}
         />
       </div>
-    </div>
+    </Labeled>
   );
 };
 

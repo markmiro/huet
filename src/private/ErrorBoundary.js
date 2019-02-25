@@ -1,7 +1,6 @@
 // NOTE: not using huet stuff here because we don't want this to have errors when huet has errors.
 import React from "react";
 import { reset } from "./useBrowserState";
-import __ from "./atoms";
 
 export default class ErrorBoundary extends React.Component {
   constructor(props) {
@@ -22,29 +21,24 @@ export default class ErrorBoundary extends React.Component {
 
   render() {
     if (this.state.hasError) {
-      // You can render any custom fallback UI
       return (
         <div
           style={{
-            ...__.pa2,
+            fontFamily: "sans-serif",
+            textAlign: "center",
+            padding: "1em",
             background: "white",
             color: "black"
           }}
         >
-          <h1 style={__.f6.mt0.mb1}>
+          <h1 style={{ color: "red", fontSize: "1em", margin: "0" }}>
             {this.props.componentName && this.props.componentName + ": "}
-            Something went wrong.
+            Something went wrong
           </h1>
-          <button
-            onClick={reset}
-            style={{
-              ...__.f5.pa2,
-              background: "black",
-              color: "white"
-            }}
-          >
-            Try resetting local storage
-          </button>
+          <p style={{ margin: ".5em 0" }}>
+            Try clearing local storage:{" "}
+            <button onClick={reset}>Reset this Page</button>
+          </p>
         </div>
       );
     }

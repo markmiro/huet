@@ -120,6 +120,7 @@ const atoms = {
   ...make("f", "fontSize", fontScale),
   b: { fontWeight: "bold" },
   i: { fontStyle: "italic" },
+  mono: { fontFamily: "Monaco, monospace" },
 
   // Text align
   tc: { textAlign: "center" },

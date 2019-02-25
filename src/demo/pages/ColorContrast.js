@@ -11,6 +11,7 @@ import {
 import useBrowserState from "../../private/useBrowserState";
 import Select from "../../private/Select";
 import __ from "../../private/atoms";
+import { rampModes } from "../../Theme";
 
 const sharedDoubleFractionSteps = [100 / 16, 100 / 8, 100 / 4, 100 / 2];
 const doubleSteps = [0, 4, 8, 16, 32, 64, 100];
@@ -43,9 +44,10 @@ const stepSizes = {
 
 function useColoredRampKeys() {
   const theme = useContext(ThemeContext);
-  return Object.keys(theme.ramps).filter(
-    rampKey => theme.ramps[rampKey].config.mode === "colored"
-  );
+  return Object.keys(theme.ramps).filter(rampKey => {
+    const mode = theme.ramps[rampKey].config.mode;
+    return mode === rampModes.SIGNAL || mode === rampModes.FURTHEST;
+  });
 }
 
 export default function ColorContrast() {

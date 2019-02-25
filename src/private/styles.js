@@ -19,9 +19,11 @@ export const inputStyle = {
   padding: "0.3em 0.5em",
   borderWidth: 1,
   borderStyle: "solid",
-  borderColor: "transparent",
+  // borderColor: "transparent",
+  width: "100%",
   maxWidth: MAX_INPUT_WIDTH,
-  cursor: "default"
+  cursor: "default",
+  ...__.br1
 };
 
 export const rangeClass = rule({
@@ -33,9 +35,6 @@ export const rangeClass = rule({
   // Style
   display: "block",
 
-  ":focus": {
-    outline: "none !important"
-  },
   "::-webkit-slider-thumb": {
     // Reset
     WebkitAppearance: "none !important",
@@ -44,6 +43,18 @@ export const rangeClass = rule({
     width: "1px !important",
     height: "1em !important"
   }
+});
+
+const focusStyle = {
+  outline: "1px solid #00000033",
+  outlineOffset: -1,
+  border: "1px solid #ffffff66 !important",
+  boxShadow: "0px 1px 10px #00000066 !important",
+  zIndex: 1
+};
+
+export const focusWithinClass = rule({
+  ":focus-within": focusStyle
 });
 
 export const colorClass = rule({
@@ -68,13 +79,22 @@ export const resetClass = rule(resetStyle);
 
 export const themerClass = rule({
   all: "initial",
-  height: "100%",
   ...resetStyle,
+  ...__.f7,
+  right: 0,
+  bottom: 0,
+  position: "fixed",
+  zIndex: 999,
+  transitionProperty: "opacity, transform, height",
+  transitionDuration: "200ms",
+  transitionTimingFunction: "ease-out",
+
   "*": {
     all: "unset",
     display: "block",
     ...resetStyle["*"]
-  }
+  },
+  "*:focus": focusStyle
 });
 
 export const invisibleScreenClass = rule({

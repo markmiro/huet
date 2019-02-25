@@ -6,6 +6,8 @@ import { Block } from "../../huet";
 import __ from "../../private/atoms";
 import Theme from "../../Theme";
 import { BackgroundContext, ThemeContext } from "../../reactContexts";
+import Range from "../../private/Range";
+import useBrowserState from "../../private/useBrowserState";
 
 function Section({ title, children }) {
   return (
@@ -297,7 +299,7 @@ function Alert() {
         <Block
           key={base}
           base={base}
-          contrast="b=50 bg=25"
+          contrast="b=25 bg=12"
           style={__.mt3.pa3.ba.br2.flex.justify_between.items_center}
         >
           <div style={{ lineHeight: 1.4 }}>
@@ -321,6 +323,67 @@ function Alert() {
   );
 }
 
+function SelectableBlock({ title, subtitle, ...rest }) {
+  const [isSelected, setSelectedChange] = useBrowserState(false);
+  return (
+    <Block
+      as="button"
+      onClick={() => setSelectedChange(isSelected => !isSelected)}
+      base={isSelected ? "blue" : null}
+      style={{
+        ...__.w100.pa2.flex.justify_between.items_center,
+        border: 0,
+        marginBottom: 1,
+        textAlign: "left"
+      }}
+      {...rest}
+    >
+      <div>
+        {title}
+        <Block contrast="fg=50">{subtitle}</Block>
+      </div>
+      <div style={__.flex}>
+        <Block base="red" contrast="bg=50 bg/fg=white" style={__.pa1.f7.mr2}>
+          red
+        </Block>
+        <Block base="green" contrast="bg=50 bg/fg=white" style={__.pa1.f7}>
+          green
+        </Block>
+      </div>
+    </Block>
+  );
+}
+
+function Selectable() {
+  const [bgContrast, setBgContrast] = useBrowserState(100);
+  const items = [
+    { title: "This is something or other", subtitle: "This is a subtitle" },
+    { title: "This is another item", subtitle: "This another subtitle" },
+    { title: "Yes", subtitle: "No" }
+  ];
+  return (
+    <div>
+      <Range
+        label="Background contrast"
+        value={bgContrast}
+        onChange={setBgContrast}
+        style={__.mb3}
+      />
+      {items.map((item, i) => (
+        <SelectableBlock
+          key={i}
+          title={item.title}
+          subtitle={item.subtitle}
+          contrast={`bg=${bgContrast}`}
+        />
+      ))}
+      <Block contrast="fg=50" style={__.f7.mt2}>
+        Click on one of the above blocks to select them
+      </Block>
+    </div>
+  );
+}
+
 export default function Basic() {
   const { name } = useContext(ThemeContext);
   return (
@@ -338,6 +401,9 @@ export default function Basic() {
       </Section>
       <Section title="Nav">
         <Nav />
+      </Section>
+      <Section title="Selectable">
+        <Selectable />
       </Section>
       <Section title="Form">
         <Form />

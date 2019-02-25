@@ -1,7 +1,7 @@
 import React, { useEffect } from "react";
 import Theme from "./Theme";
 import Color from "./Color";
-import Block from "./Block.jsx";
+import Block from "./Block";
 import useBrowserState from "./private/useBrowserState";
 import baseThemeConfig from "./private/baseThemeConfig";
 

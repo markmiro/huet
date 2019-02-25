@@ -24,13 +24,13 @@ const palletColors = colorLabels.reduce(
 const ramps = colorLabels.reduce(
   (acc, label) => ({
     ...acc,
-    [label]: { colors: ["black", label, "white"] }
+    [label]: { colors: ["black", label, "white"], mode: "signal" }
   }),
   {}
 );
 
 export default {
-  id: 1,
+  id: 0,
   name: "Base",
   pallet: {
     black: "#000000",
@@ -44,27 +44,15 @@ export default {
     white: {
       colors: ["white", "black"],
       classes: [0, 0.7, 1],
-      mode: "direct",
-      isNeutral: true
+      mode: "direct"
     },
     ...ramps
   },
   bgRamp: "gray",
   bgRampValue: 1,
-  startSignalLightness: 0.5,
-  endSignalLightness: 0.5,
+  startSignalLightness: 0.49,
+  endSignalLightness: 0.49,
   contrastMultiplier: 1,
-  signalSaturationMultiplier: 1,
-  rescaleContrastToSignalRange: true,
   rescaleSaturationToGrayRange: false,
   rescaleContrastToGrayRange: true
 };
-
-/*
-Ramp modes:
-- furthest
-- signal
-- punched
-- constant
-- direct
-*/

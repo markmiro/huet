@@ -3,6 +3,13 @@ import mapValues from "map-values"; // saved 20KB when bundling
 import { getLightness } from "./Color";
 import baseConfig from "./private/baseThemeConfig";
 
+export const rampModes = {
+  SIGNAL: "signal",
+  DIRECT: "direct",
+  FURTHEST: "furthest"
+  // PUNCHED: "punched" TODO: consider adding this
+};
+
 const allowed = [
   "id",
   "name",
@@ -13,9 +20,7 @@ const allowed = [
   "startSignalLightness",
   "endSignalLightness",
   "contrastMultiplier",
-  "signalSaturationMultiplier",
   "rescaleSaturationToGrayRange",
-  "rescaleContrastToSignalRange",
   "rescaleContrastToGrayRange"
 ];
 
@@ -46,7 +51,7 @@ function createRamp(themeConfig, rampConfig) {
     ...rampConfig
   };
 
-  // TODO: if ramp is a "colored", then convert it based on the min and max colors.
+  // TODO: if ramp is a "signal", then convert it based on the min and max colors.
   const hexColors = config.colors.map(colorName => {
     if (colorName in themeConfig.pallet) {
       return themeConfig.pallet[colorName];
@@ -60,10 +65,10 @@ function createRamp(themeConfig, rampConfig) {
 
   let ramp;
   switch (config.mode) {
-    case "direct":
+    case rampModes.DIRECT:
       ramp = createDirectRampWithScale(scale);
       break;
-    case "colored":
+    case rampModes.SIGNAL:
     default:
       if (config.correctLightness) scale.correctLightness();
       ramp = createRampWithScale(scale);
@@ -94,5 +99,14 @@ const defaultRampConfig = {
   colors: ["black", "white"],
   colorModel: "lab", // lrgb, lab
   correctLightness: true,
-  mode: "colored"
+  mode: rampModes.FURTHEST
 };
+
+/*
+Ramp modes:
+- furthest
+- signal
+- punched
+- constant?
+- direct
+*/

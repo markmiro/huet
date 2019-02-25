@@ -1,6 +1,6 @@
 import React from "react";
-import Contrast from "../Contrast.jsx";
-import Block from "../Block.jsx";
+import Contrast from "../Contrast";
+import Block from "../Block.js";
 import __ from "./atoms";
 
 const Checkbox = ({
@@ -24,10 +24,11 @@ const Checkbox = ({
       text={contrast}
     >
       <input
+        aria-label={label}
         type="checkbox"
         checked={value}
         onChange={e => onChange && onChange(e.target.checked)}
-        style={__.absolute.top0.left0.w0.h100}
+        style={__.absolute.top0.left0.w100.h100}
       />
       <span style={{ ...__.mr1, fontSize: "1.25em", lineHeight: 1 }}>
         {value ? "☒" : "☐"}
@@ -35,7 +36,7 @@ const Checkbox = ({
       <div>
         {label}
         {note && (
-          <Block contrast="fg=50" as="small" style={__.db.i}>
+          <Block contrast="fg=50" as="small" style={__.db}>
             {note}
           </Block>
         )}

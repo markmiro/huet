@@ -1,26 +1,17 @@
 import React from "react";
-import Contrast from "../Contrast.jsx";
-import Block from "../Block.jsx";
+import Contrast from "../Contrast";
+import Block from "../Block";
 import __ from "./atoms";
-import { inputStyle, invisibleScreenClass } from "./styles";
+import { inputStyle, invisibleScreenClass, focusWithinClass } from "./styles";
 import displayError from "./displayError";
-
-export function ButtonGroup({ children, className, style }) {
-  const items = React.Children.map(children, (child, i) => {
-    const isFirst = i === 0;
-    return <div style={isFirst ? null : __.ml1}>{child}</div>;
-  });
-
-  return (
-    <div className={className} style={{ ...__.flex, marginRight: 1, ...style }}>
-      {items}
-    </div>
-  );
-}
 
 export function JsonUploadButton({ children, className, style, onUpload }) {
   return (
-    <Button as="div" className={className} style={{ ...__.relative, ...style }}>
+    <Button
+      as="div"
+      className={`${focusWithinClass} + ${className}`}
+      style={{ ...__.relative, ...style }}
+    >
       {children}
       <input
         type="file"
@@ -59,7 +50,6 @@ function doubleCheck(boolOrMessage, cb) {
 
 export default function Button({
   as = "button",
-  className,
   style,
   children,
   isActive,
@@ -70,13 +60,14 @@ export default function Button({
   return (
     <Contrast
       as={as}
-      bgRamp={isActive ? "blue" : "gray"}
-      bg={10}
-      text={50}
+      bgRamp={isActive ? "blue" : "null"}
+      bg={12}
+      text={100}
       onClick={doubleCheck(verify, onClick)}
       {...rest}
       style={{
         ...inputStyle,
+        borderColor: "transparent",
         ...__.flex.justify_center,
         ...style
       }}

@@ -1,8 +1,9 @@
-import React from "react";
+import React, { useContext } from "react";
 import _ from "lodash";
 import chroma from "chroma-js";
-import Block from "../Block";
 import { getLightness } from "../Color";
+import { ThemeContext } from "../reactContexts";
+import Block from "../Block";
 import __ from "./atoms";
 
 function RampColorMarker({ color, grayRamp }) {
@@ -51,7 +52,7 @@ const InnerRamp = React.memo(function InnerRamp({ ramp }) {
   switch (type) {
     case "classes":
       return (
-        <div style={__.h100.w100.flex}>
+        <div style={__.br1.h100.w100.flex}>
           {pairs(ramp).map(([first, second], i) => (
             <div
               key={i}
@@ -69,7 +70,7 @@ const InnerRamp = React.memo(function InnerRamp({ ramp }) {
       return (
         <div
           style={{
-            ...__.h100.w100,
+            ...__.br1.h100.w100,
             background: `linear-gradient(to right, ${_.range(0, 1.2, 0.2)
               .map(i => chroma.lab(...ramp(i)))
               .join(",")})`
@@ -102,4 +103,22 @@ const ColorRamp = ({ ramp, theme }) => {
   );
 };
 
-export default ColorRamp;
+export default function ColorRamps() {
+  const theme = useContext(ThemeContext);
+  return (
+    <div style={__.w100}>
+      <Block
+        contrast="b=10"
+        style={{
+          height: "4px",
+          marginBottom: 6,
+          background: "linear-gradient(to right, black, white)",
+          ...__.w100
+        }}
+      />
+      {Object.keys(theme.ramps).map(key => (
+        <ColorRamp key={key} ramp={theme.ramps[key]} theme={theme} />
+      ))}
+    </div>
+  );
+}

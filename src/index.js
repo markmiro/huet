@@ -16,10 +16,6 @@ import __ from "./private/atoms";
 import Select from "./private/Select";
 
 const pages = {
-  minimal: {
-    name: "Minimal",
-    component: () => <Block contrast="bg=100">Hello</Block>
-  },
   basic: {
     name: "Basic",
     component: lazy(() => import("./demo/pages/Basic"))
@@ -28,17 +24,13 @@ const pages = {
     name: "Github",
     component: lazy(() => import("./demo/pages/Github"))
   },
-  colorContrast: {
-    name: "Color Contrast",
-    component: lazy(() => import("./demo/pages/ColorContrast"))
-  },
   youtube: {
     name: "YouTube",
     component: lazy(() => import("./demo/pages/YouTube"))
   },
-  explanation: {
-    name: "Explanation",
-    component: lazy(() => import("./demo/pages/Explanation"))
+  colorContrast: {
+    name: "Color Contrast",
+    component: lazy(() => import("./demo/pages/ColorContrast"))
   }
 };
 
@@ -71,7 +63,7 @@ function App() {
           </Suspense>
         </div>
       </div>
-      <ThemeConfigurator />
+      <ThemeConfigurator shouldOverlay={false} />
     </Body>
   );
 }

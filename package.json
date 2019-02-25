@@ -2,7 +2,7 @@
   "name": "huet",
   "homepage": "https://markmiro.com/huet",
   "description": "Color UIs by specifying colors relatively (using HCL, a perceptually accurate color model)",
-  "version": "1.0.0-beta.1",
+  "version": "1.0.0-beta.3",
   "author": "Mark Miro",
   "keywords": [
     "huet",
@@ -68,7 +68,7 @@
   "scripts": {
     "watch": "rollup -c --watch",
     "start-docs": "react-scripts start",
-    "build-docs-local": "PUBLIC_URL=/ react-scripts build && serve -s build",
+    "build-docs": "PUBLIC_URL=/ react-scripts build && serve -s build",
     "test": "react-scripts test --env=jsdom",
     "eject": "react-scripts eject",
     "lint": "eslint src",
@@ -76,7 +76,7 @@
     "_build:prod": "NODE_ENV=production rollup -c",
     "_build:dev": "NODE_ENV=development rollup -c",
     "_build": "react-scripts build",
-    "_docs": "npm run _build && rm -rf doc && mv build/* docs",
+    "_docs": "npm run _build && rm -rf docs/* && mv build/* docs",
     "_release": "npm run _build:dev && npm run _build:prod && npm run _docs"
   },
   "files": [
