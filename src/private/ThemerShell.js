@@ -52,7 +52,7 @@ const shadowBorderStyle = parentBg => ({
   outlineColor: parentBg.contrast(25)
 });
 
-export default function ThemerShell({ children }) {
+export default function ThemerShell({ shouldOverlay = true, children }) {
   const [isExpanded, setIsExpanded] = useBrowserState(true);
   const [isMounted, setIsMounted] = useState(false);
 
@@ -66,16 +66,25 @@ export default function ThemerShell({ children }) {
     );
   }
 
+  const modeStyles = shouldOverlay
+    ? {
+        bottom: 0,
+        right: 0,
+        position: "fixed"
+      }
+    : {
+        top: 0,
+        right: null,
+        position: "sticky"
+      };
   return (
     <Block
+      contrast="bg=0"
       className={themerClass}
       style={parentBg => ({
         ...__.flex.flex_column,
-        top: 0,
-        right: null,
-        position: "sticky",
-        height: "100vh",
-        maxHeight: "100%",
+        ...modeStyles,
+        maxHeight: "100vh",
         ...shadowBorderStyle(parentBg),
         transform: isMounted ? "translateY(0)" : "translateY(2em)",
         opacity: isMounted ? 1 : 0

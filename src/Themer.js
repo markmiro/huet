@@ -160,7 +160,7 @@ function Help({ theme }) {
   );
 }
 
-export default function Themer() {
+export default function Themer({ shouldOverlay }) {
   const [theme, setThemeConfig] = useContext(ThemeConfiguratorContext);
   const [shouldThemeSelf, setShouldThemeSelf] = useBrowserState(true);
 
@@ -190,12 +190,8 @@ export default function Themer() {
   const [showHelp, setShowHelp] = useBrowserState(false);
 
   return (
-    <Block
-      theme={themerTheme}
-      contrast="bg=0"
-      style={{ flexShrink: 0, width: "fit-content" }}
-    >
-      <ThemerShell>
+    <Block theme={themerTheme} style={{ flexShrink: 0 }}>
+      <ThemerShell shouldOverlay={shouldOverlay}>
         <div style={__.flex}>
           {showHelp && <Help theme={theme} />}
           <ScrollPanel>
