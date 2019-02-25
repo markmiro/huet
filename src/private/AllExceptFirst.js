@@ -7,10 +7,10 @@ export default function AllExceptFirst({ styleExcept, styleEach, children }) {
   return [
     React.Children.map(children, (child, i) => (
       <Block
-        style={parentBg => ({
+        style={{
           ...(i > 0 && styleExcept),
           ...styleEach
-        })}
+        }}
       >
         {child}
       </Block>

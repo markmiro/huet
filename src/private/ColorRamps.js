@@ -39,6 +39,8 @@ function pairs(ramp) {
   const classesArr = Array.isArray(classes)
     ? classes
     : [..._.range(0, 1, 1 / classes), 1];
+  // It's more clear this in this context to use the alias
+  // eslint-disable-next-line lodash/preferred-alias
   const first = _.first(classesArr);
   const last = _.last(classesArr);
   const middle = _.initial(_.tail(classesArr));

@@ -41,7 +41,6 @@ const Range = ({
   };
 
   const handleKey = e => {
-    console.log(e.key, e.shiftKey, e.which);
     let direction = null;
     if (e.key === "ArrowUp") direction = 1;
     if (e.key === "ArrowDown") direction = -1;

@@ -86,7 +86,7 @@ export function chainable(obj) {
   Object.keys(obj).map(key =>
     Object.defineProperty(chained, key, {
       get() {
-        const thing = Object.keys(this).length ? this : Object.create(this);
+        const thing = Object.keys(this).length > 0 ? this : Object.create(this);
         Object.assign(thing, obj[key]);
         return thing;
       }

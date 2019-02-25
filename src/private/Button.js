@@ -4,7 +4,7 @@ import Block from "../Block";
 import Contrast from "../Contrast";
 import __ from "./atoms";
 import displayError from "./displayError";
-import { focusWithinClass,inputStyle, invisibleScreenClass } from "./styles";
+import { focusWithinClass, inputStyle, invisibleScreenClass } from "./styles";
 
 export function JsonUploadButton({ children, className, style, onUpload }) {
   return (

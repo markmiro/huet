@@ -32,15 +32,19 @@ module.exports = {
     "lodash/prefer-noop": "off",
     "lodash/prefer-lodash-chain": "off", // Chaining has better aesthetic, but bundle would be bigger?
     "no-mutating-methods": "on",
+    "no-alert": "off",
+    "prefer-template": "off",
     // TODO: Check these: sort-imports and import/order
     // https://github.com/lydell/eslint-plugin-simple-import-sort
     "simple-import-sort/sort": "error",
 
-    // To enable later:
+    // TODO: enable later:
     "unicorn/filename-case": "off",
     "unicorn/prefer-query-selector": "off",
     "react/no-unescaped-entities": "off",
-    "react/display-name": "off"
+    "react/display-name": "off",
+    "jsx-a11y/label-has-for": "off",
+    "jsx-a11y/no-onchange": "off"
   },
   env: {
     browser: true,

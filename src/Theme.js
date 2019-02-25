@@ -25,6 +25,13 @@ const allowed = [
   "rescaleContrastToGrayRange"
 ];
 
+const defaultRampConfig = {
+  colors: ["black", "white"],
+  colorModel: "lab", // lrgb, lab
+  correctLightness: true,
+  mode: rampModes.FURTHEST
+};
+
 export default class Theme {
   /**
    * Creates a theme instance from a themeConfig
@@ -95,13 +102,6 @@ function createRampWithScale(scale) {
 function createDirectRampWithScale(scale) {
   return wrapScaleFunc(scale);
 }
-
-const defaultRampConfig = {
-  colors: ["black", "white"],
-  colorModel: "lab", // lrgb, lab
-  correctLightness: true,
-  mode: rampModes.FURTHEST
-};
 
 /*
 Ramp modes:

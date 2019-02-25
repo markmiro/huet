@@ -44,9 +44,9 @@ export default class Cache {
     this.tries++;
     if (response === MISS) {
       return null;
-    } 
-      this.hits++;
-    
+    }
+    this.hits++;
+
     return response;
   }
 
@@ -60,6 +60,7 @@ export default class Cache {
   }
 
   log() {
+    // eslint-disable-next-line no-console
     console.log(
       `Size: ${this.itemCount}
 Percent hits: ${Math.round((this.hits / this.tries) * 100)}%

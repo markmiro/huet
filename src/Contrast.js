@@ -1,7 +1,7 @@
 import React, { useContext } from "react";
 
 import Color from "./Color";
-import { BackgroundContext,ThemeContext } from "./reactContexts";
+import { BackgroundContext, ThemeContext } from "./reactContexts";
 
 const Contrast = props => {
   const {
@@ -27,6 +27,7 @@ const Contrast = props => {
   };
 
   if (debug) {
+    // eslint-disable-next-line no-debugger
     debugger;
   }
 

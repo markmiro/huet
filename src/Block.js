@@ -33,6 +33,7 @@ export default function Block({
   ...rest
 }) {
   if (debug) {
+    // eslint-disable-next-line no-debugger
     debugger;
   }
 

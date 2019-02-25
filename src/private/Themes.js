@@ -115,7 +115,7 @@ function ColorMatrix() {
       })
       .map(rampKey => (
         <div key={rampKey} style={__.flex}>
-          {[100, 75, 50, 25].map((contrastInner, i) => (
+          {[100, 75, 50, 25].map(contrastInner => (
             <Block
               key={contrastInner}
               base={rampKey}
@@ -215,7 +215,7 @@ export default function Themes({ label }) {
   useEffect(() => {
     // Want to show the import dialog, so only show current them if it's not the default one
     // if (selectedConfig.id === baseThemeConfig.id) return;
-    if (!scrollContainerRef.current.childNodes.length) {
+    if (scrollContainerRef.current.childNodes.length === 0) {
       throw new Error("Expecting at least one child");
     }
     const width = scrollContainerRef.current.childNodes[0].getBoundingClientRect()
