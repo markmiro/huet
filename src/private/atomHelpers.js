@@ -9,11 +9,11 @@
  * @param {Array} scale The scale that has the values we'll be using for each generated atom
  */
 export function make(atomPrefix, cssPropertyOrProperties, scale) {
-  let atoms = {};
+  const atoms = {};
 
   if (Array.isArray(cssPropertyOrProperties)) {
     const properties = val => {
-      let style = {};
+      const style = {};
       const cssProperties = cssPropertyOrProperties;
       cssProperties.forEach(cssProperty => {
         style[cssProperty] = val;
@@ -52,7 +52,7 @@ export function makeSides(atomPrefix, cssProperty, scale) {
     a: ["Top", "Right", "Bottom", "Left"]
   };
 
-  let atoms = {};
+  const atoms = {};
   Object.keys(directionsMap).forEach(dirKey => {
     return Object.assign(
       atoms,
@@ -82,11 +82,11 @@ export function makeSides(atomPrefix, cssProperty, scale) {
  */
 export function chainable(obj) {
   // Adopted from: https://github.com/streamich/nano-css/blob/aedbc419eb7f62a72dbf01f3420951e570aee8b9/addon/snake.js
-  let chained = {};
+  const chained = {};
   Object.keys(obj).map(key =>
     Object.defineProperty(chained, key, {
       get() {
-        let thing = Object.keys(this).length ? this : Object.create(this);
+        const thing = Object.keys(this).length ? this : Object.create(this);
         Object.assign(thing, obj[key]);
         return thing;
       }

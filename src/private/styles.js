@@ -1,5 +1,5 @@
-import { rule } from "./nano";
 import __ from "./atoms";
+import { rule } from "./nano";
 
 // Don't want inputs streching to unreasonable sizes
 const MAX_INPUT_WIDTH = "30em";

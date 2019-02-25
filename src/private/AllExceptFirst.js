@@ -1,6 +1,7 @@
 import React from "react";
-import __ from "./atoms";
+
 import Block from "../Block";
+import __ from "./atoms";
 
 export default function AllExceptFirst({ styleExcept, styleEach, children }) {
   return [

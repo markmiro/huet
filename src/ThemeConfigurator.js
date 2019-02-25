@@ -1,7 +1,8 @@
-import React from "react";
 import { detect } from "detect-browser";
-import ErrorBoundary from "./private/ErrorBoundary";
+import React from "react";
+
 import Themer from "./Themer";
+import ErrorBoundary from "./private/ErrorBoundary";
 
 const browser = detect();
 if (browser && !["chrome", "firefox"].includes(browser.name)) {

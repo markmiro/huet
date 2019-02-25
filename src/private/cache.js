@@ -44,9 +44,9 @@ export default class Cache {
     this.tries++;
     if (response === MISS) {
       return null;
-    } else {
+    } 
       this.hits++;
-    }
+    
     return response;
   }
 

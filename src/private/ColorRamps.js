@@ -1,9 +1,10 @@
-import React, { useContext } from "react";
-import _ from "lodash";
 import chroma from "chroma-js";
+import _ from "lodash";
+import React, { useContext } from "react";
+
+import Block from "../Block";
 import { getLightness } from "../Color";
 import { ThemeContext } from "../reactContexts";
-import Block from "../Block";
 import __ from "./atoms";
 
 function RampColorMarker({ color, grayRamp }) {

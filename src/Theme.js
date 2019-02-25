@@ -1,5 +1,6 @@
 import chroma from "chroma-js";
 import mapValues from "map-values"; // saved 20KB when bundling
+
 import { getLightness } from "./Color";
 import baseConfig from "./private/baseThemeConfig";
 
@@ -85,7 +86,7 @@ function wrapScaleFunc(scale) {
 }
 
 function createRampWithScale(scale) {
-  let scaleFunc = wrapScaleFunc(scale);
+  const scaleFunc = wrapScaleFunc(scale);
   scaleFunc.startL = getLightness(scale(0));
   scaleFunc.endL = getLightness(scale(1));
   return scaleFunc;

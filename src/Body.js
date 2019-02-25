@@ -1,9 +1,10 @@
 import React, { useEffect } from "react";
-import Theme from "./Theme";
-import Color from "./Color";
+
 import Block from "./Block";
-import useBrowserState from "./private/useBrowserState";
+import Color from "./Color";
+import Theme from "./Theme";
 import baseThemeConfig from "./private/baseThemeConfig";
+import useBrowserState from "./private/useBrowserState";
 
 export const ThemeConfiguratorContext = React.createContext();
 

@@ -1,6 +1,7 @@
 import React from "react";
-import Contrast from "../Contrast";
+
 import Block from "../Block.js";
+import Contrast from "../Contrast";
 import __ from "./atoms";
 
 const Checkbox = ({

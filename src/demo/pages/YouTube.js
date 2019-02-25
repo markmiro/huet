@@ -1,14 +1,14 @@
 import React, { useContext } from "react";
 import { Icon } from "react-icons-kit";
-import { ic_menu } from "react-icons-kit/md/ic_menu";
-import { ic_search } from "react-icons-kit/md/ic_search";
 import { ic_apps } from "react-icons-kit/md/ic_apps";
-import { ic_video_call } from "react-icons-kit/md/ic_video_call";
 import { ic_chat_bubble } from "react-icons-kit/md/ic_chat_bubble";
+import { ic_menu } from "react-icons-kit/md/ic_menu";
 import { ic_notifications } from "react-icons-kit/md/ic_notifications";
+import { ic_search } from "react-icons-kit/md/ic_search";
+import { ic_video_call } from "react-icons-kit/md/ic_video_call";
+
 import { BackgroundContext, Contrast } from "../../huet";
 import { rule } from "../../private/nano";
-
 import YouTubeLogo from "../YouTubeLogo";
 
 const clamp2Lines = rule({

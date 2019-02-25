@@ -1,9 +1,10 @@
-import React from "react";
 import _ from "lodash";
+import React from "react";
+
 import Block from "../Block";
+import { HSpace } from "./AllExceptFirst";
 import __ from "./atoms";
 import { colorClass } from "./styles";
-import { HSpace } from "./AllExceptFirst";
 
 function ColorPicker({ color, onChange }) {
   return (

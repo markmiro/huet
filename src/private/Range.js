@@ -1,10 +1,10 @@
-import React, { useContext, useState, useEffect, useMemo } from "react";
-import { BackgroundContext } from "../reactContexts";
-import Contrast from "../Contrast";
-import __ from "./atoms";
-import { rangeClass, inputStyle, maxInputWidthStyle } from "./styles.js";
-import Labeled from "./Labeled";
+import React, { useEffect, useMemo, useState } from "react";
+
 import Block from "../Block";
+import Contrast from "../Contrast";
+import Labeled from "./Labeled";
+import __ from "./atoms";
+import { inputStyle, maxInputWidthStyle, rangeClass } from "./styles.js";
 
 const Range = ({
   label,
@@ -17,7 +17,7 @@ const Range = ({
   style,
   hideInput = false
 }) => {
-  const step = 1 / Math.pow(10, decimals);
+  const step = 1 / 10 ** decimals;
   const [isTyping, setIsTyping] = useState(false);
   const [stringNumber, setStringNumber] = useState(value.toFixed(decimals));
   const isOutOfRange = value < min || value > max;

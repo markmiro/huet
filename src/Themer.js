@@ -1,22 +1,21 @@
 import React, { useContext } from "react";
 
-import Theme from "./Theme";
 import Block from "./Block";
 import { ThemeConfiguratorContext } from "./Body.js";
-
-import useBrowserState, { reset } from "./private/useBrowserState";
-import Range from "./private/Range";
+import Theme from "./Theme";
+import { VSpace } from "./private/AllExceptFirst";
+import BgColors from "./private/BgColors";
 import Button from "./private/Button";
 import Checkbox from "./private/Checkbox";
 import ColorRamps from "./private/ColorRamps";
+import Labeled from "./private/Labeled";
 import Pallet from "./private/Pallet";
+import Range from "./private/Range";
+import ThemerShell from "./private/ThemerShell";
 import Themes from "./private/Themes";
 import __ from "./private/atoms";
 import baseThemeConfig from "./private/baseThemeConfig";
-import Labeled from "./private/Labeled";
-import ThemerShell from "./private/ThemerShell";
-import { VSpace } from "./private/AllExceptFirst";
-import BgColors from "./private/BgColors";
+import useBrowserState, { reset } from "./private/useBrowserState";
 
 const baseTheme = new Theme(baseThemeConfig);
 
@@ -203,10 +202,10 @@ export default function Themer({ shouldOverlay }) {
               />
             </Block>
             <Block contrast="bg=12">
-              <Themes label={definitions["name"].label} />
+              <Themes label={definitions.name.label} />
             </Block>
             <VSpace size="2" style={__.pa3}>
-              <Labeled label={definitions["bgRampValue"].label}>
+              <Labeled label={definitions.bgRampValue.label}>
                 <Block theme={theme}>
                   <BgColors
                     bgRampValue={themeConfig.bgRampValue}
@@ -215,7 +214,7 @@ export default function Themer({ shouldOverlay }) {
                 </Block>
               </Labeled>
               <Range
-                label={definitions["contrastMultiplier"].label}
+                label={definitions.contrastMultiplier.label}
                 min={0}
                 max={1}
                 decimals={2}
@@ -232,7 +231,7 @@ export default function Themer({ shouldOverlay }) {
                 <ColorRamps />
               </Labeled>
               <Range
-                label={definitions["endSignalLightness"].label}
+                label={definitions.endSignalLightness.label}
                 value={themeConfig.endSignalLightness}
                 onChange={setEndSignalLightness}
                 min={0}
@@ -240,7 +239,7 @@ export default function Themer({ shouldOverlay }) {
                 decimals={2}
               />
               <Range
-                label={definitions["startSignalLightness"].label}
+                label={definitions.startSignalLightness.label}
                 value={themeConfig.startSignalLightness}
                 onChange={setStartSignalLightness}
                 min={0}
@@ -248,7 +247,7 @@ export default function Themer({ shouldOverlay }) {
                 decimals={2}
               />
               <Checkbox
-                label={definitions["rescaleSaturationToGrayRange"].label}
+                label={definitions.rescaleSaturationToGrayRange.label}
                 value={themeConfig.rescaleSaturationToGrayRange}
                 onChange={setRescaleSaturationToGrayRange}
                 note="Experimental: makes colors too desaturated"

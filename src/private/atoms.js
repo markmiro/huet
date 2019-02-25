@@ -1,4 +1,4 @@
-import { make, makeSides, chainable } from "./atomHelpers";
+import { chainable, make, makeSides } from "./atomHelpers";
 /*
   Adapted from: https://tachyons.io/docs/table-of-styles/
   Adding styles as they're used to limit bloat.

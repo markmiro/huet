@@ -1,13 +1,14 @@
 import React, { useContext } from "react";
 import { Icon } from "react-icons-kit";
-import { ic_sentiment_satisfied } from "react-icons-kit/md/ic_sentiment_satisfied";
 import { ic_notifications } from "react-icons-kit/md/ic_notifications";
-import { Block } from "../../huet";
-import __ from "../../private/atoms";
+import { ic_sentiment_satisfied } from "react-icons-kit/md/ic_sentiment_satisfied";
+
 import Theme from "../../Theme";
-import { BackgroundContext, ThemeContext } from "../../reactContexts";
+import { Block } from "../../huet";
 import Range from "../../private/Range";
+import __ from "../../private/atoms";
 import useBrowserState from "../../private/useBrowserState";
+import { BackgroundContext, ThemeContext } from "../../reactContexts";
 
 function Section({ title, children }) {
   return (

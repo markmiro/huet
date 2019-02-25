@@ -1,4 +1,5 @@
 import chroma from "chroma-js";
+
 import Theme from "./Theme";
 import Cache from "./private/cache";
 
@@ -71,7 +72,7 @@ export default class Color extends BaseColor {
   // TODO: consider removing `bgRamp` and `bgRampValue from theme
   static fromTheme(theme) {
     if (!(theme instanceof Theme)) {
-      throw new Error('Need to give me a Theme instance, not a "theme config"');
+      throw new TypeError('Need to give me a Theme instance, not a "theme config"');
     }
     const ramp = theme.ramps[theme.bgRamp];
     const lab = ramp(theme.bgRampValue);
@@ -135,11 +136,11 @@ export default class Color extends BaseColor {
 
       // PUT IT ALL TOGETHER ---
 
-      let targetLightness =
+      const targetLightness =
         this.lightness + contrastAmount * basicMultiplier * advancedMultiplier;
 
       // Rescale targetLightness from ramp range to 0-1
-      let scaleValue =
+      const scaleValue =
         (targetLightness - ramp.startL) / (ramp.endL - ramp.startL);
 
       const [bgL, bgA, bgB] = this.lab;

@@ -1,9 +1,9 @@
-import { useState, useCallback, useEffect } from "react";
 import _ from "lodash";
+import { useCallback, useEffect, useState } from "react";
 
 let counter = 0;
 function increment() {
-  return "useBrowserState_huet_" + counter++;
+  return `useBrowserState_huet_${counter++}`;
 }
 
 export function reset() {
@@ -53,7 +53,7 @@ function countedDebounce(fn, delay) {
 export default function useBrowserState(defaultValue, { at } = {}) {
   const [defaultKey] = useState(
     // Need to slice since keys can get really big
-    () => increment() + "_" + btoa(JSON.stringify(defaultValue).slice(500))
+    () => `${increment()}_${btoa(JSON.stringify(defaultValue).slice(500))}`
   );
 
   // TODO: decide what to do about this

@@ -1,7 +1,8 @@
-import React, { useContext } from "react";
 import _ from "lodash";
+import React, { useContext } from "react";
+
 import Color from "./Color";
-import { ThemeContext, BackgroundContext } from "./reactContexts";
+import { BackgroundContext, ThemeContext } from "./reactContexts";
 
 /*
   By default we want to have 100% contrast text.
@@ -92,8 +93,8 @@ export default function Block({
     ) : null;
   }
   if (returnStyle && returnStyle.backgroundColor) {
-    if (!returnStyle.backgroundColor instanceof Color) {
-      throw new Error("Use a Huet Color instance here.");
+    if (!(returnStyle.backgroundColor instanceof Color)) {
+      throw new TypeError("Use a Huet Color instance here.");
     }
     returnChildren = children ? (
       <BackgroundContext.Provider value={returnStyle.backgroundColor}>
@@ -131,8 +132,8 @@ function parseColorsToStyle(relativeToColor, str) {
   const theme = relativeToColor.theme;
 
   const things = str.split(" ");
-  let returnStyle = {};
-  let colors = {
+  const returnStyle = {};
+  const colors = {
     parent: relativeToColor
   };
   things.forEach(thing => {
@@ -153,10 +154,9 @@ function parseColorsToStyle(relativeToColor, str) {
       const firstAsInt = parseInt(first, 10);
       if (Number.isInteger(firstAsInt)) {
         return [firstAsInt];
-      } else {
-        // eslint-disable-next-line no-sparse-arrays
-        return [, first];
       }
+      // eslint-disable-next-line no-sparse-arrays
+      return [, first];
     })();
 
     // keys: ['bg', 'fg']

@@ -1,19 +1,18 @@
-import React, { lazy, Suspense } from "react";
-import ReactDOM from "react-dom";
-
 // General setup
 import "tachyons/css/tachyons.css";
 import "./demo/globals";
-import ErrorBoundary from "./private/ErrorBoundary";
-import useBrowserState from "./private/useBrowserState";
-import { resetClass } from "./private/styles";
+
+import React, { Suspense, lazy } from "react";
+import ReactDOM from "react-dom";
 
 // Theme stuff
-import { Body, Block, ThemeConfigurator } from "./huet";
-
+import { Block, Body, ThemeConfigurator } from "./huet";
+import ErrorBoundary from "./private/ErrorBoundary";
+import Select from "./private/Select";
 // Components
 import __ from "./private/atoms";
-import Select from "./private/Select";
+import { resetClass } from "./private/styles";
+import useBrowserState from "./private/useBrowserState";
 
 const pages = {
   basic: {

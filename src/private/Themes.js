@@ -1,24 +1,25 @@
+import saveAs from "file-saver";
 import React, {
-  useState,
-  useRef,
+  useCallback,
   useContext,
   useEffect,
-  useCallback
+  useRef,
+  useState
 } from "react";
-import saveAs from "file-saver";
-import defaultThemeConfigs from "../demo/themeConfigs";
-import Theme, { rampModes } from "../Theme";
+
 import Block from "../Block";
-import Arrow from "./Arrow";
-import { ThemeContext, BackgroundContext } from "../reactContexts";
-import __ from "./atoms";
 import { ThemeConfiguratorContext } from "../Body";
-import Button, { TextButton, JsonUploadButton } from "./Button";
-import useBrowserState from "./useBrowserState";
-import baseThemeConfig from "./baseThemeConfig";
-import Input from "./Input";
+import Theme, { rampModes } from "../Theme";
+import defaultThemeConfigs from "../demo/themeConfigs";
+import { BackgroundContext, ThemeContext } from "../reactContexts";
 import { HSpace } from "./AllExceptFirst";
+import Arrow from "./Arrow";
+import Button, { JsonUploadButton, TextButton } from "./Button";
+import Input from "./Input";
+import __ from "./atoms";
+import baseThemeConfig from "./baseThemeConfig";
 import Cache from "./cache";
+import useBrowserState from "./useBrowserState";
 
 const cache = new Cache(30);
 
@@ -244,7 +245,7 @@ export default function Themes({ label }) {
     const blob = new Blob([str], {
       type: "text/plain;charset=utf-8"
     });
-    saveAs(blob, selectedConfig.name + " Huet Theme.json");
+    saveAs(blob, `${selectedConfig.name} Huet Theme.json`);
   });
 
   return (
@@ -269,7 +270,7 @@ export default function Themes({ label }) {
               id: Math.random(),
               name:
                 config.name === selectedConfig.name
-                  ? config.name + " Copy"
+                  ? `${config.name} Copy`
                   : selectedConfig.name
             };
             setThemeConfigs([newConfig, ...themeConfigs]);

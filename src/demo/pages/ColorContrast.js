@@ -1,17 +1,18 @@
-import React, { useContext } from "react";
 import _ from "lodash";
+import React, { useContext } from "react";
+
+import { rampModes } from "../../Theme";
 import {
-  Color,
-  ThemeContext,
   BackgroundContext,
-  Contrast,
   Block,
-  Theme
+  Color,
+  Contrast,
+  Theme,
+  ThemeContext
 } from "../../huet";
-import useBrowserState from "../../private/useBrowserState";
 import Select from "../../private/Select";
 import __ from "../../private/atoms";
-import { rampModes } from "../../Theme";
+import useBrowserState from "../../private/useBrowserState";
 
 const sharedDoubleFractionSteps = [100 / 16, 100 / 8, 100 / 4, 100 / 2];
 const doubleSteps = [0, 4, 8, 16, 32, 64, 100];

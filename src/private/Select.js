@@ -1,9 +1,10 @@
 import React from "react";
+
+import Block from "../Block";
 import Contrast from "../Contrast";
+import Arrow from "./Arrow";
 import __ from "./atoms";
 import { inputStyle } from "./styles";
-import Block from "../Block";
-import Arrow from "./Arrow";
 
 const Select = ({ value, onChange, label, children, className, style }) => {
   const selectedChild =

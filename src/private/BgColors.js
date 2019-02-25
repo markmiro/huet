@@ -1,10 +1,11 @@
 import React, { useContext } from "react";
-import Button from "./Button";
-import __ from "./atoms";
+
+import Color from "../Color";
 import { ThemeContext } from "../reactContexts";
 import { HSpace } from "./AllExceptFirst";
-import Color from "../Color";
 import Arrow from "./Arrow";
+import Button from "./Button";
+import __ from "./atoms";
 
 function BgColorPreview({ scaleValue, isSelected, onClick }) {
   const theme = useContext(ThemeContext);

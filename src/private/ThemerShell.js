@@ -1,8 +1,9 @@
-import React, { useState, useEffect } from "react";
+import React, { useEffect,useState } from "react";
+
 import Block from "../Block";
-import useBrowserState, { useIsBrowserStateSaving } from "./useBrowserState";
 import __ from "./atoms";
 import { themerClass } from "./styles";
+import useBrowserState, { useIsBrowserStateSaving } from "./useBrowserState";
 
 function BrowserStateActivity() {
   const count = useIsBrowserStateSaving();

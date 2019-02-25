@@ -1,9 +1,9 @@
 import React from "react";
-import { inputStyle } from "./styles";
+
 import Block from "../Block.js";
-import __ from "./atoms";
-import { maxInputWidthStyle } from "./styles";
 import Labeled from "./Labeled";
+import __ from "./atoms";
+import { inputStyle, maxInputWidthStyle } from "./styles";
 
 export default function Input({
   label,
