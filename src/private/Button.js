@@ -73,7 +73,7 @@ export default function Button({
       style={{
         ...inputStyle,
         borderColor: "transparent",
-        ...__.flex.justify_center,
+        ...__.flex.justify_center.items_center,
         ...style
       }}
     >
