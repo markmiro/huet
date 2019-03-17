@@ -191,7 +191,7 @@ export default function Themer({ shouldOverlay }) {
   return (
     <Block theme={themerTheme} style={{ flexShrink: 0 }}>
       <ThemerShell shouldOverlay={shouldOverlay}>
-        <div style={__.flex}>
+        <div style={{ ...__.flex, overflow: "hidden" }}>
           {showHelp && <Help theme={theme} />}
           <ScrollPanel>
             <Block base="blue" contrast="bg=50" style={__.pa1}>
