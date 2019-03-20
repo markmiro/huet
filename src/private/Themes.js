@@ -1,21 +1,12 @@
-import saveAs from "file-saver";
-import React, {
-  useCallback,
-  useContext,
-  useEffect,
-  useRef,
-  useState
-} from "react";
+import React, { useContext, useEffect, useRef, useState } from "react";
 
 import Block from "../Block";
 import { ThemeConfiguratorContext } from "../Body";
 import Theme, { rampModes } from "../Theme";
 import defaultThemeConfigs from "../demo/themeConfigs";
 import { BackgroundContext, ThemeContext } from "../reactContexts";
-import { HSpace } from "./AllExceptFirst";
 import Arrow from "./Arrow";
 import Button, { JsonUploadButton, TextButton } from "./Button";
-import Input from "./Input";
 import __ from "./atoms";
 import baseThemeConfig from "./baseThemeConfig";
 import Cache from "./cache";
@@ -35,7 +26,7 @@ function ThemeFrame({ theme, isSelected, children, onClick, isHidden }) {
   return (
     <div
       style={{
-        ...__.pv3.pl3.flex.relative,
+        ...__.ph3.pt3.flex.relative,
         flexBasis: `${22}em`,
         flexShrink: 0,
         transitionProperty: "transform, margin, opacity",
@@ -201,7 +192,7 @@ function ModifiedThemePreview({ config, onReset, onCreate }) {
   );
 }
 
-export default function Themes({ label }) {
+export default function Themes() {
   const [themeConfigs, setThemeConfigs] = useBrowserState(defaultThemeConfigs);
   const [theme, setSelectedConfig] = useContext(ThemeConfiguratorContext);
   const selectedConfig = theme.config;
@@ -238,19 +229,19 @@ export default function Themes({ label }) {
     // http://www.mattzeunert.com/2016/01/28/javascript-deep-equal.html
     JSON.stringify(config) !== JSON.stringify(selectedConfig);
 
-  const exportTheme = useCallback(() => {
-    // Generating a random id
-    const configWithNewId = { ...selectedConfig, id: Math.random() };
-    const str = JSON.stringify(configWithNewId, null, "  ");
-    const blob = new Blob([str], {
-      type: "text/plain;charset=utf-8"
-    });
-    saveAs(blob, `${selectedConfig.name} Huet Theme.json`);
-  });
-
   return (
     <>
-      <div ref={scrollContainerRef} style={{ ...__.flex, overflowX: "scroll" }}>
+      <div style={__.ph3.pt3}>
+        <JsonUploadButton
+          onUpload={themeConfig => {
+            setThemeConfigs([themeConfig, ...themeConfigs]);
+            setSelectedConfig(themeConfig);
+          }}
+        >
+          Import Theme
+        </JsonUploadButton>
+      </div>
+      <div ref={scrollContainerRef}>
         {themeConfigs.map((config, i) => {
           const onSelect = () => setSelectedConfig(config);
 
@@ -297,28 +288,7 @@ export default function Themes({ label }) {
             </ThemeContext.Provider>
           );
         })}
-        <div style={__.pr3} />
-      </div>
-      <div style={__.ph3.pb3}>
-        <Input
-          label={label}
-          style={__.flex_auto.mb2}
-          value={selectedConfig.name}
-          onChange={name => setSelectedConfig({ ...selectedConfig, name })}
-        />
-        <HSpace growEach>
-          <Button onClick={exportTheme} style={__.w100}>
-            Export Theme
-          </Button>
-          <JsonUploadButton
-            onUpload={themeConfig => {
-              setThemeConfigs([themeConfig, ...themeConfigs]);
-              setSelectedConfig(themeConfig);
-            }}
-          >
-            Import Theme
-          </JsonUploadButton>
-        </HSpace>
+        <div style={__.pb3} />
       </div>
     </>
   );

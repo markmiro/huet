@@ -1,4 +1,4 @@
-import React, { useEffect,useState } from "react";
+import React, { useEffect, useState } from "react";
 
 import Block from "../Block";
 import __ from "./atoms";
@@ -53,7 +53,11 @@ const shadowBorderStyle = parentBg => ({
   outlineColor: parentBg.contrast(25)
 });
 
-export default function ThemerShell({ shouldOverlay = true, children }) {
+export default function ThemerShell({
+  shouldOverlay = true,
+  fixedChildren,
+  children
+}) {
   const [isExpanded, setIsExpanded] = useBrowserState(true);
   const [isMounted, setIsMounted] = useState(false);
 
@@ -92,6 +96,7 @@ export default function ThemerShell({ shouldOverlay = true, children }) {
       })}
     >
       <TitleBar isExpanded onClick={() => setIsExpanded(v => !v)} />
+      {fixedChildren}
       {children}
     </Block>
   );
