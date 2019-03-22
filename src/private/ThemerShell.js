@@ -96,7 +96,6 @@ export default function ThemerShell({
       })}
     >
       <TitleBar isExpanded onClick={() => setIsExpanded(v => !v)} />
-      {fixedChildren}
       {children}
     </Block>
   );
