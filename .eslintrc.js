@@ -10,7 +10,7 @@ module.exports = {
       jsx: true
     }
   },
-  plugins: ["jsx-a11y", "lodash", "fp", "simple-import-sort"],
+  plugins: ["jsx-a11y", "lodash", "fp", "simple-import-sort", "react-hooks"],
   extends: [
     "eslint:recommended",
     "plugin:react/recommended",
@@ -34,6 +34,8 @@ module.exports = {
     "no-mutating-methods": "on",
     "no-alert": "off",
     "prefer-template": "off",
+    "react-hooks/rules-of-hooks": "error",
+    "react-hooks/exhaustive-deps": "warn",
     // TODO: Check these: sort-imports and import/order
     // https://github.com/lydell/eslint-plugin-simple-import-sort
     "simple-import-sort/sort": "error",

@@ -95,7 +95,7 @@ export default function useBrowserState(defaultValue, { at } = {}) {
 
   useEffect(() => {
     debounceSaveToLocalStorage(key, value);
-  }, [value]);
+  }, [debounceSaveToLocalStorage, key, value]);
 
   function setValueAndStorage(newValueOrFunc) {
     setValue(newValueOrFunc);

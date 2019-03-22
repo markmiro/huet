@@ -227,11 +227,16 @@ function ThemePreview({ configs, config, onSelectConfig, onConfigsChange }) {
   };
 
   const ref = useRef();
-  useLayoutEffect(() => {
-    // FIX: scrolls parent and the parent of the parent
-    if (isSelected && ref.current)
-      ref.current.scrollIntoView({ block: "center" });
-  }, []);
+  useLayoutEffect(
+    () => {
+      // FIX: scrolls parent and the parent of the parent
+      if (isSelected && ref.current)
+        ref.current.scrollIntoView({ block: "center" });
+    },
+    // Run on mount, but not after that
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    []
+  );
 
   return (
     <div ref={ref}>

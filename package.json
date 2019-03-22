@@ -31,6 +31,7 @@
     "eslint-plugin-jsx-a11y": "6.2.1",
     "eslint-plugin-lodash": "5.1.0",
     "eslint-plugin-react": "7.12.4",
+    "eslint-plugin-react-hooks": "1.5.0",
     "eslint-plugin-simple-import-sort": "3.0.0",
     "eslint-plugin-unicorn": "7.1.0",
     "file-saver": "^2.0.0",
@@ -89,6 +90,5 @@
     "not dead",
     "not ie <= 11",
     "not op_mini all"
-  ],
-  "dependencies": {}
+  ]
 }

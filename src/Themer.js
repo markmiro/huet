@@ -196,7 +196,8 @@ function EditTheme({ theme, onThemeConfigChange }) {
       type: "text/plain;charset=utf-8"
     });
     saveAs(blob, `${themeConfig.name} Huet Theme.json`);
-  });
+  }, [themeConfig]);
+
   return (
     <>
       <VSpace size="2" style={__.pa3}>

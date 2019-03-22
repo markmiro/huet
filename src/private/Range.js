@@ -24,7 +24,7 @@ const Range = ({
 
   useEffect(() => {
     if (!isTyping) setStringNumber(value.toFixed(decimals));
-  }, [value]);
+  }, [decimals, isTyping, value]);
 
   const handleInputChange = e => {
     setStringNumber(e.target.value);
@@ -70,7 +70,7 @@ const Range = ({
         </Contrast>
       </div>
     ),
-    [label, isOutOfRange, decimals]
+    [label, isOutOfRange, decimals, min, max]
   );
 
   return (
