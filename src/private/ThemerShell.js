@@ -53,11 +53,7 @@ const shadowBorderStyle = parentBg => ({
   outlineColor: parentBg.contrast(25)
 });
 
-export default function ThemerShell({
-  shouldOverlay = true,
-  fixedChildren,
-  children
-}) {
+export default function ThemerShell({ shouldOverlay = true, children }) {
   const [isExpanded, setIsExpanded] = useBrowserState(true);
   const [isMounted, setIsMounted] = useState(false);
 
