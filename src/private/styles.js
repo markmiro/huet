@@ -46,10 +46,7 @@ export const rangeClass = rule({
 });
 
 const focusStyle = {
-  outline: "1px solid #00000033",
-  outlineOffset: -1,
-  border: "1px solid #ffffff66 !important",
-  boxShadow: "0px 1px 10px #00000066 !important",
+  boxShadow: "0 0 0 2px #0000ff55, 0 0 0 2px #ffffff55 !important",
   zIndex: 1
 };
 

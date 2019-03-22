@@ -1,13 +1,15 @@
-import React, { useContext } from "react";
+import saveAs from "file-saver";
+import React, { useCallback, useContext } from "react";
 
 import Block from "./Block";
 import { ThemeConfiguratorContext } from "./Body.js";
 import Theme from "./Theme";
-import { VSpace } from "./private/AllExceptFirst";
+import { HSpace, VSpace } from "./private/AllExceptFirst";
 import BgColors from "./private/BgColors";
 import Button from "./private/Button";
 import Checkbox from "./private/Checkbox";
 import ColorRamps from "./private/ColorRamps";
+import Input from "./private/Input";
 import Labeled from "./private/Labeled";
 import Pallet from "./private/Pallet";
 import Range from "./private/Range";
@@ -25,7 +27,7 @@ function ScrollPanel({ children }) {
       style={{
         overflowY: "scroll",
         overflowX: "hidden",
-        maxWidth: "30em",
+        width: "30em",
         overscrollBehavior: "contain"
       }}
     >
@@ -159,15 +161,17 @@ function Help({ theme }) {
   );
 }
 
-export default function Themer({ shouldOverlay }) {
-  const [theme, setThemeConfig] = useContext(ThemeConfiguratorContext);
-  const [shouldThemeSelf, setShouldThemeSelf] = useBrowserState(true);
+const tabEnum = {
+  THEMES: "THEMES",
+  EDIT_THEME: "EDIT_THEME"
+};
 
+function EditTheme({ theme, onThemeConfigChange }) {
   const themeConfig = theme.config;
 
   function modify(key) {
     return newValue => {
-      setThemeConfig({
+      onThemeConfigChange({
         ...themeConfig,
         [key]: newValue
       });
@@ -184,90 +188,143 @@ export default function Themer({ shouldOverlay }) {
     "rescaleSaturationToGrayRange"
   );
 
-  const themerTheme = shouldThemeSelf ? theme : baseTheme;
+  const exportTheme = useCallback(() => {
+    // Generating a random id
+    const configWithNewId = { ...themeConfig, id: Math.random() };
+    const str = JSON.stringify(configWithNewId, null, "  ");
+    const blob = new Blob([str], {
+      type: "text/plain;charset=utf-8"
+    });
+    saveAs(blob, `${themeConfig.name} Huet Theme.json`);
+  });
+  return (
+    <>
+      <VSpace size="2" style={__.pa3}>
+        <div>
+          <Input
+            label={definitions.name.label}
+            style={__.flex_auto.mb2}
+            value={themeConfig.name}
+            onChange={name => onThemeConfigChange({ ...themeConfig, name })}
+          />
+          <Button onClick={exportTheme} style={__.w100}>
+            Export Theme
+          </Button>
+        </div>
+        <Labeled label={definitions.bgRampValue.label}>
+          <Block theme={theme}>
+            <BgColors
+              bgRampValue={themeConfig.bgRampValue}
+              onRampValueChange={setBgRampValue}
+            />
+          </Block>
+        </Labeled>
+        <Range
+          label={definitions.contrastMultiplier.label}
+          min={0}
+          max={1}
+          decimals={2}
+          value={themeConfig.contrastMultiplier}
+          onChange={setContrastMultiplier}
+        />
+        <Labeled label="Pallet">
+          <Pallet colors={themeConfig.pallet} onColorsChange={setPallet} />
+        </Labeled>
+        <Labeled label="Color ramps">
+          <ColorRamps />
+        </Labeled>
+        <Range
+          label={definitions.endSignalLightness.label}
+          value={themeConfig.endSignalLightness}
+          onChange={setEndSignalLightness}
+          min={0}
+          max={1}
+          decimals={2}
+        />
+        <Range
+          label={definitions.startSignalLightness.label}
+          value={themeConfig.startSignalLightness}
+          onChange={setStartSignalLightness}
+          min={0}
+          max={1}
+          decimals={2}
+        />
+        <Checkbox
+          label={definitions.rescaleSaturationToGrayRange.label}
+          value={themeConfig.rescaleSaturationToGrayRange}
+          onChange={setRescaleSaturationToGrayRange}
+          note="Experimental: makes colors too desaturated"
+        />
+      </VSpace>
+    </>
+  );
+}
 
+export default function Themer({ shouldOverlay }) {
+  const [theme, setThemeConfig] = useContext(ThemeConfiguratorContext);
+  const [shouldThemeSelf, setShouldThemeSelf] = useBrowserState(true);
+  const [currentTab, setCurrentTab] = useBrowserState(tabEnum.THEMES);
   const [showHelp, setShowHelp] = useBrowserState(false);
 
+  const themerTheme = shouldThemeSelf ? theme : baseTheme;
+
   return (
-    <Block theme={themerTheme} style={{ flexShrink: 0 }}>
+    <Block theme={themerTheme}>
       <ThemerShell shouldOverlay={shouldOverlay}>
         <div style={{ ...__.flex, overflow: "hidden" }}>
           {showHelp && <Help theme={theme} />}
-          <ScrollPanel>
-            <Block base="blue" contrast="bg=50" style={__.pa1}>
-              <Checkbox
-                label="Show Help?"
-                value={showHelp}
-                onChange={setShowHelp}
-              />
-            </Block>
-            <Block contrast="bg=12">
-              <Themes label={definitions.name.label} />
-            </Block>
-            <VSpace size="2" style={__.pa3}>
-              <Labeled label={definitions.bgRampValue.label}>
-                <Block theme={theme}>
-                  <BgColors
-                    bgRampValue={themeConfig.bgRampValue}
-                    onRampValueChange={setBgRampValue}
+          <div style={__.flex.flex_column}>
+            <div style={__.ph2.pt2.bb}>
+              <HSpace growEach>
+                <Button
+                  bg={currentTab === tabEnum.THEMES ? 100 : null}
+                  onClick={() => setCurrentTab(tabEnum.THEMES)}
+                >
+                  Themes
+                </Button>
+                <Button
+                  bg={currentTab === tabEnum.EDIT_THEME ? 100 : null}
+                  onClick={() => setCurrentTab(tabEnum.EDIT_THEME)}
+                >
+                  Edit Theme
+                </Button>
+              </HSpace>
+            </div>
+            <ScrollPanel>
+              {{
+                [tabEnum.THEMES]: () => <Themes />,
+                [tabEnum.EDIT_THEME]: () => (
+                  <EditTheme
+                    theme={theme}
+                    onThemeConfigChange={setThemeConfig}
                   />
-                </Block>
-              </Labeled>
-              <Range
-                label={definitions.contrastMultiplier.label}
-                min={0}
-                max={1}
-                decimals={2}
-                value={themeConfig.contrastMultiplier}
-                onChange={setContrastMultiplier}
-              />
-              <Labeled label="Pallet">
-                <Pallet
-                  colors={themeConfig.pallet}
-                  onColorsChange={setPallet}
+                )
+              }[currentTab]()}
+            </ScrollPanel>
+            <Block contrast="bg=12">
+              <VSpace style={__.pa3}>
+                <Checkbox
+                  label="Theme the themer"
+                  value={shouldThemeSelf}
+                  onChange={setShouldThemeSelf}
                 />
-              </Labeled>
-              <Labeled label="Color ramps">
-                <ColorRamps />
-              </Labeled>
-              <Range
-                label={definitions.endSignalLightness.label}
-                value={themeConfig.endSignalLightness}
-                onChange={setEndSignalLightness}
-                min={0}
-                max={1}
-                decimals={2}
-              />
-              <Range
-                label={definitions.startSignalLightness.label}
-                value={themeConfig.startSignalLightness}
-                onChange={setStartSignalLightness}
-                min={0}
-                max={1}
-                decimals={2}
-              />
-              <Checkbox
-                label={definitions.rescaleSaturationToGrayRange.label}
-                value={themeConfig.rescaleSaturationToGrayRange}
-                onChange={setRescaleSaturationToGrayRange}
-                note="Experimental: makes colors too desaturated"
-              />
-              <Checkbox
-                label="Theme the themer"
-                value={shouldThemeSelf}
-                onChange={setShouldThemeSelf}
-              />
-              <Button
-                bg={100}
-                bgRamp="red"
-                textRamp="white"
-                onClick={reset}
-                verify
-              >
-                Clear Local Storage
-              </Button>
-            </VSpace>
-          </ScrollPanel>
+                <Checkbox
+                  label="Show Help?"
+                  value={showHelp}
+                  onChange={setShowHelp}
+                />
+                <Button
+                  bg={100}
+                  bgRamp="red"
+                  textRamp="white"
+                  onClick={reset}
+                  verify
+                >
+                  Clear Local Storage
+                </Button>
+              </VSpace>
+            </Block>
+          </div>
         </div>
       </ThemerShell>
     </Block>
