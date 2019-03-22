@@ -86,22 +86,28 @@ export default function Block({
   // Wrap children with context
 
   let returnChildren = children;
-  if (theme) {
-    returnChildren = children ? (
+  if (theme && children) {
+    returnChildren = (
       <ThemeContext.Provider value={finalTheme}>
         {children}
       </ThemeContext.Provider>
-    ) : null;
+    );
   }
-  if (returnStyle && returnStyle.backgroundColor) {
+  if (
+    returnStyle &&
+    returnStyle.backgroundColor &&
+    returnStyle.backgroundColor !== "transparent" &&
+    children
+  ) {
+    // It's ok to have
     if (!(returnStyle.backgroundColor instanceof Color)) {
       throw new TypeError("Use a Huet Color instance here.");
     }
-    returnChildren = children ? (
+    returnChildren = (
       <BackgroundContext.Provider value={returnStyle.backgroundColor}>
         {returnChildren}
       </BackgroundContext.Provider>
-    ) : null;
+    );
   } else if (theme) {
     if (!children) {
       throw new Error(
