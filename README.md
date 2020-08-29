@@ -5,6 +5,8 @@
 Huet is named to resemble the word duet. The idea is to have colors work in harmony together.
 
 ## Why Huet?
+[![FOSSA Status](https://app.fossa.io/api/projects/git%2Bgithub.com%2Fmarkmiro%2Fhuet.svg?type=shield)](https://app.fossa.io/projects/git%2Bgithub.com%2Fmarkmiro%2Fhuet?ref=badge_shield)
+
 
 This library is an exploration of what the future of coloring UIs might look like:
 
@@ -126,3 +128,7 @@ This project is in alpha. This is because it's still not seemlesss to use Huet w
 D3
 chroma.js
 Intial version created with CodeSandbox
+
+
+## License
+[![FOSSA Status](https://app.fossa.io/api/projects/git%2Bgithub.com%2Fmarkmiro%2Fhuet.svg?type=large)](https://app.fossa.io/projects/git%2Bgithub.com%2Fmarkmiro%2Fhuet?ref=badge_large)
