@@ -157,7 +157,9 @@ function parseColorsToStyle(relativeToColor, str) {
         return [parseInt(first, 10), second];
       }
 
-      // TODO: verify that a zero (0) should get ignored here
+      // A contrast of zero is preserved, not ignored: `first` is still the
+      // string "0" (truthy) in the branch above, and `Number.isInteger(0)` is
+      // true here, so "bg=0" and "bg=0-red" both pass 0 through to `contrast()`.
       const firstAsInt = parseInt(first, 10);
       if (Number.isInteger(firstAsInt)) {
         return [firstAsInt];
