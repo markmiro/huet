@@ -37,7 +37,10 @@ module.exports = {
     "prefer-template": "off",
     "react-hooks/rules-of-hooks": "error",
     "react-hooks/exhaustive-deps": "warn",
-    // TODO: Check these: sort-imports and import/order
+    // simple-import-sort conflicts with `sort-imports` and `import/order`, so
+    // both must stay disabled. Checked: `sort-imports` already resolves to
+    // "off" and `import/order` is never registered (the `import` plugin isn't
+    // in `plugins` above), so there's nothing to turn off explicitly.
     // https://github.com/lydell/eslint-plugin-simple-import-sort
     "simple-import-sort/sort": "error",
 
