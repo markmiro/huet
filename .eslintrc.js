@@ -23,16 +23,18 @@ module.exports = {
   ],
   rules: {
     "react/prop-types": "off",
-    "react/no-typos": "on",
-    "react/jsx-handler-names": "on",
-    "react/jsx-no-literals": "on",
-    "react/jsx-no-comment-textnodes": "on",
-    "react/jsx-no-target-blank": "on",
+    "react/no-typos": "error",
+    "react/jsx-handler-names": "error",
+    // Off for now: the demo pages are full of literal UI copy, so enabling this
+    // reports 109 errors. Flip to "error" once that copy is extracted.
+    "react/jsx-no-literals": "off",
+    "react/jsx-no-comment-textnodes": "error",
+    "react/jsx-no-target-blank": "error",
     "lodash/prefer-lodash-method": "off",
     "lodash/import-scope": "off", // Using a plugin to do this during build
     "lodash/prefer-noop": "off",
     "lodash/prefer-lodash-chain": "off", // Chaining has better aesthetic, but bundle would be bigger?
-    "no-mutating-methods": "on",
+    "fp/no-mutating-methods": "error",
     "no-alert": "off",
     "prefer-template": "off",
     "react-hooks/rules-of-hooks": "error",

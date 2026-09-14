@@ -84,6 +84,9 @@ export function chainable(obj) {
   // Adopted from: https://github.com/streamich/nano-css/blob/aedbc419eb7f62a72dbf01f3420951e570aee8b9/addon/snake.js
   const chained = {};
   Object.keys(obj).map(key =>
+    // Mutating `chained` is the point here: it's a local object and the lazy
+    // getters are what make the chaining work.
+    // eslint-disable-next-line fp/no-mutating-methods
     Object.defineProperty(chained, key, {
       get() {
         const thing = Object.keys(this).length > 0 ? this : Object.create(this);
