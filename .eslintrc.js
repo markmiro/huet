@@ -4,7 +4,8 @@
 module.exports = {
   parser: "babel-eslint",
   parserOptions: {
-    // ecmaVersion: "2018", // TODO: check that this needs to be enabled?
+    // No `ecmaVersion` needed: babel-eslint always parses the latest syntax and
+    // ignores the option. Verified that setting it to 2018 changes nothing.
     sourceType: "module",
     ecmaFeatures: {
       jsx: true
