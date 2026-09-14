@@ -1,3 +1,4 @@
+import _ from "lodash";
 import React, { useContext, useLayoutEffect, useRef, useState } from "react";
 
 import Block from "../Block";
@@ -198,11 +199,10 @@ function ThemePreview({ configs, config, onSelectConfig, onConfigsChange }) {
   const [theme] = useContext(ThemeConfiguratorContext);
   const selectedConfig = theme.config;
   const isSelected = config.id === selectedConfig.id;
-  const isSelectedAndModified =
-    isSelected &&
-    // TODO: consider deep comparison
-    // http://www.mattzeunert.com/2016/01/28/javascript-deep-equal.html
-    JSON.stringify(config) !== JSON.stringify(selectedConfig);
+  // Deep comparison rather than comparing JSON strings, which would report a
+  // false "modified" whenever two equivalent configs serialize their keys in a
+  // different order.
+  const isSelectedAndModified = isSelected && !_.isEqual(config, selectedConfig);
 
   const onSelect = () => onSelectConfig(config);
 
