@@ -109,6 +109,10 @@ This project is in alpha. This is because it's still not seemlesss to use Huet w
 - Remove dependency on chroma.js to reduce bundle size
 - Make the API better. The React API in particular isn't as easy to use as I'd like. [Changing colors on hover](#future-developments) is way too complicated.
 
+### Development
+
+`npm run dev` listens on all interfaces at port 8731 and prints a Tailscale URL (default: http://mbp.tail0fff0.ts.net:8731). Override with `TAILSCALE_HOST` and `PORT` env vars.
+
 ### Glossary
 
 **Theme config**: This is the JSON-serializable definition that create the ultimate theme that we use.
