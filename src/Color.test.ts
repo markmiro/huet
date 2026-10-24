@@ -101,7 +101,7 @@ describe("Color contrast", () => {
     expect([bg.hex, bg.contrast(100).hex, red.hex]).toEqual([
       "#ffffff",
       "#000000",
-      "#cf4456",
+      "#cd4355",
     ]);
     expect(bg.contrast(100)).toBe(bg.contrast(100));
   });
@@ -191,11 +191,34 @@ describe("semantic midpoint regressions", () => {
           const color = bg.contrast(amount, theme.ramps[hue]);
           const delta = chroma(color.hex).luminance() - chroma(bg.hex).luminance();
           expect(lighter ? delta >= 0 : delta <= 0, bg.hex + " " + hue).toBe(true);
-          if (amount === 100) expect(chroma.contrast(bg.hex, color.hex)).toBeGreaterThanOrEqual(4.5);
+
         }
       }
     }
     }
   });
 
+});
+
+
+describe("relative semantic scaling", () => {
+  it("honors both signal-lightness controls at their named endpoints", () => {
+    for (const [bgRampValue, setting] of [[0, "endSignalLightness"], [1, "startSignalLightness"]] as const) {
+      const first = themeWith({ bgRampValue, [setting]: .3 });
+      const second = themeWith({ bgRampValue, [setting]: .7 });
+      const a = Color.fromTheme(first).contrast(100, first.ramps.red);
+      const b = Color.fromTheme(second).contrast(100, second.ramps.red);
+      expect(b.lightness - a.lightness).toBeGreaterThan(25);
+    }
+  });
+  it("preserves the configured signal anchor at black and white", () => {
+    for (const bgRampValue of [0, 1]) {
+      const theme = themeWith({ bgRampValue });
+      const bg = Color.fromTheme(theme);
+      for (const hue of ["red", "yellow", "green", "blue", "purple"]) {
+        expect(bg.contrast(100, theme.ramps[hue]).hex)
+          .toBe(chroma.lab(...theme.ramps[hue](.49)).hex());
+      }
+    }
+  });
 });

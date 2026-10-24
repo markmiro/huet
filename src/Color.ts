@@ -1,4 +1,5 @@
 import chroma from "chroma-js";
+import { fromOklab, toOklab, mix, luminance } from "./core/color";
 
 import type { Lab, Ramp } from "./colorModel";
 import Theme from "./Theme";
@@ -177,40 +178,48 @@ export default class Color extends BaseColor {
       }
 
       if (ramp.config.mode === "signal" && theme.rescaleContrastToGrayRange && contrastAmount >= 0) {
-        const amount = Math.min(100, contrastAmount) * Math.min(1, theme.contrastMultiplier);
+        const amount = Math.max(0, Math.min(1, contrastAmount / 100 * theme.contrastMultiplier));
         if (amount === 0) return this;
         const root = theme.ramps[theme.bgRamp];
-        const bgL = chroma(this.hex).luminance();
-        const endpoint = (n: number) => chroma(chroma.lab(...root(n)).hex()).luminance();
-        const ratio = (a: number, b: number) =>
-          (Math.max(a, b) + 0.05) / (Math.min(a, b) + 0.05);
-        // All signal ramps share the root ramp's polarity. Never choose a
-        // separate midpoint or direction for red, yellow, green, etc.
-        const low = Math.min(endpoint(0), endpoint(1));
-        const high = Math.max(endpoint(0), endpoint(1));
-        const lighter = ratio(bgL, high) > ratio(bgL, low);
-        const budget = Math.min(1, (ratio(low, high) - 1) / 6);
-        const target = 1 + 3.5 * amount / 100 * budget;
-        const minLightness = Math.min(root(0)[0], root(1)[0]);
-        const maxLightness = Math.max(root(0)[0], root(1)[0]);
-        let best: Lab = this.lab, bestRatio = 0;
-        let chosen: Lab | undefined, chosenRatio = Infinity;
-        const saturation = Math.min(1, theme.contrastMultiplier) *
-          (theme.rescaleSaturationToGrayRange ? contrastAmount / 100 : 1);
-        for (const sample of samplesFor(ramp)) {
-          const [l, a, b] = sample.lab;
-          if (l < minLightness - 1e-6 || l > maxLightness + 1e-6) continue;
-          const lab: Lab = [l, this.lab[1] + (a - this.lab[1]) * saturation,
-            this.lab[2] + (b - this.lab[2]) * saturation];
-          const value = saturation === 1 ? sample.luminance : chroma(chroma.lab(...lab).hex()).luminance();
-          if (lighter ? value < bgL : value > bgL) continue;
-          const contrast = ratio(bgL, value);
-          if (contrast > bestRatio) { best = lab; bestRatio = contrast; }
-          if (contrast >= target && contrast < chosenRatio) {
-            chosen = lab; chosenRatio = contrast;
-          }
+        const ends = [0, 1].map(n => chroma.lab(...root(n)).hex())
+          .sort((a, b) => luminance(a) - luminance(b));
+        const [dark, light] = ends;
+        const lighter = chroma.contrast(this.hex, light) > chroma.contrast(this.hex, dark);
+        const position = lighter ? theme.endSignalLightness : theme.startSignalLightness;
+        const anchor = chroma.lab(...ramp(position)).hex();
+        const [anchorL, a, b] = toOklab(anchor);
+        const low = toOklab(dark)[0], high = toOklab(light)[0];
+        if (Math.abs(high - low) < 1e-7) return this;
+        const [bgL] = toOklab(this.hex);
+        const fraction = Math.max(0, Math.min(1,
+          lighter ? (anchorL - low) / (high - low) : (high - anchorL) / (high - low)));
+        // The configured signal is an endpoint-relative anchor, not an
+        // absolute lightness offset and not a mandatory WCAG text ratio.
+        // At black/white this reproduces the configured anchor. In between,
+        // scale its lightness distance to the remaining room on the chosen side.
+        const endL = lighter ? high : low;
+        let targetL = bgL + (endL - bgL) * fraction;
+        let target = fromOklab([targetL, a, b]);
+        const onSide = (hex: string) => lighter
+          ? luminance(hex) >= luminance(this.hex)
+          : luminance(hex) <= luminance(this.hex);
+        // Custom anchors can change luminance at equal OKLab lightness.
+        // Move toward the shared endpoint rather than reversing one hue.
+        for (let i = 0; i < 24 && !onSide(target); i++) {
+          targetL = (targetL + endL) / 2;
+          target = fromOklab([targetL, a, b]);
         }
-        return new Color({ theme, bgColor: this, lab: chosen ?? best, ramp });
+        if (!onSide(target)) target = this.hex;
+        // All channels travel together: a 12% fill has 12% of the color
+        // distance. It cannot acquire the anchor's full saturation immediately.
+        let hex = mix(this.hex, target, amount);
+        if (theme.rescaleSaturationToGrayRange) {
+          const [l, x, y] = toOklab(hex);
+          const [, bx, by] = toOklab(this.hex);
+          hex = fromOklab([l, bx + (x - bx) * amount, by + (y - by) * amount]);
+        }
+        if (!onSide(hex)) hex = this.hex;
+        return new Color({ theme, bgColor: this, lab: chroma(hex).lab(), ramp });
       }
 
       const [min, max] = this._getMinMax(ramp);

@@ -136,7 +136,7 @@ For SSR you can serialize `themeVariables()` into inline styles, including neste
 - **Small DOM adapter, no context provider.** CSS inherits tokens. JavaScript visits surface boundaries, caches colors, and resolves relative nesting. It does not inspect every text node, subscribe React components, or replace nodes. Theme changes still cause browser style/paint work; this is not a zero-cost update.
 - **Opaque surfaces only.** Arbitrary CSS backgrounds, gradients, opacity, background images, and alpha compositing are not tracked. Do not layer those onto managed surfaces and expect guarantees.
 - **DOM boundaries are explicit.** Portals and shadow roots need independent mounts; overlapping theme roots are rejected. Responsive/hover surface classes and custom hue names are deferred.
-- **First-pass compatibility.** The old React API is retained, with its neutral midpoint algorithm corrected. Signal ramps now share one light/dark direction per background and solve against measured contrast. Direct ramps keep their old behavior. The new core is a separate opt-in entry point, not a complete migration of every old demo.
+- **First-pass compatibility.** The old React API is retained, with its neutral midpoint algorithm corrected. Signal ramps now share one light/dark direction per background and interpolate toward perceptual anchors, preserving hue and scaling saturation with strength. This legacy signal path does not guarantee 4.5:1; see [the Color Contrast findings](docs/color-contrast.md). Direct ramps keep their old behavior. The new core is a separate opt-in entry point, not a complete migration of every old demo.
 
 Read the [implementation notes and screenshot evidence](docs/first-pass.md) for assumptions, verification, and remaining tradeoffs.
 
