@@ -1,5 +1,7 @@
 node_modules
 build
 lib
+dist
+dist-demo
 .DS_Store
 stats.html

@@ -1,0 +1,39 @@
+declare module "*.css";
+
+declare module "nano-css" {
+  export function create(): any;
+}
+
+declare module "nano-css/*" {
+  export function addon(nano: any): void;
+}
+
+declare module "react-icons-kit" {
+  export const Icon: any;
+}
+
+declare module "react-icons-kit/*/*" {
+  export const ic_apps: any;
+  export const ic_chat_bubble: any;
+  export const ic_menu: any;
+  export const ic_notifications: any;
+  export const ic_search: any;
+  export const ic_video_call: any;
+  export const ic_sentiment_satisfied: any;
+  export const github: any;
+}
+
+declare module "map-values" {
+  export default function mapValues<In, Out>(
+    object: Record<string, In>,
+    iteratee: (value: In, key: string) => Out
+  ): Record<string, Out>;
+}
+
+declare module "detect-browser" {
+  export function detect(): {
+    name: string;
+    version: string | null;
+    os: string | null;
+  } | null;
+}
