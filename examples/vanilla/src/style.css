@@ -1,0 +1,38 @@
+/* Layout only; every color comes from huet.css. */
+body {
+  margin: 0;
+  font: 16px/1.5 system-ui, sans-serif;
+}
+.page {
+  max-width: 28rem;
+  margin: 0 auto;
+  padding: 2rem;
+}
+.stack {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+}
+.row {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+.grow {
+  flex: 1;
+}
+.box {
+  border-style: solid;
+  border-width: 0;
+  border-radius: 0.25rem;
+  padding: 0.5rem 0.75rem;
+  font: inherit;
+}
+/* Like Tailwind's `border`: width only. Colors come from huet. */
+.border {
+  border-width: 1px;
+}
+h1,
+p {
+  margin: 0;
+}

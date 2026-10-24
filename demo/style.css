@@ -1,0 +1,11 @@
+@import "tailwindcss";
+@plugin "../src/tailwind.ts";
+
+/* Drop Tailwind's palette so the only colors are contrast-based ones. */
+@theme {
+  --color-*: initial;
+}
+
+@source "./";
+/* Classes built at runtime by main.ts. */
+@source inline("bg-{0..100..5}% hover:bg-{0..100..5}%");

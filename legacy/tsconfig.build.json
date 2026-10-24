@@ -1,0 +1,18 @@
+{
+  "extends": "./tsconfig.json",
+  "compilerOptions": {
+    "noEmit": false,
+    "declaration": true,
+    "emitDeclarationOnly": true,
+    "outDir": "dist"
+  },
+  "include": ["src"],
+  "exclude": [
+    "src/**/*.test.ts",
+    "src/index.tsx",
+    "src/demo/pages",
+    "src/demo/YouTubeLogo.tsx",
+    "src/demo/globals.ts",
+    "vite.config.ts"
+  ]
+}

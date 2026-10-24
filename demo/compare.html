@@ -1,0 +1,74 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Huet — mid-gray grid</title>
+    <link rel="stylesheet" href="./style.css" />
+  </head>
+  <body class="font-sans antialiased">
+    <aside
+      id="controls"
+      class="bg-5% border-15% fixed top-3 right-3 z-10 w-72 rounded-lg border p-4 text-sm shadow-lg"
+    >
+      <div class="mb-3 flex items-center justify-between">
+        <strong>Huet</strong>
+        <nav class="flex gap-3">
+          <a href="./index.html" class="text-blue-100% underline">Kitchen sink</a>
+          <a href="./compare.html" class="text-blue-100% underline">Mid-gray grid</a>
+        </nav>
+      </div>
+      <label class="mb-3 block">
+        <span class="text-60% mb-1 block">Theme</span>
+        <select id="theme" class="bg-0% border-25% w-full rounded border px-2 py-1"></select>
+      </label>
+      <label class="mb-3 block">
+        <span class="text-60% mb-1 flex justify-between">Page background <output id="bg-out"></output></span>
+        <input id="bg" type="range" min="0" max="1" step="0.01" class="accent-blue-100% w-full" />
+      </label>
+      <label class="block">
+        <span class="text-60% mb-1 flex justify-between">Contrast <output id="contrast-out"></output></span>
+        <input id="contrast" type="range" min="0" max="2" step="0.05" class="accent-blue-100% w-full" />
+      </label>
+    </aside>
+
+    <main class="p-6 pr-80">
+      <h1 class="mb-1 text-2xl font-bold">The same form on every page background</h1>
+      <p class="text-60% mb-6 max-w-2xl">
+        Each column is a <code>data-theme</code> subtree with a different <code>--huet-bg</code>.
+        No class changes between columns.
+      </p>
+      <div id="grid" class="grid grid-cols-3 gap-0 lg:grid-cols-5"></div>
+    </main>
+
+    <template id="column">
+      <section data-theme class="flex flex-col gap-2 p-4 text-sm">
+        <h2 class="text-lg font-bold" data-label></h2>
+        <label>Username</label>
+        <input class="border-25% rounded border px-2 py-1" value="foobar" />
+        <span class="text-green-100% text-xs">✓ Username is available</span>
+        <label>Email</label>
+        <input class="border-red-100% rounded border px-2 py-1" value="foo@bar" />
+        <span class="text-red-100% text-xs">Invalid email</span>
+        <select class="bg-5% border-25% rounded border px-2 py-1"><option>Pro plan</option></select>
+        <label class="flex items-center gap-2"><input type="checkbox" checked class="accent-blue-100%" /> Remember me</label>
+        <button class="bg-100% rounded p-1.5">Submit</button>
+        <button class="bg-100% rounded p-1.5 [--huet-contrast:0.5]">Disabled</button>
+        <p class="text-50% text-xs">Agree to the <a href="#" class="text-blue-100% underline">terms</a>.</p>
+        <div class="hue-red bg-10% border-25% rounded border p-2 text-xs">Something went wrong. <a href="#" class="text-blue-100% underline">Retry</a></div>
+        <div class="hue-blue bg-10% border-25% rounded border p-2 text-xs">Heads up: <b>new version</b>.</div>
+        <div class="flex gap-1 text-xs">
+          <span class="bg-red-100% rounded px-1">red</span>
+          <span class="bg-yellow-100% rounded px-1">yellow</span>
+          <span class="bg-green-100% rounded px-1">green</span>
+          <span class="bg-blue-100% rounded px-1">blue</span>
+        </div>
+        <div class="bg-10% rounded p-2">
+          Card <span class="text-50%">muted</span>
+          <div class="bg-10% border-20% mt-1 rounded border p-1">Nested <span class="text-red-100%">red</span></div>
+        </div>
+      </section>
+    </template>
+    <script type="module" src="./compare.ts"></script>
+  </body>
+</html>
