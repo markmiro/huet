@@ -1,0 +1,18 @@
+/* Import after tailwindcss. Opt in to replacing its default color palette. */
+@import "./styles.css";
+@theme {
+  --color-*: initial;
+}
+@theme inline {
+  --color-huet-fg: var(--huet-foreground);
+  --color-huet-muted: var(--huet-muted);
+  --color-huet-border: var(--huet-border);
+  --color-huet-red: var(--huet-red);
+  --color-huet-yellow: var(--huet-yellow);
+  --color-huet-green: var(--huet-green);
+  --color-huet-blue: var(--huet-blue);
+  --color-huet-purple: var(--huet-purple);
+}
+/* Use huet-surface-* for backgrounds so nested colors are recalculated.
+   Tailwind variants work on token utilities, e.g. hover:text-huet-blue.
+   Opacity modifiers are allowed by Tailwind but void contrast guarantees. */

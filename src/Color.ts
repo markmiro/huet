@@ -5,6 +5,18 @@ import Theme from "./Theme";
 import Cache from "./private/cache";
 
 const cache = new Cache();
+const rampSamples = new WeakMap<Ramp, { lab: Lab; luminance: number }[]>();
+function samplesFor(ramp: Ramp) {
+  let samples = rampSamples.get(ramp);
+  if (!samples) {
+    samples = Array.from({ length: 257 }, (_, i) => {
+      const lab = ramp(i / 256);
+      return { lab, luminance: chroma(chroma.lab(...lab).hex()).luminance() };
+    });
+    rampSamples.set(ramp, samples);
+  }
+  return samples;
+}
 if (typeof window !== "undefined") {
   window.cache = cache;
 }
@@ -72,7 +84,10 @@ export default class Color extends BaseColor {
       throw new Error("`theme` is required");
     }
 
-    if (baseRamp && (baseRamp.startL === undefined || baseRamp.endL === undefined)) {
+    if (
+      baseRamp &&
+      (baseRamp.startL === undefined || baseRamp.endL === undefined)
+    ) {
       throw new Error("`baseRamp` can't be a direct ramp");
     } else if (
       !baseRamp &&
@@ -88,7 +103,8 @@ export default class Color extends BaseColor {
     this.theme = theme;
     this.bgColor = bgColor;
     this.ramp = ramp;
-    this.baseRamp = baseRamp || (bgColor && bgColor.baseRamp) || theme.ramps.gray;
+    this.baseRamp =
+      baseRamp || (bgColor && bgColor.baseRamp) || theme.ramps.gray;
     this.lightness = lab[0];
   }
 
@@ -96,7 +112,7 @@ export default class Color extends BaseColor {
   static fromTheme(theme: Theme) {
     if (!(theme instanceof Theme)) {
       throw new TypeError(
-        'Need to give me a Theme instance, not a "theme config"'
+        'Need to give me a Theme instance, not a "theme config"',
       );
     }
     const ramp = theme.ramps[theme.bgRamp];
@@ -119,6 +135,83 @@ export default class Color extends BaseColor {
     return cache.at([this.hex, this.baseRamp, contrastAmount, ramp], () => {
       const { theme } = this;
       const isRootBaseRamp = ramp === theme.ramps[theme.bgRamp];
+
+      // Neutral contrast must be measured after gamut mapping, not inferred
+      // from which side of LAB 50 the background occupies. Signal ramps use
+      // the shared-polarity contrast solver below.
+      if (
+        isRootBaseRamp &&
+        theme.rescaleContrastToGrayRange &&
+        contrastAmount >= 0
+      ) {
+        const amount = Math.max(0, contrastAmount * theme.contrastMultiplier);
+        if (amount === 0) return this;
+        // Preserve a useful role scale: 25 for control edges (3:1),
+        // 50 for secondary text (4.5:1), 100 for the strongest endpoint.
+        const target =
+          amount <= 25
+            ? Math.pow(3, amount / 25)
+            : amount <= 50
+              ? 3 * Math.pow(1.5, (amount - 25) / 25)
+              : 4.5 * Math.pow(21 / 4.5, (Math.min(amount, 100) - 50) / 50);
+        let best = ramp(0),
+          bestRatio = 0;
+        let chosen: Lab | undefined,
+          chosenRatio = Infinity;
+        const samples = samplesFor(ramp);
+        const bgLuminance = chroma(this.hex).luminance();
+        for (const { lab, luminance } of samples) {
+          const ratio =
+            (Math.max(bgLuminance, luminance) + 0.05) /
+            (Math.min(bgLuminance, luminance) + 0.05);
+          if (ratio > bestRatio) {
+            best = lab;
+            bestRatio = ratio;
+          }
+          if (ratio >= target && ratio < chosenRatio) {
+            chosen = lab;
+            chosenRatio = ratio;
+          }
+        }
+        return new Color({ theme, bgColor: this, lab: chosen ?? best, ramp });
+      }
+
+      if (ramp.config.mode === "signal" && theme.rescaleContrastToGrayRange && contrastAmount >= 0) {
+        const amount = Math.min(100, contrastAmount) * Math.min(1, theme.contrastMultiplier);
+        if (amount === 0) return this;
+        const root = theme.ramps[theme.bgRamp];
+        const bgL = chroma(this.hex).luminance();
+        const endpoint = (n: number) => chroma(chroma.lab(...root(n)).hex()).luminance();
+        const ratio = (a: number, b: number) =>
+          (Math.max(a, b) + 0.05) / (Math.min(a, b) + 0.05);
+        // All signal ramps share the root ramp's polarity. Never choose a
+        // separate midpoint or direction for red, yellow, green, etc.
+        const low = Math.min(endpoint(0), endpoint(1));
+        const high = Math.max(endpoint(0), endpoint(1));
+        const lighter = ratio(bgL, high) > ratio(bgL, low);
+        const budget = Math.min(1, (ratio(low, high) - 1) / 6);
+        const target = 1 + 3.5 * amount / 100 * budget;
+        const minLightness = Math.min(root(0)[0], root(1)[0]);
+        const maxLightness = Math.max(root(0)[0], root(1)[0]);
+        let best: Lab = this.lab, bestRatio = 0;
+        let chosen: Lab | undefined, chosenRatio = Infinity;
+        const saturation = Math.min(1, theme.contrastMultiplier) *
+          (theme.rescaleSaturationToGrayRange ? contrastAmount / 100 : 1);
+        for (const sample of samplesFor(ramp)) {
+          const [l, a, b] = sample.lab;
+          if (l < minLightness - 1e-6 || l > maxLightness + 1e-6) continue;
+          const lab: Lab = [l, this.lab[1] + (a - this.lab[1]) * saturation,
+            this.lab[2] + (b - this.lab[2]) * saturation];
+          const value = saturation === 1 ? sample.luminance : chroma(chroma.lab(...lab).hex()).luminance();
+          if (lighter ? value < bgL : value > bgL) continue;
+          const contrast = ratio(bgL, value);
+          if (contrast > bestRatio) { best = lab; bestRatio = contrast; }
+          if (contrast >= target && contrast < chosenRatio) {
+            chosen = lab; chosenRatio = contrast;
+          }
+        }
+        return new Color({ theme, bgColor: this, lab: chosen ?? best, ramp });
+      }
 
       const [min, max] = this._getMinMax(ramp);
       const [bgMin, bgMax] = this._getMinMax(this.ramp);
@@ -204,7 +297,7 @@ export default class Color extends BaseColor {
       const { theme, baseRamp } = this;
       const [fgL, fgA, fgB] = ramp(
         (this.lightness - (baseRamp.startL ?? Number.NaN)) /
-          ((baseRamp.endL ?? Number.NaN) - (baseRamp.startL ?? Number.NaN))
+          ((baseRamp.endL ?? Number.NaN) - (baseRamp.startL ?? Number.NaN)),
       );
       const [bgL, bgA, bgB] = this.lab;
       const mix = Math.min(theme.contrastMultiplier, 1);
@@ -261,11 +354,11 @@ export default class Color extends BaseColor {
 
     const min = Math.max(
       ramp.startL ?? Number.NaN,
-      rootBaseRamp.startL ?? Number.NaN
+      rootBaseRamp.startL ?? Number.NaN,
     );
     const max = Math.min(
       ramp.endL ?? Number.NaN,
-      rootBaseRamp.endL ?? Number.NaN
+      rootBaseRamp.endL ?? Number.NaN,
     );
     return [min, max];
   }

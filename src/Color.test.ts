@@ -1,3 +1,4 @@
+import chroma from "chroma-js";
 import { describe, expect, it } from "vitest";
 
 import { BaseColor, default as Color, getLightness } from "./Color";
@@ -20,9 +21,9 @@ describe("getLightness", () => {
 
 describe("BaseColor", () => {
   it("requires a lab triple and stringifies to its hex", () => {
-    expect(() => new BaseColor(undefined as unknown as [number, number, number])).toThrow(
-      /lab/
-    );
+    expect(
+      () => new BaseColor(undefined as unknown as [number, number, number]),
+    ).toThrow(/lab/);
     const color = new BaseColor([50, 20, -10]);
     expect(color.toString()).toBe(color.hex);
     expect(color.hex).toMatch(/^#[0-9a-f]{6}$/i);
@@ -45,7 +46,7 @@ describe("Theme", () => {
   it("spaces the generated pallet and skips the empty teal slot", () => {
     const theme = themeWith();
     expect(Object.keys(theme.pallet).sort()).toEqual(
-      ["black", "blue", "green", "purple", "red", "white", "yellow"].sort()
+      ["black", "blue", "green", "purple", "red", "white", "yellow"].sort(),
     );
     expect(theme.ramps.red.config.mode).toBe("signal");
     expect(theme.ramps.white.config.mode).toBe("direct");
@@ -53,8 +54,8 @@ describe("Theme", () => {
   });
 
   it("rejects unknown theme keys and unknown pallet colors", () => {
-    expect(() =>
-      new Theme({ ...baseThemeConfig, extra: true } as ThemeConfig)
+    expect(
+      () => new Theme({ ...baseThemeConfig, extra: true } as ThemeConfig),
     ).toThrow(/isn't allowed/);
     expect(
       () =>
@@ -64,7 +65,7 @@ describe("Theme", () => {
             ...baseThemeConfig.ramps,
             bad: { colors: ["nope"] },
           },
-        })
+        }),
     ).toThrow(/Couldn't find color "nope"/);
   });
 });
@@ -77,7 +78,7 @@ describe("Color contrast", () => {
     expect(bg.hex).toMatch(/^#[0-9a-f]{6}$/i);
     expect(bg.theme).toBe(theme);
     expect(() => Color.fromTheme(baseThemeConfig as unknown as Theme)).toThrow(
-      TypeError
+      TypeError,
     );
   });
 
@@ -100,7 +101,7 @@ describe("Color contrast", () => {
     expect([bg.hex, bg.contrast(100).hex, red.hex]).toEqual([
       "#ffffff",
       "#000000",
-      "#cd4355",
+      "#cf4456",
     ]);
     expect(bg.contrast(100)).toBe(bg.contrast(100));
   });
@@ -133,7 +134,10 @@ describe("Color contrast", () => {
     const based = bg.base(bg.theme.ramps.red);
     expect(based.hex).toBe(bg.hex);
     expect(based.baseRamp).toBe(bg.theme.ramps.red);
-    expect(based.contrast(80).lab[1]).not.toBeCloseTo(bg.contrast(80).lab[1], 0);
+    expect(based.contrast(80).lab[1]).not.toBeCloseTo(
+      bg.contrast(80).lab[1],
+      0,
+    );
     expect(() => bg.base(bg.theme.ramps.white)).toThrow(/direct ramp/);
   });
 
@@ -151,7 +155,47 @@ describe("Color contrast", () => {
         new Color({
           theme: undefined as unknown as Theme,
           lab: [50, 0, 0],
-        })
+        }),
     ).toThrow(/theme/);
   });
+});
+
+describe("neutral midpoint regressions", () => {
+  it("keeps secondary text readable on both sides of LAB 50", async () => {
+    const chroma = (await import("chroma-js")).default;
+    for (const bgRampValue of [0.49, 0.5, 0.51]) {
+      const bg = Color.fromTheme(themeWith({ bgRampValue }));
+      expect(
+        chroma.contrast(bg.hex, bg.contrast(50).hex),
+      ).toBeGreaterThanOrEqual(4.5);
+      expect(
+        chroma.contrast(bg.hex, bg.contrast(100).hex),
+      ).toBeGreaterThanOrEqual(4.5);
+      expect(
+        chroma.contrast(bg.hex, bg.contrast(25).hex),
+      ).toBeGreaterThanOrEqual(3);
+      expect(bg.contrast(0).hex).toBe(bg.hex);
+    }
+  });
+});
+
+describe("semantic midpoint regressions", () => {
+  it("uses a shared polarity for alerts and semantic text across the legacy slider", () => {
+    for (const colors of [["black", "white"], ["white", "black"]]) {
+    const theme = themeWith({ ramps: { ...baseThemeConfig.ramps, gray: { colors } } });
+    for (let i = 0; i <= 100; i++) {
+      const bg = new Color({ theme, lab: theme.ramps.gray(i / 100), ramp: theme.ramps.gray });
+      const lighter = chroma.contrast(bg.hex, "#fff") > chroma.contrast(bg.hex, "#000");
+      for (const hue of ["red", "yellow", "green", "blue", "purple"]) {
+        for (const amount of [12, 25, 100]) {
+          const color = bg.contrast(amount, theme.ramps[hue]);
+          const delta = chroma(color.hex).luminance() - chroma(bg.hex).luminance();
+          expect(lighter ? delta >= 0 : delta <= 0, bg.hex + " " + hue).toBe(true);
+          if (amount === 100) expect(chroma.contrast(bg.hex, color.hex)).toBeGreaterThanOrEqual(4.5);
+        }
+      }
+    }
+    }
+  });
+
 });

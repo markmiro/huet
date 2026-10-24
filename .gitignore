@@ -5,3 +5,6 @@ dist
 dist-demo
 .DS_Store
 stats.html
+test-results
+playwright-report
+*.tgz

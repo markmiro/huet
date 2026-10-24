@@ -1,132 +1,154 @@
-# Huet ([alpha](#future-developments))
+# Huet
 
-**NOTE: THIS PROJECT IS UNDER ACTIVE CONSTRUCTION AND LIKELY DOESN'T WORK**
+Relative UI colors for utility apps. Choose two ramp endpoints; Huet adapts surfaces, text, borders, and named colors to their surroundings. Layout stays with your framework or Tailwind.
 
-Huet is named to resemble the word duet. The idea is to have colors work in harmony together.
+This branch contains a **first pass at a framework-independent API** under `huet/core`. The original React API remains at `huet`; see [legacy documentation](docs/legacy-react.md). Nothing has been published to npm by this change.
 
-## Why Huet?
+## Try it
 
-This library is an exploration of what the future of coloring UIs might look like:
-
-- Trivial dark mode without having to explicitly design one
-- Trivial high contrast mode
-- Trivial re-theming. Allow you to decide that black should be blue and white should be yellow and the library should adjust the grays in between and other colors like red, blue, etc. to maintain good contrast.
-
-We achieve the above with a simple concept. Instead of specifying the hex color you want directly, you specify some parameters for how the color should be calculated. The most important parameter you specify is _contrast_. With Huet, all colors except for the background color of your page are relative. The standard way to use Huet is to base all colors on their parent. This might not seem like an idea that would work, but I'm happy with the final result and I hope you are too.
-
-There are a couple ways to use Huet.
-
-1. [React Block component](). This is the easiest way to use Huet, but the API is experimental and incomplete.
-2. [Use the utilities](). You can use the utilities to create your own React library. Using these utilities on their own likely isn't what you want.
-3. Use a combination of the two.
-
-## Index
-
-- [Docs](#docs)
-- [Demo]()
-- [Usage - React]()
-- [Usage - Utils]()
-- [Gotchas]()
-- [Future Developments]()
-- [Glossary]()
-- [Credits]()
-
-### Demo
-
-### Usage - React
-
-The React API is likely to change. I don't recommend using it in real projects just yet. Still, the API is terse and allows you to build up very flexible UIs.
-
-### Usage - Utils
-
-### Usage - Defininig your own theme
-
-The [default theme]() lets you use Huet without having to create your own theme.
-
-```
-{
-  pallet: {
-    black: '#000000',
-    white: '#ffffff',
-    ramps: {
-      gray: {
-        colors: ['black', 'white'], // dark color first
-      },
-    }
-  },
-  bgRamp: "gray",
-  bgRampValue: 1,
-  startSignalLightness: 30,
-  endSignalLightness: 70,
-  contrastMultiplier: 1,
-  saturationContrastMultiplier: 1
-}
+```sh
+npm ci
+npm run dev
 ```
 
-#### pallet config
+Open `/lab.html` for the new plain-JavaScript contrast lab, or `/` for the original React example. The lab includes legacy 49% / 51% gray, white-and-blue, light/dark, narrow ramps, editable endpoints, and nested surfaces.
 
-#### ramp config options
+To install this unreleased implementation in another Vite project:
 
-##### colors
+```sh
+# In this repo
+npm run build:lib
+npm pack
+# In your app, using the actual path to the generated archive
+npm install /path/to/huet/huet-1.0.0-beta.3.tgz
+```
 
-##### classes
+The core has no runtime dependencies and does not require React. React peers are optional and only needed for the legacy entry point.
 
-##### mode
+## Minimal setup
 
-##### isNeutral
+```ts
+import { createTheme, mountTheme } from "huet/core";
+import "huet/styles.css";
 
-##### colorModel
+const theme = createTheme({
+  dark: "#233b91",
+  light: "#ffffff",
+  background: 1,
+});
+const colors = mountTheme(document.querySelector<HTMLElement>("#app")!, theme);
 
-##### correctLightness
+// A theme update writes CSS variables, without rerendering framework components.
+colors.update(createTheme({ dark: "#233b91", background: 0 }));
+// On unmount:
+// colors.destroy();
+```
 
-#### bgRamp
+```html
+<section class="huet-surface-10">
+  <h2>Workspace</h2>
+  <p class="huet-muted">Secondary text with measured contrast.</p>
+  <input
+    class="huet-surface-5 huet-border huet-focus"
+    aria-label="Workspace name"
+  />
+  <button class="huet-surface-blue huet-focus">Save changes</button>
+</section>
+```
 
-#### bgRampValue
+Huet supplies colors and a focus indicator; add your own padding, border widths, radii, typography, and layout. Mount after the root exists. One mount per independent DOM tree; dispose on unmount. Ordinary wrapper elements are transparent to surface inheritance. Newly inserted, removed, reparented, or reclassified surfaces update automatically.
 
-#### startSignalLightness
+## The complete class vocabulary
 
-#### endSignalLightness
+| Class                                       | Meaning                                                                                                                                              |
+| ------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `huet-surface-0/5/10/25/50/75/100`          | Choose **one** numeric suffix, e.g. `huet-surface-25`. Move that percentage from the parent background toward the higher-contrast endpoint in OKLab. |
+| `huet-surface-red/yellow/green/blue/purple` | Choose one hue, e.g. `huet-surface-blue`. A colored surface with its own foreground tokens.                                                          |
+| `huet-text`                                 | Primary text: aim for 7:1, or the best the ramp permits.                                                                                             |
+| `huet-muted`                                | Secondary text: aim for 4.5:1.                                                                                                                       |
+| `huet-text-red/yellow/green/blue/purple`    | A named text hue: aim for 4.5:1 on full-range themes.                                                                                                |
+| `huet-border`                               | Control border: aim for 3:1 against the surface and its parent. Set border width/style yourself.                                                     |
+| `huet-focus`                                | An inset keyboard-focus outline, checked against the element's own background.                                                                       |
 
-#### contrastMultiplier
+A numeric surface amount requests a **perceptual interpolation percentage**, not a WCAG ratio. If that point leaves neither theme endpoint readable, Huet nudges it to the nearest readable point on the same path. Colored fills also prioritize readable foregrounds. Explicit root backgrounds and `huet-surface-0` are preserved. Border and foreground roles are solved separately. A 5% surface can be subtle without making its text or boundary subtle.
 
-#### saturationContrastMultiplier
+Use one surface class per element. Use full literal class names, not `huet-surface-${amount}`. `HuetClass`, `classes`, `isHuetClass`, and `validateClasses` expose the same finite vocabulary for TypeScript and lint integrations:
 
-### Gotchas
+```ts
+import { validateClasses, type HuetClass } from "huet/core";
+const surface = "huet-surface-25" satisfies HuetClass;
+validateClasses("p-4 huet-text-blu"); // ['Unknown Huet class: huet-text-blu']
+```
 
-- You rarely want non-Huet components sitting inside Huet components. If you have a large product, it may be better to introduce it in your smaller React components (like buttons and form elements). Otherwise, you may end up with unexpected color clashing.
-- Most of the time, you'll want to base the color of an element on the immediate parent.
-- Transparent colors are tricky. I recommend you only use transparency in gradients and shadows. The way browsers implement transparency means that colors don't get mixed in a perceptually intuitive way in some cases. By using transparency, the resulting color is created by mixing colors in a way that isn't as good as the perceptually-based systemt that Huet uses. Transparent colors therefore reduce your flexibility with rethemability.
-- Changing colors on hover is really complicated. You either need to use local state or you need to
-- Keeping your styles and markup separate becomes harder with Huet especially when using the Huet's React Block component. You may be ok with this if you're already using Atomic CSS.
+The package also includes a small literal-token checker:
 
-### Future Developments
+```sh
+npx huet check src/App.vue src/Card.svelte src/Page.tsx
+```
 
-This project is in alpha. This is because it's still not seemlesss to use Huet within a web project. Some things I'm thinking about:
+It reports invalid `huet-*` tokens with file/line locations and exits nonzero. It is a lexical checker (including comments/strings), not a framework parser or ESLint plugin. Pass explicit files or shell-expanded globs. Dynamic construction and variants such as `hover:huet-surface-25` are intentionally unsupported. `validateClasses()` additionally catches multiple surface classes in a class list.
 
-- Gamma correction to ensure that differences between dark colors are increased to match percieved difference between light colors.
-- Performance improvements. Huet seems fast enough, but I haven't tested it on sufficiently large web pages.
-- The themer has limited functionality. Ideally you'd be able to create an entire theme from this area.
-- Remove dependency on chroma.js to reduce bundle size
-- Make the API better. The React API in particular isn't as easy to use as I'd like. [Changing colors on hover](#future-developments) is way too complicated.
+## Tailwind v4
 
-### Development
+```css
+@import "tailwindcss";
+@import "huet/tailwind.css";
+```
 
-`npm run dev` listens on all interfaces at port 8731 and prints a Tailscale URL (default: http://mbp.tail0fff0.ts.net:8731). Override with `TAILSCALE_HOST` and `PORT` env vars.
+This opt-in bridge clears Tailwind's `--color-*` namespace, registers Huet's inherited color tokens with `@theme inline`, and leaves spacing, layout, typography, and other utilities available. Huet's surface rules live in the `components` layer, below Tailwind utilities.
 
-### Glossary
+```html
+<div class="huet-surface-10 rounded-lg p-6">
+  <p class="text-huet-muted">Secondary text</p>
+  <a class="text-huet-fg hover:text-huet-blue underline" href="/settings"
+    >Settings</a
+  >
+  <input
+    class="huet-surface-5 border border-huet-border huet-focus rounded px-3 py-2"
+  />
+</div>
+```
 
-**Theme config**: This is the JSON-serializable definition that create the ultimate theme that we use.
+Use `huet-surface-*` to change backgrounds. Tailwind can technically generate `bg-huet-*`, but those classes do **not** establish a relative surface; using them can invalidate descendant contrast. Tailwind variants on text/border tokens work normally. Its opacity modifiers also compile, but reduce contrast: they are outside Huet's readability guarantees. To keep Tailwind's palette instead of replacing it, import `huet/styles.css` and define only the `@theme inline` aliases you want.
 
-**Theme**: This is the object that all Huet colors use to determine how they should be displayed.
+## Shared theme values
 
-**Pallet**: The set of key/value pairs to define colors and their hex values in your theme config / theme.
+JavaScript configuration is the source of truth in this pass. Inputs are opaque `#rgb` or `#rrggbb`; `background` is an OKLab ramp position from 0 to 1. All semantic text and colored fills choose the same light/dark side of a given background; hues do not flip independently. The five signal anchors can be overridden with `colors: { blue: '#0066cc' }`.
 
-**Ramp**: A ramp represents the range of acceptable colors.
+```ts
+const theme = createTheme({ dark: "#233b91", light: "#fff" });
+const tokens = theme.tokens();
+const panel = theme.surface(tokens.background, 25);
+const panelTokens = theme.tokens(panel, tokens.background);
+// Use these same concrete colors in canvas, charts, or SSR output.
+```
 
-**Huet color**: An instance of a Huet Color class.
+`themeVariables(tokens)` returns the CSS custom properties used by the DOM adapter:
+`--huet-background`, `--huet-foreground`, `--huet-muted`, `--huet-border`, and `--huet-{red,yellow,green,blue,purple}`. Read these with `getComputedStyle()` if a chart needs the currently inherited values. Directly editing these variables does not rerun the solver; use `update()` to change a theme.
 
-# Credits
+For SSR you can serialize `themeVariables()` into inline styles, including nested surfaces computed with `theme.surface()`. The DOM adapter itself runs only in a browser. See [framework integration examples](docs/frameworks.md).
 
-D3
-chroma.js
-Intial version created with CodeSandbox
+## Design choices and limits
+
+- **Measured contrast, perceptual ramps.** OKLab controls interpolation; sRGB relative luminance controls contrast. Gamut mapping reduces chroma while retaining OKLCH hue/lightness.
+- **Deliberate low contrast stays deliberate.** Neutral colors stay on your endpoint ramp. Unattainable targets use the best available candidate, rather than silently substituting black/white. Named colors use the endpoint lightness range and reduce their target for narrow themes.
+- **Mid-gray has physical limits.** At some backgrounds neither endpoint can reach 7:1. With black/white endpoints, ordinary text reaches at least 4.5:1 across the entire sRGB gray range. Colored text may become almost white/black near the crossover; you cannot simultaneously insist on saturated text and 4.5:1 everywhere. Colored fills aim for 3:1, with their foreground checked independently.
+- **Small DOM adapter, no context provider.** CSS inherits tokens. JavaScript visits surface boundaries, caches colors, and resolves relative nesting. It does not inspect every text node, subscribe React components, or replace nodes. Theme changes still cause browser style/paint work; this is not a zero-cost update.
+- **Opaque surfaces only.** Arbitrary CSS backgrounds, gradients, opacity, background images, and alpha compositing are not tracked. Do not layer those onto managed surfaces and expect guarantees.
+- **DOM boundaries are explicit.** Portals and shadow roots need independent mounts; overlapping theme roots are rejected. Responsive/hover surface classes and custom hue names are deferred.
+- **First-pass compatibility.** The old React API is retained, with its neutral midpoint algorithm corrected. Signal ramps now share one light/dark direction per background and solve against measured contrast. Direct ramps keep their old behavior. The new core is a separate opt-in entry point, not a complete migration of every old demo.
+
+Read the [implementation notes and screenshot evidence](docs/first-pass.md) for assumptions, verification, and remaining tradeoffs.
+
+## Checks
+
+```sh
+npm run typecheck
+npm test
+npx playwright install chromium
+npm run test:browser
+npm run build:lib
+npm run build
+```
+
+The original demo retains its existing Tachyons minification and React icon deprecation warnings. The new lab is independent of those packages.

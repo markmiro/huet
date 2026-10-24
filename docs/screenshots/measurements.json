@@ -1,0 +1,44 @@
+[
+  {
+    "label": "before",
+    "rows": [
+      {
+        "position": 0.49,
+        "background": "#747474",
+        "muted": "#b7b7b7",
+        "border": "#959595",
+        "mutedRatio": 2.330458699405466,
+        "borderRatio": 1.5604177422553598
+      },
+      {
+        "position": 0.51,
+        "background": "#797979",
+        "muted": "#3c3c3c",
+        "border": "#5a5a5a",
+        "mutedRatio": 2.533998327777523,
+        "borderRatio": 1.5843335322595773
+      }
+    ]
+  },
+  {
+    "label": "after",
+    "rows": [
+      {
+        "position": 0.49,
+        "background": "#747474",
+        "muted": "#fcfcfc",
+        "border": "#cfcfcf",
+        "mutedRatio": 4.5557850825086454,
+        "borderRatio": 3.000080929973038
+      },
+      {
+        "position": 0.51,
+        "background": "#797979",
+        "muted": "#0b0b0b",
+        "border": "#d7d7d7",
+        "mutedRatio": 4.521412295791812,
+        "borderRatio": 3.02461600326852
+      }
+    ]
+  }
+]
