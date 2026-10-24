@@ -171,6 +171,9 @@ function parseColorsToStyle(relativeToColor: Color, str: string): HuetStyle {
         return [Number.parseInt(first, 10), second];
       }
 
+      // A contrast of zero is preserved, not ignored: `first` is still the
+      // string "0" (truthy) in the branch above, and `Number.isInteger(0)` is
+      // true here, so "bg=0" and "bg=0-red" both pass 0 through to `contrast()`.
       const firstAsInt = Number.parseInt(first ?? "", 10);
       if (Number.isInteger(firstAsInt)) {
         return [firstAsInt, undefined];
