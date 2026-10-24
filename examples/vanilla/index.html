@@ -1,0 +1,31 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>huet + vanilla</title>
+  </head>
+  <body>
+    <main class="stack page">
+      <div class="row">
+        <label class="row grow">
+          Background
+          <input id="bg" type="range" min="0" max="1" step="0.01" value="1" class="grow accent-100%" />
+        </label>
+        <select id="theme" class="bg-0% border border-25% box">
+          <option value="default">Black / white</option>
+          <option value="ocean">Ocean</option>
+        </select>
+      </div>
+      <section id="card" class="bg-5% border border-15% box stack">
+        <h1>huet + vanilla</h1>
+        <p class="text-60%">Every color is a contrast amount relative to its parent background.</p>
+        <input class="bg-0% border border-25% placeholder-50% box" placeholder="Email address" />
+        <button class="bg-100% box">Primary action</button>
+        <div id="alert" class="hue-red bg-10% border border-30% box">Something went wrong.</div>
+        <div id="nested" class="bg-5% box">Nested card, 5% away from the card.</div>
+      </section>
+    </main>
+    <script type="module" src="/src/main.ts"></script>
+  </body>
+</html>

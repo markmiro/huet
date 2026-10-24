@@ -1,0 +1,190 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Huet — kitchen sink</title>
+    <link rel="stylesheet" href="./style.css" />
+  </head>
+  <body class="font-sans antialiased">
+    <aside
+      id="controls"
+      class="bg-5% border-15% fixed top-3 right-3 z-10 w-72 rounded-lg border p-4 text-sm shadow-lg"
+    >
+      <div class="mb-3 flex items-center justify-between">
+        <strong>Huet</strong>
+        <nav class="flex gap-3">
+          <a href="./index.html" class="text-blue-100% underline">Kitchen sink</a>
+          <a href="./compare.html" class="text-blue-100% underline">Mid-gray grid</a>
+        </nav>
+      </div>
+      <label class="mb-3 block">
+        <span class="text-60% mb-1 block">Theme</span>
+        <select id="theme" class="bg-0% border-25% w-full rounded border px-2 py-1"></select>
+      </label>
+      <label class="mb-3 block">
+        <span class="text-60% mb-1 flex justify-between">Page background <output id="bg-out"></output></span>
+        <input id="bg" type="range" min="0" max="1" step="0.01" class="accent-blue-100% w-full" />
+      </label>
+      <label class="block">
+        <span class="text-60% mb-1 flex justify-between">Contrast <output id="contrast-out"></output></span>
+        <input id="contrast" type="range" min="0" max="2" step="0.05" class="accent-blue-100% w-full" />
+      </label>
+    </aside>
+
+    <main class="mx-auto max-w-3xl px-6 py-10 pr-80 xl:pr-6">
+      <h1 class="border-100% mb-2 border-b-4 pb-2 text-5xl font-bold" id="theme-name">Base</h1>
+      <p class="text-60% mb-10">
+        Every color on this page is a class like <code>bg-10%</code> or <code>text-red-100%</code>:
+        contrast against whatever is behind it. Change the theme or drag the background slider.
+      </p>
+
+      <section>
+        <h2 class="border-50% mt-12 mb-6 border-b pb-1 text-3xl font-bold">Colors</h2>
+        <div class="grid grid-cols-6 gap-2 text-center">
+          <div class="bg-neutral-100% rounded p-2">neutral</div>
+          <div class="bg-red-100% rounded p-2">red</div>
+          <div class="bg-yellow-100% rounded p-2">yellow</div>
+          <div class="bg-green-100% rounded p-2">green</div>
+          <div class="bg-blue-100% rounded p-2">blue</div>
+          <div class="bg-purple-100% rounded p-2">purple</div>
+          <div class="bg-neutral-20% rounded p-2">20%</div>
+          <div class="bg-red-20% rounded p-2">20%</div>
+          <div class="bg-yellow-20% rounded p-2">20%</div>
+          <div class="bg-green-20% rounded p-2">20%</div>
+          <div class="bg-blue-20% rounded p-2">20%</div>
+          <div class="bg-purple-20% rounded p-2">20%</div>
+        </div>
+      </section>
+
+      <section>
+        <h2 class="border-50% mt-12 mb-6 border-b pb-1 text-3xl font-bold">Nav</h2>
+        <div class="bg-100% flex items-center justify-between rounded p-4">
+          <svg class="fill-50% h-8 w-8" viewBox="0 0 24 24" aria-hidden="true">
+            <path
+              d="M12 2a10 10 0 1 0 0 20 10 10 0 0 0 0-20Zm0 18a8 8 0 1 1 0-16 8 8 0 0 1 0 16Zm-3.5-9a1.5 1.5 0 1 0 0-3 1.5 1.5 0 0 0 0 3Zm7 0a1.5 1.5 0 1 0 0-3 1.5 1.5 0 0 0 0 3ZM12 17.5c2.3 0 4.3-1.4 5.1-3.5H6.9c.8 2.1 2.8 3.5 5.1 3.5Z"
+            />
+          </svg>
+          <div class="flex items-center gap-4">
+            <a class="hover:text-60%" href="#">Home</a>
+            <a class="hover:text-60%" href="#">About</a>
+            <a class="hover:text-60%" href="#">Contact</a>
+            <input
+              class="bg-15% border-25% placeholder-50% w-56 rounded border px-2 py-1"
+              placeholder="Search"
+            />
+            <span class="relative">
+              <svg class="fill-100% h-6 w-6" viewBox="0 0 24 24" aria-hidden="true">
+                <path
+                  d="M12 22a2 2 0 0 0 2-2h-4a2 2 0 0 0 2 2Zm6-6V11c0-3.1-1.6-5.6-4.5-6.3V4a1.5 1.5 0 0 0-3 0v.7C7.6 5.4 6 7.9 6 11v5l-2 2v1h16v-1l-2-2Z"
+                />
+              </svg>
+              <span class="hue-red bg-100% absolute top-0 right-0 h-2.5 w-2.5 rounded-full"></span>
+            </span>
+          </div>
+        </div>
+      </section>
+
+      <section>
+        <h2 class="border-50% mt-12 mb-6 border-b pb-1 text-3xl font-bold">Selectable</h2>
+        <label class="mb-3 block max-w-xs">
+          <span class="flex justify-between">Row background <output id="row-out">100%</output></span>
+          <input id="row" type="range" min="0" max="100" step="5" value="100" class="accent-100% w-full" />
+        </label>
+        <div class="flex flex-col gap-px" id="rows">
+          <button class="row bg-100% hover:bg-90% flex items-center justify-between p-2 text-left">
+            <span>This is something or other<span class="text-50% block">This is a subtitle</span></span>
+            <span class="flex gap-2 text-xs">
+              <span class="bg-red-50% px-1">red</span><span class="bg-green-50% px-1">green</span>
+            </span>
+          </button>
+          <button class="row bg-100% hover:bg-90% flex items-center justify-between p-2 text-left">
+            <span>This is another item<span class="text-50% block">This another subtitle</span></span>
+            <span class="flex gap-2 text-xs">
+              <span class="bg-red-50% px-1">red</span><span class="bg-green-50% px-1">green</span>
+            </span>
+          </button>
+          <button class="row bg-100% hover:bg-90% flex items-center justify-between p-2 text-left">
+            <span>Yes<span class="text-50% block">No</span></span>
+            <span class="flex gap-2 text-xs">
+              <span class="bg-red-50% px-1">red</span><span class="bg-green-50% px-1">green</span>
+            </span>
+          </button>
+        </div>
+      </section>
+
+      <section>
+        <h2 class="border-50% mt-12 mb-6 border-b pb-1 text-3xl font-bold">Form</h2>
+        <form class="flex max-w-xs flex-col" onsubmit="return false">
+          <label class="mb-1">Username</label>
+          <input class="border-25% rounded border px-2 py-1.5" value="foobar" />
+          <span class="text-green-100% mt-1 text-xs">✓ Username is available</span>
+          <label class="mt-3 mb-1">Email</label>
+          <input class="border-red-100% rounded border px-2 py-1.5" value="foo@bar" />
+          <span class="text-red-100% mt-1 text-xs">Invalid email</span>
+          <label class="mt-3 mb-1">Plan</label>
+          <select class="bg-5% border-25% rounded border px-2 py-1.5">
+            <option>Free</option>
+            <option>Pro</option>
+          </select>
+          <textarea class="bg-5% border-25% placeholder-50% mt-3 rounded border px-2 py-1.5" placeholder="Tell us about yourself"></textarea>
+          <label class="mt-3 flex items-center gap-2"><input type="checkbox" checked class="accent-blue-100%" /> Remember me</label>
+          <button class="bg-100% hover:bg-80% focus-visible:outline-blue-100% mt-3 rounded p-2 outline-offset-2 focus-visible:outline-2">Submit</button>
+          <button class="bg-100% mt-2 rounded p-2 [--huet-contrast:0.5]" disabled>Submit disabled</button>
+          <p class="text-50% mt-1 text-xs">
+            By signing up you agree to the
+            <a href="#" class="text-blue-100% underline">Terms and Conditions</a>.
+          </p>
+        </form>
+      </section>
+
+      <section>
+        <h2 class="border-50% mt-12 mb-6 border-b pb-1 text-3xl font-bold">Alert</h2>
+        <div class="flex flex-col gap-3">
+          <div class="hue-red bg-10% border-25% flex items-center justify-between rounded border p-4">
+            <p>Hold up! We need to notify you about something.<br />Click <a href="#" class="text-blue-100% underline">this link</a> to find out more.</p>
+            <button class="bg-10% hover:bg-20% h-8 w-8 rounded-full">✕</button>
+          </div>
+          <div class="hue-yellow bg-10% border-25% flex items-center justify-between rounded border p-4">
+            <p>Hold up! We need to notify you about something.<br />Click <a href="#" class="text-blue-100% underline">this link</a> to find out more.</p>
+            <button class="bg-10% hover:bg-20% h-8 w-8 rounded-full">✕</button>
+          </div>
+          <div class="hue-green bg-10% border-25% flex items-center justify-between rounded border p-4">
+            <p>Hold up! We need to notify you about something.<br />Click <a href="#" class="text-blue-100% underline">this link</a> to find out more.</p>
+            <button class="bg-10% hover:bg-20% h-8 w-8 rounded-full">✕</button>
+          </div>
+          <div class="hue-blue bg-10% border-25% flex items-center justify-between rounded border p-4">
+            <p>Hold up! We need to notify you about something.<br />Click <a href="#" class="text-blue-100% underline">this link</a> to find out more.</p>
+            <button class="bg-10% hover:bg-20% h-8 w-8 rounded-full">✕</button>
+          </div>
+          <div class="hue-purple bg-10% border-25% flex items-center justify-between rounded border p-4">
+            <p>Hold up! We need to notify you about something.<br />Click <a href="#" class="text-blue-100% underline">this link</a> to find out more.</p>
+            <button class="bg-10% hover:bg-20% h-8 w-8 rounded-full">✕</button>
+          </div>
+        </div>
+      </section>
+
+      <section>
+        <h2 class="border-50% mt-12 mb-6 border-b pb-1 text-3xl font-bold">Code</h2>
+        <pre class="bg-5% overflow-x-auto rounded p-4 font-mono text-sm leading-6"><span class="text-red-100%">function</span> <span class="text-purple-100%">Purple</span>({ children }) {
+  <span class="text-red-100%">return</span> (
+<span class="bg-red-20% block"><span class="text-red-100%">-</span>   &lt;<span class="text-blue-100%">Block</span> <span class="text-purple-100%">contrast</span><span class="text-red-100%">=</span><span class="text-yellow-100%">"fg=100-purple"</span>&gt;</span><span class="bg-green-20% block"><span class="text-green-100%">+</span>   &lt;<span class="text-blue-100%">span</span> <span class="text-purple-100%">class</span><span class="text-red-100%">=</span><span class="text-yellow-100%">"text-purple-100%"</span>&gt;</span>      {children}
+    &lt;/<span class="text-blue-100%">span</span>&gt;
+  );
+}</pre>
+      </section>
+
+      <section>
+        <h2 class="border-50% mt-12 mb-6 border-b pb-1 text-3xl font-bold">SVG chart</h2>
+        <svg width="500" height="200" class="max-w-full" aria-label="Bar chart">
+          <rect x="10%" y="40%" width="20%" height="60%" class="fill-red-100%" />
+          <rect x="40%" y="20%" width="20%" height="80%" class="fill-green-100%" />
+          <rect x="70%" y="0%" width="20%" height="100%" class="fill-blue-100%" />
+          <line x1="0" y1="0" x2="0" y2="100%" class="stroke-50%" stroke-width="2" />
+          <line x1="0" y1="100%" x2="100%" y2="100%" class="stroke-50%" stroke-width="2" />
+        </svg>
+      </section>
+    </main>
+    <script type="module" src="./main.ts"></script>
+  </body>
+</html>
