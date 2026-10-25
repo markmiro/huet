@@ -40,13 +40,10 @@ test("Color Contrast forms retain hue and scale low-strength fills", async ({ pa
       for (let i = 1; i < column.borders.length; i++) {
         const [, a, b] = toOklab(column.borders[i]);
         expect(Math.hypot(a, b), JSON.stringify(column)).toBeGreaterThan(.035);
-        const [L, x, y] = toOklab(column.fills[i]);
-        const [bgL, bgX, bgY] = toOklab(column.background);
-        const [fgL, fgX, fgY] = toOklab(column.borders[i]);
-        const distance = Math.hypot(L - bgL, x - bgX, y - bgY);
-        const fullDistance = Math.hypot(fgL - bgL, fgX - bgX, fgY - bgY);
-        expect(distance / fullDistance).toBeGreaterThan(.10);
-        expect(distance / fullDistance).toBeLessThan(.14);
+        const fraction = Math.log(contrastRatio(column.background, column.fills[i])) /
+          Math.log(contrastRatio(column.background, column.borders[i]));
+        expect(fraction).toBeGreaterThan(.10);
+        expect(fraction).toBeLessThan(.14);
       }
     }
     results.push({ position, columns: colors.map(c => ({

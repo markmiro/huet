@@ -222,3 +222,38 @@ describe("relative semantic scaling", () => {
     }
   });
 });
+
+describe("ramp progression", () => {
+  it("moves monotonically on one side at every integer strength and background", () => {
+    const theme = themeWith();
+    for (let position = 0; position <= 100; position++) {
+      const bg = new Color({ theme, ramp: theme.ramps.gray, lab: theme.ramps.gray(position / 100) });
+      const lighter = chroma.contrast(bg.hex, "#fff") > chroma.contrast(bg.hex, "#000");
+      for (const hue of ["gray", "red", "yellow", "green", "blue", "purple"]) {
+        let previous = chroma(bg.hex).luminance();
+        for (let amount = 0; amount <= 100; amount++) {
+          const value = chroma(bg.contrast(amount, theme.ramps[hue]).hex).luminance();
+          expect(lighter ? value >= previous : value <= previous,
+            position + " " + hue + " " + amount).toBe(true);
+          previous = value;
+        }
+      }
+    }
+  });
+  it("keeps low semantic strengths visible on black and comparable to white", () => {
+    const theme = themeWith();
+    const black = new Color({ theme, lab: [0, 0, 0] });
+    const white = new Color({ theme, lab: [100, 0, 0] });
+    for (const hue of ["red", "yellow", "green", "blue", "purple"]) {
+      for (const amount of [6.25, 12.5, 25]) {
+        const onBlack = black.contrast(amount, theme.ramps[hue]);
+        const onWhite = white.contrast(amount, theme.ramps[hue]);
+        const blackDistance = getLightness(onBlack.hex);
+        const whiteDistance = 100 - getLightness(onWhite.hex);
+        expect(blackDistance).toBeGreaterThan(2);
+        expect(blackDistance / whiteDistance).toBeGreaterThan(.65);
+        expect(blackDistance / whiteDistance).toBeLessThan(1.5);
+      }
+    }
+  });
+});

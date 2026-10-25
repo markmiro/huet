@@ -54,3 +54,11 @@ Validation: 31 unit/integration tests, six Chromium browser tests, TypeScript, a
 ## Deferred issue
 
 The neutral gray Submit button remains visually uneven in light, middle-gray, and dark modes. This predates the semantic-ramp correction and is intentionally deferred; the next ramp fix must not change the neutral algorithm or demo markup.
+
+## Near-black spacing and monotonic progression checkpoint
+
+The next correction keeps the semantic anchors and OKLab paths, but spaces strength by **proportional contrast**, using `ratio(amount) = ratio(anchor) ** amount`. It finds the closest quantized color on that same path. This supersedes the raw 12% OKLab-distance rule above: small steps on black no longer round almost to black, and zero/full strength remain unchanged. The contrast target is derived from the chosen anchor, not a mandatory accessibility threshold.
+
+The neutral solver now also chooses its direction once per background. Previously it could choose a dark sample for one strength and a light sample for the next. Every increasing-strength sequence now stays on one side and progresses monotonically. This shared algorithm correction also affects neutral submit fills; no button-specific style or tuning was added.
+
+Tests sweep all integer strengths across 101 backgrounds for gray and all five semantic hues, check low-step visibility on black against white, and measure proportional contrast for rendered submit fills. Earlier screenshots above document the prior checkpoint; [the near-black matrix before this correction](screenshots/ramp-black-before.png) records the newly reported failure.

@@ -1,9 +1,10 @@
 import chroma from "chroma-js";
-import { fromOklab, toOklab, mix, luminance } from "./core/color";
+import { fromOklab, toOklab, luminance } from "./core/color";
 
 import type { Lab, Ramp } from "./colorModel";
 import Theme from "./Theme";
 import Cache from "./private/cache";
+import { mixSignal } from "./private/mixSignal";
 
 const cache = new Cache();
 const rampSamples = new WeakMap<Ramp, { lab: Lab; luminance: number }[]>();
@@ -161,7 +162,15 @@ export default class Color extends BaseColor {
           chosenRatio = Infinity;
         const samples = samplesFor(ramp);
         const bgLuminance = chroma(this.hex).luminance();
+        const endpointRatio = (value: number) =>
+          (Math.max(bgLuminance, value) + 0.05) / (Math.min(bgLuminance, value) + 0.05);
+        const low = Math.min(samples[0].luminance, samples[samples.length - 1].luminance);
+        const high = Math.max(samples[0].luminance, samples[samples.length - 1].luminance);
+        const lighter = endpointRatio(high) > endpointRatio(low);
+        // Choose polarity once for the background, not again for each amount.
+        // Otherwise nearest-ratio selection can alternate black/light/dark.
         for (const { lab, luminance } of samples) {
+          if (lighter ? luminance < bgLuminance : luminance > bgLuminance) continue;
           const ratio =
             (Math.max(bgLuminance, luminance) + 0.05) /
             (Math.min(bgLuminance, luminance) + 0.05);
@@ -210,9 +219,9 @@ export default class Color extends BaseColor {
           target = fromOklab([targetL, a, b]);
         }
         if (!onSide(target)) target = this.hex;
-        // All channels travel together: a 12% fill has 12% of the color
-        // distance. It cannot acquire the anchor's full saturation immediately.
-        let hex = mix(this.hex, target, amount);
+        // All channels travel together, spaced by proportional contrast
+        // so low strengths do not collapse into black.
+        let hex = mixSignal(this.hex, target, amount);
         if (theme.rescaleSaturationToGrayRange) {
           const [l, x, y] = toOklab(hex);
           const [, bx, by] = toOklab(this.hex);
