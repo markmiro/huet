@@ -80,3 +80,13 @@ That path now uses `availableContrast ** strength`, choosing samples on the conf
 Regression tests check six distinct steps and normalized contrast spacing in the matching column, including actual rows 40 and 60 for gray and blue. Unit coverage also checks all six background ramps from both light and dark roots. [Gray matrix](screenshots/ramp-gray-spacing-after.png) · [Blue matrix](screenshots/ramp-blue-spacing-after.png).
 
 Validation: 36 unit/integration tests, eight Chromium browser tests, TypeScript, and library build pass. No page markup changed.
+
+## Stable global contrast
+
+The global Contrast slider previously changed every intermediate background before choosing its children's light/dark direction. An ancestor crossing the direction boundary could therefore flip a leaf abruptly while dragging the slider.
+
+For global contrast between zero and one, derived colors now resolve against an enabled (full-contrast) reference tree, then share a linear-light fade toward that tree's starting background. Because both parent and child use the same fade origin, their luminance difference scales by the slider value instead of changing sign. At zero they merge into the background; at one the existing palette is unchanged. Intermediate values deliberately follow this common fade rather than recalculating each local ramp. Explicitly constructed starting colors establish their own fade origin.
+
+Reference state follows nested `contrast()`, `direct()`, and `base()` calls, even when two different colors round to the same displayed hex. This adds no configuration, animation, or demo markup. Changing the actual background or theme can still change the enabled palette's direction; this correction concerns the global contrast multiplier.
+
+Regression coverage sweeps nested colors through all 101 slider values and drives the rendered form slider in both directions. Quantized RGB values are allowed small rounding differences. Validation: 38 unit/integration tests, nine Chromium browser tests, TypeScript, and library build.

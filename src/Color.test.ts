@@ -286,7 +286,7 @@ describe("neutral overlays on a colored background ramp", () => {
   it("honors zero global contrast for neutral overlays", () => {
     const theme = themeWith({ bgRamp: "blue", bgRampValue: .5, contrastMultiplier: 0 });
     const bg = Color.fromTheme(theme);
-    expect(bg.contrast(100, theme.ramps.gray)).toBe(bg);
+    expect(bg.contrast(100, theme.ramps.gray).hex).toBe(bg.hex);
   });
 });
 
@@ -308,5 +308,54 @@ describe("matching background ramp spacing", () => {
         }
       }
     }
+  });
+});
+
+describe("global contrast continuity", () => {
+  function tree(theme: Theme) {
+    const root = Color.fromTheme(theme);
+    const dark = root.contrast(100);
+    const middle = root.contrast(60);
+    const colored = middle.contrast(25, theme.ramps.blue);
+    const rebased = colored.base(theme.ramps.red);
+    return [
+      root, dark, dark.contrast(100), dark.contrast(100, theme.ramps.red),
+      middle, middle.contrast(100), colored, colored.contrast(100),
+      rebased.contrast(100), rebased.direct(theme.ramps.white),
+      colored.contrast(0).contrast(100, theme.ramps.green),
+    ];
+  }
+  it("keeps nested luminance ordering and stays on one continuous fade", () => {
+    for (const bgRampValue of [0, .5, 1]) {
+      const full = tree(themeWith({ bgRampValue }));
+      const origin = chroma(full[0].hex).luminance();
+      for (let step = 0; step <= 100; step++) {
+        const amount = step / 100;
+        const current = tree(themeWith({ bgRampValue, contrastMultiplier: amount }));
+        for (let i = 0; i < current.length; i++) {
+          const enabled = chroma(full[i].hex).luminance();
+          const expected = origin + (enabled - origin) * amount;
+          expect(Math.abs(chroma(current[i].hex).luminance() - expected),
+            bgRampValue + " " + step + " node " + i).toBeLessThan(.005);
+          if (step === 0) expect(current[i].hex).toBe(full[0].hex);
+          if (step === 100) expect(current[i].hex).toBe(full[i].hex);
+        }
+        // A child that is brighter than its enabled parent must not become
+        // darker while fading, except sub-quantization rounding at equality.
+        for (const [parent, child] of [[1, 2], [1, 3], [4, 5], [6, 7]]) {
+          const sign = Math.sign(chroma(full[child].hex).luminance() - chroma(full[parent].hex).luminance());
+          const delta = chroma(current[child].hex).luminance() - chroma(current[parent].hex).luminance();
+          expect(delta * sign).toBeGreaterThanOrEqual(-.005);
+        }
+      }
+    }
+  });
+  it("does not merge different enabled states when the displayed colors coincide", () => {
+    const theme = themeWith({ contrastMultiplier: .00001 });
+    const root = Color.fromTheme(theme);
+    const a = root.contrast(25), b = root.contrast(100);
+    expect(a.hex).toBe(b.hex);
+    expect(a).not.toBe(b);
+    expect(a.contrast(100)).not.toBe(b.contrast(100));
   });
 });

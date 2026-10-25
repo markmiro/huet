@@ -1,5 +1,5 @@
 import { test, expect } from "@playwright/test";
-import { toOklab, contrastRatio } from "../src/core/color";
+import { toOklab, contrastRatio, luminance } from "../src/core/color";
 import { writeFileSync } from "node:fs";
 const screenshots = process.env.HUET_SCREENSHOTS ?? "test-results/screenshots";
 
@@ -131,5 +131,45 @@ test("matching gray and blue ramps keep distinct evenly spaced steps in middle r
     }
     await page.locator("pre").first().locator("..").locator("..")
       .screenshot({ path: screenshots + "/ramp-" + name + "-spacing-after.png" });
+  }
+});
+
+test("contrast slider fades nested form colors without polarity flips", async ({ page }) => {
+  await page.goto("/");
+  await page.locator("select").first().selectOption("colorContrast");
+  await page.getByText("Edit Theme", { exact: true }).click();
+  const slider = page.getByRole("slider", { name: "Contrast", exact: true });
+  const form = page.locator('div[style*="overflow: scroll"]');
+  const set = async (amount: number) => {
+    await slider.evaluate((el, value) => {
+      Object.getOwnPropertyDescriptor(HTMLInputElement.prototype, "value")!.set!.call(el, value);
+      el.dispatchEvent(new Event("input", { bubbles: true }));
+    }, String(amount));
+    await expect(slider).toHaveValue(String(amount));
+  };
+  const read = () => form.evaluate(el => {
+    const hex = (value: string) => "#" + value.match(/[\d.]+/g)!.slice(0, 3)
+      .map(Number).map(n => n.toString(16).padStart(2, "0")).join("");
+    return [...el.children].flatMap(column => [
+      hex(getComputedStyle(column).backgroundColor),
+      ...[...column.querySelectorAll("input, button")].flatMap(element => {
+        const style = getComputedStyle(element);
+        return [style.color, style.borderColor, style.backgroundColor]
+          .filter(value => !value.includes("rgba")).map(hex);
+      }),
+    ]);
+  });
+  await set(1);
+  const enabled = await read();
+  await set(0);
+  const origin = await read();
+  for (const amount of [.1, .25, .4, .5, .6, .75, .9, 1, .9, .75, .6, .5, .4, .25, .1, 0]) {
+    await set(amount);
+    const colors = await read();
+    expect(colors).toHaveLength(enabled.length);
+    colors.forEach((color, index) => {
+      const expected = luminance(origin[index]) * (1 - amount) + luminance(enabled[index]) * amount;
+      expect(Math.abs(luminance(color) - expected), `contrast ${amount}, color ${index}`).toBeLessThan(.005);
+    });
   }
 });

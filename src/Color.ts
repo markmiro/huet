@@ -5,8 +5,11 @@ import type { Lab, Ramp } from "./colorModel";
 import Theme from "./Theme";
 import Cache from "./private/cache";
 import { mixSignal } from "./private/mixSignal";
+import { fadeColor } from "./private/fadeColor";
 
 const cache = new Cache();
+const enabledThemes = new WeakMap<Theme, Theme>();
+const enabledColors = new WeakMap<Color, { color: Color; origin: string }>();
 const rampSamples = new WeakMap<Ramp, { lab: Lab; luminance: number }[]>();
 function samplesFor(ramp: Ramp) {
   let samples = rampSamples.get(ramp);
@@ -128,7 +131,11 @@ export default class Color extends BaseColor {
     });
   }
 
-  contrast(contrastAmount = 100, ramp: Ramp = this.baseRamp) {
+  contrast(contrastAmount = 100, ramp: Ramp = this.baseRamp): Color {
+    if (this.theme.contrastMultiplier >= 0 && this.theme.contrastMultiplier < 1) {
+      return cache.at([this, "fadeContrast", contrastAmount, ramp], () =>
+        this.fadeEnabled(ramp, (color, mapped) => color.contrast(contrastAmount, mapped)));
+    }
     if (ramp.config.mode === "direct") {
       return this.direct(ramp);
     }
@@ -325,7 +332,11 @@ export default class Color extends BaseColor {
     });
   }
 
-  direct(ramp: Ramp) {
+  direct(ramp: Ramp): Color {
+    if (this.theme.contrastMultiplier >= 0 && this.theme.contrastMultiplier < 1) {
+      return cache.at([this, "fadeDirect", ramp], () =>
+        this.fadeEnabled(ramp, (color, mapped) => color.direct(mapped)));
+    }
     return cache.at([this.hex, ramp], () => {
       if (ramp.config.mode !== "direct") throw new Error("Not allowed");
 
@@ -352,14 +363,48 @@ export default class Color extends BaseColor {
     });
   }
 
+  private fadeEnabled(ramp: Ramp, resolve: (color: Color, mapped: Ramp) => Color): Color {
+    let enabledTheme = enabledThemes.get(this.theme);
+    if (!enabledTheme) {
+      enabledTheme = new Theme({ ...this.theme.config, contrastMultiplier: 1 });
+      enabledThemes.set(this.theme, enabledTheme);
+    }
+    const mapRamp = (value: Ramp | null): Ramp | null => {
+      if (!value) return null;
+      const key = Object.keys(this.theme.ramps).find(key => this.theme.ramps[key] === value);
+      return key === undefined ? value : enabledTheme!.ramps[key];
+    };
+    const state = enabledColors.get(this) ?? {
+      color: new Color({
+        theme: enabledTheme, lab: this.lab,
+        ramp: mapRamp(this.ramp), baseRamp: mapRamp(this.baseRamp),
+      }),
+      origin: this.hex,
+    };
+    const enabled = resolve(state.color, mapRamp(ramp)!);
+    const hex = fadeColor(state.origin, enabled.hex, this.theme.contrastMultiplier);
+    const result = new Color({ theme: this.theme, bgColor: this, lab: chroma(hex).lab(), ramp });
+    // Even equal rounded colors need distinct reference states: their children
+    // can have different enabled colors. Never key these by displayed hex.
+    enabledColors.set(result, { color: enabled, origin: state.origin });
+    return result;
+  }
+
   base(ramp: Ramp) {
-    return new Color({
+    const result = new Color({
       theme: this.theme,
       bgColor: this.bgColor,
       lab: this.lab,
       ramp: this.ramp,
       baseRamp: ramp,
     });
+    const state = enabledColors.get(this);
+    if (state) {
+      const key = Object.keys(this.theme.ramps).find(key => this.theme.ramps[key] === ramp);
+      const mapped = key === undefined ? ramp : state.color.theme.ramps[key];
+      enabledColors.set(result, { color: state.color.base(mapped), origin: state.origin });
+    }
+    return result;
   }
 
   override alpha(amount: number) {
