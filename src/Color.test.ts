@@ -161,19 +161,17 @@ describe("Color contrast", () => {
 });
 
 describe("neutral midpoint regressions", () => {
-  it("keeps secondary text readable on both sides of LAB 50", async () => {
+  it("keeps full-strength text readable on both sides of LAB 50", async () => {
     const chroma = (await import("chroma-js")).default;
     for (const bgRampValue of [0.49, 0.5, 0.51]) {
       const bg = Color.fromTheme(themeWith({ bgRampValue }));
       expect(
-        chroma.contrast(bg.hex, bg.contrast(50).hex),
-      ).toBeGreaterThanOrEqual(4.5);
-      expect(
         chroma.contrast(bg.hex, bg.contrast(100).hex),
       ).toBeGreaterThanOrEqual(4.5);
-      expect(
-        chroma.contrast(bg.hex, bg.contrast(25).hex),
-      ).toBeGreaterThanOrEqual(3);
+      expect(chroma.contrast(bg.hex, bg.contrast(25).hex))
+        .toBeLessThan(chroma.contrast(bg.hex, bg.contrast(50).hex));
+      expect(chroma.contrast(bg.hex, bg.contrast(50).hex))
+        .toBeLessThan(chroma.contrast(bg.hex, bg.contrast(100).hex));
       expect(bg.contrast(0).hex).toBe(bg.hex);
     }
   });
@@ -289,5 +287,26 @@ describe("neutral overlays on a colored background ramp", () => {
     const theme = themeWith({ bgRamp: "blue", bgRampValue: .5, contrastMultiplier: 0 });
     const bg = Color.fromTheme(theme);
     expect(bg.contrast(100, theme.ramps.gray)).toBe(bg);
+  });
+});
+
+describe("matching background ramp spacing", () => {
+  it("uses the whole available range without early endpoint plateaus", () => {
+    for (const bgRamp of ["gray", "red", "yellow", "green", "blue", "purple"]) {
+      for (const bgRampValue of [0, 1]) {
+        const theme = themeWith({ bgRamp, bgRampValue });
+        const root = Color.fromTheme(theme);
+        for (const row of [20, 40, 60, 80]) {
+          const bg = root.contrast(row, theme.ramps[bgRamp]);
+          const full = chroma.contrast(bg.hex, bg.contrast(100).hex);
+          const colors = [0, 20, 40, 60, 80, 100].map(amount => bg.contrast(amount).hex);
+          expect(new Set(colors).size, bgRamp + " row " + row).toBe(6);
+          for (let i = 0; i < colors.length; i++) {
+            const progress = Math.log(chroma.contrast(bg.hex, colors[i])) / Math.log(full);
+            expect(Math.abs(progress - i / 5), bgRamp + " row " + row).toBeLessThan(.025);
+          }
+        }
+      }
+    }
   });
 });

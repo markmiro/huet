@@ -146,16 +146,8 @@ export default class Color extends BaseColor {
         theme.rescaleContrastToGrayRange &&
         contrastAmount >= 0
       ) {
-        const amount = Math.max(0, contrastAmount * theme.contrastMultiplier);
+        const amount = Math.max(0, Math.min(1, contrastAmount / 100 * theme.contrastMultiplier));
         if (amount === 0) return this;
-        // Preserve a useful role scale: 25 for control edges (3:1),
-        // 50 for secondary text (4.5:1), 100 for the strongest endpoint.
-        const target =
-          amount <= 25
-            ? Math.pow(3, amount / 25)
-            : amount <= 50
-              ? 3 * Math.pow(1.5, (amount - 25) / 25)
-              : 4.5 * Math.pow(21 / 4.5, (Math.min(amount, 100) - 50) / 50);
         let best = ramp(0),
           bestRatio = 0;
         let chosen: Lab | undefined,
@@ -167,6 +159,11 @@ export default class Color extends BaseColor {
         const low = Math.min(samples[0].luminance, samples[samples.length - 1].luminance);
         const high = Math.max(samples[0].luminance, samples[samples.length - 1].luminance);
         const lighter = endpointRatio(high) > endpointRatio(low);
+        // Strength spans this background's available range. Fixed targets
+        // (3, 4.5, 21) exhausted middle-tone ramps long before strength 100.
+        const available = Math.max(endpointRatio(low), endpointRatio(high));
+        if (available <= 1 + 1e-10) return this;
+        const target = available ** amount;
         // Choose polarity once for the background, not again for each amount.
         // Otherwise nearest-ratio selection can alternate black/light/dark.
         for (const { lab, luminance } of samples) {

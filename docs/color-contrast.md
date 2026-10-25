@@ -70,3 +70,13 @@ When the chosen background ramp was colored, requesting the separate gray ramp f
 Zero strength preserves the exact background; intermediate strengths retain its tint; full strength reaches the neutral endpoint. This does not change the root-ramp solver, semantic signal solver, direct ramps, or page markup. Custom non-root "furthest" ramps follow the same endpoint rule; disabling contrast rescaling retains the legacy behavior.
 
 Coverage checks all five colored background ramps, several ramp positions, monotonic progression, endpoint behavior, and zero global contrast. A browser regression checks the actual gray cells in row 20 for every colored background selection. [Blue-background matrix after the fix](screenshots/ramp-blue-neutral-after.png).
+
+## Matching-ramp spacing in rows 40 and 60
+
+When the requested ramp was also the selected background ramp, it still used the original absolute targets (3:1 at 25, 4.5:1 at 50, 21:1 at 100). A middle-tone background cannot provide 21:1. It reached the endpoint early, flattening the rest of the ramp into repeated colors.
+
+That path now uses `availableContrast ** strength`, choosing samples on the configured ramp in the shared direction. Equal strength increments consume equal fractions of the available log-contrast range. Zero preserves the background and 100 reaches the strongest endpoint; intermediate steps no longer require impossible absolute ratios. This supersedes the earlier legacy 25/50 role guarantees. It does not change the standalone core's role targets.
+
+Regression tests check six distinct steps and normalized contrast spacing in the matching column, including actual rows 40 and 60 for gray and blue. Unit coverage also checks all six background ramps from both light and dark roots. [Gray matrix](screenshots/ramp-gray-spacing-after.png) · [Blue matrix](screenshots/ramp-blue-spacing-after.png).
+
+Validation: 36 unit/integration tests, eight Chromium browser tests, TypeScript, and library build pass. No page markup changed.

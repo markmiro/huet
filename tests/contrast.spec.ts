@@ -106,3 +106,30 @@ test("gray cells blend with each selected colored background ramp", async ({ pag
         .screenshot({ path: screenshots + "/ramp-blue-neutral-after.png" });
   }
 });
+
+test("matching gray and blue ramps keep distinct evenly spaced steps in middle rows", async ({ page }) => {
+  await page.setViewportSize({ width: 2000, height: 1100 });
+  await page.goto("/");
+  await page.locator("select").first().selectOption("colorContrast");
+  await expect(page.locator("pre")).toHaveCount(6);
+  for (const [name, index] of [["gray", 0], ["blue", 4]] as const) {
+    await page.locator("button.w2.h2.ba.ml1").nth(index).click();
+    for (const amount of [40, 60]) {
+      const colors = await page.locator("pre").filter({ hasText: new RegExp("^\\s*" + amount + "$") }).locator("..")
+        .evaluate((row, index) => {
+          const hex = (v: string) => "#" + v.match(/[\d.]+/g)!.slice(0, 3)
+            .map(Number).map(n => n.toString(16).padStart(2, "0")).join("");
+          return [...row.querySelectorAll(".pa1")].slice(index * 6, (index + 1) * 6)
+            .map(el => hex(getComputedStyle(el).backgroundColor));
+        }, index);
+      expect(new Set(colors).size, name + " " + amount).toBe(6);
+      const full = contrastRatio(colors[0], colors[5]);
+      for (let step = 0; step < 6; step++) {
+        const progress = Math.log(contrastRatio(colors[0], colors[step])) / Math.log(full);
+        expect(Math.abs(progress - step / 5)).toBeLessThan(.025);
+      }
+    }
+    await page.locator("pre").first().locator("..").locator("..")
+      .screenshot({ path: screenshots + "/ramp-" + name + "-spacing-after.png" });
+  }
+});
