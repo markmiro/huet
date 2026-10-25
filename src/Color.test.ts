@@ -257,3 +257,37 @@ describe("ramp progression", () => {
     }
   });
 });
+
+describe("neutral overlays on a colored background ramp", () => {
+  it("retains the background hue until reaching the neutral endpoint", async () => {
+    const { toOklab } = await import("./core/color");
+    for (const bgRamp of ["red", "yellow", "green", "blue", "purple"]) {
+      for (const bgRampValue of [.2, .5, .8]) {
+        const theme = themeWith({ bgRamp, bgRampValue });
+        const bg = Color.fromTheme(theme);
+        const [, a, b] = toOklab(bg.hex);
+        expect(bg.contrast(0, theme.ramps.gray)).toBe(bg);
+        let previous = 1;
+        for (const amount of [5, 20, 40, 60, 80, 100]) {
+          const color = bg.contrast(amount, theme.ramps.gray);
+          const ratio = chroma.contrast(bg.hex, color.hex);
+          expect(ratio).toBeGreaterThanOrEqual(previous);
+          previous = ratio;
+          if (amount < 100) {
+            const [, x, y] = toOklab(color.hex);
+            expect(Math.hypot(x, y), bgRamp + " " + amount).toBeGreaterThan(.005);
+            const angle = Math.atan2(a * y - b * x, a * x + b * y);
+            expect(Math.abs(angle), bgRamp + " " + amount).toBeLessThan(.15);
+          } else {
+            expect(["#000000", "#ffffff"]).toContain(color.hex);
+          }
+        }
+      }
+    }
+  });
+  it("honors zero global contrast for neutral overlays", () => {
+    const theme = themeWith({ bgRamp: "blue", bgRampValue: .5, contrastMultiplier: 0 });
+    const bg = Color.fromTheme(theme);
+    expect(bg.contrast(100, theme.ramps.gray)).toBe(bg);
+  });
+});

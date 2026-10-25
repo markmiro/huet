@@ -62,3 +62,11 @@ The next correction keeps the semantic anchors and OKLab paths, but spaces stren
 The neutral solver now also chooses its direction once per background. Previously it could choose a dark sample for one strength and a light sample for the next. Every increasing-strength sequence now stays on one side and progresses monotonically. This shared algorithm correction also affects neutral submit fills; no button-specific style or tuning was added.
 
 Tests sweep all integer strengths across 101 backgrounds for gray and all five semantic hues, check low-step visibility on black against white, and measure proportional contrast for rendered submit fills. Earlier screenshots above document the prior checkpoint; [the near-black matrix before this correction](screenshots/ramp-black-before.png) records the newly reported failure.
+
+## Neutral overlays on colored background ramps
+
+When the chosen background ramp was colored, requesting the separate gray ramp fell through to the old ramp-sampling code. That immediately discarded the background hue (including at strength zero). The non-root neutral ramp now follows the same proportional-contrast OKLab mixing path as semantic overlays, from the actual background to the selected neutral endpoint. Its light/dark direction is shared with the background's other colors.
+
+Zero strength preserves the exact background; intermediate strengths retain its tint; full strength reaches the neutral endpoint. This does not change the root-ramp solver, semantic signal solver, direct ramps, or page markup. Custom non-root "furthest" ramps follow the same endpoint rule; disabling contrast rescaling retains the legacy behavior.
+
+Coverage checks all five colored background ramps, several ramp positions, monotonic progression, endpoint behavior, and zero global contrast. A browser regression checks the actual gray cells in row 20 for every colored background selection. [Blue-background matrix after the fix](screenshots/ramp-blue-neutral-after.png).

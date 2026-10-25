@@ -186,6 +186,26 @@ export default class Color extends BaseColor {
         return new Color({ theme, bgColor: this, lab: chosen ?? best, ramp });
       }
 
+      if (ramp.config.mode === "furthest" && theme.rescaleContrastToGrayRange && contrastAmount >= 0) {
+        const amount = Math.max(0, Math.min(1, contrastAmount / 100 * theme.contrastMultiplier));
+        if (amount === 0) return this;
+        const root = theme.ramps[theme.bgRamp];
+        const rootEnds = [0, 1].map(n => chroma.lab(...root(n)).hex())
+          .sort((a, b) => luminance(a) - luminance(b));
+        const lighter = chroma.contrast(this.hex, rootEnds[1]) >
+          chroma.contrast(this.hex, rootEnds[0]);
+        const ends = [0, 1].map(n => chroma.lab(...ramp(n)).hex())
+          .sort((a, b) => luminance(a) - luminance(b));
+        const target = ends[lighter ? 1 : 0];
+        // A neutral overlay is still relative to the actual colored surface.
+        // Sampling the gray ramp directly discards its hue even at amount 0.
+        const onSide = lighter
+          ? luminance(target) >= luminance(this.hex)
+          : luminance(target) <= luminance(this.hex);
+        const hex = onSide ? mixSignal(this.hex, target, amount) : this.hex;
+        return new Color({ theme, bgColor: this, lab: chroma(hex).lab(), ramp });
+      }
+
       if (ramp.config.mode === "signal" && theme.rescaleContrastToGrayRange && contrastAmount >= 0) {
         const amount = Math.max(0, Math.min(1, contrastAmount / 100 * theme.contrastMultiplier));
         if (amount === 0) return this;
