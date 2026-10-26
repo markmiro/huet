@@ -1,3 +1,4 @@
+import { relativeRoot } from "./relative";
 import {
   contrastRatio,
   fromOklab,
@@ -9,6 +10,8 @@ import {
 export const hues = ["red", "yellow", "green", "blue", "purple"] as const;
 export type Hue = (typeof hues)[number];
 export interface ThemeOptions {
+  /** Global contrast multiplier for explicit relative-color classes: 0–1. */
+  contrast?: number;
   /** Ramp endpoints. These also bound neutral foreground colors. */
   dark?: string;
   light?: string;
@@ -183,7 +186,8 @@ export function createTheme(options: ThemeOptions = {}) {
     surfaceCache.set(key, color);
     return color;
   };
-  return Object.freeze({ background, dark, light, colors, tokens, surface });
+  const relative = relativeRoot(dark, light, background, colors, options.contrast);
+  return Object.freeze({ background, dark, light, colors, tokens, surface, relative });
 }
 export type HuetTheme = ReturnType<typeof createTheme>;
 /** The same properties can be serialized into SSR markup or used by any framework. */

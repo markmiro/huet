@@ -78,3 +78,26 @@
     }
   }
 }
+
+/* Explicit amounts use the original relative-color solver. No role targets. */
+@layer components {
+  :where([data-huet-color-bg]) {
+    background-color: var(--huet-background);
+    color: var(--huet-foreground);
+  }
+  :where([data-huet-color-text]) {
+    color: var(--huet-relative-text, var(--huet-foreground));
+  }
+  :where([data-huet-color-border]) {
+    border-color: var(--huet-relative-border);
+  }
+  :where([data-huet-color-outline]) {
+    outline-color: var(--huet-relative-outline);
+  }
+  @media (forced-colors: active) {
+    :where([data-huet-color-bg]) { background-color: Canvas; color: CanvasText; }
+    :where([data-huet-color-text]) { color: CanvasText; }
+    :where([data-huet-color-border]) { border-color: ButtonBorder; }
+    :where([data-huet-color-outline]) { outline-color: Highlight; }
+  }
+}

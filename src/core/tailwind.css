@@ -13,6 +13,6 @@
   --color-huet-blue: var(--huet-blue);
   --color-huet-purple: var(--huet-purple);
 }
-/* Use huet-surface-* for backgrounds so nested colors are recalculated.
+/* Use huet-bg-[ramp-]amount for backgrounds so nested colors are recalculated.
    Tailwind variants work on token utilities, e.g. hover:text-huet-blue.
    Opacity modifiers are allowed by Tailwind but void contrast guarantees. */

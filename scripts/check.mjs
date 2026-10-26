@@ -14,7 +14,7 @@ for (const file of files) {
   try {
     const source = await readFile(file, "utf8");
     for (const match of source.matchAll(
-      /(?<![\w-])(?:[\w-]+:)*huet-[\w/-]+(?:\$\{)?/g,
+      /(?<![\w-])(?:[\w-]+:)*huet-[\w/.-]+(?:\$\{)?/g,
     )) {
       if (isHuetClass(match[0])) continue;
       const line = source.slice(0, match.index).split("\n").length;

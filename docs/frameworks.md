@@ -18,7 +18,7 @@ export function App() {
   }, []);
   return (
     <div ref={root}>
-      <input className="huet-surface-5 huet-border huet-focus" aria-label="Name" />
+      <input className="huet-bg-5 huet-bg/border-60" aria-label="Name" />
     </div>
   );
 }
@@ -42,7 +42,7 @@ onBeforeUnmount(() => colors?.destroy());
 </script>
 <template>
   <div ref="root">
-    <input class="huet-surface-5 huet-border huet-focus" aria-label="Name" />
+    <input class="huet-bg-5 huet-bg/border-60" aria-label="Name" />
   </div>
 </template>
 ```
@@ -59,7 +59,7 @@ function huet(node: HTMLElement, theme: HuetTheme) {
 }
 </script>
 <div use:huet={theme}>
-  <input class="huet-surface-5 huet-border huet-focus" aria-label="Name">
+  <input class="huet-bg-5 huet-bg/border-60" aria-label="Name">
 </div>
 ```
 
@@ -74,7 +74,7 @@ const rootStyle = Object.entries(themeVariables(theme.tokens()))
   .map(([key, value]) => `${key}:${value}`).join(';');
 ---
 <div id="themed-app" data-huet-root style={rootStyle}>
-  <input class="huet-surface-5 huet-border huet-focus" aria-label="Name">
+  <input class="huet-bg-5 huet-bg/border-60" aria-label="Name">
 </div>
 <script>
   import { createTheme, mountTheme } from 'huet/core';
@@ -91,4 +91,4 @@ const rootStyle = Object.entries(themeVariables(theme.tokens()))
 </script>
 ```
 
-This pre-renders root variables. To avoid a first-paint color change for nested surfaces, also compute their tokens server-side using `theme.surface(parent, amount)` and `theme.tokens(surface, parent)`. Use the same theme configuration on server and client. Portals / islands outside the mounted DOM tree need their own independent mount.
+This pre-renders root variables from the compatibility token API. To avoid a first-paint color change for nested surfaces, also compute their tokens server-side using `theme.relative.contrast(amount)` and `the resulting Color and its contrast(100) foreground`. Use the same theme configuration on server and client. Portals / islands outside the mounted DOM tree need their own independent mount.

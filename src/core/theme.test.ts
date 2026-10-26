@@ -157,7 +157,15 @@ describe("static classes and Tailwind", () => {
       1,
     );
     const css = readFileSync(new URL("./styles.css", import.meta.url), "utf8");
-    for (const name of classes) expect(css).toContain("." + name);
+    for (const name of classes.filter(x => x.startsWith("huet-surface-")))
+      expect(css).toContain("." + name);
+    expect(isHuetClass("huet-bg-blue-25")).toBe(true);
+    expect(isHuetClass("huet-text-100")).toBe(true);
+    expect(isHuetClass("huet-bg/border-red-60")).toBe(true);
+    for (const name of ["huet-bg-blue-101", "huet-text-01", "huet-text-0.5", "huet-bg/bg-10", "huet-bg-cyan-20"])
+      expect(isHuetClass(name)).toBe(false);
+    expect(validateClasses("huet-text-20 huet-bg/text-80")).toHaveLength(1);
+    expect(validateClasses("huet-bg-25 huet-surface-25")).toHaveLength(1);
   });
   it("compiles real Tailwind v4 variants, removes built-in colors and preserves layout", async () => {
     const compiler = await compile(

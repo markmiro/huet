@@ -86,3 +86,56 @@ describe("framework-independent surfaces", () => {
     b.remove();
   });
 });
+
+describe("explicit contrast classes", () => {
+  it("matches original calculations, including parent versus own-background references", () => {
+    const root = document.createElement("div");
+    root.innerHTML = `<section class="huet-bg-gray-40"><div>
+      <button class="huet-bg-blue-25 huet-text-100 huet-border-red-60">Save</button>
+      <input class="huet-bg-10 huet-bg/text-80 huet-bg/border-red-60 huet-outline-blue-35">
+      <article class="huet-bg-purple-49"></article>
+    </div></section>`;
+    const theme = createTheme();
+    const mount = mountTheme(root, theme);
+    const parent = theme.relative.contrast(40, theme.relative.theme.ramps.gray);
+    const button = root.querySelector("button")!;
+    const input = root.querySelector("input")!;
+    const buttonBg = parent.contrast(25, parent.theme.ramps.blue);
+    const inputBg = parent.contrast(10);
+    expect(background(button)).toBe(buttonBg.hex);
+    expect(button.style.getPropertyValue("--huet-foreground")).toBe(buttonBg.contrast(100).hex);
+    expect(button.style.getPropertyValue("--huet-relative-text")).toBe(parent.contrast(100).hex);
+    expect(button.style.getPropertyValue("--huet-relative-border")).toBe(parent.contrast(60, parent.theme.ramps.red).hex);
+    expect(input.style.getPropertyValue("--huet-relative-text")).toBe(inputBg.contrast(80).hex);
+    expect(input.style.getPropertyValue("--huet-relative-border")).toBe(inputBg.contrast(60, parent.theme.ramps.red).hex);
+    expect(input.style.getPropertyValue("--huet-relative-outline")).toBe(parent.contrast(35, parent.theme.ramps.blue).hex);
+    expect(background(root.querySelector("article")!)).toBe(parent.contrast(49, parent.theme.ramps.purple).hex);
+    mount.destroy();
+  });
+  it("updates classes, reparenting, global contrast and cleanup without replacing nodes", async () => {
+    const root = document.createElement("div");
+    root.innerHTML = '<section class="huet-bg-60"><input class="huet-bg-blue-25 huet-bg/text-100"></section>';
+    const theme = createTheme();
+    const input = root.querySelector("input")!;
+    input.style.setProperty("--huet-relative-text", "pink");
+    const mount = mountTheme(root, theme);
+    input.value = "unsaved";
+    const faded = createTheme({ contrast: .3 });
+    mount.update(faded);
+    const bg = faded.relative.contrast(60).contrast(25, faded.relative.theme.ramps.blue);
+    expect(background(input)).toBe(bg.hex);
+    expect(input.style.getPropertyValue("--huet-relative-text")).toBe(bg.contrast(100).hex);
+    root.append(input);
+    await tick();
+    expect(background(input)).toBe(faded.relative.contrast(25, faded.relative.theme.ramps.blue).hex);
+    input.className = "huet-text-red-70";
+    await tick();
+    expect(background(input)).toBe("");
+    expect(input.style.getPropertyValue("--huet-relative-text")).toBe(faded.relative.contrast(70, faded.relative.theme.ramps.red).hex);
+    input.className = "";
+    await tick();
+    expect(input.style.getPropertyValue("--huet-relative-text")).toBe("pink");
+    expect(input.value).toBe("unsaved");
+    mount.destroy();
+  });
+});
