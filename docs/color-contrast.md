@@ -90,3 +90,16 @@ For global contrast between zero and one, derived colors now resolve against an 
 Reference state follows nested `contrast()`, `direct()`, and `base()` calls, even when two different colors round to the same displayed hex. This adds no configuration, animation, or demo markup. Changing the actual background or theme can still change the enabled palette's direction; this correction concerns the global contrast multiplier.
 
 Regression coverage sweeps nested colors through all 101 slider values and drives the rendered form slider in both directions. Quantized RGB values are allowed small rounding differences. Validation: 38 unit/integration tests, nine Chromium browser tests, TypeScript, and library build.
+
+## PR comparison: ramp squares
+
+Matched Color Contrast matrix captures use the Base theme, full global contrast, 20-point steps, and a 2000×1100 Chromium viewport. The crop includes the background-ramp picker and all matrix rows, excluding forms and the theme sidebar. Gray and blue selections are captured independently.
+
+Before is the PR base `c77e701ba5261a0d95ab80332eee078cc9602235`; after is implementation `679df34a846e28e6d3cf61ffa472039a9a09a0b8`. These are full-branch comparisons, distinct from the earlier intermediate-checkpoint form screenshots.
+
+| Background ramp | Before | After |
+| --- | --- | --- |
+| Neutral (gray) | ![Gray before](screenshots/ramp-squares-neutral-before.png) | ![Gray after](screenshots/ramp-squares-neutral-after.png) |
+| Blue | ![Blue before](screenshots/ramp-squares-blue-before.png) | ![Blue after](screenshots/ramp-squares-blue-after.png) |
+
+Reproduce by serving the baseline checkout separately, then running `HUET_BEFORE_URL=http://127.0.0.1:8734/ npx playwright test tests/ramp-screenshots.spec.ts`. The screenshot test starts the current implementation on port 8733 and uses fresh browser contexts for both revisions. It is skipped in normal test runs unless the baseline URL is supplied.
