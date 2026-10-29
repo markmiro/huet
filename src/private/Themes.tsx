@@ -319,7 +319,11 @@ export default function Themes() {
   return (
     <VSpace size="3" style={__.pa3}>
       <JsonUploadButton
-        onUpload={themeConfig => {
+        onUpload={uploadedConfig => {
+          // A fresh id, so importing the same file twice (or a file whose id
+          // matches an existing theme, or that has no id) doesn't produce two
+          // themes that are both treated as selected.
+          const themeConfig = { ...uploadedConfig, id: Math.random() };
           setConfigs([themeConfig, ...configs]);
           setSelectedConfig(themeConfig);
         }}
