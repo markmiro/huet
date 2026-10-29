@@ -5,7 +5,7 @@ import type { ThemeConfig } from "../colorModel";
 import Contrast, { type ContrastProps } from "../Contrast";
 import __ from "./atoms";
 import displayError from "./displayError";
-import isThemeConfig from "./isThemeConfig";
+import { parseThemeConfig } from "./isThemeConfig";
 import { focusWithinClass, inputStyle, invisibleScreenClass } from "./styles";
 
 export function JsonUploadButton({
@@ -33,13 +33,14 @@ export function JsonUploadButton({
           const reader = new FileReader();
           const eventListener = () => {
             if (typeof reader.result === "string") {
-              let themeConfig: unknown;
+              let parsed: unknown;
               try {
-                themeConfig = JSON.parse(reader.result);
+                parsed = JSON.parse(reader.result);
               } catch {
                 // Reported below
               }
-              if (isThemeConfig(themeConfig)) {
+              const themeConfig = parseThemeConfig(parsed);
+              if (themeConfig) {
                 onUpload(themeConfig);
               } else {
                 displayError("That file isn't a valid Huet theme.");

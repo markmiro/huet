@@ -136,11 +136,6 @@ const definitions = {
         See <span style={__.mono.di}>startSignalLightness</span>
       </div>
     )
-  },
-  rescaleSaturationToGrayRange: {
-    label: "Rescale signal saturation to background",
-    description:
-      "This is an experimental setting for a reason. If we can guarantee that all signal ramps will always have only colors, then it's somewhat straightforward to implement. Use this setting if you have a lot of backgrounds at 50% contrast or so. This will help signal colors not pop too much."
   }
 };
 
@@ -206,9 +201,6 @@ function EditTheme({
   const setPallet = modify("pallet");
   const setStartSignalLightness = modify("startSignalLightness");
   const setEndSignalLightness = modify("endSignalLightness");
-  const setRescaleSaturationToGrayRange = modify(
-    "rescaleSaturationToGrayRange"
-  );
 
   const exportTheme = useCallback(() => {
     // Generating a random id
@@ -271,12 +263,6 @@ function EditTheme({
           min={0}
           max={1}
           decimals={2}
-        />
-        <Checkbox
-          label={definitions.rescaleSaturationToGrayRange.label}
-          value={themeConfig.rescaleSaturationToGrayRange}
-          onChange={setRescaleSaturationToGrayRange}
-          note="Experimental: makes colors too desaturated"
         />
       </VSpace>
     </>

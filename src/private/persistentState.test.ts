@@ -5,7 +5,7 @@ import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
 import defaultThemeConfigs from "../demo/themeConfigs";
 import baseThemeConfig from "./baseThemeConfig";
-import isThemeConfig from "./isThemeConfig";
+import isThemeConfig, { parseThemeConfig } from "./isThemeConfig";
 import usePersistentState, {
   asBoolean,
   asNumber,
@@ -155,5 +155,28 @@ describe("isThemeConfig", () => {
         ramps: { ...baseThemeConfig.ramps, gray: { colors: ["missing"] } },
       })
     ).toBe(false);
+  });
+});
+
+describe("parseThemeConfig", () => {
+  // Saved by versions that had the "Rescale signal saturation" setting
+  const legacyConfig = { ...baseThemeConfig, rescaleSaturationToGrayRange: true };
+
+  it("drops removed settings from older saved themes and imports", () => {
+    expect(isThemeConfig(legacyConfig)).toBe(false);
+    expect(parseThemeConfig(legacyConfig)).toEqual(baseThemeConfig);
+  });
+
+  it("loads a saved theme that still has a removed setting", () => {
+    localStorage.setItem("huet:theme", JSON.stringify(legacyConfig));
+    expect(readStored("theme", undefined, parseThemeConfig)).toEqual(
+      baseThemeConfig
+    );
+    expect(console.warn).not.toHaveBeenCalled();
+  });
+
+  it("still rejects configs that are invalid for other reasons", () => {
+    expect(parseThemeConfig(null)).toBeUndefined();
+    expect(parseThemeConfig({ ...legacyConfig, unknownKey: 1 })).toBeUndefined();
   });
 });

@@ -13,7 +13,7 @@ import Arrow from "./Arrow";
 import Button, { JsonUploadButton, TextButton } from "./Button";
 import __ from "./atoms";
 import baseThemeConfig from "./baseThemeConfig";
-import isThemeConfig from "./isThemeConfig";
+import { parseThemeConfig } from "./isThemeConfig";
 import usePersistentState, { type Parse } from "./persistentState";
 
 function ThemeFrame({
@@ -304,7 +304,9 @@ function ThemePreview({
 // Drop individual broken themes rather than losing every saved theme
 const parseConfigs: Parse<ThemeConfig[]> = (stored) => {
   if (!Array.isArray(stored)) return undefined;
-  const configs = stored.filter(isThemeConfig);
+  const configs = stored
+    .map(parseThemeConfig)
+    .filter((config) => config !== undefined);
   return configs.length > 0 ? configs : undefined;
 };
 

@@ -5,7 +5,7 @@ import type { ThemeConfig } from "./colorModel";
 import Color from "./Color";
 import Theme from "./Theme";
 import baseThemeConfig from "./private/baseThemeConfig";
-import isThemeConfig from "./private/isThemeConfig";
+import { parseThemeConfig } from "./private/isThemeConfig";
 import usePersistentState from "./private/persistentState";
 
 export const ThemeConfiguratorContext = React.createContext<
@@ -37,7 +37,7 @@ export default function Body({
   const [themeConfig, setThemeConfig] = usePersistentState(
     "theme",
     initialThemeConfig,
-    (stored) => (isThemeConfig(stored) ? stored : undefined)
+    parseThemeConfig
   );
   const theme = new Theme(themeConfig);
   const parentBg = Color.fromTheme(theme);

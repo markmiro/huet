@@ -241,11 +241,6 @@ export default class Color extends BaseColor {
         // All channels travel together, spaced by proportional contrast
         // so low strengths do not collapse into black.
         let hex = mixSignal(this.hex, target, amount);
-        if (theme.rescaleSaturationToGrayRange) {
-          const [l, x, y] = toOklab(hex);
-          const [, bx, by] = toOklab(this.hex);
-          hex = fromOklab([l, bx + (x - bx) * amount, by + (y - by) * amount]);
-        }
         if (!onSide(hex)) hex = this.hex;
         return new Color({ theme, bgColor: this, lab: chroma(hex).lab(), ramp });
       }
@@ -302,15 +297,11 @@ export default class Color extends BaseColor {
       const [bgL, bgA, bgB] = this.lab;
       const [fgL, fgA, fgB] = ramp(scaleValue);
 
-      const abContrastMultiplier =
+      // `ab` refers to the A and B axes of the LAB color space
+      const abContrast =
         isRootBaseRamp || theme.contrastMultiplier > 1
           ? 1
           : theme.contrastMultiplier;
-
-      // `ab` in abContrast refers to the A and B axes of the LAB color space
-      const abContrast =
-        (theme.rescaleSaturationToGrayRange ? contrastAmount / 100 : 1) *
-        abContrastMultiplier;
 
       const l = bgL + (fgL - bgL) * 1; // Read this as just `fgL`
       const a = bgA + (fgA - bgA) * abContrast;

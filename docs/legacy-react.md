@@ -58,8 +58,7 @@ The [default theme]() lets you use Huet without having to create your own theme.
   bgRampValue: 1,
   startSignalLightness: 30,
   endSignalLightness: 70,
-  contrastMultiplier: 1,
-  saturationContrastMultiplier: 1
+  contrastMultiplier: 1
 }
 ```
 
@@ -88,8 +87,6 @@ The [default theme]() lets you use Huet without having to create your own theme.
 #### endSignalLightness
 
 #### contrastMultiplier
-
-#### saturationContrastMultiplier
 
 ### Gotchas
 

@@ -19,7 +19,6 @@ const allowed = [
   "startSignalLightness",
   "endSignalLightness",
   "contrastMultiplier",
-  "rescaleSaturationToGrayRange",
   "rescaleContrastToGrayRange",
 ];
 
@@ -41,7 +40,6 @@ export default class Theme {
   startSignalLightness: number;
   endSignalLightness: number;
   contrastMultiplier: number;
-  rescaleSaturationToGrayRange: boolean;
   rescaleContrastToGrayRange: boolean;
 
   /**
@@ -63,7 +61,6 @@ export default class Theme {
     this.startSignalLightness = config.startSignalLightness;
     this.endSignalLightness = config.endSignalLightness;
     this.contrastMultiplier = config.contrastMultiplier;
-    this.rescaleSaturationToGrayRange = config.rescaleSaturationToGrayRange;
     this.rescaleContrastToGrayRange = config.rescaleContrastToGrayRange;
     this.ramps = mapValues(config.ramps, (ramp: RampInput) =>
       createRamp(config, ramp)

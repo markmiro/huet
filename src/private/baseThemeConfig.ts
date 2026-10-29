@@ -60,7 +60,6 @@ const baseThemeConfig: ThemeConfig = {
   startSignalLightness: 0.49,
   endSignalLightness: 0.49,
   contrastMultiplier: 1,
-  rescaleSaturationToGrayRange: false,
   rescaleContrastToGrayRange: true,
 };
 
