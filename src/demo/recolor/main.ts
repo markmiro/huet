@@ -42,6 +42,7 @@ app.innerHTML = `
   </section>
   <section class="bench"><div class="section-heading"><h2>Cost</h2><button id="bench" type="button" class="huet-surface-10 huet-border">Benchmark focused image</button></div><div id="bench-result"><p class="note">Measures the exact per-pixel transform against a baked lookup table on the CPU (in a worker) and on the GPU.</p></div></section>
   <section><div class="section-heading"><h2>Unsplash · nature and flowers</h2><span class="note">Original · recolored</span></div><div class="gallery" id="unsplash"></div></section>
+  <section><div class="section-heading"><h2>Emoji</h2><span class="note">Rendered by the system emoji font into a transparent canvas, then recolored like any image.</span></div><div class="gallery emoji" id="emoji"></div></section>
   <section><div class="section-heading"><h2>markmiro.com</h2><span class="note">Original · recolored</span></div><div class="gallery" id="markmiro"></div></section>
 </main>`;
 
@@ -146,13 +147,16 @@ function surfaceOf(image: HTMLImageElement) {
     let light = 0,
       dark = 0,
       n = 0;
-    for (let p = 0; p < data.length; p += 4 * 13, n++) {
+    for (let p = 0; p < data.length; p += 4 * 13) {
+      // Transparent pixels (e.g. around emoji) are not a background.
+      if (data[p + 3] < 128) continue;
+      n++;
       const [L, a, b] = oklabFromRgb(data[p] / 255, data[p + 1] / 255, data[p + 2] / 255);
       if (Math.hypot(a, b) >= 0.03) continue;
       if (L > 0.85) light++;
       else if (L < 0.35) dark++;
     }
-    surface = light / n >= 0.5 ? "light" : dark / n >= 0.5 ? "dark" : null;
+    surface = !n ? null : light / n >= 0.5 ? "light" : dark / n >= 0.5 ? "dark" : null;
     surfaces.set(image.src, surface);
   }
   return surface;
@@ -188,6 +192,39 @@ async function render(
 }
 
 // ---- Gallery ----
+// ---- Emoji ----
+// Color emoji are font glyphs, not images: CSS and SVG filters can't apply a
+// 3D LUT to them, so rasterize them into a canvas and recolor the pixels.
+const emojiRows = [
+  ["🌸", "🌻", "🌷", "🌹", "🌼", "🪻", "🌿", "🍀", "🌲", "🍁", "🌈", "🔥"],
+  ["🍎", "🍊", "🍋", "🍏", "🫐", "🍇", "🍉", "🥑", "🥕", "🌶️", "🍄", "💧"],
+  ["😀", "😍", "🥳", "😎", "🤖", "👻", "🐸", "🦊", "🐝", "🦋", "🐳", "🦜"],
+  ["❤️", "🧡", "💛", "💚", "💙", "💜", "🤎", "🖤", "🤍", "⭐", "✅", "🚫"],
+  ["👍🏻", "👍🏼", "👍🏽", "👍🏾", "👍🏿", "👋", "🙌🏻", "🙌🏽", "🙌🏿", "🧑🏻", "🧑🏽", "🧑🏿"],
+];
+function emojiSheet() {
+  const cell = 96,
+    scale = 2;
+  const canvas = document.createElement("canvas");
+  canvas.width = emojiRows[0].length * cell * scale;
+  canvas.height = emojiRows.length * cell * scale;
+  const context = canvas.getContext("2d")!;
+  context.scale(scale, scale);
+  context.font = `${cell * 0.72}px "Apple Color Emoji", "Segoe UI Emoji", "Noto Color Emoji", sans-serif`;
+  context.textAlign = "center";
+  context.textBaseline = "middle";
+  emojiRows.forEach((row, y) =>
+    row.forEach((emoji, x) => context.fillText(emoji, (x + 0.5) * cell, (y + 0.55) * cell)),
+  );
+  return canvas.toDataURL("image/png");
+}
+images.push({
+  url: emojiSheet(),
+  title: "System color emoji",
+  source: "https://unicode.org/emoji/charts/full-emoji-list.html",
+  group: "emoji",
+});
+
 const cards = images.map((image, index) => {
   const figure = document.createElement("figure");
   figure.className = "card";

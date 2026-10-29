@@ -26,7 +26,7 @@ export interface DemoImage {
   url: string;
   title: string;
   source: string;
-  group: "markmiro" | "unsplash";
+  group: "markmiro" | "unsplash" | "emoji";
 }
 
 const urls = import.meta.glob<string>("./images/*/*", {

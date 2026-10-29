@@ -7,6 +7,10 @@ test("recolors every image through a theme LUT without errors", async ({ page })
   await expect(page.locator("#metrics")).toContainText("wall clock", { timeout: 60_000 });
   const cards = page.locator(".card canvas");
   expect(await cards.count()).toBeGreaterThan(20);
+  // Emoji are rasterized from the system font into a transparent sheet.
+  const emoji = page.locator("#emoji .pair canvas");
+  await expect(emoji).toHaveCount(1);
+  expect(await emoji.evaluate((c: HTMLCanvasElement) => c.width)).toBeGreaterThan(0);
   // Identity theme leaves pixels (nearly) unchanged; another theme changes them.
   const differs = () =>
     page.evaluate(() => {

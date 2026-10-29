@@ -254,6 +254,13 @@ button:hover {
   background: var(--huet-background, #e9e8e2);
   border-radius: 4px;
 }
+.gallery.emoji {
+  grid-template-columns: 1fr;
+}
+.gallery.emoji .pair img,
+.gallery.emoji .pair canvas {
+  height: auto;
+}
 figcaption {
   font-size: 13px;
   color: var(--huet-muted, #626963);

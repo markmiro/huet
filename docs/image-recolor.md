@@ -25,6 +25,15 @@ OKLab's cube root is infinitely steep at black: sRGB 0 → 1 spans 6.7% of OKLab
 
 OKLab's a and b come from the same cube roots, so near-black pixels also look more colorful to it than they are. Chroma is scaled by `(L / toe)²` below L*'s toe on the way in and unscaled at the output lightness, like CIELAB's a* and b*. This also keeps 3D LUT cells near black smooth: their corners (black, dark red, dark green, dark blue) no longer land on very different colors. The worst-case LUT error for random colors dropped from ΔE_OK 0.035 to 0.015 at size 17, and from 0.019 to 0.011 at size 33.
 
+### Emoji
+
+Color emoji are font glyphs, not images. CSS and SVG filters only apply per-channel curves or matrices, which can't express this mapping, so the demo rasterizes emoji into a transparent canvas and recolors that. Alpha passes through untouched, so edges stay clean. In a real UI, emoji would need to be rasterized (or come from an image set such as Twemoji) before recoloring.
+
+Emoji colors often carry meaning, which a theme can override:
+
+- Signal colors (❤️, 🚫, ✅) follow the theme's anchors. Terminal's tinted light end turns ❤️ olive. With "Neutral tint on colors" at 0, the reds come back.
+- Skin tone modifiers are low-chroma oranges between the red and yellow anchors, so they follow those anchors and the neutral ramp. Paperback keeps the five tones distinct. Sunset compresses the lighter tones toward orange, and Terminal makes every tone green, even with tint at 0, because its yellow anchor is olive. Recoloring skin tones changes what they communicate, so emoji with skin tone modifiers (or faces in general) probably need to be excluded or protected.
+
 ## Cost
 
 The mapping depends only on the RGB value, so it can be baked once per theme into a 3D LUT. Measurements are for a 1200×800 photo (0.96 MP) on an M-series MacBook in Chromium:
