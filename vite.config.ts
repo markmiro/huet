@@ -38,7 +38,7 @@ export default defineConfig(({ mode, command, isPreview }) => {
         outDir: "dist",
         sourcemap: true,
         lib: {
-          entry: { huet: "src/huet.ts", core: "src/core/index.ts" },
+          entry: { huet: "src/huet.ts", core: "src/core/index.ts", images: "src/core/images.ts" },
           name: "Huet",
           formats: ["es", "cjs"],
           fileName: (format, entryName) =>

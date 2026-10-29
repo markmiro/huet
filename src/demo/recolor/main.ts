@@ -10,7 +10,7 @@ import {
 import { createTheme, mountTheme, contrastRatio } from "../../core";
 import { hues, type Hue, type HuetTheme } from "../../core/theme";
 import { images, themes, type DemoImage, type RecolorTheme } from "./data";
-import { GpuRecolor } from "./gpu";
+import { GpuRecolor } from "../../core/gpu";
 import type { Request } from "./worker";
 import "./recolor.css";
 
