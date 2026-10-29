@@ -1,0 +1,69 @@
+---
+import Icon from "../components/Icon.astro";
+import { github } from "react-icons-kit/icomoon/github";
+
+import Demo from "../layouts/Demo.astro";
+
+const ramps = ["gray", "white", "red", "yellow", "green", "blue", "purple"];
+const gradients = [100, 75, 50, 25];
+// The legacy page used 12.5; classes take whole amounts.
+const rampRows = [100, 50, 25, 13];
+---
+<Demo title="GitHub">
+  <!-- The legacy demo inherited line-height 1.15 from Tachyons. Font-size
+       utilities set their own line-height, so they carry /[1.15] too. -->
+  <div class="leading-[1.15]">
+    <div class="huet-bg-5">
+      <div class="huet-bg-70 flex items-center p-4">
+        <Icon icon={github} size="2em" class="mr-4" />
+        Pull requests &nbsp; Issues &nbsp; Marketplace &nbsp; Explore
+      </div>
+      <div class="px-2 py-4 sm:px-16">loremperson/some-crazy-project</div>
+    </div>
+    <!-- The Code tab shows the page background, which a class can't reach from
+         inside huet-bg-5. So the tab row isn't nested in huet-bg-5: a sibling
+         layer paints the band, and the other tabs carry their own huet-bg-5. -->
+    <div class="huet-border-20 relative flex border-b px-2 sm:px-16">
+      <div class="huet-bg-5 absolute inset-0"></div>
+      <div class="huet-bg-0 huet-border-yellow-60 relative mr-1 translate-y-px rounded-t-[.2em] border-t-[.2em]">
+        <div class="huet-border-20 border-x p-2">Code</div>
+      </div>
+      <div class="huet-bg-5 huet-bg/text-50 relative mr-1 p-2">
+        Issues
+        <div class="huet-bg-10 huet-bg/text-60 ml-2 inline-flex items-center justify-center rounded-[1em] px-[6px] py-[2px] text-[.7em]">
+          22
+        </div>
+      </div>
+      <div class="huet-bg-5 huet-bg/text-50 relative mr-1 p-2">Pull requests</div>
+    </div>
+
+    <div class="min-h-screen px-2 py-4 sm:px-16">
+      <div class="huet-bg-100 max-w-full rounded-lg px-4 py-2 text-center text-2xl/[1.15]">Button</div>
+
+      <div class="mt-2">
+        {gradients.map((contrast) => (
+          <div class={`huet-text-${contrast} bg-[linear-gradient(to_right,transparent,currentColor)] p-1 text-xs/[1.15]`}>
+            <span class="huet-text-100">{contrast}%</span>
+          </div>
+        ))}
+
+        <div class="huet-bg-30 mt-2 h-8 shadow-[0_5px_10px_rgb(0_0_0/0.2)]"></div>
+
+        <button class="huet-border-20 huet-text-70 relative mt-4 w-full max-w-full overflow-hidden rounded border p-2 text-center text-xl/[1.15] shadow-[0_1px_2px_rgb(0_0_0/0.15)]">
+          <span class="huet-text-5 absolute inset-0 bg-[linear-gradient(transparent,currentColor)]"></span>
+          <span class="relative">Button</span>
+        </button>
+
+        {rampRows.map((amount, i) => (
+          <div class:list={["flex", i === 0 && "mt-4"]}>
+            {ramps.map((ramp) => (
+              <div class={`huet-bg-${ramp}-${amount} huet-bg/text-white-100 mr-1 w-full p-1 text-center text-xl/[1.15]`}>
+                {ramp}
+              </div>
+            ))}
+          </div>
+        ))}
+      </div>
+    </div>
+  </div>
+</Demo>

@@ -8,3 +8,4 @@ stats.html
 test-results
 playwright-report
 *.tgz
+.astro

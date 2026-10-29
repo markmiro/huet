@@ -29,11 +29,3 @@ declare module "map-values" {
     iteratee: (value: In, key: string) => Out
   ): Record<string, Out>;
 }
-
-declare module "detect-browser" {
-  export function detect(): {
-    name: string;
-    version: string | null;
-    os: string | null;
-  } | null;
-}

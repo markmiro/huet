@@ -40,8 +40,10 @@
     "react-dom": ">=17.0.0"
   },
   "devDependencies": {
+    "@astrojs/react": "^7.1.2",
     "@playwright/test": "^1.64.1",
     "@tailwindcss/node": "^4.3.3",
+    "@tailwindcss/vite": "^4.3.3",
     "@types/chroma-js": "^3.1.2",
     "@types/file-saver": "^2.0.7",
     "@types/lodash": "^4.17.26",
@@ -49,8 +51,8 @@
     "@types/react-dom": "^18.3.7",
     "@typescript/typescript6": "^6.0.2",
     "@vitejs/plugin-react": "^6.1.2",
+    "astro": "^7.4.4",
     "chroma-js": "^2.0.2",
-    "detect-browser": "^4.1.0",
     "file-saver": "^2.0.5",
     "happy-dom": "^21.0.4",
     "lodash": "^4.18.1",
@@ -59,7 +61,6 @@
     "react": "^18.3.1",
     "react-dom": "^18.3.1",
     "react-icons-kit": "^1.2.1",
-    "tachyons": "^4.11.1",
     "tailwindcss": "^4.3.3",
     "typescript": "^7.0.2",
     "vite": "^8.3.4",
@@ -74,16 +75,17 @@
     "url": "https://github.com/markmiro/huet/issues"
   },
   "scripts": {
-    "dev": "vite",
-    "start": "vite",
-    "build": "vite build",
+    "dev": "astro dev",
+    "start": "astro dev",
+    "build": "astro build",
     "build:lib": "vite build --mode lib && node scripts/copy-css.mjs",
     "test": "vitest run",
     "test:watch": "vitest",
     "typecheck": "tsc --noEmit",
     "lint": "tsc --noEmit",
     "prepublishOnly": "npm run build:lib",
-    "test:browser": "playwright test"
+    "test:browser": "playwright test",
+    "preview": "astro preview"
   },
   "peerDependenciesMeta": {
     "react": {

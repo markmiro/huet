@@ -195,13 +195,31 @@ Pass either `neutral` or `dark`/`light`, not both. The first and last stops beco
 const gradient = `linear-gradient(to right, ${Array.from({ length: 17 }, (_, i) => astro.ramp(i / 16)).join(", ")})`;
 ```
 
-To port a legacy React theme, replace each name in `ramps.gray.colors` with its `pallet` hex value (Astro's `["black", "gray", "white"]` becomes `["#040816", "#ffb980", "#ffffff"]`), then keep `colorModel` as is. See [multi-hue ramps](docs/color-models.md) for before/after screenshots. The lab demo (`/lab.html`) includes Sunset and Astro presets, a middle-stop control, and a color-model picker.
+To use a legacy React theme (a `ThemeConfig`, such as an exported configurator theme) as is, pass it to `themeFromConfig`. Explicit-amount classes then resolve exactly as `<Block contrast="…">` did with that theme:
+
+```ts
+import { mountTheme, themeFromConfig } from "huet/core";
+mountTheme(document.querySelector("#app")!, themeFromConfig(exportedTheme));
+```
+
+To port one by hand instead, replace each name in `ramps.gray.colors` with its `pallet` hex value (Astro's `["black", "gray", "white"]` becomes `["#040816", "#ffb980", "#ffffff"]`), then keep `colorModel` as is. See [multi-hue ramps](docs/color-models.md) for before/after screenshots. The lab demo (`/lab.html`) includes Sunset and Astro presets, a middle-stop control, and a color-model picker.
+
+## Theme configurator
+
+`ThemeConfigurator` is a floating React panel for picking and editing themes. It saves the theme in localStorage and applies it to `target` (an element or selector) through Huet classes. It doesn't need `<Body>`:
+
+```tsx
+import { ThemeConfigurator } from "huet";
+<ThemeConfigurator target="#app" onThemeChange={(config) => console.log(config.name)} />
+```
+
+The target must not contain the configurator. Inside a legacy `<Body>`, the panel edits Body's theme instead. The demo site (`npm run dev`) is built with Astro: its pages use Tailwind for layout and Huet classes for color, and the configurator is a React island (`src/demo/layouts/Demo.astro`).
 
 React, Vue, Svelte, and Astro lifecycle examples are in [framework integration](docs/frameworks.md). Portals and shadow roots require independent mounts. The DOM adapter runs only in a browser; SSR can compute colors through `theme.relative` and emit matching styles before mounting.
 
 ## Compatibility and limits
 
-The first-pass `huet-surface-*`, `huet-muted`, `huet-focus`, and amount-free text/border classes remain supported so existing examples keep working. They use preset roles, as do `theme.tokens()` and `theme.surface()`. They are not equivalent to the new explicit-amount classes. Prefer the new syntax for new projects; do not mix old and new classes for the same property. The old `/lab.html` remains a demonstration of those presets; `/` is the original React demo.
+The first-pass `huet-surface-*`, `huet-muted`, `huet-focus`, and amount-free text/border classes remain supported so existing examples keep working. They use preset roles, as do `theme.tokens()` and `theme.surface()`. They are not equivalent to the new explicit-amount classes. Prefer the new syntax for new projects; do not mix old and new classes for the same property. The old `/lab.html` remains a demonstration of those presets.
 
 Relative contrast preserves the intended ramp and hue; it does not promise fixed accessibility ratios at every strength/background. Explicitly low strengths and narrow endpoint ranges stay low contrast. The algorithm supports opaque backgrounds only; gradients, images, alpha compositing, arbitrary CSS backgrounds, and independent CSS color overrides are not tracked. Theme changes still require browser style/paint work.
 

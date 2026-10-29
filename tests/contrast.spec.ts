@@ -1,21 +1,22 @@
-import { test, expect } from "@playwright/test";
+import { test, expect, type Page } from "@playwright/test";
 import { toOklab, contrastRatio, luminance } from "../src/core/color";
 import { writeFileSync } from "node:fs";
 import baseThemeConfig from "../src/private/baseThemeConfig";
 const screenshots = process.env.HUET_SCREENSHOTS ?? "test-results/screenshots";
+const rampButton = (page: Page, ramp: string) =>
+  page.getByRole("group", { name: "Background ramp" }).getByRole("button", { name: ramp, exact: true });
 
 test("Color Contrast forms retain hue and scale low-strength fills", async ({ page }) => {
   await page.setViewportSize({ width: 2000, height: 1100 });
-  await page.goto("/");
+  await page.goto("/color-contrast");
   const results = [];
   for (const position of [1, .75, .25, 0]) {
     await page.evaluate(config => {
       localStorage.setItem("huet:theme", JSON.stringify(config));
     }, { ...baseThemeConfig, bgRampValue: position, contrastMultiplier: 1 });
     await page.reload();
-    await page.locator("select").first().selectOption("colorContrast");
     await expect(page.getByRole("button", { name: "Submit", exact: true })).toHaveCount(24);
-    const form = page.locator('div[style*="overflow: scroll"]');
+    const form = page.locator("[data-form-example]");
     const colors = await form.evaluate(el => {
       const hex = (value: string) => "#" + value.match(/[\d.]+/g)!.slice(0, 3)
         .map(Number).map(n => n.toString(16).padStart(2, "0")).join("");
@@ -44,10 +45,9 @@ test("Color Contrast forms retain hue and scale low-strength fills", async ({ pa
 });
 
 test("both existing signal-lightness sliders affect the rendered form", async ({ page }) => {
-  await page.goto("/");
-  await page.locator("select").first().selectOption("colorContrast");
+  await page.goto("/color-contrast");
   await page.getByText("Edit Theme", { exact: true }).click();
-  const form = page.locator('div[style*="overflow: scroll"]');
+  const form = page.locator("[data-form-example]");
   for (const [label, index] of [["Signal Lightness on 'White'", 0], ["Signal Lightness on 'Black'", 3]] as const) {
     const red = form.locator(":scope > div").nth(index).locator("input").nth(1);
     const slider = page.getByRole("slider", { name: label, exact: true });
@@ -67,16 +67,16 @@ test("both existing signal-lightness sliders affect the rendered form", async ({
 
 test("gray cells blend with each selected colored background ramp", async ({ page }) => {
   await page.setViewportSize({ width: 2000, height: 1100 });
-  await page.goto("/");
-  await page.locator("select").first().selectOption("colorContrast");
-  await expect(page.locator("pre")).toHaveCount(6);
-  for (const [index, hue] of ["red", "yellow", "green", "blue", "purple"].entries()) {
-    await page.locator("button.w2.h2.ba.ml1").nth(index + 1).click();
-    const cells = await page.locator("pre").filter({ hasText: /^\s*20$/ }).locator("..")
+  await page.goto("/color-contrast");
+  await expect(page.locator("[data-row]")).toHaveCount(6);
+  for (const hue of ["red", "yellow", "green", "blue", "purple"]) {
+    await rampButton(page, hue).click();
+    await expect(rampButton(page, hue)).toHaveAttribute("aria-pressed", "true");
+    const cells = await page.locator('[data-row="20"]')
       .evaluate(row => {
         const hex = (v: string) => "#" + v.match(/[\d.]+/g)!.slice(0, 3)
           .map(Number).map(n => n.toString(16).padStart(2, "0")).join("");
-        const tiles = [...row.querySelectorAll(".pa1")];
+        const tiles = [...row.querySelectorAll("[data-swatch]")];
         return {
           background: hex(getComputedStyle(row).backgroundColor),
           zero: hex(getComputedStyle(tiles[0]).backgroundColor),
@@ -91,24 +91,24 @@ test("gray cells blend with each selected colored background ramp", async ({ pag
     expect(Math.abs(Math.atan2(a * y - b * x, a * x + b * y)), hue).toBeLessThan(.15);
     expect(["#000000", "#ffffff"]).toContain(cells.gray100);
     if (hue === "blue")
-      await page.locator("pre").first().locator("..").locator("..")
+      await page.locator("[data-matrix]")
         .screenshot({ path: screenshots + "/ramp-blue-neutral-after.png" });
   }
 });
 
 test("matching gray and blue ramps keep distinct evenly spaced steps in middle rows", async ({ page }) => {
   await page.setViewportSize({ width: 2000, height: 1100 });
-  await page.goto("/");
-  await page.locator("select").first().selectOption("colorContrast");
-  await expect(page.locator("pre")).toHaveCount(6);
+  await page.goto("/color-contrast");
+  await expect(page.locator("[data-row]")).toHaveCount(6);
   for (const [name, index] of [["gray", 0], ["blue", 4]] as const) {
-    await page.locator("button.w2.h2.ba.ml1").nth(index).click();
+    await rampButton(page, name).click();
+    await expect(rampButton(page, name)).toHaveAttribute("aria-pressed", "true");
     for (const amount of [40, 60]) {
-      const colors = await page.locator("pre").filter({ hasText: new RegExp("^\\s*" + amount + "$") }).locator("..")
+      const colors = await page.locator(`[data-row="${amount}"]`)
         .evaluate((row, index) => {
           const hex = (v: string) => "#" + v.match(/[\d.]+/g)!.slice(0, 3)
             .map(Number).map(n => n.toString(16).padStart(2, "0")).join("");
-          return [...row.querySelectorAll(".pa1")].slice(index * 6, (index + 1) * 6)
+          return [...row.querySelectorAll("[data-swatch]")].slice(index * 6, (index + 1) * 6)
             .map(el => hex(getComputedStyle(el).backgroundColor));
         }, index);
       expect(new Set(colors).size, name + " " + amount).toBe(6);
@@ -118,17 +118,16 @@ test("matching gray and blue ramps keep distinct evenly spaced steps in middle r
         expect(Math.abs(progress - step / 5)).toBeLessThan(.025);
       }
     }
-    await page.locator("pre").first().locator("..").locator("..")
+    await page.locator("[data-matrix]")
       .screenshot({ path: screenshots + "/ramp-" + name + "-spacing-after.png" });
   }
 });
 
 test("contrast slider fades nested form colors without polarity flips", async ({ page }) => {
-  await page.goto("/");
-  await page.locator("select").first().selectOption("colorContrast");
+  await page.goto("/color-contrast");
   await page.getByText("Edit Theme", { exact: true }).click();
   const slider = page.getByRole("slider", { name: "Contrast", exact: true });
-  const form = page.locator('div[style*="overflow: scroll"]');
+  const form = page.locator("[data-form-example]");
   const set = async (amount: number) => {
     await slider.evaluate((el, value) => {
       Object.getOwnPropertyDescriptor(HTMLInputElement.prototype, "value")!.set!.call(el, value);
