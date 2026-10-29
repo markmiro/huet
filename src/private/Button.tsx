@@ -22,7 +22,7 @@ export function JsonUploadButton({
   return (
     <Button
       as="div"
-      className={`${focusWithinClass} + ${className}`}
+      className={[focusWithinClass, className].filter(Boolean).join(" ")}
       style={{ ...__.relative, ...style }}
     >
       {children}
