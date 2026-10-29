@@ -30,7 +30,7 @@ export default defineConfig(({ mode }) => {
           bundleTypes: false,
           tsconfigPath: "./tsconfig.build.json",
           include: ["src"],
-          exclude: ["src/**/*.test.ts", "src/index.tsx", "src/demo/lab.ts"],
+          exclude: ["src/**/*.test.ts", "src/index.tsx", "src/demo/lab.ts", "src/demo/recolor/**"],
         }),
       ],
       build: {
@@ -70,7 +70,9 @@ export default defineConfig(({ mode }) => {
       },
     },
     build: {
-      rollupOptions: { input: { main: "index.html", lab: "lab.html" } },
+      rollupOptions: {
+        input: { main: "index.html", lab: "lab.html", recolor: "recolor.html" },
+      },
       outDir: "dist-demo",
       emptyOutDir: true,
     },

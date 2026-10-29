@@ -44,7 +44,7 @@ export interface Tokens {
   blue: string;
   purple: string;
 }
-const defaults: Record<Hue, string> = {
+export const defaultColors: Readonly<Record<Hue, string>> = {
   red: "#d14457",
   yellow: "#9d6f00",
   green: "#298830",
@@ -108,7 +108,7 @@ export function createTheme(options: ThemeOptions = {}) {
     return custom ? scale(t).hex() : mix(dark, light, t);
   };
   const background = ramp(options.background ?? 1);
-  const colors = Object.freeze({ ...defaults, ...options.colors });
+  const colors = Object.freeze({ ...defaultColors, ...options.colors });
   for (const color of Object.values(colors)) rgb(color);
   const neutral = Array.from({ length: 257 }, (_, i) =>
     candidate(ramp(i / 256)),

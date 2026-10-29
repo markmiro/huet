@@ -1,0 +1,295 @@
+/*
+  Colors come from Huet's variables when the page theme is mounted (see
+  themePage in main.ts), and fall back to these fixed colors when it isn't.
+  Elements with a huet-surface-* class get their own --huet-background.
+*/
+* {
+  box-sizing: border-box;
+}
+body {
+  margin: 0;
+  min-height: 100vh;
+  background: var(--huet-background, #f7f6f2);
+  color: var(--huet-foreground, #222823);
+  font:
+    15px/1.5 system-ui,
+    sans-serif;
+}
+a {
+  color: inherit;
+}
+header {
+  max-width: 1400px;
+  margin: auto;
+  padding: 24px 32px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  border-bottom: 1px solid var(--huet-border, #dddcd6);
+}
+header > a:first-child {
+  text-decoration: none;
+  font-weight: 750;
+  font-size: 21px;
+}
+header > a span {
+  font-weight: 400;
+  color: var(--huet-muted, #626963);
+}
+.tag {
+  font-size: 12px;
+  padding: 5px 10px;
+  background: var(--huet-background, #e8eae2);
+  border-radius: 5px;
+  text-decoration: none;
+}
+main {
+  max-width: 1400px;
+  margin: auto;
+  padding: 0 32px 64px;
+}
+section {
+  margin-top: 40px;
+}
+h1 {
+  font-size: 40px;
+  line-height: 1.1;
+  margin: 8px 0 12px;
+}
+h2 {
+  font-size: 19px;
+  margin: 0;
+}
+.intro p {
+  max-width: 72ch;
+  color: var(--huet-muted, #434a44);
+}
+.eyebrow {
+  font-size: 12px;
+  letter-spacing: 0.08em;
+  color: var(--huet-muted, #626963);
+  margin: 0;
+}
+.note {
+  color: var(--huet-muted, #626963);
+  font-size: 13px;
+  margin: 4px 0 12px;
+}
+.section-heading {
+  display: flex;
+  gap: 16px;
+  align-items: baseline;
+  flex-wrap: wrap;
+  margin-bottom: 12px;
+}
+.section-heading .note {
+  margin: 0;
+}
+.controls {
+  position: sticky;
+  top: 0;
+  z-index: 2;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px 24px;
+  align-items: center;
+  padding: 14px 16px;
+  margin-top: 24px;
+  background: var(--huet-background, #ffffffee);
+  border: 1px solid var(--huet-border, #dddcd6);
+  border-radius: 8px;
+}
+.controls label {
+  display: flex;
+  gap: 8px;
+  align-items: center;
+  font-size: 13px;
+  font-weight: 600;
+}
+.controls output {
+  font-weight: 400;
+  min-width: 4ch;
+}
+select,
+button {
+  font: inherit;
+  font-size: 13px;
+  padding: 5px 10px;
+  border: 1px solid var(--huet-border, #c9c8c0);
+  border-radius: 5px;
+  background: var(--huet-background, #fff);
+  color: inherit;
+}
+input[type="range"],
+input[type="checkbox"] {
+  accent-color: var(--huet-blue, auto);
+}
+button {
+  cursor: pointer;
+}
+button:hover {
+  filter: brightness(0.96);
+}
+.metrics {
+  font-size: 13px;
+  color: var(--huet-muted, #434a44);
+  min-height: 1.5em;
+  margin: 12px 0 0;
+}
+.ramp-row {
+  display: grid;
+  grid-template-columns: 70px minmax(0, 1fr) 24px minmax(0, 1fr);
+  gap: 8px;
+  align-items: center;
+  font-size: 13px;
+  margin-bottom: 4px;
+}
+.ramp-row canvas {
+  width: 100%;
+  height: 22px;
+  border-radius: 4px;
+  image-rendering: auto;
+}
+.ramp-row .arrow {
+  text-align: center;
+  color: var(--huet-muted, #8a8f88);
+}
+.focus-grid {
+  display: grid;
+  grid-template-columns: minmax(0, 1.1fr) minmax(0, 1.4fr);
+  gap: 24px;
+  align-items: start;
+}
+.focus-main {
+  display: grid;
+  gap: 8px;
+}
+.focus-main img,
+.focus-main canvas {
+  width: 100%;
+  height: auto;
+  max-height: 46vh;
+  object-fit: contain;
+  background: var(--huet-background, #e9e8e2);
+  border-radius: 6px;
+}
+.focus-main img {
+  cursor: crosshair;
+}
+.focus-main button {
+  justify-self: start;
+}
+.inspect {
+  font-size: 13px;
+  min-height: 1.5em;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  flex-wrap: wrap;
+}
+.swatch {
+  display: inline-block;
+  width: 18px;
+  height: 18px;
+  border-radius: 4px;
+  border: 1px solid var(--huet-border, #0002);
+}
+.matrix {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(170px, 1fr));
+  gap: 12px;
+}
+.cell {
+  padding: 0;
+  border: 2px solid transparent;
+  border-radius: 8px;
+  background: none;
+  text-align: left;
+  font-size: 12px;
+}
+.cell canvas {
+  display: block;
+  width: 100%;
+  aspect-ratio: 4 / 3;
+  object-fit: cover;
+  border-radius: 6px;
+  background: var(--huet-background, #e9e8e2);
+}
+.cell span {
+  display: block;
+  padding: 4px 2px;
+}
+.cell.selected {
+  border-color: var(--huet-foreground, #222823);
+}
+.gallery {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(560px, 1fr));
+  gap: 24px;
+}
+.card {
+  margin: 0;
+}
+.pair {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 4px;
+  width: 100%;
+  padding: 0;
+  border: 0;
+  background: none;
+}
+.pair:hover {
+  background: none;
+  filter: none;
+  outline: 2px solid var(--huet-foreground, #222823);
+  outline-offset: 2px;
+  border-radius: 4px;
+}
+.pair img,
+.pair canvas {
+  width: 100%;
+  height: 300px;
+  object-fit: contain;
+  background: var(--huet-background, #e9e8e2);
+  border-radius: 4px;
+}
+figcaption {
+  font-size: 13px;
+  color: var(--huet-muted, #626963);
+  margin-top: 6px;
+}
+table {
+  border-collapse: collapse;
+  font-size: 13px;
+  width: 100%;
+  background: var(--huet-background, #fff);
+  border: 1px solid var(--huet-border, #dddcd6);
+}
+th,
+td {
+  text-align: left;
+  padding: 8px 12px;
+  border-bottom: 1px solid var(--huet-border, #eceae4);
+}
+td:nth-child(3),
+td:nth-child(4) {
+  font-variant-numeric: tabular-nums;
+}
+@media (max-width: 900px) {
+  main,
+  header {
+    padding-left: 16px;
+    padding-right: 16px;
+  }
+  .focus-grid {
+    grid-template-columns: 1fr;
+  }
+  .gallery {
+    grid-template-columns: 1fr;
+  }
+  .pair img,
+  .pair canvas {
+    height: 200px;
+  }
+}
