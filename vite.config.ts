@@ -21,7 +21,7 @@ const tailscaleUrl = (host: string, port: number): Plugin => ({
   },
 });
 
-export default defineConfig(({ mode }) => {
+export default defineConfig(({ mode, command, isPreview }) => {
   if (mode === "lib") {
     return {
       plugins: [
@@ -57,6 +57,8 @@ export default defineConfig(({ mode }) => {
   const tailscaleHost = env.TAILSCALE_HOST || "mbp.tail0fff0.ts.net";
 
   return {
+    // The demo is published at https://markmiro.github.io/huet/.
+    base: command === "build" || isPreview ? "/huet/" : "/",
     plugins: [react(), tailscaleUrl(tailscaleHost, port)],
     server: {
       host: true,
