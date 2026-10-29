@@ -267,7 +267,7 @@ For canvases, video frames, or your own pipeline, use the lower-level functions:
 - `coordinatesOf` / `rampColor` read a pixel's ramp coordinates, or the color at a coordinate.
 - `paletteOf(theme)` converts a `createTheme` result into the palette these functions take.
 
-The [image recolor demo](https://markmiro.github.io/huet/recolor.html) (`/recolor.html`) compares renderers and themes.
+The [image recolor demo](https://markmiro.github.io/huet/recolor.html) (`/recolor.html`) compares renderers and themes. The example demos' [Images page](https://markmiro.github.io/huet/images.html) (`/images`) recolors a photo and screenshot gallery into whichever theme you pick in the theme configurator.
 
 React, Vue, Svelte, and Astro lifecycle examples are in [framework integration](docs/frameworks.md). Portals and shadow roots require independent mounts. The DOM adapter runs only in a browser; SSR can compute colors through `theme.relative` and emit matching styles before mounting.
 

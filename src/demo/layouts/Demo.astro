@@ -9,6 +9,7 @@ const pages = [
   { name: "GitHub", href: `${base}github` },
   { name: "YouTube", href: `${base}youtube` },
   { name: "Color Contrast", href: `${base}color-contrast` },
+  { name: "Images", href: `${base}images` },
 ];
 const current = Astro.url.pathname.replace(/(\.html|\/)$/, "") || "/";
 const isCurrent = (href: string) => (href.replace(/\/$/, "") || "/") === current;

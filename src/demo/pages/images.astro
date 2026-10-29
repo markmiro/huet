@@ -1,0 +1,97 @@
+---
+import Section from "../components/Section.astro";
+import Demo from "../layouts/Demo.astro";
+import { images } from "../recolor/data";
+
+const galleries = [
+  {
+    title: "Photos",
+    note: "From Unsplash",
+    images: images.filter((image) => image.group === "unsplash"),
+    fit: "object-cover aspect-[4/3]",
+  },
+  {
+    title: "Screenshots",
+    note: "Project thumbnails from markmiro.com",
+    images: images.filter((image) => image.group === "markmiro"),
+    fit: "object-contain aspect-[4/3]",
+  },
+];
+---
+<Demo title="Images">
+  <div class="mx-auto max-w-[70em] p-8">
+    <h1 data-theme-name class="my-[0.67em] border-b-[.125em] pb-1 text-5xl font-bold">&nbsp;</h1>
+    <p class="huet-text-50 max-w-[40em]">
+      Every image here is recolored into the theme you pick in the configurator, using
+      <code class="huet-bg-6 rounded-xs px-1 font-mono">huet/images</code>. Grays follow the
+      theme's neutral ramp and colors follow its hues. Hover an image to see the original.
+    </p>
+    <label class="mt-6 block max-w-[30em]">
+      <span class="mb-1 flex justify-between">
+        Strength <span data-strength-value class="huet-text-50">100%</span>
+      </span>
+      <input
+        data-strength
+        type="range"
+        min="0"
+        max="100"
+        value="100"
+        class="block w-full accent-current"
+      />
+    </label>
+
+    {galleries.map((gallery) => (
+      <Section title={gallery.title}>
+        <p class="huet-text-50 -mt-12 mb-6 text-sm">{gallery.note}</p>
+        <div class="grid grid-cols-[repeat(auto-fill,minmax(14em,1fr))] gap-4">
+          {gallery.images.map((image) => (
+            <figure class="huet-bg-5 huet-border-10 overflow-hidden rounded border">
+              <img
+                data-huet-recolor
+                src={image.url}
+                alt={image.title}
+                loading="lazy"
+                class={`block w-full ${gallery.fit}`}
+              />
+              <figcaption class="flex items-center justify-between gap-2 p-2 text-sm">
+                <span class="truncate">{image.title}</span>
+                <a href={image.source} class="huet-text-blue-100 shrink-0 underline">Source</a>
+              </figcaption>
+            </figure>
+          ))}
+        </div>
+      </Section>
+    ))}
+  </div>
+</Demo>
+
+<style is:global>
+  /* Hide originals until their recolored copy is ready. */
+  img[data-huet-recolor]:not([data-huet-recolored]) {
+    visibility: hidden;
+  }
+</style>
+
+<script>
+  import { mountImages } from "../../core/images";
+  import { themeFromConfig } from "../../core/fromConfig";
+  import { subscribeTheme } from "../components/themeStore";
+
+  const page = document.querySelector<HTMLElement>("#page")!;
+  const strength = document.querySelector<HTMLInputElement>("[data-strength]")!;
+  const strengthValue = document.querySelector("[data-strength-value]")!;
+  let images: ReturnType<typeof mountImages> | undefined;
+  let theme: ReturnType<typeof themeFromConfig> | undefined;
+
+  const options = () => ({ strength: Number(strength.value) / 100 });
+
+  subscribeTheme((config) => {
+    theme = themeFromConfig(config);
+    if (images) images.update(theme, options());
+    else images = mountImages(page, theme, { ...options(), hoverOriginal: true });
+  });
+  strength.addEventListener("input", () => {
+    strengthValue.textContent = `${strength.value}%`;
+    if (images && theme) images.update(theme, options());
+  });
+</script>
