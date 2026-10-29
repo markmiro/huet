@@ -1,13 +1,14 @@
-import { oklabFromRgb, rgbFromOklab, toOklab, type Triple } from "../../core/color";
+import { oklabFromRgb, type Triple } from "../../core/color";
 import {
   coordinatesOf,
+  rampColor,
   recolorer,
   toCube,
   type Palette,
   type RecolorOptions,
 } from "../../core/recolor";
 import { createTheme, mountTheme, contrastRatio } from "../../core";
-import { defaultColors, hues, type HuetTheme } from "../../core/theme";
+import { hues, type Hue, type HuetTheme } from "../../core/theme";
 import { images, themes, type DemoImage, type RecolorTheme } from "./data";
 import { GpuRecolor } from "./gpu";
 import type { Request } from "./worker";
@@ -202,34 +203,21 @@ const cards = images.map((image, index) => {
 });
 
 // ---- Coordinate grid ----
-function rampStrip(dark: Triple, light: Triple, chroma: readonly [number, number] | null) {
+function rampStrip(palette: Palette, hue: Hue | null) {
   const canvas = document.createElement("canvas");
   canvas.width = 128;
   canvas.height = 1;
   const context = canvas.getContext("2d")!;
   const row = context.createImageData(128, 1);
   for (let x = 0; x < 128; x++) {
-    const t = x / 127;
-    const lab = [0, 1, 2].map((i) => dark[i] + t * (light[i] - dark[i])) as unknown as Triple;
-    const [r, g, b] = rgbFromOklab([lab[0], lab[1] + (chroma?.[0] ?? 0), lab[2] + (chroma?.[1] ?? 0)]);
+    const [r, g, b] = rampColor(palette, x / 127, hue ?? undefined);
     row.data.set([r * 255, g * 255, b * 255, 255], x * 4);
   }
   context.putImageData(row, 0, 0);
   return canvas;
 }
 function renderRamps() {
-  const theme = themes[state.theme];
-  const anchors = (colors: Palette["colors"] = {}) =>
-    Object.fromEntries(
-      hues.map((hue) => {
-        const [, a, b] = toOklab(colors[hue] ?? defaultColors[hue]);
-        return [hue, [a, b] as const];
-      }),
-    );
-  const from = anchors(),
-    to = anchors(theme.colors);
-  const [black, white] = [toOklab("#000000"), toOklab("#ffffff")];
-  const [dark, light] = [toOklab(theme.dark ?? "#000000"), toOklab(theme.light ?? "#ffffff")];
+  const theme = palette(themes[state.theme]);
   const root = $("#ramps");
   root.replaceChildren();
   for (const hue of [null, ...hues]) {
@@ -237,9 +225,9 @@ function renderRamps() {
     row.className = "ramp-row";
     row.innerHTML = `<span>${hue ?? "neutral"}</span>`;
     row.append(
-      rampStrip(black, white, hue && from[hue]),
+      rampStrip({}, hue),
       Object.assign(document.createElement("span"), { textContent: "→", className: "arrow" }),
-      rampStrip(dark, light, hue && to[hue]),
+      rampStrip(theme, hue),
     );
     root.append(row);
   }

@@ -15,6 +15,15 @@ const sunset = {
   light: "#ffe173",
   colors: { red: "#f20031", yellow: "#c16000", green: "#008d29", blue: "#12889d", purple: "#b555c8" },
 };
+/** Evaluate a transform through a 33³ LUT, as the demo renders it. */
+function buildLutTransform(transform: ReturnType<typeof recolorer>) {
+  const lut = buildLut(transform, 33);
+  return (r: number, g: number, b: number) => {
+    const pixel = new Uint8ClampedArray([r * 255, g * 255, b * 255, 255]);
+    applyLut(pixel, lut, 33);
+    return [pixel[0] / 255, pixel[1] / 255, pixel[2] / 255] as const;
+  };
+}
 function random(seed: number) {
   return () => ((seed = (seed * 1664525 + 1013904223) >>> 0) / 2 ** 32);
 }
@@ -23,7 +32,8 @@ describe("theme coordinates", () => {
   it("places grays on the neutral ramp and anchors on their own hue", () => {
     const gray = coordinatesOf(rgb("#777777"));
     expect(gray.weights).toEqual({});
-    expect(gray.t).toBeCloseTo(oklabFromRgb(...rgb("#777777"))[0], 6);
+    // #777777 is the classic CIE L* = 50 middle gray.
+    expect(gray.t).toBeCloseTo(0.5, 3);
     const blue = coordinatesOf(rgb(defaultColors.blue));
     expect(blue.weights.blue).toBeCloseTo(1, 6);
     expect(Object.keys(blue.weights)).toEqual(["blue"]);
@@ -78,6 +88,54 @@ describe("theme coordinates", () => {
     expect(Math.abs(hue(tinted) - hue(anchor))).toBeGreaterThan(0.1);
     // Grays keep the full tint either way.
     expect(recolorer(sunset, { tint: 0 })(0.5, 0.5, 0.5)).toEqual(recolorer(sunset)(0.5, 0.5, 0.5));
+  });
+});
+
+describe("near black", () => {
+  it("does not amplify 1/255 steps into bands when the dark end is lifted", () => {
+    // Regression: a black background dithered with (1,1,1) rows turned into
+    // stripes 6 levels apart, because OKLab lightness is steepest at black.
+    for (const transform of [recolorer(sunset), buildLutTransform(recolorer(sunset))]) {
+      const a = transform(0, 0, 0).map((v) => v * 255);
+      const b = transform(1 / 255, 1 / 255, 1 / 255).map((v) => v * 255);
+      for (let i = 0; i < 3; i++) expect(Math.abs(a[i] - b[i])).toBeLessThanOrEqual(1);
+    }
+  });
+
+  it("keeps LUT cells near black smooth for every neutral step", () => {
+    const deepDive = {
+      dark: "#001b4f",
+      light: "#b6e8e8",
+      colors: { red: "#ff6669", yellow: "#a09c5c", green: "#319647", blue: "#496eff", purple: "#af5bff" },
+    };
+    const deltaE = (x: readonly number[], y: readonly number[]) => {
+      const [a, b] = [oklabFromRgb(x[0], x[1], x[2]), oklabFromRgb(y[0], y[1], y[2])];
+      return Math.hypot(a[0] - b[0], a[1] - b[1], a[2] - b[2]);
+    };
+    for (const target of [sunset, deepDive]) {
+      const exact = recolorer(target),
+        lut = buildLutTransform(exact);
+      for (let v = 0; v <= 24; v++) {
+        const [x, y] = [v / 255, (v + 1) / 255];
+        // ΔE_OK ≈ 0.02 is just noticeable; the original bands were 0.020 apart.
+        expect(deltaE(lut(x, x, x), lut(y, y, y))).toBeLessThan(0.01);
+        expect(deltaE(exact(x, x, x), lut(x, x, x))).toBeLessThan(0.01);
+      }
+    }
+  });
+
+  it("round-trips exactly through the identity LUT", () => {
+    const pixels = Uint8ClampedArray.from({ length: 256 * 4 }, (_, i) => (i % 4 === 3 ? 255 : i >> 2));
+    const copy = pixels.slice();
+    applyLut(copy, buildLut(recolorer({}), 33), 33);
+    expect([...copy]).toEqual([...pixels]);
+  });
+
+  it("keeps lightness affine in OKLab above the toe", () => {
+    // Above sRGB ≈ 25, ramp positions are linear in OKLab lightness.
+    const L = (v: number) => oklabFromRgb(v, v, v)[0];
+    const [x, y, z] = [0.2, 0.5, 0.9].map((v) => coordinatesOf([v, v, v]).t);
+    expect((y - x) / (z - x)).toBeCloseTo((L(0.5) - L(0.2)) / (L(0.9) - L(0.2)), 6);
   });
 });
 

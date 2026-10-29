@@ -4,7 +4,8 @@ import { defaultColors, hues, type Hue } from "./theme";
 /*
   A theme's ramps form a coordinate system for colors:
 
-  - `t` is the position along the neutral dark → light ramp (OKLab lightness).
+  - `t` is the position along the neutral dark → light ramp, measured in CIE
+    lightness (see `lightness` below).
   - Chroma is measured from the neutral ramp at that position and expressed as
     a weighted sum of the two neighboring hue anchors (red/yellow, yellow/green,
     …). A weight of 1 means "as colorful as this theme's anchor".
@@ -67,6 +68,26 @@ function frame({ dark = "#000000", light = "#ffffff", colors }: Palette): Frame 
   };
 }
 
+/*
+  CIE lightness L* (0–1) of a color with OKLab lightness L, treating L³ as its
+  luminance (exact for neutrals). Above the toe, L* is an affine function of
+  OKLab L, so mappings there are unchanged. Near black, OKLab's cube root is
+  infinitely steep: sRGB 0 → 1 spans 6.7% of the lightness range (0.27% in
+  L*). Lifting a ramp's dark end would turn that invisible step into a band.
+*/
+const toe = 6 / 29;
+const lightness = (L: number) => (L > toe ? 1.16 * L - 0.16 : (24389 / 2700) * L ** 3);
+const fromLightness = (v: number) =>
+  v > 0.08 ? (v + 0.16) / 1.16 : Math.cbrt((v * 2700) / 24389);
+/*
+  OKLab's a and b come from the same cube roots, so near-black colors read as
+  far more colorful than they look: (8, 0, 0) would become a visible red once
+  lifted onto a navy ramp. Like CIELAB's a* and b*, measure chroma through the
+  same toe: below it, lightness grows like L³ instead of L, so chroma is scaled
+  by (L / toe)² on the way in and unscaled at the output lightness.
+*/
+const vividness = (L: number) => (L < toe ? (L / toe) ** 2 : 1);
+
 /** Express OKLab colors in a palette's ramp coordinates. */
 function decomposer(source: Frame) {
   const n = hues.length;
@@ -84,13 +105,15 @@ function decomposer(source: Frame) {
   });
   const [dL, da, db] = source.dark,
     [lL, la, lb] = source.light;
-  const span = lL - dL || 1;
+  const low = lightness(dL),
+    span = lightness(lL) - low || 1;
   const out = { t: 0, i0: 0, i1: 0, w0: 0, w1: 0 };
   return ([L, a, b]: Triple) => {
-    const t = (L - dL) / span;
+    const t = (lightness(L) - low) / span;
     // Chroma relative to the (possibly tinted) neutral ramp at this lightness.
-    const ca = a - (da + t * (la - da)),
-      cb = b - (db + t * (lb - db));
+    const v = vividness(L);
+    const ca = (a - (da + t * (la - da))) * v,
+      cb = (b - (db + t * (lb - db))) * v;
     out.t = t;
     out.w0 = out.w1 = 0;
     if (ca * ca + cb * cb < 1e-10) return out;
@@ -139,21 +162,37 @@ export function recolorer(target: Palette, options: RecolorOptions = {}) {
   const to = frame(target);
   const [dL, da, db] = to.dark,
     [lL, la, lb] = to.light;
+  const low = lightness(dL),
+    high = lightness(lL);
   return (r: number, g: number, b: number): Triple => {
     const lab = oklabFromRgb(r, g, b);
     const { t: position, i0, i1, w0, w1 } = decompose(lab);
     const t = options.invert ? 1 - position : position;
     const neutral = tint + (1 - tint) * Math.max(0, 1 - w0 - w1);
+    const L = fromLightness(low + t * (high - low));
+    const k = 1 / Math.max(vividness(L), 1e-6);
     const mapped: Triple = [
-      dL + t * (lL - dL),
-      neutral * (da + t * (la - da)) + w0 * to.a[i0] + w1 * to.a[i1],
-      neutral * (db + t * (lb - db)) + w0 * to.b[i0] + w1 * to.b[i1],
+      L,
+      neutral * (da + t * (la - da)) + k * (w0 * to.a[i0] + w1 * to.a[i1]),
+      neutral * (db + t * (lb - db)) + k * (w0 * to.b[i0] + w1 * to.b[i1]),
     ];
     if (strength === 1) return rgbFromOklab(mapped);
     return rgbFromOklab(
       lab.map((v, i) => v + (mapped[i] - v) * strength) as unknown as Triple,
     );
   };
+}
+
+/** A color on a palette's neutral ramp, or on a hue ramp at anchor chroma. */
+export function rampColor(palette: Palette, t: number, hue?: Hue): Triple {
+  const { dark, light, a, b } = frame(palette);
+  const i = hue ? hues.indexOf(hue) : -1;
+  const L = lightness(dark[0]) + t * (lightness(light[0]) - lightness(dark[0]));
+  return rgbFromOklab([
+    fromLightness(L),
+    dark[1] + t * (light[1] - dark[1]) + (i >= 0 ? a[i] : 0),
+    dark[2] + t * (light[2] - dark[2]) + (i >= 0 ? b[i] : 0),
+  ]);
 }
 
 export type Transform = (r: number, g: number, b: number) => Triple;
@@ -204,7 +243,8 @@ export function applyLut(pixels: Uint8ClampedArray, lut: Float32Array, size: num
       const c11 = lut[o + sy + sz] + (lut[o + sy + sz + 3] - lut[o + sy + sz]) * fr;
       const c0 = c00 + (c10 - c00) * fg,
         c1 = c01 + (c11 - c01) * fg;
-      pixels[p + c] = (c0 + (c1 - c0) * fb) * 255 + 0.5;
+      // Uint8ClampedArray rounds on assignment; adding 0.5 would bias up a level.
+      pixels[p + c] = (c0 + (c1 - c0) * fb) * 255;
     }
   }
 }
@@ -213,9 +253,9 @@ export function applyLut(pixels: Uint8ClampedArray, lut: Float32Array, size: num
 export function applyTransform(pixels: Uint8ClampedArray, transform: Transform) {
   for (let p = 0; p < pixels.length; p += 4) {
     const x = transform(pixels[p] / 255, pixels[p + 1] / 255, pixels[p + 2] / 255);
-    pixels[p] = x[0] * 255 + 0.5;
-    pixels[p + 1] = x[1] * 255 + 0.5;
-    pixels[p + 2] = x[2] * 255 + 0.5;
+    pixels[p] = x[0] * 255;
+    pixels[p + 1] = x[1] * 255;
+    pixels[p + 2] = x[2] * 255;
   }
 }
 
