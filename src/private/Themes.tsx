@@ -1,20 +1,30 @@
 import _ from "lodash";
 import React, { useLayoutEffect, useRef, useState } from "react";
 
-import Block from "../Block";
-import type Color from "../Color";
 import { useThemeConfigurator } from "../Body";
+import Color from "../Color";
 import type { ThemeConfig } from "../colorModel";
 import Theme, { rampModes } from "../Theme";
 import defaultThemeConfigs from "../demo/themeConfigs";
-import { useTheme } from "../reactContexts";
 import { VSpace } from "./AllExceptFirst";
 import Arrow from "./Arrow";
 import Button, { JsonUploadButton, TextButton } from "./Button";
-import __ from "./atoms";
+import cx from "./cx";
 import baseThemeConfig from "./baseThemeConfig";
 import { parseThemeConfig } from "./isThemeConfig";
 import usePersistentState, { type Parse } from "./persistentState";
+
+/*
+  Each preview card shows a different theme. Huet classes resolve against the
+  panel's own theme, and Huet roots can't nest, so the cards compute their
+  colors with the legacy Color API and set them inline. These match what
+  `<Block theme={theme} contrast="bg=0 ...">` used to produce.
+*/
+
+/** The card's background: the previewed theme's page background. */
+function cardBackground(theme: Theme) {
+  return Color.fromTheme(theme).contrast(0);
+}
 
 function ThemeFrame({
   theme,
@@ -29,11 +39,16 @@ function ThemeFrame({
   onClick?: () => void;
   isHidden?: boolean;
 }) {
-  const style = (parentBg: Color) => ({
-    ...__.w100.h100.ba.br2.relative,
-    boxShadow: `0 2px 10px ${parentBg.contrast(100).alpha(0.2)}`,
-    overflow: "hidden"
-  });
+  const root = Color.fromTheme(theme);
+  const bg = root.contrast(0);
+  const className =
+    "hc:w-full hc:h-full hc:border hc:rounded-sm hc:relative hc:overflow-hidden";
+  const style = {
+    backgroundColor: bg.hex,
+    color: bg.contrast(100).hex,
+    borderColor: root.contrast(isSelected ? 100 : 12).hex,
+    boxShadow: `0 2px 10px ${root.contrast(100).alpha(0.2)}`,
+  };
 
   const $el = useRef<HTMLDivElement>(null);
   const height = $el.current ? $el.current.clientHeight : 0;
@@ -41,53 +56,41 @@ function ThemeFrame({
   return (
     <div
       ref={$el}
-      style={{
-        ...__.flex.relative,
-        flexBasis: `${20}em`,
-        flexShrink: 0,
-        transitionProperty: "transform, margin, opacity",
-        transitionDuration: "150ms",
-        transitionTimingFunction: "ease-out",
-        ...(isHidden && {
-          pointerEvents: "none",
-          transform: `scaleY(0)`,
-          opacity: 0,
-          marginTop: `-${height / 2}px`,
-          marginBottom: `-${height / 2}px`
-        })
-      }}
+      className={cx(
+        "hc:flex hc:relative hc:basis-[20em] hc:shrink-0 hc:transition-[scale,margin,opacity] hc:duration-150 hc:ease-[ease-out]",
+        isHidden && "hc:pointer-events-none hc:scale-y-0 hc:opacity-0",
+      )}
+      style={
+        isHidden
+          ? { marginTop: `-${height / 2}px`, marginBottom: `-${height / 2}px` }
+          : undefined
+      }
     >
       {isSelected ? (
-        <Block theme={theme} as="div" contrast="bg=0 b=100" style={style}>
+        <div className={className} style={style}>
           {children}
-          <Arrow direction="up" size=".75em" style={__.abc} />
-        </Block>
+          <Arrow
+            size=".75em"
+            className="hc:absolute hc:bottom-0 hc:left-1/2 hc:-translate-x-1/2"
+          />
+        </div>
       ) : (
-        <Block
-          theme={theme}
-          as="button"
-          onClick={onClick}
-          contrast="bg=0 b=12"
-          style={style}
-        >
-          <div style={__.h100}>{children}</div>
-        </Block>
+        <button onClick={onClick} className={className} style={style}>
+          <div className="hc:h-full">{children}</div>
+        </button>
       )}
     </div>
   );
 }
 
-function Pallet() {
-  const theme = useTheme();
+function Pallet({ theme }: { theme: Theme }) {
   return (
-    <div style={{ ...__.flex, height: "0.5em" }}>
-      {Object.keys(theme.pallet).map(palletKey => (
+    <div className="hc:flex hc:h-[.5em]">
+      {Object.keys(theme.pallet).map((palletKey) => (
         <div
           key={palletKey}
-          style={{
-            ...__.w100.h100,
-            backgroundColor: theme.pallet[palletKey]
-          }}
+          className="hc:w-full hc:h-full"
+          style={{ backgroundColor: theme.pallet[palletKey] }}
         />
       ))}
     </div>
@@ -96,57 +99,48 @@ function Pallet() {
 
 function Title({ children }: { children?: React.ReactNode }) {
   return (
-    <h3 style={__.mh2.pv2.flex.items_center.justify_between}>{children}</h3>
+    <h3 className="hc:mx-2 hc:py-2 hc:flex hc:items-center hc:justify-between">
+      {children}
+    </h3>
   );
 }
 
-function Shadow() {
+function Shadow({ bg }: { bg: Color }) {
   return (
-    <Block
-      style={parentBg => ({
-        marginTop: "-.5rem",
-        height: ".5rem",
-        background: `linear-gradient(${parentBg}, ${parentBg.contrast(12)})`
-      })}
+    <div
+      className="hc:-mt-2 hc:h-2"
+      style={{ background: `linear-gradient(${bg}, ${bg.contrast(12)})` }}
     />
   );
 }
 
-function ColorMatrix() {
-  const theme = useTheme();
-  return [
-    Object.keys(theme.ramps)
-      .filter(rampKey => {
-        const mode = theme.ramps[rampKey].config.mode;
-        return mode === rampModes.SIGNAL || mode === rampModes.FURTHEST;
-      })
-      .map(rampKey => (
-        <div key={rampKey} style={__.flex}>
-          {[100, 75, 50, 25].map(contrastInner => (
-            <Block
+function ColorMatrix({ theme, bg }: { theme: Theme; bg: Color }) {
+  return Object.keys(theme.ramps)
+    .filter((rampKey) => {
+      const mode = theme.ramps[rampKey].config.mode;
+      return mode === rampModes.SIGNAL || mode === rampModes.FURTHEST;
+    })
+    .map((rampKey) => {
+      const base = bg.base(theme.ramps[rampKey]);
+      return (
+        <div key={rampKey} className="hc:flex">
+          {[100, 75, 50, 25].map((contrastInner) => (
+            <div
               key={contrastInner}
-              base={rampKey}
-              contrast={`bg=${contrastInner}`}
-              style={{
-                ...__.w100,
-                marginTop: 1,
-                height: rampKey === "gray" ? "1.5rem" : "0.5rem"
-              }}
+              className={cx("hc:w-full hc:mt-px", rampKey === "gray" ? "hc:h-6" : "hc:h-2")}
+              style={{ backgroundColor: base.contrast(contrastInner).hex }}
             />
           ))}
         </div>
-      ))
-  ];
+      );
+    });
 }
 
 function Section({ children }: { children?: React.ReactNode }) {
   return (
-    <>
-      <Shadow />
-      <Block style={__.flex}>
-        <div style={__.pa2.w100.flex.flex_column}>{children}</div>
-      </Block>
-    </>
+    <div className="hc:flex">
+      <div className="hc:p-2 hc:w-full hc:flex hc:flex-col">{children}</div>
+    </div>
   );
 }
 
@@ -161,38 +155,49 @@ const UnmodifiedThemePreview = React.memo(function UnmodifiedThemePreview({
   onClick?: () => void;
   onRemove: () => void;
 }) {
-    const [isHidden, setIsHidden] = useState(false);
-    const theme = new Theme(config);
-    const isBaseTheme = config.id === baseThemeConfig.id;
+  const [isHidden, setIsHidden] = useState(false);
+  const theme = new Theme(config);
+  const bg = cardBackground(theme);
+  const isBaseTheme = config.id === baseThemeConfig.id;
 
-    function startRemove() {
-      setIsHidden(true);
-      setTimeout(() => onRemove(), 200);
-    }
-
-    return (
-      <ThemeFrame
-        theme={theme}
-        isSelected={isSelected}
-        onClick={onClick}
-        isHidden={isHidden}
-      >
-        <Pallet />
-        <Title>
-          {theme.name}
-          {isSelected && !isBaseTheme && (
-            <TextButton base="red" onClick={startRemove} verify>
-              Remove
-            </TextButton>
-          )}
-        </Title>
-        <Section>
-          <ColorMatrix />
-        </Section>
-      </ThemeFrame>
-    );
+  function startRemove() {
+    setIsHidden(true);
+    setTimeout(() => onRemove(), 200);
   }
-);
+
+  return (
+    <ThemeFrame
+      theme={theme}
+      isSelected={isSelected}
+      onClick={onClick}
+      isHidden={isHidden}
+    >
+      <Pallet theme={theme} />
+      <Title>
+        {theme.name}
+        {isSelected && !isBaseTheme && (
+          <TextButton
+            style={{ color: bg.base(theme.ramps.red).contrast(100).hex }}
+            onClick={startRemove}
+            verify
+          >
+            Remove
+          </TextButton>
+        )}
+      </Title>
+      <Shadow bg={bg} />
+      <Section>
+        <ColorMatrix theme={theme} bg={bg} />
+      </Section>
+    </ThemeFrame>
+  );
+});
+
+/** A full-strength button on one of the previewed theme's ramps */
+function signalButtonStyle(bg: Color, ramp: string) {
+  const fill = bg.contrast(100, bg.theme.ramps[ramp]);
+  return { backgroundColor: fill.hex, color: fill.contrast(100).hex };
+}
 
 function ModifiedThemePreview({
   config,
@@ -204,19 +209,20 @@ function ModifiedThemePreview({
   onCreate: () => void;
 }) {
   const theme = new Theme(config);
+  const bg = cardBackground(theme);
   return (
     <ThemeFrame isSelected theme={theme}>
-      <Pallet />
+      <Pallet theme={theme} />
       <Title>{theme.name}</Title>
+      <Shadow bg={bg} />
       <Section>
-        <Button bgRamp="green" bg={100} text={100} onClick={onCreate}>
+        <Button colors="" style={signalButtonStyle(bg, "green")} onClick={onCreate}>
           Save As New Theme
         </Button>
         <Button
-          text={100}
-          bgRamp="red"
-          bg={100}
-          style={__.mt1}
+          colors=""
+          className="hc:mt-1"
+          style={signalButtonStyle(bg, "red")}
           verify
           onClick={onReset}
         >
@@ -319,7 +325,7 @@ export default function Themes() {
   const [, setSelectedConfig] = useThemeConfigurator();
 
   return (
-    <VSpace size="3" style={__.pa3}>
+    <VSpace size={3} className="hc:p-4">
       <JsonUploadButton
         onUpload={uploadedConfig => {
           // A fresh id, so importing the same file twice (or a file whose id

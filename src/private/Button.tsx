@@ -1,34 +1,30 @@
 import React from "react";
 
-import Block from "../Block";
 import type { ThemeConfig } from "../colorModel";
-import Contrast, { type ContrastProps } from "../Contrast";
-import __ from "./atoms";
+import cx from "./cx";
 import displayError from "./displayError";
+import { inputClass } from "./inputClass";
 import { parseThemeConfig } from "./isThemeConfig";
-import { focusWithinClass, inputStyle, invisibleScreenClass } from "./styles";
 
 export function JsonUploadButton({
   children,
   className,
-  style,
   onUpload,
 }: {
   children?: React.ReactNode;
   className?: string;
-  style?: React.CSSProperties;
   onUpload: (themeConfig: ThemeConfig) => void;
 }) {
   return (
     <Button
       as="div"
-      className={[focusWithinClass, className].filter(Boolean).join(" ")}
-      style={{ ...__.relative, ...style }}
+      data-focus-within=""
+      className={cx("hc:relative", className)}
     >
       {children}
       <input
         type="file"
-        className={invisibleScreenClass}
+        className="hc:absolute hc:w-full hc:h-full hc:left-0 hc:top-0 hc:opacity-0"
         onChange={(event) => {
           const reader = new FileReader();
           const eventListener = () => {
@@ -93,68 +89,55 @@ function doubleCheck(
 
 type ButtonProps = {
   as?: React.ElementType;
+  /** Huet color classes, relative to the parent's background */
+  colors?: string;
+  className?: string;
   style?: React.CSSProperties;
   children?: React.ReactNode;
-  isActive?: boolean;
   verify?: boolean | string;
   onClick?: (event: React.MouseEvent) => void;
-} & Omit<ContrastProps, "as" | "style" | "children" | "onClick">;
+} & Omit<React.AllHTMLAttributes<HTMLElement>, "as" | "className" | "style" | "children" | "onClick">;
 
 export default function Button({
-  as = "button",
-  style,
+  as: As = "button",
+  colors = "huet-bg-12",
+  className,
   children,
-  isActive,
   verify,
   onClick,
   ...rest
 }: ButtonProps) {
   return (
-    <Contrast
-      as={as}
-      bgRamp={isActive ? "blue" : "null"}
-      bg={12}
-      text={100}
+    <As
       onClick={doubleCheck(verify, onClick)}
       {...rest}
-      style={{
-        ...inputStyle,
-        borderColor: "transparent",
-        ...__.flex.justify_center.items_center,
-        ...style,
-      }}
+      className={cx(
+        inputClass,
+        "hc:w-full hc:border-transparent hc:cursor-default hc:flex hc:justify-center hc:items-center",
+        colors,
+        className,
+      )}
     >
       {children}
-    </Contrast>
+    </As>
   );
 }
 
 export function TextButton({
-  as = "button",
   onClick,
-  style,
+  className,
   verify,
   ...rest
 }: {
-  as?: React.ElementType;
   onClick?: (event: React.MouseEvent) => void;
-  style?: React.CSSProperties;
+  className?: string;
   verify?: boolean | string;
-} & Omit<React.ComponentProps<typeof Block>, "as" | "onClick" | "style">) {
+} & Omit<React.ButtonHTMLAttributes<HTMLButtonElement>, "onClick" | "className">) {
   return (
-    <Block
-      as={as}
-      base="blue"
-      style={{
-        backgroundColor: "transparent",
-        padding: 0,
-        border: 0,
-        textDecoration: "underline",
-        cursor: "pointer",
-        ...style,
-      }}
-      onClick={doubleCheck(verify, onClick)}
+    <button
       {...rest}
+      className={cx("hc:underline hc:cursor-pointer", className)}
+      onClick={doubleCheck(verify, onClick)}
     />
   );
 }

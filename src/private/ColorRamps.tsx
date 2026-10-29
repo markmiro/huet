@@ -2,12 +2,12 @@ import chroma from "chroma-js";
 import _ from "lodash";
 import React from "react";
 
-import Block from "../Block";
 import { getLightness } from "../Color";
 import type { Ramp } from "../colorModel";
 import type Theme from "../Theme";
-import __ from "./atoms";
-import { useTheme } from "../reactContexts";
+
+// Ramp gradients and markers show the theme's own colors, which no Huet class
+// expresses, so those are inline. Everything else uses classes.
 
 function RampColorMarker({
   color,
@@ -21,21 +21,15 @@ function RampColorMarker({
     (getLightness(color) - (grayRamp.startL ?? 0)) /
     ((grayRamp.endL ?? 0) - (grayRamp.startL ?? 0));
   return (
-    <Block
-      style={(parentBg) => ({
-        ...__.absolute.ba.w1.h1,
-        borderColor: parentBg.contrast(0).alpha(0.3),
-        outlineColor: parentBg.contrast(100).alpha(0.3),
+    <div
+      // Background and foreground at 30% (scaled by contrast, like Color.alpha)
+      className="hc:absolute hc:border hc:border-[color-mix(in_srgb,var(--huet-background)_calc(30%*var(--huet-configurator-contrast,1)),transparent)] hc:outline hc:outline-[color-mix(in_srgb,var(--huet-foreground)_calc(30%*var(--huet-configurator-contrast,1)),transparent)] hc:-outline-offset-2 hc:top-1/2 hc:-translate-y-1/2"
+      style={{
         backgroundColor: color || "transparent",
-        outlineWidth: 1,
-        outlineOffset: "-2px",
-        outlineStyle: "solid",
         width: size,
         height: size,
-        top: "50%",
         left: `calc(${l * 100}% - ${size} * ${l})`,
-        transform: "translateY(-50%)",
-      })}
+      }}
     />
   );
 }
@@ -63,12 +57,12 @@ const InnerRamp = React.memo(function InnerRamp({ ramp }: { ramp?: Ramp }) {
   switch (type) {
     case "classes":
       return (
-        <div style={__.br1.h100.w100.flex}>
+        <div className="hc:rounded-xs hc:h-full hc:w-full hc:flex">
           {pairs(ramp).map(([first = 0, second = 0], i) => (
             <div
               key={i}
+              className="hc:h-full"
               style={{
-                ...__.h100,
                 backgroundColor: chroma.lab(...ramp((first + second) / 2)).hex(),
                 width: `${(second - first) * 100}%`,
               }}
@@ -80,8 +74,8 @@ const InnerRamp = React.memo(function InnerRamp({ ramp }: { ramp?: Ramp }) {
     default:
       return (
         <div
+          className="hc:rounded-xs hc:h-full hc:w-full"
           style={{
-            ...__.br1.h100.w100,
             background: `linear-gradient(to right, ${_.range(0, 1.2, 0.2)
               .map((i) => chroma.lab(...ramp(i)).hex())
               .join(",")})`,
@@ -94,13 +88,13 @@ const InnerRamp = React.memo(function InnerRamp({ ramp }: { ramp?: Ramp }) {
 function ColorRamp({ ramp, theme }: { ramp: Ramp; theme: Theme }) {
   return (
     <div
+      className="hc:flex hc:w-full hc:flex-row hc:h-4 hc:mb-2"
       style={{
-        ...__.flex.w100.flex_row.h1.mb2,
         marginLeft: `${ramp.startL}%`,
         width: `${(ramp.endL ?? Number.NaN) - (ramp.startL ?? Number.NaN)}%`,
       }}
     >
-      <div style={__.w100.relative.flex}>
+      <div className="hc:w-full hc:relative hc:flex">
         <InnerRamp ramp={ramp} />
         {ramp.config.colors.map((color, i) => (
           <RampColorMarker
@@ -114,19 +108,10 @@ function ColorRamp({ ramp, theme }: { ramp: Ramp; theme: Theme }) {
   );
 }
 
-export default function ColorRamps() {
-  const theme = useTheme();
+export default function ColorRamps({ theme }: { theme: Theme }) {
   return (
-    <div style={__.w100}>
-      <Block
-        contrast="b=10"
-        style={{
-          height: "4px",
-          marginBottom: 6,
-          background: "linear-gradient(to right, black, white)",
-          ...__.w100,
-        }}
-      />
+    <div className="hc:w-full">
+      <div className="huet-border-10 hc:h-[4px] hc:mb-[6px] hc:w-full hc:bg-[linear-gradient(to_right,black,white)]" />
       {Object.keys(theme.ramps).map((key) => (
         <ColorRamp key={key} ramp={theme.ramps[key]} theme={theme} />
       ))}
