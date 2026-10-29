@@ -249,6 +249,7 @@ images.update(paper);
 | `source` | Huet's default ramps | The theme the images are assumed to be in |
 | `hoverOriginal` | `false` | Show the original while the pointer is over the image |
 | `lutSize` | `17` | Size of the lookup table each theme is baked into |
+| `renderer` | `"gpu"` | `"gpu"` renders with WebGL2 and falls back to the CPU without it; `"cpu"` always uses the CPU. `hasGpu()` tells you which one `"gpu"` gets |
 
 Images whose original hasn't been recolored yet are hidden (`visibility: hidden`, so layout doesn't shift) until the recolored copy is ready to paint, so the original never flashes. Theme updates keep showing the previous recolored image until the new one is ready. Once an image is handled, it gets `data-huet-recolored`, set to `"original"` if it couldn't be read. Server-rendered pages can paint images before the script runs; to hide them from the first paint while mounted, add:
 
@@ -267,7 +268,7 @@ For canvases, video frames, or your own pipeline, use the lower-level functions:
 - `coordinatesOf` / `rampColor` read a pixel's ramp coordinates, or the color at a coordinate.
 - `paletteOf(theme)` converts a `createTheme` result into the palette these functions take.
 
-The [image recolor demo](https://markmiro.github.io/huet/recolor.html) (`/recolor.html`) compares renderers and themes.
+The [image recolor demo](https://markmiro.github.io/huet/recolor.html) (`/recolor.html`) compares renderers and themes. The example demos' [Images page](https://markmiro.github.io/huet/images.html) (`/images`) recolors a photo and screenshot gallery into whichever theme you pick in the theme configurator.
 
 React, Vue, Svelte, and Astro lifecycle examples are in [framework integration](docs/frameworks.md). Portals and shadow roots require independent mounts. The DOM adapter runs only in a browser; SSR can compute colors through `theme.relative` and emit matching styles before mounting.
 

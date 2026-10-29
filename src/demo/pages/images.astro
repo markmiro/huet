@@ -1,0 +1,175 @@
+---
+import Section from "../components/Section.astro";
+import Demo from "../layouts/Demo.astro";
+import { images } from "../recolor/data";
+import { emojiRows } from "../recolor/emoji";
+
+const unsplash = (kind: string) =>
+  images.filter((image) => image.group === "unsplash" && image.kind === kind);
+const galleries = [
+  {
+    title: "Faces",
+    note: "Simple portraits from Unsplash: plain backgrounds, soft light",
+    images: unsplash("face"),
+    fit: "object-cover object-top aspect-[4/5]",
+  },
+  {
+    title: "Macro",
+    note: "Close-ups from Unsplash: fine texture and smooth transitions",
+    images: unsplash("macro"),
+    fit: "object-cover aspect-[4/3]",
+  },
+  {
+    title: "Photos",
+    note: "Everyday scenes from Unsplash: depth, haze, mid tones, light and dark",
+    images: unsplash("scene"),
+    fit: "object-cover aspect-[4/3]",
+  },
+  {
+    title: "Screenshots",
+    note: "Project thumbnails from markmiro.com",
+    images: images.filter((image) => image.group === "markmiro"),
+    fit: "object-contain aspect-[4/3]",
+  },
+];
+const sliders = [
+  { name: "strength", label: "Strength", value: 100, title: "0 keeps the original, 100% fully adopts the theme" },
+  { name: "tint", label: "Neutral tint on colors", value: 0, title: "How much the neutral ramp's tint also shifts saturated colors" },
+];
+const selects = [
+  { name: "renderer", label: "Renderer", value: "gpu", options: [["gpu", "GPU · WebGL2"], ["cpu", "CPU"]] },
+  { name: "lutSize", label: "LUT size", value: "17", options: [["17", "17³"], ["33", "33³"], ["65", "65³"]] },
+];
+const selectClass = "huet-border-25 block w-full rounded-xs border bg-transparent px-2 py-1";
+---
+<Demo title="Images">
+  <div class="mx-auto max-w-[70em] p-8">
+    <h1 data-theme-name class="my-[0.67em] border-b-[.125em] pb-1 text-5xl font-bold">&nbsp;</h1>
+    <p class="huet-text-50 max-w-[40em]">
+      Every image here is recolored into the theme you pick in the configurator, using
+      <code class="huet-bg-6 rounded-xs px-1 font-mono">huet/images</code>. Grays follow the
+      theme's neutral ramp and colors follow its hues. Hover an image to see the original.
+    </p>
+    <div class="mt-6 grid max-w-[44em] grid-cols-2 gap-x-8 gap-y-4">
+      {sliders.map((slider) => (
+        <label class="block">
+          <span class="mb-1 flex justify-between">
+            {slider.label}
+            <span data-value={slider.name} class="huet-text-50">{slider.value}%</span>
+          </span>
+          <input
+            data-option={slider.name}
+            type="range"
+            min="0"
+            max="100"
+            value={slider.value}
+            title={slider.title}
+            class="block w-full accent-current"
+          />
+        </label>
+      ))}
+      {selects.map((select) => (
+        <label class="block">
+          <span class="mb-1 block">{select.label}</span>
+          <select data-option={select.name} class={selectClass}>
+            {select.options.map(([value, text]) => (
+              <option value={value} selected={value === select.value}>{text}</option>
+            ))}
+          </select>
+        </label>
+      ))}
+    </div>
+    <p data-renderer-status class="huet-text-50 mt-2 text-sm">&nbsp;</p>
+
+    <Section title="Emoji">
+      <p class="huet-text-50 -mt-12 mb-6 text-sm">
+        Drawn by your system's emoji font into a transparent canvas, then recolored like any image
+      </p>
+      <div class="grid grid-cols-[repeat(auto-fill,minmax(4em,1fr))] gap-2">
+        {emojiRows.flat().map((emoji) => (
+          <img
+            data-huet-recolor
+            data-emoji={emoji}
+            alt={emoji}
+            width="96"
+            height="96"
+            class="huet-bg-5 block aspect-square w-full rounded p-1"
+          />
+        ))}
+      </div>
+    </Section>
+
+    {galleries.map((gallery) => (
+      <Section title={gallery.title}>
+        <p class="huet-text-50 -mt-12 mb-6 text-sm">{gallery.note}</p>
+        <div class="grid grid-cols-[repeat(auto-fill,minmax(14em,1fr))] gap-4">
+          {gallery.images.map((image) => (
+            <figure class="huet-bg-5 huet-border-10 overflow-hidden rounded border">
+              <img
+                data-huet-recolor
+                src={image.url}
+                alt={image.title}
+                loading="lazy"
+                class={`block w-full ${gallery.fit}`}
+              />
+              <figcaption class="flex items-center justify-between gap-2 p-2 text-sm">
+                <span class="truncate">{image.title}</span>
+                <a href={image.source} class="huet-text-blue-100 shrink-0 underline">Source</a>
+              </figcaption>
+            </figure>
+          ))}
+        </div>
+      </Section>
+    ))}
+  </div>
+</Demo>
+
+<style is:global>
+  /* Hide originals until their recolored copy is ready. */
+  img[data-huet-recolor]:not([data-huet-recolored]) {
+    visibility: hidden;
+  }
+</style>
+
+<script>
+  import { hasGpu, mountImages, type ImageOptions } from "../../core/images";
+  import { themeFromConfig } from "../../core/fromConfig";
+  import { subscribeTheme } from "../components/themeStore";
+  import { emojiSheet } from "../recolor/emoji";
+
+  // Emoji are font glyphs, so draw each one into an image first.
+  for (const img of document.querySelectorAll<HTMLImageElement>("img[data-emoji]"))
+    img.src = emojiSheet([[img.dataset.emoji!]]);
+
+  const page = document.querySelector<HTMLElement>("#page")!;
+  const control = (name: string) =>
+    document.querySelector<HTMLInputElement | HTMLSelectElement>(`[data-option="${name}"]`)!;
+  const status = document.querySelector("[data-renderer-status]")!;
+  let images: ReturnType<typeof mountImages> | undefined;
+  let theme: ReturnType<typeof themeFromConfig> | undefined;
+
+  const options = (): ImageOptions => ({
+    strength: Number(control("strength").value) / 100,
+    tint: Number(control("tint").value) / 100,
+    renderer: control("renderer").value as "gpu" | "cpu",
+    lutSize: Number(control("lutSize").value),
+  });
+  const showStatus = ({ renderer, lutSize }: ImageOptions) => {
+    const where = renderer === "cpu" ? "the CPU" : hasGpu() ? "the GPU (WebGL2)" : "the CPU (WebGL2 isn't available)";
+    status.textContent = `Rendering on ${where} through a ${lutSize}³ lookup table.`;
+  };
+
+  subscribeTheme((config) => {
+    theme = themeFromConfig(config);
+    if (images) images.update(theme, options());
+    else images = mountImages(page, theme, { ...options(), hoverOriginal: true });
+  });
+  for (const name of ["strength", "tint", "renderer", "lutSize"])
+    control(name).addEventListener("input", () => {
+      const value = document.querySelector(`[data-value="${name}"]`);
+      if (value) value.textContent = `${control(name).value}%`;
+      showStatus(options());
+      if (images && theme) images.update(theme, options());
+    });
+  showStatus(options());
+</script>
