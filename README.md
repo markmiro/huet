@@ -119,7 +119,7 @@ This bridge clears Tailwind's color namespace and keeps layout/spacing utilities
 
 ## Shared colors and theme updates
 
-JavaScript is the source of truth. Endpoints and semantic overrides accept opaque `#rgb` or `#rrggbb`. `background` is an OKLab position from 0 to 1. `contrast` is a global multiplier from 0 to 1 for the new relative classes; it preserves enabled color choices and fades them together.
+JavaScript is the source of truth. Endpoints, neutral ramp stops, and semantic overrides accept opaque `#rgb` or `#rrggbb`. `background` is a position from 0 to 1 along the neutral ramp (OKLab unless you choose another [color model](#multi-hue-ramps)). `contrast` is a global multiplier from 0 to 1 for the new relative classes; it preserves enabled color choices and fades them together.
 
 ```ts
 const theme = createTheme({
@@ -141,6 +141,61 @@ colors.update(createTheme({ dark: "#233b91", contrast: 0.5 }));
 ```
 
 Read inherited CSS variables with `getComputedStyle()` when a chart needs the actual mounted colors. Directly editing variables does not rerun the solver; use `update()`.
+
+## Multi-hue ramps
+
+`dark` and `light` make a straight OKLab ramp. A theme like Sunset (navy to yellow) loses its in-between hues on that line, and its midtones turn muddy. To change that, pass a `neutral` ramp, which has the same shape as the legacy React `ramps.gray` config. `colors` lists the stops, darkest first. `colorModel` sets how to interpolate between them. Hue-based models such as `hcl` travel around the hue wheel:
+
+```ts
+import { createTheme, mountTheme } from "huet/core";
+import "huet/styles.css";
+
+// Sunset: navy → purple → pink → orange → yellow
+const sunset = createTheme({
+  neutral: { colors: ["#242744", "#ffe173"], colorModel: "hcl" },
+  background: 0,
+});
+
+// Astro: near-black → mauve → peach → white
+const astro = createTheme({
+  neutral: { colors: ["#040816", "#ffb980", "#ffffff"], colorModel: "hcl" },
+  background: 0,
+});
+
+const colors = mountTheme(document.querySelector<HTMLElement>("#app")!, sunset);
+colors.update(astro); // switch themes later without rerendering
+```
+
+```html
+<div id="app">
+  <section class="huet-bg-30">
+    <h2>Mauve panel</h2>
+    <p class="huet-text-60">Secondary text is tinted along the same ramp.</p>
+    <aside class="huet-bg-50">A warmer callout, relative to the panel</aside>
+  </section>
+</div>
+```
+
+You keep using the same classes. Only the theme changes. The ramp affects:
+
+- the root `background` position
+- every neutral class (no ramp name, or `gray`): `huet-bg-30`, `huet-text-60`, `huet-bg/border-40`, …
+- the preset `foreground`, `muted`, and `border` tokens, plus `huet-surface-N` surfaces that start on the ramp
+
+Neutral classes sample this ramp even inside colored surfaces. Semantic ramps (`red`, `blue`, …) keep their own hue.
+
+| `colorModel` | Path between stops |
+| --- | --- |
+| `oklab` (default), `lab`, `lrgb`, `rgb` | Straight line. Hues blend through gray when they are far apart. |
+| `hcl` / `lch`, `oklch`, `hsl`, `hsv`, `hsi` | Around the hue wheel, keeping colors saturated in the middle |
+
+Pass either `neutral` or `dark`/`light`, not both. The first and last stops become `theme.dark` and `theme.light`. Themes without `neutral` produce the same output as earlier releases. `theme.ramp(t)` returns the hex color at any position (0–1), which is useful for drawing a matching gradient or chart scale:
+
+```ts
+const gradient = `linear-gradient(to right, ${Array.from({ length: 17 }, (_, i) => astro.ramp(i / 16)).join(", ")})`;
+```
+
+To port a legacy React theme, replace each name in `ramps.gray.colors` with its `pallet` hex value (Astro's `["black", "gray", "white"]` becomes `["#040816", "#ffb980", "#ffffff"]`), then keep `colorModel` as is. See [multi-hue ramps](docs/color-models.md) for before/after screenshots. The lab demo (`/lab.html`) includes Sunset and Astro presets, a middle-stop control, and a color-model picker.
 
 React, Vue, Svelte, and Astro lifecycle examples are in [framework integration](docs/frameworks.md). Portals and shadow roots require independent mounts. The DOM adapter runs only in a browser; SSR can compute colors through `theme.relative` and emit matching styles before mounting.
 
