@@ -1,26 +1,24 @@
 import React from "react";
 
-import Block from "../Block";
-import __ from "./atoms";
+import cx from "./cx";
 
+// Gaps on the old atoms spacing scale: 1, 2, 3 = .25, .5, 1rem
+const marginLeft = { 1: "hc:ml-1", 2: "hc:ml-2", 3: "hc:ml-4" } as const;
+const marginTop = { 1: "hc:mt-1", 2: "hc:mt-2", 3: "hc:mt-4" } as const;
+type Size = keyof typeof marginLeft;
+
+/** Wraps each child, adding `exceptFirst` to every wrapper but the first. */
 export default function AllExceptFirst({
-  styleExcept,
-  styleEach,
+  exceptFirst,
+  each,
   children,
 }: {
-  styleExcept?: React.CSSProperties | null;
-  styleEach?: React.CSSProperties | null;
+  exceptFirst?: string;
+  each?: string;
   children?: React.ReactNode;
 }) {
   return React.Children.map(children, (child, i) => (
-    <Block
-      style={{
-        ...(i > 0 ? styleExcept ?? undefined : undefined),
-        ...styleEach,
-      }}
-    >
-      {child}
-    </Block>
+    <div className={cx(i > 0 && exceptFirst, each) || undefined}>{child}</div>
   ));
 }
 
@@ -28,20 +26,18 @@ export function HSpace({
   size = 1,
   growEach,
   children,
-  style,
   className,
 }: {
-  size?: number | string;
+  size?: Size;
   growEach?: boolean;
   children?: React.ReactNode;
-  style?: React.CSSProperties;
   className?: string;
 }) {
   return (
-    <div className={className} style={{ ...__.flex.flex_row, ...style }}>
+    <div className={cx("hc:flex hc:flex-row", className)}>
       <AllExceptFirst
-        styleEach={growEach ? { flexGrow: 1 } : null}
-        styleExcept={__["ml" + size]}
+        each={growEach ? "hc:grow" : undefined}
+        exceptFirst={marginLeft[size]}
       >
         {children}
       </AllExceptFirst>
@@ -52,17 +48,15 @@ export function HSpace({
 export function VSpace({
   size = 1,
   children,
-  style,
   className,
 }: {
-  size?: number | string;
+  size?: Size;
   children?: React.ReactNode;
-  style?: React.CSSProperties;
   className?: string;
 }) {
   return (
-    <div className={className} style={{ ...__.flex.flex_column, ...style }}>
-      <AllExceptFirst styleExcept={__["mt" + size]}>{children}</AllExceptFirst>
+    <div className={cx("hc:flex hc:flex-col", className)}>
+      <AllExceptFirst exceptFirst={marginTop[size]}>{children}</AllExceptFirst>
     </div>
   );
 }

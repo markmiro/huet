@@ -1,45 +1,35 @@
-import React from "react";
-
-import Contrast from "../Contrast";
-import __ from "./atoms";
+import cx from "./cx";
 
 export default function Checkbox({
   label,
   value,
   onChange,
-  style,
   className,
-  contrast,
 }: {
   label?: string;
   value?: boolean;
   onChange?: (checked: boolean) => void;
-  style?: React.CSSProperties;
   className?: string;
-  contrast?: number;
 }) {
   return (
-    <Contrast
-      as="label"
-      className={className}
-      style={{
-        ...__.inline_flex.relative,
-        cursor: "default",
-        ...style,
-      }}
-      text={contrast}
+    <label
+      className={cx(
+        "huet-text-100 hc:inline-flex hc:relative hc:cursor-default",
+        className,
+      )}
     >
+      {/* Invisible (the reset removes its appearance) but covers the label */}
       <input
         aria-label={label}
         type="checkbox"
         checked={value}
         onChange={(event) => onChange?.(event.target.checked)}
-        style={__.absolute.top0.left0.w100.h100}
+        className="hc:absolute hc:top-0 hc:left-0 hc:w-full hc:h-full"
       />
-      <span style={{ ...__.mr1, fontSize: "1.25em", lineHeight: 1 }}>
+      <span className="hc:mr-1 hc:text-[1.25em] hc:leading-none">
         {value ? "☒" : "☐"}
       </span>
-      <div>{label}</div>
-    </Contrast>
+      <span>{label}</span>
+    </label>
   );
 }

@@ -1,4 +1,5 @@
 /// <reference types="vitest/config" />
+import tailwindcss from "@tailwindcss/vite";
 import react from "@vitejs/plugin-react";
 import { defineConfig } from "vite";
 import dts from "vite-plugin-dts";
@@ -14,6 +15,8 @@ export default defineConfig(({ mode }) => {
     return {
       plugins: [
         react(),
+        // Compiles src/configurator.css, which the configurator inlines
+        tailwindcss(),
         dts({
           bundleTypes: false,
           tsconfigPath: "./tsconfig.build.json",

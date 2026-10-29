@@ -213,7 +213,7 @@ import { ThemeConfigurator } from "huet";
 <ThemeConfigurator target="#app" onThemeChange={(config) => console.log(config.name)} />
 ```
 
-The target must not contain the configurator. Inside a legacy `<Body>`, the panel edits Body's theme instead. The demo site (`npm run dev`) is built with Astro: its pages use Tailwind for layout and Huet classes for color, and the configurator is a React island (`src/demo/layouts/Demo.astro`).
+The panel renders into its own `<div data-huet-configurator>` on `document.body` and injects its own scoped, `hc:`-prefixed styles, so it needs no CSS import. The page's element selectors and its own Tailwind (layered or prefixed differently) don't reach it, though more specific page selectors such as `#app button` still can. Because that container is in `body`, the target can't be `body` or `html`. Inside a legacy `<Body>`, the panel edits Body's theme instead. The demo site (`npm run dev`) is built with Astro: its pages use Tailwind for layout and Huet classes for color, and the configurator is a React island (`src/demo/layouts/Demo.astro`).
 
 React, Vue, Svelte, and Astro lifecycle examples are in [framework integration](docs/frameworks.md). Portals and shadow roots require independent mounts. The DOM adapter runs only in a browser; SSR can compute colors through `theme.relative` and emit matching styles before mounting.
 

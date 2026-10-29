@@ -1,27 +1,20 @@
 import React, { useEffect, useState } from "react";
 
-import Block from "../Block";
-import type Color from "../Color";
-import __ from "./atoms";
-import { PANEL_INSET, themerClass } from "./styles";
+import cx from "./cx";
 import usePersistentState, { asBoolean, useIsSaving } from "./persistentState";
 
 function BrowserStateActivity() {
   const isSaving = useIsSaving();
   return (
-    <Block
-      base="green"
-      contrast="bg=25"
-      style={{
-        ...__.di.br3.ph2,
-        fontWeight: "normal",
-        transitionProperty: "opacity",
-        transitionDuration: "400ms",
-        opacity: isSaving ? 0 : 1,
-      }}
+    <span
+      className={cx(
+        "huet-bg-green-25 huet-bg/text-green-100 hc:inline hc:rounded-lg hc:px-2 hc:font-normal",
+        "hc:transition-opacity hc:duration-400 hc:ease-[ease]",
+        isSaving ? "hc:opacity-0" : "hc:opacity-100",
+      )}
     >
       Saved
-    </Block>
+    </span>
   );
 }
 
@@ -33,38 +26,39 @@ function TitleBar({
   onClick: () => void;
 }) {
   return (
-    <Block
-      as="button"
+    <button
       onClick={onClick}
       aria-expanded={isExpanded}
       title={isExpanded ? "Collapse" : "Expand"}
-      contrast="bg=100"
-      style={{
-        ...__.w100.db.flex.justify_between,
-        flexShrink: 0,
-        userSelect: "none",
-      }}
+      className="huet-bg-100 hc:w-full hc:flex hc:justify-between hc:shrink-0 hc:select-none"
     >
-      <div style={__.pv2.ph2.b}>
+      <span className="hc:py-2 hc:px-2 hc:font-bold">
         Huet Theme Configurator {isExpanded && <BrowserStateActivity />}
-      </div>
+      </span>
       {/* Docked at the bottom: collapse down into the corner, expand up out of it */}
-      <Block contrast="bg=25" style={__.flex.justify_center.items_center.ph3.b}>
+      <span className="huet-bg-25 hc:flex hc:justify-center hc:items-center hc:px-4 hc:font-bold">
         {isExpanded ? "↓" : "↑"}
-      </Block>
-    </Block>
+      </span>
+    </button>
   );
 }
 
-// Fits the Edit Theme tab without scrolling on most screens
-const PANEL_HEIGHT = "64em";
-
-const shadowBorderStyle = (parentBg: Color) => ({
-  boxShadow: `0 5px 30px ${parentBg.contrast(100).alpha(0.125)}`,
-  outlineWidth: 1,
-  outlineStyle: "solid" as const,
-  outlineColor: parentBg.contrast(25),
-});
+// Docked 1em (12px) from the viewport's bottom-right corner. The 1px outline
+// is the parent's 25% contrast. The shadow is 12.5% of the foreground, scaled
+// by the theme's contrast like the old `Color.alpha()`.
+const panelClass = cx(
+  "huet-outline-25 hc:fixed hc:right-[1em] hc:bottom-[1em] hc:z-[999]",
+  "hc:font-ui hc:text-[.75rem] hc:outline",
+  "hc:transition-[opacity,translate,height] hc:duration-200 hc:ease-[ease-out]",
+);
+const shadow = {
+  // Has a background, so its own foreground is set
+  expanded:
+    "hc:shadow-[0_5px_30px_color-mix(in_srgb,var(--huet-foreground)_calc(12.5%*var(--huet-configurator-contrast,1)),transparent)]",
+  // No background: `huet-text-100` sets the same color as --huet-relative-text
+  collapsed:
+    "hc:shadow-[0_5px_30px_color-mix(in_srgb,var(--huet-relative-text)_calc(12.5%*var(--huet-configurator-contrast,1)),transparent)]",
+};
 
 export default function ThemerShell({
   children,
@@ -82,27 +76,25 @@ export default function ThemerShell({
 
   if (!isExpanded) {
     return (
-      <Block className={themerClass} style={shadowBorderStyle}>
+      <div className={cx(panelClass, "huet-text-100", shadow.collapsed)}>
         <TitleBar onClick={() => setIsExpanded((value) => !value)} />
-      </Block>
+      </div>
     );
   }
 
   return (
-    <Block
-      contrast="bg=0"
-      className={themerClass}
-      style={(parentBg) => ({
-        ...__.flex.flex_column,
+    <div
+      className={cx(
+        panelClass,
+        "huet-bg-0",
+        shadow.expanded,
         // Fixed so the panel doesn't jump when switching tabs; tab content scrolls
-        height: `min(${PANEL_HEIGHT}, 100vh - 2 * ${PANEL_INSET})`,
-        ...shadowBorderStyle(parentBg),
-        transform: isMounted ? "translateY(0)" : "translateY(2em)",
-        opacity: isMounted ? 1 : 0,
-      })}
+        "hc:flex hc:flex-col hc:h-[min(64em,100vh-2em)]",
+        isMounted ? "hc:translate-y-0 hc:opacity-100" : "hc:translate-y-[2em] hc:opacity-0",
+      )}
     >
       <TitleBar isExpanded onClick={() => setIsExpanded((value) => !value)} />
       {children}
-    </Block>
+    </div>
   );
 }

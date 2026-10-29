@@ -1,10 +1,8 @@
 import React, { useEffect, useMemo, useState } from "react";
 
-import Block from "../Block";
-import Contrast from "../Contrast";
-import __ from "./atoms";
+import cx from "./cx";
+import { inputClass } from "./inputClass";
 import Labeled from "./Labeled";
-import { inputStyle, maxInputWidthStyle, rangeClass } from "./styles";
 
 export default function Range({
   label,
@@ -13,8 +11,7 @@ export default function Range({
   decimals = 0,
   value,
   onChange,
-  className = "",
-  style,
+  className,
   hideInput = false,
 }: {
   label?: React.ReactNode;
@@ -24,7 +21,6 @@ export default function Range({
   value: number;
   onChange?: (value: number) => void;
   className?: string;
-  style?: React.CSSProperties;
   hideInput?: boolean;
 }) {
   const step = 1 / 10 ** decimals;
@@ -65,15 +61,12 @@ export default function Range({
 
   const labelBody = useMemo(
     () => (
-      <div style={__.flex.justify_between}>
+      <span className="hc:flex hc:justify-between">
         {label}
-        <Contrast
-          text={isOutOfRange ? 100 : 50}
-          textRamp={isOutOfRange ? "red" : null}
-        >
+        <span className={isOutOfRange ? "huet-text-red-100" : "huet-text-50"}>
           ({min.toFixed(decimals)}-{max.toFixed(decimals)})
-        </Contrast>
-      </div>
+        </span>
+      </span>
     ),
     [label, isOutOfRange, decimals, min, max]
   );
@@ -81,27 +74,21 @@ export default function Range({
   return (
     <Labeled
       label={label && labelBody}
-      className={className}
-      style={{ ...__.flex.flex_column, ...maxInputWidthStyle, ...style }}
+      className={cx("hc:flex hc:flex-col hc:max-w-[30em]", className)}
       onKeyDown={handleKey}
     >
-      <div style={__.flex.items_center}>
+      <span className="hc:flex hc:items-center">
         {!hideInput && (
-          <Block
+          <input
             aria-hidden
-            base={isOutOfRange ? "red" : null}
-            contrast={isOutOfRange ? "b=100 bg=12" : "b=20"}
-            as="input"
             type="number"
-            style={{
-              ...inputStyle,
-              color: "inherit",
-              background: "transparent",
-              width: "5em",
-              fontSize: "inherit",
-              cursor: "initial",
-              ...__.mr2.ba,
-            }}
+            className={cx(
+              isOutOfRange
+                ? "huet-border-red-100 huet-bg-red-12 huet-bg/text-red-100"
+                : "huet-border-20",
+              inputClass,
+              "hc:w-[5em] hc:mr-2 hc:cursor-auto",
+            )}
             value={stringNumber}
             step={step}
             onFocus={() => setIsTyping(true)}
@@ -109,23 +96,17 @@ export default function Range({
             onChange={handleInputChange}
           />
         )}
-        <Block
-          as="input"
-          contrast="b=20"
+        <input
           aria-label={typeof label === "string" ? label : undefined}
           type="range"
-          className={rangeClass}
-          style={{
-            ...inputStyle,
-            ...__.self_stretch,
-          }}
+          className={cx("huet-border-20", inputClass, "hc:w-full hc:self-stretch hc:cursor-default")}
           min={min}
           max={max}
           step={step}
           value={value}
           onChange={handleRangeChange}
         />
-      </div>
+      </span>
     </Labeled>
   );
 }
