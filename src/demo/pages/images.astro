@@ -2,6 +2,7 @@
 import Section from "../components/Section.astro";
 import Demo from "../layouts/Demo.astro";
 import { images } from "../recolor/data";
+import { emojiRows } from "../recolor/emoji";
 
 const galleries = [
   {
@@ -40,6 +41,24 @@ const galleries = [
       />
     </label>
 
+    <Section title="Emoji">
+      <p class="huet-text-50 -mt-12 mb-6 text-sm">
+        Drawn by your system's emoji font into a transparent canvas, then recolored like any image
+      </p>
+      <div class="grid grid-cols-[repeat(auto-fill,minmax(4em,1fr))] gap-2">
+        {emojiRows.flat().map((emoji) => (
+          <img
+            data-huet-recolor
+            data-emoji={emoji}
+            alt={emoji}
+            width="96"
+            height="96"
+            class="huet-bg-5 block aspect-square w-full rounded p-1"
+          />
+        ))}
+      </div>
+    </Section>
+
     {galleries.map((gallery) => (
       <Section title={gallery.title}>
         <p class="huet-text-50 -mt-12 mb-6 text-sm">{gallery.note}</p>
@@ -76,6 +95,11 @@ const galleries = [
   import { mountImages } from "../../core/images";
   import { themeFromConfig } from "../../core/fromConfig";
   import { subscribeTheme } from "../components/themeStore";
+  import { emojiSheet } from "../recolor/emoji";
+
+  // Emoji are font glyphs, so draw each one into an image first.
+  for (const img of document.querySelectorAll<HTMLImageElement>("img[data-emoji]"))
+    img.src = emojiSheet([[img.dataset.emoji!]]);
 
   const page = document.querySelector<HTMLElement>("#page")!;
   const strength = document.querySelector<HTMLInputElement>("[data-strength]")!;

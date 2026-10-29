@@ -24,3 +24,16 @@ test("images follow the configurator's theme", async ({ page }) => {
     .toBe(true);
   expect(errors).toEqual([]);
 });
+
+test("emoji are drawn into images and recolored", async ({ page }) => {
+  await page.goto("/images");
+  const emoji = page.locator("img[data-emoji]");
+  await expect(emoji).toHaveCount(60);
+  await expect
+    .poll(
+      () => emoji.evaluateAll((els) => (els as HTMLImageElement[]).every((img) => img.src.startsWith("blob:"))),
+      { timeout: 30_000 },
+    )
+    .toBe(true);
+  await expect(emoji.first()).toHaveAttribute("alt", "🌸");
+});
