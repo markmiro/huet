@@ -4,11 +4,25 @@ import Demo from "../layouts/Demo.astro";
 import { images } from "../recolor/data";
 import { emojiRows } from "../recolor/emoji";
 
+const unsplash = (kind: string) =>
+  images.filter((image) => image.group === "unsplash" && image.kind === kind);
 const galleries = [
   {
+    title: "Faces",
+    note: "Simple portraits from Unsplash: plain backgrounds, soft light",
+    images: unsplash("face"),
+    fit: "object-cover object-top aspect-[4/5]",
+  },
+  {
+    title: "Macro",
+    note: "Close-ups from Unsplash: fine texture and smooth transitions",
+    images: unsplash("macro"),
+    fit: "object-cover aspect-[4/3]",
+  },
+  {
     title: "Photos",
-    note: "From Unsplash",
-    images: images.filter((image) => image.group === "unsplash"),
+    note: "Everyday scenes from Unsplash: depth, haze, mid tones, light and dark",
+    images: unsplash("scene"),
     fit: "object-cover aspect-[4/3]",
   },
   {

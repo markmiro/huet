@@ -5,8 +5,9 @@ test("recolors every image through a theme LUT without errors", async ({ page })
   page.on("pageerror", (e) => errors.push(e.message));
   await page.goto("/recolor.html");
   await expect(page.locator("#metrics")).toContainText("wall clock", { timeout: 60_000 });
-  // 11 Unsplash photos, 4 markmiro.com screenshots and the emoji sheet.
-  await expect(page.locator(".card canvas")).toHaveCount(16);
+  // 20 Unsplash photos (3 faces, 6 macro, 11 scenes), 4 markmiro.com
+  // screenshots and the emoji sheet.
+  await expect(page.locator(".card canvas")).toHaveCount(25);
   // Emoji are rasterized from the system font into a transparent sheet.
   const emoji = page.locator("#emoji .pair canvas");
   await expect(emoji).toHaveCount(1);
