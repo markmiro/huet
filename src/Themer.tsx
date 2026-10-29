@@ -21,7 +21,6 @@ import baseThemeConfig from "./private/baseThemeConfig";
 import usePersistentState, {
   asBoolean,
   asOneOf,
-  reset,
 } from "./private/persistentState";
 
 const baseTheme = new Theme(baseThemeConfig);
@@ -191,15 +190,6 @@ export default function Themer() {
                 value={shouldThemeSelf}
                 onChange={setShouldThemeSelf}
               />
-              <Button
-                bg={100}
-                bgRamp="red"
-                textRamp="white"
-                onClick={reset}
-                verify
-              >
-                Clear Local Storage
-              </Button>
             </VSpace>
           </Block>
         </div>
