@@ -14,6 +14,8 @@ const items = [
   { title: "Yes", subtitle: "No" },
 ];
 const input = "block w-[20em] rounded border bg-transparent p-2";
+const focus = "focus-visible:outline-2 focus-visible:-outline-offset-2";
+const stepButton = `huet-bg-6 huet-outline-100 w-8 ${focus}`;
 const button =
   "mt-3 flex w-full max-w-[20em] items-center justify-center rounded p-2 text-center";
 ---
@@ -56,17 +58,29 @@ const button =
           <span class="mb-1 flex justify-between">
             Background contrast <span class="huet-text-50">(0-100)</span>
           </span>
-          <span class="flex gap-2">
+          <span class="flex items-center gap-3">
+            <span class="huet-border-25 flex overflow-hidden rounded-xs border">
+              <button type="button" data-contrast-step="-1" aria-label="Decrease background contrast" class={stepButton}>−</button>
+              <input
+                data-contrast-number
+                type="number"
+                min="0"
+                max="100"
+                value="100"
+                aria-label="Background contrast"
+                class={`stepper-input huet-border-25 huet-outline-100 w-12 border-x bg-transparent py-1 text-center ${focus}`}
+              />
+              <button type="button" data-contrast-step="1" aria-label="Increase background contrast" class={stepButton}>+</button>
+            </span>
             <input
-              data-contrast-number
-              type="number"
+              data-contrast-range
+              type="range"
               min="0"
               max="100"
               value="100"
-              aria-label="Background contrast"
-              class="huet-border-25 w-20 rounded-xs border bg-transparent px-2 py-1"
+              aria-label="Background contrast slider"
+              class="slider huet-border-25 huet-outline-100 flex-auto rounded-xs focus-visible:outline-2 focus-visible:outline-offset-4"
             />
-            <input data-contrast-range type="range" min="0" max="100" value="100" class="flex-auto accent-current" aria-label="Background contrast slider" />
           </span>
         </label>
         {items.map((item) => (
@@ -170,6 +184,7 @@ const button =
   // Selected items move onto the blue ramp, like <Block base="blue">.
   const render = () => {
     number.value = range.value = String(contrast);
+    range.style.setProperty("--fill", String(contrast / 100));
     for (const item of items) {
       const isSelected = read(`isSelected:${item.dataset.item}`, false) === true;
       const ramp = isSelected ? "blue-" : "";
@@ -187,6 +202,8 @@ const button =
   };
   number.addEventListener("input", () => setContrast(number.value));
   range.addEventListener("input", () => setContrast(range.value));
+  for (const button of root.querySelectorAll<HTMLButtonElement>("[data-contrast-step]"))
+    button.addEventListener("click", () => setContrast(String(contrast + Number(button.dataset.contrastStep))));
   for (const item of items)
     item.addEventListener("click", () => {
       const key = `isSelected:${item.dataset.item}`;
