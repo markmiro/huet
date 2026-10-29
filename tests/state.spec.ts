@@ -11,6 +11,8 @@ test("bad saved state falls back to defaults instead of crashing", async ({
     localStorage.setItem("huet:themes", "{not json");
     localStorage.setItem("huet:themer:currentTab", JSON.stringify(true));
     localStorage.setItem("huet:demo:page", JSON.stringify("missing"));
+    // A setting that no longer exists
+    localStorage.setItem("huet:themer:showHelp", JSON.stringify(true));
     localStorage.setItem("hostApp", "keep me");
   });
   await page.reload();
@@ -19,6 +21,7 @@ test("bad saved state falls back to defaults instead of crashing", async ({
   await expect(page.getByText("Import Theme")).toBeVisible();
   const keys = await page.evaluate(() => Object.keys(localStorage));
   expect(keys).not.toContain("useBrowserState_huet_0_");
+  expect(keys).not.toContain("huet:themer:showHelp");
   expect(keys).toContain("hostApp");
 });
 
