@@ -197,6 +197,60 @@ const gradient = `linear-gradient(to right, ${Array.from({ length: 17 }, (_, i) 
 
 To port a legacy React theme, replace each name in `ramps.gray.colors` with its `pallet` hex value (Astro's `["black", "gray", "white"]` becomes `["#040816", "#ffb980", "#ffffff"]`), then keep `colorModel` as is. See [multi-hue ramps](docs/color-models.md) for before/after screenshots. The lab demo (`/lab.html`) includes Sunset and Astro presets, a middle-stop control, and a color-model picker.
 
+## Themed images
+
+`huet/images` recolors images into a theme. Each pixel is read as a position on Huet's default ramps (lightness along the neutral ramp, plus weights on the two nearest hue ramps) and written back at the same position in your theme. Grays follow your neutral ramp, and greens become your green.
+
+```ts
+import { createTheme, mountTheme } from "huet/core";
+import { mountImages } from "huet/images";
+
+const sunset = createTheme({ neutral: { colors: ["#242744", "#ffe173"], colorModel: "hcl" } });
+const colors = mountTheme(document.body, sunset);
+const images = mountImages(document.body, sunset, { hoverOriginal: true });
+
+// Switch themes later: update both mounts.
+const paper = createTheme({ dark: "#302723", light: "#f1e4cd" });
+colors.update(paper);
+images.update(paper);
+// On unmount: images.destroy() puts the original src and srcset back.
+```
+
+```html
+<img data-huet-recolor src="/photo.jpg" alt="" />
+```
+
+`mountImages` swaps each matching image's `src` for a recolored copy. It picks up images that are added later or whose `src` changes, and it waits for `srcset` to choose a size first. Options:
+
+| Option | Default | Effect |
+| --- | --- | --- |
+| `selector` | `img[data-huet-recolor]` | Which images to recolor |
+| `strength` | `1` | 0 keeps the original, 1 fully adopts the theme |
+| `tint` | `1` | How much a tinted neutral ramp also shifts saturated colors |
+| `invert` | `false` | Flip lightness, for UI screenshots shown in an opposite-polarity theme |
+| `source` | Huet's default ramps | The theme the images are assumed to be in |
+| `hoverOriginal` | `false` | Show the original while the pointer is over the image |
+| `lutSize` | `17` | Size of the lookup table each theme is baked into |
+
+Images whose original hasn't been recolored yet are hidden (`visibility: hidden`, so layout doesn't shift) until the recolored copy is ready to paint, so the original never flashes. Theme updates keep showing the previous recolored image until the new one is ready. Once an image is handled, it gets `data-huet-recolored`, set to `"original"` if it couldn't be read. Server-rendered pages can paint images before the script runs; to hide them from the first paint while mounted, add:
+
+```css
+img[data-huet-recolor]:not([data-huet-recolored]) { visibility: hidden; }
+```
+
+Rendering runs on the GPU (WebGL2) and falls back to the CPU. The browser must be able to read the pixels, so cross-origin images need CORS headers and a `crossorigin` attribute. Images it can't read keep their original `src`. `<picture>` sources are not recolored.
+
+For canvases, video frames, or your own pipeline, use the lower-level functions:
+
+- `recolorImage(source, theme, options?, canvas?)` draws a decoded image or canvas into a recolored canvas.
+- `recolorer(palette, options?)` returns the per-pixel `(r, g, b) => [r, g, b]` mapping.
+- `buildLut` / `applyLut` bake that mapping into a 3D lookup table and apply it to `ImageData`.
+- `toCube` exports the table as a `.cube` file for ffmpeg, Resolve, or Photoshop.
+- `coordinatesOf` / `rampColor` read a pixel's ramp coordinates, or the color at a coordinate.
+- `paletteOf(theme)` converts a `createTheme` result into the palette these functions take.
+
+The [image recolor demo](https://markmiro.github.io/huet/recolor.html) (`/recolor.html`) compares renderers and themes.
+
 React, Vue, Svelte, and Astro lifecycle examples are in [framework integration](docs/frameworks.md). Portals and shadow roots require independent mounts. The DOM adapter runs only in a browser; SSR can compute colors through `theme.relative` and emit matching styles before mounting.
 
 ## Compatibility and limits

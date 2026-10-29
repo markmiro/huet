@@ -24,7 +24,9 @@ void main() {
 export class GpuRecolor {
   readonly canvas = document.createElement("canvas");
   private gl: WebGL2RenderingContext;
-  private textures = new WeakMap<HTMLImageElement, WebGLTexture>();
+  // Images and bitmaps don't change after decoding, so their uploads are reused.
+  private textures = new WeakMap<HTMLImageElement | ImageBitmap, WebGLTexture>();
+  private scratch: WebGLTexture | null = null;
   private lut: WebGLTexture;
   private sizeLocation: WebGLUniformLocation;
   private currentLut: Float32Array | null = null;
@@ -79,15 +81,16 @@ export class GpuRecolor {
     this.currentLut = lut;
   }
 
-  private texture(image: HTMLImageElement) {
+  private texture(image: TexImageSource) {
     const gl = this.gl;
     gl.activeTexture(gl.TEXTURE0);
-    let texture = this.textures.get(image);
+    const reusable = image instanceof HTMLImageElement || image instanceof ImageBitmap;
+    let texture = reusable ? this.textures.get(image) : undefined;
     if (texture) {
       gl.bindTexture(gl.TEXTURE_2D, texture);
       return;
     }
-    texture = gl.createTexture()!;
+    texture = reusable ? gl.createTexture()! : (this.scratch ??= gl.createTexture()!);
     gl.bindTexture(gl.TEXTURE_2D, texture);
     gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, gl.RGBA, gl.UNSIGNED_BYTE, image);
     gl.generateMipmap(gl.TEXTURE_2D);
@@ -95,11 +98,11 @@ export class GpuRecolor {
     gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.LINEAR);
     gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_S, gl.CLAMP_TO_EDGE);
     gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_T, gl.CLAMP_TO_EDGE);
-    this.textures.set(image, texture);
+    if (reusable) this.textures.set(image, texture);
   }
 
   /** Draw `image` through the current LUT into a 2D canvas of the given size. */
-  render(image: HTMLImageElement, out: HTMLCanvasElement, width: number, height: number) {
+  render(image: TexImageSource, out: HTMLCanvasElement, width: number, height: number) {
     const gl = this.gl;
     this.texture(image);
     this.canvas.width = width;

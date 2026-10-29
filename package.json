@@ -26,6 +26,11 @@
       "import": "./dist/core.js",
       "require": "./dist/core.cjs"
     },
+    "./images": {
+      "types": "./dist/core/images.d.ts",
+      "import": "./dist/images.js",
+      "require": "./dist/images.cjs"
+    },
     "./styles.css": "./dist/styles.css",
     "./tailwind.css": "./dist/tailwind.css"
   },
