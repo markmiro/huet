@@ -67,7 +67,7 @@ function App() {
           </Suspense>
         </div>
       </div>
-      <ThemeConfigurator shouldOverlay={false} />
+      <ThemeConfigurator />
     </Body>
   );
 }

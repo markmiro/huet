@@ -282,11 +282,7 @@ function EditTheme({
   );
 }
 
-export default function Themer({
-  shouldOverlay,
-}: {
-  shouldOverlay?: boolean;
-}) {
+export default function Themer() {
   const [theme, setThemeConfig] = useThemeConfigurator();
   const [shouldThemeSelf, setShouldThemeSelf] = usePersistentState(
     "themer:shouldThemeSelf",
@@ -306,7 +302,7 @@ export default function Themer({
 
   return (
     <Block theme={themerTheme}>
-      <ThemerShell shouldOverlay={shouldOverlay}>
+      <ThemerShell>
         <div style={{ ...__.flex, overflow: "hidden" }}>
           {showHelp && <Help theme={theme} />}
           <div style={__.flex.flex_column}>

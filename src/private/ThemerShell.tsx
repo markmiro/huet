@@ -3,7 +3,7 @@ import React, { useEffect, useState } from "react";
 import Block from "../Block";
 import type Color from "../Color";
 import __ from "./atoms";
-import { themerClass } from "./styles";
+import { PANEL_INSET, themerClass } from "./styles";
 import usePersistentState, { asBoolean, useIsSaving } from "./persistentState";
 
 function BrowserStateActivity() {
@@ -36,6 +36,8 @@ function TitleBar({
     <Block
       as="button"
       onClick={onClick}
+      aria-expanded={isExpanded}
+      title={isExpanded ? "Collapse" : "Expand"}
       contrast="bg=100"
       style={{
         ...__.w100.db.flex.justify_between,
@@ -46,6 +48,7 @@ function TitleBar({
       <div style={__.pv2.ph2.b}>
         Huet Theme Configurator {isExpanded && <BrowserStateActivity />}
       </div>
+      {/* Docked at the bottom: collapse down into the corner, expand up out of it */}
       <Block contrast="bg=25" style={__.flex.justify_center.items_center.ph3.b}>
         {isExpanded ? "↓" : "↑"}
       </Block>
@@ -61,10 +64,8 @@ const shadowBorderStyle = (parentBg: Color) => ({
 });
 
 export default function ThemerShell({
-  shouldOverlay = true,
   children,
 }: {
-  shouldOverlay?: boolean;
   children?: React.ReactNode;
 }) {
   const [isExpanded, setIsExpanded] = usePersistentState(
@@ -84,25 +85,13 @@ export default function ThemerShell({
     );
   }
 
-  const modeStyles = shouldOverlay
-    ? {
-        bottom: 0,
-        right: 0,
-        position: "fixed" as const,
-      }
-    : {
-        top: 0,
-        right: null,
-        position: "sticky" as const,
-      };
   return (
     <Block
       contrast="bg=0"
       className={themerClass}
       style={(parentBg) => ({
         ...__.flex.flex_column,
-        ...modeStyles,
-        maxHeight: "100vh",
+        maxHeight: `calc(100vh - 2 * ${PANEL_INSET})`,
         ...shadowBorderStyle(parentBg),
         transform: isMounted ? "translateY(0)" : "translateY(2em)",
         opacity: isMounted ? 1 : 0,
