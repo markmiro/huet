@@ -29,7 +29,6 @@ A polarity guard handles unusual custom anchors and rounding without allowing on
 - **Signal Lightness on 'Black'** (`endSignalLightness`): the ramp position of the full-strength anchor when going lighter.
 - **Signal Lightness on 'White'** (`startSignalLightness`): the ramp position of the full-strength anchor when going darker.
 - **Contrast**: the distance traveled along the same path.
-- The optional old saturation-rescaling flag remains an additional chroma reduction for compatibility. It is not required for gentle fills now.
 - Disabling contrast rescaling retains the old unnormalized path.
 
 No additional setting is needed. For a minimal future API, retain color anchors and strength; these two legacy lightness settings are compatibility controls, not a recommendation to add more knobs.

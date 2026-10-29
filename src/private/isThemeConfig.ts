@@ -5,6 +5,10 @@ function isRecord(value: unknown): value is Record<string, unknown> {
   return typeof value === "object" && value !== null && !Array.isArray(value);
 }
 
+// Settings older versions saved. Dropped on load so saved themes and exported
+// files that still have them keep working.
+const removedKeys = ["rescaleSaturationToGrayRange"];
+
 const isNumber = (value: unknown) =>
   typeof value === "number" && Number.isFinite(value);
 
@@ -29,7 +33,6 @@ export default function isThemeConfig(value: unknown): value is ThemeConfig {
     isNumber(value.startSignalLightness) &&
     isNumber(value.endSignalLightness) &&
     isNumber(value.contrastMultiplier) &&
-    typeof value.rescaleSaturationToGrayRange === "boolean" &&
     typeof value.rescaleContrastToGrayRange === "boolean";
   if (!isValidShape) return false;
 
@@ -39,4 +42,16 @@ export default function isThemeConfig(value: unknown): value is ThemeConfig {
   } catch {
     return false;
   }
+}
+
+/**
+ * Like `isThemeConfig`, but first drops settings that no longer exist.
+ * Use it wherever theme configs come from saved state or imported files.
+ */
+export function parseThemeConfig(value: unknown): ThemeConfig | undefined {
+  if (!isRecord(value)) return undefined;
+  const config = Object.fromEntries(
+    Object.entries(value).filter(([key]) => !removedKeys.includes(key))
+  );
+  return isThemeConfig(config) ? config : undefined;
 }

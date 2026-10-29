@@ -59,6 +59,5 @@ export interface ThemeConfig {
   startSignalLightness: number;
   endSignalLightness: number;
   contrastMultiplier: number;
-  rescaleSaturationToGrayRange: boolean;
   rescaleContrastToGrayRange: boolean;
 }

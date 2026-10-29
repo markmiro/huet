@@ -1,6 +1,5 @@
 import React from "react";
 
-import Block from "../Block";
 import Contrast from "../Contrast";
 import __ from "./atoms";
 
@@ -11,7 +10,6 @@ export default function Checkbox({
   style,
   className,
   contrast,
-  note,
 }: {
   label?: string;
   value?: boolean;
@@ -19,7 +17,6 @@ export default function Checkbox({
   style?: React.CSSProperties;
   className?: string;
   contrast?: number;
-  note?: string;
 }) {
   return (
     <Contrast
@@ -42,14 +39,7 @@ export default function Checkbox({
       <span style={{ ...__.mr1, fontSize: "1.25em", lineHeight: 1 }}>
         {value ? "☒" : "☐"}
       </span>
-      <div>
-        {label}
-        {note && (
-          <Block contrast="fg=50" as="small" style={__.db}>
-            {note}
-          </Block>
-        )}
-      </div>
+      <div>{label}</div>
     </Contrast>
   );
 }
