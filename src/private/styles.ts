@@ -74,12 +74,15 @@ export const resetStyle = {
 
 export const resetClass = rule(resetStyle);
 
+// Gap between the floating configurator and the viewport's bottom-right corner
+export const PANEL_INSET = "1em";
+
 export const themerClass = rule({
   all: "initial",
   ...resetStyle,
   ...__.f7,
-  right: 0,
-  bottom: 0,
+  right: PANEL_INSET,
+  bottom: PANEL_INSET,
   position: "fixed",
   zIndex: 999,
   transitionProperty: "opacity, transform, height",
