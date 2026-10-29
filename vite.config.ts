@@ -30,7 +30,7 @@ export default defineConfig(({ mode }) => {
           bundleTypes: false,
           tsconfigPath: "./tsconfig.build.json",
           include: ["src"],
-          exclude: ["src/**/*.test.ts", "src/index.tsx"],
+          exclude: ["src/**/*.test.ts", "src/index.tsx", "src/demo/lab.ts"],
         }),
       ],
       build: {
@@ -38,10 +38,11 @@ export default defineConfig(({ mode }) => {
         outDir: "dist",
         sourcemap: true,
         lib: {
-          entry: "src/huet.ts",
+          entry: { huet: "src/huet.ts", core: "src/core/index.ts" },
           name: "Huet",
           formats: ["es", "cjs"],
-          fileName: (format) => (format === "es" ? "huet.js" : "huet.cjs"),
+          fileName: (format, entryName) =>
+            `${entryName}.${format === "es" ? "js" : "cjs"}`,
         },
         rollupOptions: {
           external: ["react", "react-dom", "react/jsx-runtime"],
@@ -69,6 +70,7 @@ export default defineConfig(({ mode }) => {
       },
     },
     build: {
+      rollupOptions: { input: { main: "index.html", lab: "lab.html" } },
       outDir: "dist-demo",
       emptyOutDir: true,
     },

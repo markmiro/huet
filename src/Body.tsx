@@ -5,7 +5,8 @@ import type { ThemeConfig } from "./colorModel";
 import Color from "./Color";
 import Theme from "./Theme";
 import baseThemeConfig from "./private/baseThemeConfig";
-import useBrowserState from "./private/useBrowserState";
+import isThemeConfig from "./private/isThemeConfig";
+import usePersistentState from "./private/persistentState";
 
 export const ThemeConfiguratorContext = React.createContext<
   | [
@@ -33,7 +34,11 @@ export default function Body({
   setDocumentBodyColors,
   ...rest
 }: BodyProps) {
-  const [themeConfig, setThemeConfig] = useBrowserState(initialThemeConfig);
+  const [themeConfig, setThemeConfig] = usePersistentState(
+    "theme",
+    initialThemeConfig,
+    (stored) => (isThemeConfig(stored) ? stored : undefined)
+  );
   const theme = new Theme(themeConfig);
   const parentBg = Color.fromTheme(theme);
 

@@ -1,0 +1,4 @@
+import { copyFile } from "node:fs/promises";
+for (const file of ["styles.css", "tailwind.css"])
+  await copyFile(`src/core/${file}`, `dist/${file}`);
+await copyFile("scripts/check.mjs", "dist/check.mjs");

@@ -4,10 +4,10 @@ import Block from "../Block";
 import type Color from "../Color";
 import __ from "./atoms";
 import { themerClass } from "./styles";
-import useBrowserState, { useIsBrowserStateSaving } from "./useBrowserState";
+import usePersistentState, { asBoolean, useIsSaving } from "./persistentState";
 
 function BrowserStateActivity() {
-  const count = useIsBrowserStateSaving();
+  const isSaving = useIsSaving();
   return (
     <Block
       base="green"
@@ -17,7 +17,7 @@ function BrowserStateActivity() {
         fontWeight: "normal",
         transitionProperty: "opacity",
         transitionDuration: "400ms",
-        opacity: count ? 0 : 1,
+        opacity: isSaving ? 0 : 1,
       }}
     >
       Saved
@@ -67,7 +67,11 @@ export default function ThemerShell({
   shouldOverlay?: boolean;
   children?: React.ReactNode;
 }) {
-  const [isExpanded, setIsExpanded] = useBrowserState(true);
+  const [isExpanded, setIsExpanded] = usePersistentState(
+    "themer:isExpanded",
+    true,
+    asBoolean
+  );
   const [isMounted, setIsMounted] = useState(false);
 
   useEffect(() => setIsMounted(true), []);

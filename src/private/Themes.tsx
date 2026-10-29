@@ -13,7 +13,8 @@ import Arrow from "./Arrow";
 import Button, { JsonUploadButton, TextButton } from "./Button";
 import __ from "./atoms";
 import baseThemeConfig from "./baseThemeConfig";
-import useBrowserState from "./useBrowserState";
+import isThemeConfig from "./isThemeConfig";
+import usePersistentState, { type Parse } from "./persistentState";
 
 function ThemeFrame({
   theme,
@@ -300,8 +301,19 @@ function ThemePreview({
   );
 }
 
+// Drop individual broken themes rather than losing every saved theme
+const parseConfigs: Parse<ThemeConfig[]> = (stored) => {
+  if (!Array.isArray(stored)) return undefined;
+  const configs = stored.filter(isThemeConfig);
+  return configs.length > 0 ? configs : undefined;
+};
+
 export default function Themes() {
-  const [configs, setConfigs] = useBrowserState(defaultThemeConfigs);
+  const [configs, setConfigs] = usePersistentState(
+    "themes",
+    defaultThemeConfigs,
+    parseConfigs
+  );
   const [, setSelectedConfig] = useThemeConfigurator();
 
   return (

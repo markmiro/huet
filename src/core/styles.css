@@ -1,0 +1,103 @@
+/* Huet owns colors only. Layout, typography, border widths and radii are yours. */
+@layer components {
+  :where(
+    [data-huet-root],
+    .huet-surface-0,
+    .huet-surface-5,
+    .huet-surface-10,
+    .huet-surface-25,
+    .huet-surface-50,
+    .huet-surface-75,
+    .huet-surface-100,
+    .huet-surface-red,
+    .huet-surface-yellow,
+    .huet-surface-green,
+    .huet-surface-blue,
+    .huet-surface-purple
+  ) {
+    background-color: var(--huet-background);
+    color: var(--huet-foreground);
+  }
+  .huet-text {
+    color: var(--huet-foreground);
+  }
+  .huet-muted {
+    color: var(--huet-muted);
+  }
+  .huet-border {
+    border-color: var(--huet-border);
+  }
+  .huet-focus:focus-visible {
+    outline: 2px solid var(--huet-foreground);
+    outline-offset: -4px;
+  }
+  .huet-text-red {
+    color: var(--huet-red);
+  }
+  .huet-text-yellow {
+    color: var(--huet-yellow);
+  }
+  .huet-text-green {
+    color: var(--huet-green);
+  }
+  .huet-text-blue {
+    color: var(--huet-blue);
+  }
+  .huet-text-purple {
+    color: var(--huet-purple);
+  }
+
+  :where([data-huet-root]) :where(input, select, textarea, button) {
+    font: inherit;
+  }
+  :where([data-huet-root]) ::placeholder {
+    color: var(--huet-muted);
+    opacity: 1;
+  }
+  @media (forced-colors: active) {
+    :where(
+      [data-huet-root],
+      .huet-surface-0,
+      .huet-surface-5,
+      .huet-surface-10,
+      .huet-surface-25,
+      .huet-surface-50,
+      .huet-surface-75,
+      .huet-surface-100,
+      .huet-surface-red,
+      .huet-surface-yellow,
+      .huet-surface-green,
+      .huet-surface-blue,
+      .huet-surface-purple
+    ) {
+      background-color: Canvas;
+      color: CanvasText;
+    }
+    .huet-focus:focus-visible {
+      outline-color: Highlight;
+    }
+  }
+}
+
+/* Explicit amounts use the original relative-color solver. No role targets. */
+@layer components {
+  :where([data-huet-color-bg]) {
+    background-color: var(--huet-background);
+    color: var(--huet-foreground);
+  }
+  :where([data-huet-color-text]) {
+    color: var(--huet-relative-text, var(--huet-foreground));
+  }
+  :where([data-huet-color-border]) {
+    border-color: var(--huet-relative-border);
+  }
+  :where([data-huet-color-outline]) {
+    outline-color: var(--huet-relative-outline);
+  }
+  @media (forced-colors: active) {
+    :where([data-huet-color-bg]) { background-color: Canvas; color: CanvasText; }
+    :where([data-huet-color-text]) { color: CanvasText; }
+    :where([data-huet-color-border]) { border-color: ButtonBorder; }
+    :where([data-huet-color-outline]) { outline-color: Highlight; }
+  }
+}
