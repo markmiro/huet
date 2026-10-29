@@ -84,7 +84,8 @@ function select(
   }
   return nearest || best;
 }
-export function createTheme(options: ThemeOptions = {}) {
+/** Validate a theme's neutral ramp and return a sampler for it. */
+export function neutralRampOf(options: Pick<ThemeOptions, "dark" | "light" | "neutral">) {
   const custom = options.neutral !== undefined;
   if (custom && (options.dark !== undefined || options.light !== undefined))
     throw new TypeError("Pass either neutral.colors or dark/light, not both");
@@ -107,6 +108,10 @@ export function createTheme(options: ThemeOptions = {}) {
       throw new RangeError("Mix amount must be between 0 and 1");
     return custom ? scale(t).hex() : mix(dark, light, t);
   };
+  return { custom, stops, dark, light, colorModel, ramp };
+}
+export function createTheme(options: ThemeOptions = {}) {
+  const { custom, stops, dark, light, colorModel, ramp } = neutralRampOf(options);
   const background = ramp(options.background ?? 1);
   const colors = Object.freeze({ ...defaultColors, ...options.colors });
   for (const color of Object.values(colors)) rgb(color);

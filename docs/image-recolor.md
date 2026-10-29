@@ -19,6 +19,10 @@ Options:
 - `tint` controls how much a tinted neutral ramp also shifts saturated colors. At 1, Sunset turns blue skies teal (teal anchor plus yellow tint). At 0, saturated colors keep closer to the anchors.
 - `invert` flips `t`. It is off by default, so light stays light and dark stays dark. The demo applies it only to images detected as UI screenshots (at least 50% flat light or dark background), and only for themes of the opposite polarity. Inverted photos read as negatives. Screenshots that mix a photo with UI, like the site's meta image, also invert the photo.
 
+### Multi-hue neutral ramps
+
+`Palette` accepts the same `neutral: { colors, colorModel }` as `createTheme` (see [color-models.md](color-models.md)), so a ramp can pass through middle stops or travel around the hue wheel. The neutral ramp is sampled once per theme and indexed by lightness: a gray maps to the ramp color with the same relative lightness. Astro's peach stop therefore tints the midtones of every photo, and Sunset's HCL ramp passes through mauve and orange instead of muddy midtones. The demo ports each legacy theme's `ramps.gray` (stops and model) this way, for both the images and the page theme. If a ramp's lightness isn't monotonic, it is flattened so that every lightness maps to one color.
+
 ### Near black
 
 OKLab's cube root is infinitely steep at black: sRGB 0 → 1 spans 6.7% of OKLab's lightness range but 0.27% of L*'s. When a theme lifts the dark end of the ramp (e.g. Sunset's navy), that invisible step became a visible band. The markmiro.com "Algo logo resize" thumbnail has a black background striped with (1, 1, 1) rows, which turned into stripes 6 levels apart. The lightness coordinate therefore uses L*, which is linear in luminance near black.

@@ -1,5 +1,5 @@
 import { oklabFromRgb, rgbFromOklab, toOklab, type Triple } from "./color";
-import { defaultColors, hues, type Hue } from "./theme";
+import { defaultColors, hues, neutralRampOf, type Hue, type NeutralRamp } from "./theme";
 
 /*
   A theme's ramps form a coordinate system for colors:
@@ -20,6 +20,8 @@ import { defaultColors, hues, type Hue } from "./theme";
 export interface Palette {
   dark?: string;
   light?: string;
+  /** A multi-stop or hue-shifting neutral ramp, as in `createTheme`. Use instead of dark/light. */
+  neutral?: NeutralRamp;
   colors?: Partial<Record<Hue, string>>;
 }
 
@@ -50,24 +52,6 @@ export interface RecolorOptions {
   tint?: number;
 }
 
-interface Frame {
-  dark: Triple;
-  light: Triple;
-  /** OKLab (a, b) chroma vectors of each hue anchor, in `hues` order. */
-  a: Float64Array;
-  b: Float64Array;
-}
-
-function frame({ dark = "#000000", light = "#ffffff", colors }: Palette): Frame {
-  const anchors = hues.map((hue) => toOklab(colors?.[hue] ?? defaultColors[hue]));
-  return {
-    dark: toOklab(dark),
-    light: toOklab(light),
-    a: Float64Array.from(anchors, (x) => x[1]),
-    b: Float64Array.from(anchors, (x) => x[2]),
-  };
-}
-
 /*
   CIE lightness L* (0–1) of a color with OKLab lightness L, treating L³ as its
   luminance (exact for neutrals). Above the toe, L* is an affine function of
@@ -88,6 +72,72 @@ const fromLightness = (v: number) =>
 */
 const vividness = (L: number) => (L < toe ? (L / toe) ** 2 : 1);
 
+interface Frame {
+  /** CIE lightness of the neutral ramp's dark and light ends. */
+  low: number;
+  high: number;
+  /** OKLab (a, b) of the neutral ramp at lightness position t (shared result). */
+  neutralAt: (t: number) => readonly [number, number];
+  /** OKLab (a, b) chroma vectors of each hue anchor, in `hues` order. */
+  a: Float64Array;
+  b: Float64Array;
+}
+
+const frames = new Map<string, Frame>();
+function frame(palette: Palette): Frame {
+  const key = JSON.stringify(palette);
+  let cached = frames.get(key);
+  if (cached) return cached;
+  const { dark, light, neutral, colors } = palette;
+  const { ramp } = neutralRampOf({ dark, light, neutral });
+  // Sample the neutral ramp, which may pass through middle stops or travel
+  // around the hue wheel, and index it by lightness: a gray lands on the ramp
+  // color with the same relative lightness.
+  const n = 257;
+  const v = new Float64Array(n),
+    ra = new Float64Array(n),
+    rb = new Float64Array(n);
+  for (let i = 0; i < n; i++) {
+    const [L, a, b] = toOklab(ramp(i / (n - 1)));
+    // Keep lightness non-decreasing so every lightness has one ramp color.
+    v[i] = Math.max(lightness(L), i ? v[i - 1] : 0);
+    ra[i] = a;
+    rb[i] = b;
+  }
+  const low = v[0],
+    high = v[n - 1];
+  const out: [number, number] = [0, 0];
+  const neutralAt = (t: number) => {
+    const target = low + t * (high - low);
+    let lo = 0,
+      hi = n - 1;
+    if (target <= low) hi = 0;
+    else if (target >= high) lo = n - 1;
+    else
+      while (hi - lo > 1) {
+        const mid = (lo + hi) >> 1;
+        if (v[mid] < target) lo = mid;
+        else hi = mid;
+      }
+    const f = v[hi] > v[lo] ? (target - v[lo]) / (v[hi] - v[lo]) : 0;
+    out[0] = ra[lo] + f * (ra[hi] - ra[lo]);
+    out[1] = rb[lo] + f * (rb[hi] - rb[lo]);
+    return out;
+  };
+  const anchors = hues.map((hue) => toOklab(colors?.[hue] ?? defaultColors[hue]));
+  cached = {
+    low,
+    high,
+    neutralAt,
+    a: Float64Array.from(anchors, (x) => x[1]),
+    b: Float64Array.from(anchors, (x) => x[2]),
+  };
+  if (frames.size >= 64) frames.clear();
+  frames.set(key, cached);
+  return cached;
+}
+
+
 /** Express OKLab colors in a palette's ramp coordinates. */
 function decomposer(source: Frame) {
   const n = hues.length;
@@ -103,17 +153,16 @@ function decomposer(source: Frame) {
     const det = a0 * b1 - a1 * b0;
     return { i0, i1, det, m: [b1 / det, -a1 / det, -b0 / det, a0 / det] };
   });
-  const [dL, da, db] = source.dark,
-    [lL, la, lb] = source.light;
-  const low = lightness(dL),
-    span = lightness(lL) - low || 1;
+  const { low, high } = source;
+  const span = high - low || 1;
   const out = { t: 0, i0: 0, i1: 0, w0: 0, w1: 0 };
   return ([L, a, b]: Triple) => {
     const t = (lightness(L) - low) / span;
     // Chroma relative to the (possibly tinted) neutral ramp at this lightness.
+    const [na, nb] = source.neutralAt(t);
     const v = vividness(L);
-    const ca = (a - (da + t * (la - da))) * v,
-      cb = (b - (db + t * (lb - db))) * v;
+    const ca = (a - na) * v,
+      cb = (b - nb) * v;
     out.t = t;
     out.w0 = out.w1 = 0;
     if (ca * ca + cb * cb < 1e-10) return out;
@@ -160,10 +209,7 @@ export function recolorer(target: Palette, options: RecolorOptions = {}) {
   if (!(tint >= 0 && tint <= 1)) throw new RangeError("tint must be between 0 and 1");
   const decompose = decomposer(frame(options.source ?? {}));
   const to = frame(target);
-  const [dL, da, db] = to.dark,
-    [lL, la, lb] = to.light;
-  const low = lightness(dL),
-    high = lightness(lL);
+  const { low, high } = to;
   return (r: number, g: number, b: number): Triple => {
     const lab = oklabFromRgb(r, g, b);
     const { t: position, i0, i1, w0, w1 } = decompose(lab);
@@ -171,10 +217,11 @@ export function recolorer(target: Palette, options: RecolorOptions = {}) {
     const neutral = tint + (1 - tint) * Math.max(0, 1 - w0 - w1);
     const L = fromLightness(low + t * (high - low));
     const k = 1 / Math.max(vividness(L), 1e-6);
+    const [na, nb] = to.neutralAt(t);
     const mapped: Triple = [
       L,
-      neutral * (da + t * (la - da)) + k * (w0 * to.a[i0] + w1 * to.a[i1]),
-      neutral * (db + t * (lb - db)) + k * (w0 * to.b[i0] + w1 * to.b[i1]),
+      neutral * na + k * (w0 * to.a[i0] + w1 * to.a[i1]),
+      neutral * nb + k * (w0 * to.b[i0] + w1 * to.b[i1]),
     ];
     if (strength === 1) return rgbFromOklab(mapped);
     return rgbFromOklab(
@@ -185,13 +232,13 @@ export function recolorer(target: Palette, options: RecolorOptions = {}) {
 
 /** A color on a palette's neutral ramp, or on a hue ramp at anchor chroma. */
 export function rampColor(palette: Palette, t: number, hue?: Hue): Triple {
-  const { dark, light, a, b } = frame(palette);
+  const { low, high, neutralAt, a, b } = frame(palette);
   const i = hue ? hues.indexOf(hue) : -1;
-  const L = lightness(dark[0]) + t * (lightness(light[0]) - lightness(dark[0]));
+  const [na, nb] = neutralAt(t);
   return rgbFromOklab([
-    fromLightness(L),
-    dark[1] + t * (light[1] - dark[1]) + (i >= 0 ? a[i] : 0),
-    dark[2] + t * (light[2] - dark[2]) + (i >= 0 ? b[i] : 0),
+    fromLightness(low + t * (high - low)),
+    na + (i >= 0 ? a[i] : 0),
+    nb + (i >= 0 ? b[i] : 0),
   ]);
 }
 

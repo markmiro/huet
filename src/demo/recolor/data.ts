@@ -10,10 +10,14 @@ export interface RecolorTheme extends Palette {
 
 export const themes: RecolorTheme[] = [
   { name: "Huet default (identity)", background: 1 },
-  ...themeConfigs.map(({ name = "", pallet, bgRampValue }) => ({
+  // Port each legacy theme's gray ramp (stops and color model) to `neutral`,
+  // e.g. Sunset in HCL and Astro through its peach middle stop.
+  ...themeConfigs.map(({ name = "", pallet, ramps, bgRampValue }) => ({
     name,
-    dark: pallet.black,
-    light: pallet.white,
+    neutral: {
+      colors: (ramps.gray.colors ?? ["black", "white"]).map((stop) => pallet[stop] ?? stop),
+      colorModel: ramps.gray.colorModel ?? "lab",
+    },
     colors: Object.fromEntries(hues.map((hue) => [hue, pallet[hue]])),
     background: bgRampValue,
   })),

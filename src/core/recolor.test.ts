@@ -5,6 +5,7 @@ import {
   applyTransform,
   buildLut,
   coordinatesOf,
+  rampColor,
   recolorer,
   toCube,
 } from "./recolor";
@@ -88,6 +89,44 @@ describe("theme coordinates", () => {
     expect(Math.abs(hue(tinted) - hue(anchor))).toBeGreaterThan(0.1);
     // Grays keep the full tint either way.
     expect(recolorer(sunset, { tint: 0 })(0.5, 0.5, 0.5)).toEqual(recolorer(sunset)(0.5, 0.5, 0.5));
+  });
+});
+
+describe("multi-hue neutral ramps", () => {
+  const astro = { neutral: { colors: ["#040816", "#ffb980", "#ffffff"], colorModel: "hcl" as const } };
+  const chroma = (x: readonly number[]) => {
+    const [, a, b] = oklabFromRgb(x[0], x[1], x[2]);
+    return Math.hypot(a, b);
+  };
+
+  it("passes grays through a middle stop at that stop's lightness", () => {
+    const peach = rgb("#ffb980");
+    // The default gray with the same relative lightness as the peach stop.
+    const { t } = coordinatesOf(peach, astro);
+    const gray = rampColor({}, t);
+    const mapped = recolorer(astro)(...gray);
+    mapped.forEach((v, i) => expect(Math.abs(v - peach[i]) * 255).toBeLessThan(2));
+    // Ramp endpoints still map to the ramp's endpoints.
+    expect(recolorer(astro)(0, 0, 0).map((v) => Math.round(v * 255))).toEqual([4, 8, 22]);
+    expect(recolorer(astro)(1, 1, 1).map((v) => Math.round(v * 255))).toEqual([255, 255, 255]);
+  });
+
+  it("keeps HCL midtones saturated where OKLab passes through gray", () => {
+    const hcl = { neutral: { colors: [sunset.dark, sunset.light], colorModel: "hcl" as const } };
+    const oklab = { dark: sunset.dark, light: sunset.light };
+    expect(chroma(recolorer(hcl)(0.5, 0.5, 0.5))).toBeGreaterThan(
+      chroma(recolorer(oklab)(0.5, 0.5, 0.5)) + 0.03,
+    );
+  });
+
+  it("round-trips images in a multi-hue source theme and rejects ambiguous ramps", () => {
+    const same = recolorer(astro, { source: astro });
+    const next = random(3);
+    for (let i = 0; i < 200; i++) {
+      const c = [next(), next(), next()] as const;
+      same(...c).forEach((v, k) => expect(v).toBeCloseTo(c[k], 4));
+    }
+    expect(() => recolorer({ dark: "#000000", neutral: astro.neutral })).toThrow(TypeError);
   });
 });
 

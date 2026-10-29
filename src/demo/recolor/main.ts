@@ -86,7 +86,12 @@ function call<T>(request: Request, transfer: Transferable[] = []): Promise<T & {
   });
 }
 
-const palette = ({ dark, light, colors }: RecolorTheme): Palette => ({ dark, light, colors });
+const palette = ({ dark, light, neutral, colors }: RecolorTheme): Palette => ({
+  dark,
+  light,
+  neutral,
+  colors,
+});
 /** The theme's background position on its ramp, after the invert toggle. */
 const backgroundOf = (theme: RecolorTheme) =>
   invertTheme.checked ? 1 - theme.background : theme.background;
