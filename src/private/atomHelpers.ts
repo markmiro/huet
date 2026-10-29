@@ -80,6 +80,8 @@ export function makeSides(
 export function chainable(obj: Record<string, AtomStyle>): ChainableAtoms {
   const chained: ChainableAtoms = {};
   for (const key of Object.keys(obj)) {
+    // Mutating `chained` is the point here: it's a local object and the lazy
+    // getters are what make the chaining work.
     Object.defineProperty(chained, key, {
       get(this: AtomStyle) {
         const thing: AtomStyle =

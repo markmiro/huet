@@ -1,3 +1,4 @@
+import _ from "lodash";
 import React, { useLayoutEffect, useRef, useState } from "react";
 
 import Block from "../Block";
@@ -240,11 +241,11 @@ function ThemePreview({
   const [theme] = useThemeConfigurator();
   const selectedConfig = theme.config;
   const isSelected = config.id === selectedConfig.id;
+  // Deep comparison rather than comparing JSON strings, which would report a
+  // false "modified" whenever two equivalent configs serialize their keys in a
+  // different order.
   const isSelectedAndModified =
-    isSelected &&
-    // TODO: consider deep comparison
-    // http://www.mattzeunert.com/2016/01/28/javascript-deep-equal.html
-    JSON.stringify(config) !== JSON.stringify(selectedConfig);
+    isSelected && !_.isEqual(config, selectedConfig);
 
   const onSelect = () => onSelectConfig(config);
 
@@ -318,7 +319,11 @@ export default function Themes() {
   return (
     <VSpace size="3" style={__.pa3}>
       <JsonUploadButton
-        onUpload={themeConfig => {
+        onUpload={uploadedConfig => {
+          // A fresh id, so importing the same file twice (or a file whose id
+          // matches an existing theme, or that has no id) doesn't produce two
+          // themes that are both treated as selected.
+          const themeConfig = { ...uploadedConfig, id: Math.random() };
           setConfigs([themeConfig, ...configs]);
           setSelectedConfig(themeConfig);
         }}

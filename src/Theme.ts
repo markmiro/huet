@@ -129,7 +129,6 @@ function createDirectRampWithScale(scale: chroma.Scale): Ramp {
 Ramp modes:
 - furthest
 - signal
-- punched
 - constant?
 - direct
 */
