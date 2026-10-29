@@ -12,7 +12,10 @@ import {
 } from "../../huet";
 import Select from "../../private/Select";
 import __ from "../../private/atoms";
-import useBrowserState from "../../private/useBrowserState";
+import usePersistentState, {
+  asOneOf,
+  asString,
+} from "../../private/persistentState";
 
 const sharedDoubleFractionSteps = [100 / 16, 100 / 8, 100 / 4, 100 / 2];
 const doubleSteps = [0, 4, 8, 16, 32, 64, 100];
@@ -51,11 +54,24 @@ function useColoredRampKeys() {
   });
 }
 
+type StepKey = keyof typeof stepSizes;
+const asStepKey = asOneOf(Object.keys(stepSizes) as StepKey[]);
+
 export default function ColorContrast() {
   const parentBg = useBackground();
   const theme = parentBg.theme;
-  const [stepKey, setStepKey] = useBrowserState("increment20");
-  const [rampKey, setRampKey] = useBrowserState("gray");
+  const [stepKey, setStepKey] = usePersistentState<StepKey>(
+    "demo:colorContrast:stepKey",
+    "increment20",
+    asStepKey
+  );
+  const [savedRampKey, setRampKey] = usePersistentState(
+    "demo:colorContrast:rampKey",
+    "gray",
+    asString
+  );
+  // The saved ramp may not exist in the theme that's selected now
+  const rampKey = savedRampKey in theme.ramps ? savedRampKey : theme.bgRamp;
 
   return (
     <div>
@@ -63,7 +79,7 @@ export default function ColorContrast() {
         <Block as="h1" contrast="b=25" style={__.f2.pb2.bb.mv0.mb2}>
           {theme.name}
         </Block>
-        <Select label="Step sizes" value={stepKey} onChange={setStepKey}>
+        <Select label="Step sizes" value={stepKey} onChange={(key) => setStepKey(key as StepKey)}>
           <option value="increment20">20, 40, 80, ...</option>
           <option value="doubleFraction">100/16, 100/8, 100/4...</option>
           <option value="double">0, 4, 8, ..., 92, 96, 100</option>
@@ -80,8 +96,7 @@ export default function ColorContrast() {
         contrast="bg=0"
       >
         <Matrix
-          {...(stepSizes[stepKey as keyof typeof stepSizes] ??
-            stepSizes.increment20)}
+          {...stepSizes[stepKey]}
         />
         <NamedColors />
         <FormExample />

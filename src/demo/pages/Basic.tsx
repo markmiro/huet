@@ -7,7 +7,10 @@ import Theme from "../../Theme";
 import { Block } from "../../huet";
 import Range from "../../private/Range";
 import __ from "../../private/atoms";
-import useBrowserState from "../../private/useBrowserState";
+import usePersistentState, {
+  asBoolean,
+  asNumber,
+} from "../../private/persistentState";
 import { useBackground, useTheme } from "../../reactContexts";
 
 function Section({
@@ -343,7 +346,11 @@ function SelectableBlock({
   title: string;
   subtitle: string;
 } & React.ComponentProps<typeof Block>) {
-  const [isSelected, setSelectedChange] = useBrowserState(false);
+  const [isSelected, setSelectedChange] = usePersistentState(
+    `demo:basic:isSelected:${title}`,
+    false,
+    asBoolean
+  );
   return (
     <Block
       as="button"
@@ -374,7 +381,11 @@ function SelectableBlock({
 }
 
 function Selectable() {
-  const [bgContrast, setBgContrast] = useBrowserState(100);
+  const [bgContrast, setBgContrast] = usePersistentState(
+    "demo:basic:bgContrast",
+    100,
+    asNumber
+  );
   const items = [
     { title: "This is something or other", subtitle: "This is a subtitle" },
     { title: "This is another item", subtitle: "This another subtitle" },

@@ -1,4 +1,5 @@
 import { test, expect } from "@playwright/test";
+import baseThemeConfig from "../src/private/baseThemeConfig";
 const screenshots = process.env.HUET_SCREENSHOTS ?? "test-results/screenshots";
 
 test("gray controls, focus, inheritance, live themes and mobile layout", async ({
@@ -112,31 +113,15 @@ test("original React form and alerts after the color fixes", async ({ page }) =>
   await expect(
     page.getByRole("heading", { name: "Form", exact: true }),
   ).toBeVisible();
-  // useBrowserState persists its initial state after the component mounts.
-  await expect
-    .poll(() =>
-      page.evaluate(() =>
-        Object.values(localStorage).some((v) => {
-          try {
-            return !!JSON.parse(v)?.pallet;
-          } catch {
-            return false;
-          }
-        }),
-      ),
-    )
-    .toBe(true);
   for (const value of [0.49, 0.51]) {
-    await page.evaluate((value) => {
-      for (const [key, raw] of Object.entries(localStorage)) {
-        const t = JSON.parse(raw);
-        if (t?.pallet && t.bgRamp) {
-          t.bgRampValue = value;
-          t.name = `Gray ${Math.round(value * 100)}%`;
-          localStorage.setItem(key, JSON.stringify(t));
-        }
-      }
-    }, value);
+    await page.evaluate(
+      (config) => localStorage.setItem("huet:theme", JSON.stringify(config)),
+      {
+        ...baseThemeConfig,
+        bgRampValue: value,
+        name: `Gray ${Math.round(value * 100)}%`,
+      },
+    );
     await page.reload();
     await page
       .getByRole("heading", { name: "Form", exact: true })

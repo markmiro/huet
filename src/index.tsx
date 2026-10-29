@@ -9,7 +9,7 @@ import ErrorBoundary from "./private/ErrorBoundary";
 import Select from "./private/Select";
 import __ from "./private/atoms";
 import { resetClass } from "./private/styles";
-import useBrowserState from "./private/useBrowserState";
+import usePersistentState, { asOneOf } from "./private/persistentState";
 
 const pages = {
   basic: {
@@ -30,9 +30,16 @@ const pages = {
   },
 };
 
+type PageKey = keyof typeof pages;
+const asPageKey = asOneOf(Object.keys(pages) as PageKey[]);
+
 function App() {
-  const [pageKey, setPageKey] = useBrowserState<string>("basic");
-  const page = pages[pageKey as keyof typeof pages] ?? pages.basic;
+  const [pageKey, setPageKey] = usePersistentState<PageKey>(
+    "demo:page",
+    "basic",
+    asPageKey
+  );
+  const page = pages[pageKey];
 
   return (
     <Body setDocumentBodyColors className={resetClass} style={__.flex}>
@@ -45,7 +52,7 @@ function App() {
             label="Example Demos"
             style={__.pa2.pb3}
             value={pageKey}
-            onChange={setPageKey}
+            onChange={(key) => setPageKey(key as PageKey)}
           >
             {Object.keys(pages).map((key) => (
               <option key={key} value={key}>

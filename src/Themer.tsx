@@ -18,7 +18,11 @@ import ThemerShell from "./private/ThemerShell";
 import Themes from "./private/Themes";
 import __ from "./private/atoms";
 import baseThemeConfig from "./private/baseThemeConfig";
-import useBrowserState, { reset } from "./private/useBrowserState";
+import usePersistentState, {
+  asBoolean,
+  asOneOf,
+  reset,
+} from "./private/persistentState";
 
 const baseTheme = new Theme(baseThemeConfig);
 
@@ -173,7 +177,9 @@ function Help({ theme }: { theme: Theme }) {
 const tabEnum = {
   THEMES: "THEMES",
   EDIT_THEME: "EDIT_THEME"
-};
+} as const;
+
+const asTab = asOneOf(Object.values(tabEnum));
 
 function EditTheme({
   theme,
@@ -282,9 +288,19 @@ export default function Themer({
   shouldOverlay?: boolean;
 }) {
   const [theme, setThemeConfig] = useThemeConfigurator();
-  const [shouldThemeSelf, setShouldThemeSelf] = useBrowserState(true);
-  const [currentTab, setCurrentTab] = useBrowserState(tabEnum.THEMES);
-  const [showHelp, setShowHelp] = useBrowserState(false);
+  const [shouldThemeSelf, setShouldThemeSelf] = usePersistentState(
+    "themer:shouldThemeSelf",
+    true,
+    asBoolean
+  );
+  const [currentTab, setCurrentTab] = usePersistentState<
+    (typeof tabEnum)[keyof typeof tabEnum]
+  >("themer:currentTab", tabEnum.THEMES, asTab);
+  const [showHelp, setShowHelp] = usePersistentState(
+    "themer:showHelp",
+    false,
+    asBoolean
+  );
 
   const themerTheme = shouldThemeSelf ? theme : baseTheme;
 
@@ -311,15 +327,14 @@ export default function Themer({
               </HSpace>
             </div>
             <ScrollPanel>
-              {{
-                [tabEnum.THEMES]: () => <Themes />,
-                [tabEnum.EDIT_THEME]: () => (
-                  <EditTheme
-                    theme={theme}
-                    onThemeConfigChange={setThemeConfig}
-                  />
-                )
-              }[currentTab]()}
+              {currentTab === tabEnum.EDIT_THEME ? (
+                <EditTheme
+                  theme={theme}
+                  onThemeConfigChange={setThemeConfig}
+                />
+              ) : (
+                <Themes />
+              )}
             </ScrollPanel>
             <Block contrast="bg=12">
               <VSpace style={__.pa3}>

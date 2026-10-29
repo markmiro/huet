@@ -1,6 +1,6 @@
 import React from "react";
 
-import { reset } from "./useBrowserState";
+import { reset } from "./persistentState";
 
 type ErrorBoundaryProps = {
   children?: React.ReactNode;
