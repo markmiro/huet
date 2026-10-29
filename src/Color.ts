@@ -101,10 +101,6 @@ export default class Color extends BaseColor {
     ) {
       throw new Error("No baseRamp");
     }
-    // TODO: consider making this private so there aren't two ways of getting a theme:
-    // 1) From a color
-    // 2) From a useContext(ThemeContext)
-    // Also consider making `ThemeContext` only available internally to Huet
     this.theme = theme;
     this.bgColor = bgColor;
     this.ramp = ramp;
