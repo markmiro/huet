@@ -1,46 +1,36 @@
 import React from "react";
 
-import Block from "../Block";
-import __ from "./atoms";
+import cx from "./cx";
+import { inputClass } from "./inputClass";
 import Labeled from "./Labeled";
-import { inputStyle, maxInputWidthStyle } from "./styles";
 
 export default function Input({
   label,
   value,
   onChange,
   className,
-  style,
   ...rest
 }: {
   label?: string;
   value?: string;
   onChange?: (value: string) => void;
   className?: string;
-  style?: React.CSSProperties;
-} & Omit<React.InputHTMLAttributes<HTMLInputElement>, "onChange" | "value" | "style">) {
+} & Omit<React.InputHTMLAttributes<HTMLInputElement>, "onChange" | "value" | "className">) {
   return (
     <Labeled
       label={label}
-      style={{ ...__.flex.flex_column.flex_auto, ...maxInputWidthStyle }}
+      className="hc:flex hc:flex-col hc:flex-auto hc:min-w-0 hc:min-h-0 hc:max-w-[30em]"
     >
-      <Block
+      <input
         aria-label={label}
-        as="input"
-        contrast="b=20"
-        className={className}
-        style={{
-          ...inputStyle,
-          borderWidth: 1,
-          borderStyle: "solid",
-          cursor: "initial",
-          ...style,
-        }}
+        className={cx(
+          "huet-border-20",
+          inputClass,
+          "hc:w-full hc:cursor-auto",
+          className,
+        )}
         value={value}
-        onChange={(event) => {
-          const target = event.target as HTMLInputElement;
-          onChange?.(target.value);
-        }}
+        onChange={(event) => onChange?.(event.target.value)}
         {...rest}
       />
     </Labeled>

@@ -1,10 +1,6 @@
 import _ from "lodash";
-import React from "react";
 
-import Block from "../Block";
 import { HSpace } from "./AllExceptFirst";
-import __ from "./atoms";
-import { colorClass } from "./styles";
 
 function ColorPicker({
   color,
@@ -14,18 +10,13 @@ function ColorPicker({
   onChange: (color: string) => void;
 }) {
   return (
-    <Block
-      as="input"
-      contrast="b=12"
+    <input
       type="color"
       value={color}
-      onChange={(event) => onChange((event.target as HTMLInputElement).value)}
-      className={colorClass}
-      style={{
-        ...__.w100.h1.pa0.ba.br1,
-        overflow: "hidden",
-        backgroundColor: color || "transparent",
-      }}
+      onChange={(event) => onChange(event.target.value)}
+      className="huet-border-12 hc:w-full hc:h-4 hc:p-0 hc:border hc:rounded-xs hc:overflow-hidden"
+      // The picked color itself, not a theme color
+      style={{ backgroundColor: color || "transparent" }}
     />
   );
 }

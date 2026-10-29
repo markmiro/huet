@@ -1,13 +1,5 @@
 declare module "*.css";
 
-declare module "nano-css" {
-  export function create(): any;
-}
-
-declare module "nano-css/*" {
-  export function addon(nano: any): void;
-}
-
 declare module "react-icons-kit" {
   export const Icon: any;
 }

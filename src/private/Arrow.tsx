@@ -1,52 +1,30 @@
 import type { CSSProperties } from "react";
 
-const directionToCss = {
-  up: {
-    baseProp: "borderBottom",
-    leftProp: "borderLeft",
-    rightProp: "borderRight",
-  },
-  right: {
-    baseProp: "borderLeft",
-    leftProp: "borderTop",
-    rightProp: "borderBottom",
-  },
-  down: {
-    baseProp: "borderTop",
-    leftProp: "borderRight",
-    rightProp: "borderLeft",
-  },
-  left: {
-    baseProp: "borderRight",
-    leftProp: "borderBottom",
-    rightProp: "borderLeft",
-  },
+import cx from "./cx";
+
+// A CSS border triangle pointing up, colored with `currentColor`
+const sizes = {
+  ".5em": "hc:border-x-[.5em] hc:border-b-[.5em]",
+  ".75em": "hc:border-x-[.75em] hc:border-b-[.75em]",
 } as const;
 
-type Direction = keyof typeof directionToCss;
-
 export default function Arrow({
-  size = "1em",
-  direction = "down",
+  size,
+  className,
   style,
 }: {
-  size?: string | number;
-  direction?: Direction;
+  size: keyof typeof sizes;
+  className?: string;
   style?: CSSProperties;
 }) {
-  const directionCss = directionToCss[direction];
   return (
     <span
-      style={{
-        ...style,
-        display: "inline-block",
-        width: 0,
-        height: 0,
-        background: "transparent",
-        [directionCss.baseProp]: `${size} solid currentColor`,
-        [directionCss.leftProp]: `${size} solid transparent`,
-        [directionCss.rightProp]: `${size} solid transparent`,
-      }}
+      className={cx(
+        "hc:inline-block hc:w-0 hc:h-0 hc:border-x-transparent hc:border-b-current",
+        sizes[size],
+        className,
+      )}
+      style={style}
     />
   );
 }
