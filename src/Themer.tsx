@@ -42,134 +42,6 @@ function ScrollPanel({ children }: { children?: React.ReactNode }) {
   );
 }
 
-function SettingTitled({
-  name,
-  settingKey,
-  children,
-}: {
-  name?: React.ReactNode;
-  settingKey?: string;
-  children?: React.ReactNode;
-}) {
-  return (
-    <div>
-      <div style={{ ...__.b, textDecoration: "underline" }}>{name}</div>
-      {settingKey && (
-        <Block as="code" contrast="fg=25" style={__.b.mono}>
-          {settingKey}
-        </Block>
-      )}
-      <div style={__.mt2}>{children}</div>
-    </div>
-  );
-}
-
-const definitions = {
-  name: {
-    label: "Theme Name",
-    description: "The name of the theme."
-  },
-  bgRamp: {
-    label: "",
-    description: (
-      <div>
-        This is the ramp you'll use for your background, and likely most other
-        neutral backgrounds. It's best to keep this to the default of "gray".
-      </div>
-    )
-  },
-  bgRampValue: {
-    label: "Background Color",
-    description: "Adjust the background color based on the ramp.",
-    example: (
-      <Block style={__.pa2}>
-        <Block contrast="bg=100" style={__.pa2}>
-          Hello
-        </Block>
-      </Block>
-    )
-  },
-  contrastMultiplier: {
-    label: "Contrast",
-    description: "Multiply every contrast setting by a specific number.",
-    example: (
-      <Block style={__.pa2.flex}>
-        <Block contrast="bg=100" style={__.pa2.w100}>
-          <b style={__.b.bb.mb1}>Before</b>
-          <Block contrast="fg=50">One</Block>
-          <Block contrast="fg=100">Two</Block>
-        </Block>
-        <Block contrast="bg=100" style={__.pa2.w100}>
-          <b style={__.b.bb.mb1}>After</b>
-          <Block contrast="fg=100">One</Block>
-          <Block contrast="fg=100">Two</Block>
-        </Block>
-      </Block>
-    )
-  },
-  pallet: {
-    label: "Pallet",
-    description:
-      "You set specific hex values for these colors, but only access them indirectly via ramps."
-  },
-  ramps: {
-    label: "Color ramps",
-    description: (
-      <div>
-        Instead of specifying 5 different reds individually, a ramp lets you
-        specify a beginning, end, and middle color. If a pallet color is a
-        point, ramps draw lines between these points. For advanced scenarios
-        you'll have more pallet colors than ramps.
-        {/* <Hr /> */}
-        <pre>Hello</pre>
-      </div>
-    )
-  },
-  startSignalLightness: {
-    label: "Signal Lightness on 'White'",
-    description: "Signal colors are usually red, yellow, and green"
-  },
-  endSignalLightness: {
-    label: "Signal Lightness on 'Black'",
-    description: (
-      <div>
-        See <span style={__.mono.di}>startSignalLightness</span>
-      </div>
-    )
-  }
-};
-
-function Help({ theme }: { theme: Theme }) {
-  return (
-    <ScrollPanel>
-      <div style={{ ...__.pa3.f6.br }}>
-        {Object.keys(definitions).map((key, i) => {
-          const def = definitions[key as keyof typeof definitions];
-          return (
-            <Block
-              key={key}
-              contrast="b=12"
-              style={i === 0 ? null : { ...__.mt3.bt.pt3 }}
-            >
-              <SettingTitled key={key} name={def.label} settingKey={key}>
-                {def.description}
-              </SettingTitled>
-              {"example" in def && def.example && (
-                <Block contrast="b=12" style={__.ba.mt2}>
-                  <Block contrast="bg=0" theme={theme}>
-                    {def.example}
-                  </Block>
-                </Block>
-              )}
-            </Block>
-          );
-        })}
-        {/* <SettingTitled name="Theme the themer" /> */}
-      </div>
-    </ScrollPanel>
-  );
-}
-
 const tabEnum = {
   THEMES: "THEMES",
   EDIT_THEME: "EDIT_THEME"
@@ -217,7 +89,7 @@ function EditTheme({
       <VSpace size="2" style={__.pa3}>
         <div>
           <Input
-            label={definitions.name.label}
+            label="Theme Name"
             style={__.flex_auto.mb2}
             value={themeConfig.name}
             onChange={name => onThemeConfigChange({ ...themeConfig, name })}
@@ -226,7 +98,7 @@ function EditTheme({
             Export Theme
           </Button>
         </div>
-        <Labeled label={definitions.bgRampValue.label}>
+        <Labeled label="Background Color">
           <Block theme={theme}>
             <BgColors
               bgRampValue={themeConfig.bgRampValue}
@@ -235,7 +107,7 @@ function EditTheme({
           </Block>
         </Labeled>
         <Range
-          label={definitions.contrastMultiplier.label}
+          label="Contrast"
           min={0}
           max={1}
           decimals={2}
@@ -249,7 +121,7 @@ function EditTheme({
           <ColorRamps />
         </Labeled>
         <Range
-          label={definitions.endSignalLightness.label}
+          label="Signal Lightness on 'Black'"
           value={themeConfig.endSignalLightness}
           onChange={setEndSignalLightness}
           min={0}
@@ -257,7 +129,7 @@ function EditTheme({
           decimals={2}
         />
         <Range
-          label={definitions.startSignalLightness.label}
+          label="Signal Lightness on 'White'"
           value={themeConfig.startSignalLightness}
           onChange={setStartSignalLightness}
           min={0}
@@ -279,70 +151,57 @@ export default function Themer() {
   const [currentTab, setCurrentTab] = usePersistentState<
     (typeof tabEnum)[keyof typeof tabEnum]
   >("themer:currentTab", tabEnum.THEMES, asTab);
-  const [showHelp, setShowHelp] = usePersistentState(
-    "themer:showHelp",
-    false,
-    asBoolean
-  );
 
   const themerTheme = shouldThemeSelf ? theme : baseTheme;
 
   return (
     <Block theme={themerTheme}>
       <ThemerShell>
-        <div style={{ ...__.flex.flex_auto, overflow: "hidden" }}>
-          {showHelp && <Help theme={theme} />}
-          <div style={__.flex.flex_column.flex_auto}>
-            <div style={__.ph2.pt2.bb}>
-              <HSpace growEach>
-                <Button
-                  bg={currentTab === tabEnum.THEMES ? 100 : null}
-                  onClick={() => setCurrentTab(tabEnum.THEMES)}
-                >
-                  Themes
-                </Button>
-                <Button
-                  bg={currentTab === tabEnum.EDIT_THEME ? 100 : null}
-                  onClick={() => setCurrentTab(tabEnum.EDIT_THEME)}
-                >
-                  Edit Theme
-                </Button>
-              </HSpace>
-            </div>
-            <ScrollPanel>
-              {currentTab === tabEnum.EDIT_THEME ? (
-                <EditTheme
-                  theme={theme}
-                  onThemeConfigChange={setThemeConfig}
-                />
-              ) : (
-                <Themes />
-              )}
-            </ScrollPanel>
-            <Block contrast="bg=12">
-              <VSpace style={__.pa3}>
-                <Checkbox
-                  label="Theme the themer"
-                  value={shouldThemeSelf}
-                  onChange={setShouldThemeSelf}
-                />
-                <Checkbox
-                  label="Show Help?"
-                  value={showHelp}
-                  onChange={setShowHelp}
-                />
-                <Button
-                  bg={100}
-                  bgRamp="red"
-                  textRamp="white"
-                  onClick={reset}
-                  verify
-                >
-                  Clear Local Storage
-                </Button>
-              </VSpace>
-            </Block>
+        <div style={{ ...__.flex.flex_column.flex_auto, overflow: "hidden" }}>
+          <div style={__.ph2.pt2.bb}>
+            <HSpace growEach>
+              <Button
+                bg={currentTab === tabEnum.THEMES ? 100 : null}
+                onClick={() => setCurrentTab(tabEnum.THEMES)}
+              >
+                Themes
+              </Button>
+              <Button
+                bg={currentTab === tabEnum.EDIT_THEME ? 100 : null}
+                onClick={() => setCurrentTab(tabEnum.EDIT_THEME)}
+              >
+                Edit Theme
+              </Button>
+            </HSpace>
           </div>
+          <ScrollPanel>
+            {currentTab === tabEnum.EDIT_THEME ? (
+              <EditTheme
+                theme={theme}
+                onThemeConfigChange={setThemeConfig}
+              />
+            ) : (
+              <Themes />
+            )}
+          </ScrollPanel>
+          <Block contrast="bg=12">
+            <VSpace style={__.pa3}>
+              <Checkbox
+                label="Theme the themer"
+                value={shouldThemeSelf}
+                onChange={setShouldThemeSelf}
+              />
+              <Button
+                bg={100}
+                bgRamp="red"
+                textRamp="white"
+                onClick={reset}
+                verify
+              >
+                Clear Local Storage
+              </Button>
+            </VSpace>
+          </Block>
         </div>
       </ThemerShell>
     </Block>

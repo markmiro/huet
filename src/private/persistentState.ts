@@ -20,6 +20,8 @@ import {
 const PREFIX = "huet:";
 // Keys written by the old order-based `useBrowserState` hook.
 const LEGACY_PREFIX = "useBrowserState_huet_";
+// Settings the configurator no longer has
+const REMOVED_KEYS = ["themer:showHelp"];
 const SAVE_DELAY = 500;
 
 /** Turns a stored JSON value into `T`, or returns `undefined` if it's invalid. */
@@ -136,6 +138,7 @@ function removeLegacyKeys() {
     for (const key of storageKeys(storage)) {
       if (key.startsWith(LEGACY_PREFIX)) storage.removeItem(key);
     }
+    for (const key of REMOVED_KEYS) storage.removeItem(PREFIX + key);
   } catch {
     // Ignore
   }
