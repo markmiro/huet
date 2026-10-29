@@ -109,7 +109,6 @@ export default class Color extends BaseColor {
     this.lightness = lab[0];
   }
 
-  // TODO: consider removing `bgRamp` and `bgRampValue from theme
   static fromTheme(theme: Theme) {
     if (!(theme instanceof Theme)) {
       throw new TypeError(
