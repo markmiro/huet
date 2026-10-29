@@ -48,6 +48,18 @@ const unsplashTitles: Record<string, string> = {
   "1433086966358-54859d0ed716": "Multnomah Falls",
   "1441974231531-c6227db76b6e": "Forest path",
   "1426604966848-d7adac402bff": "Yosemite Valley",
+  // Editorial, straight-from-camera photos for faces, depth and mid tones
+  "1553755322-56baa43a31d7": "Forest in daylight",
+  "1676234324899-06e4134c1f59": "Beach, sea and sky",
+  "1672279410716-c676739163e9": "City skyline at dusk",
+  "1596003903067-bf5762ad5c19": "Mountain lake",
+  "1580060092295-dbe639fffda3": "Busy street",
+  "1559855604-f11cd5d385eb": "Produce market",
+  "1771339140250-7450e666818e": "Table of food",
+  "1784288195989-056788fdae4c": "Kitchen in morning sun",
+  "1626248801379-51a0748a5f96": "Rugby match",
+  "1760606370385-22e8dd8d2795": "Snowy mountain village",
+  "1778694277039-5cbf0b9a1fcf": "Candlelit restaurant",
 };
 const markmiroBase = "https://markmiro-website-content.s3.us-west-1.amazonaws.com/figma-export/";
 
