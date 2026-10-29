@@ -37,3 +37,22 @@ test("emoji are drawn into images and recolored", async ({ page }) => {
     .toBe(true);
   await expect(emoji.first()).toHaveAttribute("alt", "🌸");
 });
+
+test("image controls default to no neutral tint, the GPU and a 17³ LUT", async ({ page }) => {
+  await page.goto("/images");
+  await expect(page.getByLabel("Neutral tint on colors")).toHaveValue("0");
+  await expect(page.getByLabel("Renderer")).toHaveValue("gpu");
+  await expect(page.getByLabel("LUT size")).toHaveValue("17");
+  const status = page.locator("[data-renderer-status]");
+  await expect(status).toContainText("17³ lookup table");
+  // Headless Chromium has WebGL2, so the default renderer really is the GPU.
+  await expect(status).toContainText("the GPU (WebGL2)");
+
+  const image = page.locator("img[data-huet-recolor]").first();
+  await expect(image).toHaveAttribute("src", /^blob:/, { timeout: 30_000 });
+  const gpuSrc = await image.getAttribute("src");
+  await page.getByLabel("Renderer").selectOption("cpu");
+  await expect(status).toContainText("Rendering on the CPU through");
+  await expect.poll(() => image.getAttribute("src"), { timeout: 30_000 }).not.toBe(gpuSrc);
+  await expect(image).toHaveAttribute("src", /^blob:/);
+});

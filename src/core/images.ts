@@ -17,6 +17,11 @@ export { GpuRecolor } from "./gpu";
 export interface ImageOptions extends RecolorOptions {
   /** Lattice size of the lookup table each theme is baked into. Defaults to 17. */
   lutSize?: number;
+  /**
+   * `"gpu"` (the default) renders with WebGL2 and falls back to the CPU when
+   * WebGL2 isn't available. `"cpu"` always renders on the CPU.
+   */
+  renderer?: "gpu" | "cpu";
 }
 
 /** The ramps of a theme from `createTheme`, in the shape the recolorer reads. */
@@ -53,6 +58,9 @@ const gpuRecolor = () => {
   return gpu;
 };
 
+/** True when the `"gpu"` renderer can use WebGL2 in this browser. */
+export const hasGpu = () => gpuRecolor() !== null;
+
 type Source = HTMLImageElement | HTMLCanvasElement | ImageBitmap;
 const sizeOf = (source: Source) =>
   source instanceof HTMLImageElement
@@ -61,7 +69,7 @@ const sizeOf = (source: Source) =>
 
 /**
  * Draw a decoded image through a theme into a canvas (a new one unless `out`
- * is given), on the GPU when WebGL2 is available. Cross-origin images need
+ * is given), on the GPU when WebGL2 is available unless `renderer: "cpu"`. Cross-origin images need
  * CORS headers and `crossOrigin` set, or the browser refuses to read them.
  */
 export function recolorImage(
@@ -71,9 +79,10 @@ export function recolorImage(
   out = document.createElement("canvas"),
 ): HTMLCanvasElement {
   const [width, height] = sizeOf(source);
-  const size = options.lutSize ?? 17;
-  const lut = lutFor(paletteOf(theme), options);
-  const renderer = gpuRecolor();
+  const { renderer: preferred = "gpu", ...lutOptions } = options;
+  const size = lutOptions.lutSize ?? 17;
+  const lut = lutFor(paletteOf(theme), lutOptions);
+  const renderer = preferred === "gpu" ? gpuRecolor() : null;
   if (renderer) {
     renderer.setLut(lut, size);
     renderer.render(source, out, width, height);
