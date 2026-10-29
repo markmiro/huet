@@ -232,6 +232,12 @@ images.update(paper);
 | `hoverOriginal` | `false` | Show the original while the pointer is over the image |
 | `lutSize` | `17` | Size of the lookup table each theme is baked into |
 
+Images whose original hasn't been recolored yet are hidden (`visibility: hidden`, so layout doesn't shift) until the recolored copy is ready to paint, so the original never flashes. Theme updates keep showing the previous recolored image until the new one is ready. Once an image is handled, it gets `data-huet-recolored`, set to `"original"` if it couldn't be read. Server-rendered pages can paint images before the script runs; to hide them from the first paint while mounted, add:
+
+```css
+img[data-huet-recolor]:not([data-huet-recolored]) { visibility: hidden; }
+```
+
 Rendering runs on the GPU (WebGL2) and falls back to the CPU. The browser must be able to read the pixels, so cross-origin images need CORS headers and a `crossorigin` attribute. Images it can't read keep their original `src`. `<picture>` sources are not recolored.
 
 For canvases, video frames, or your own pipeline, use the lower-level functions:

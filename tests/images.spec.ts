@@ -128,7 +128,12 @@ test("mountImages restores srcset and leaves unreadable images alone", async ({ 
     const [img, broken] = root.querySelectorAll("img");
     const mount = images.mountImages(root, core.createTheme({ dark: "#302723", light: "#f1e4cd" }));
     await mount.ready();
-    const during = { srcset: img.hasAttribute("srcset"), src: img.src.startsWith("blob:") };
+    const during = {
+      srcset: img.hasAttribute("srcset"),
+      src: img.src.startsWith("blob:"),
+      broken: broken.getAttribute("data-huet-recolored"),
+      brokenVisible: getComputedStyle(broken).visibility,
+    };
     mount.destroy();
     return {
       during,
@@ -136,9 +141,51 @@ test("mountImages restores srcset and leaves unreadable images alone", async ({ 
       broken: broken.getAttribute("src"),
     };
   });
-  expect(result.during).toEqual({ srcset: false, src: true });
+  expect(result.during).toEqual({ srcset: false, src: true, broken: "original", brokenVisible: "visible" });
   expect(result.srcset).toBe(true);
   expect(result.broken).toBe("/missing.png");
+});
+
+test("mountImages never paints the original", async ({ page }) => {
+  await setup(page);
+  const frames = await page.evaluate(async () => {
+    const { images, core, fixture } = window as any;
+    const root = document.createElement("div");
+    document.body.append(root);
+    const sunset = core.createTheme({ neutral: { colors: ["#242744", "#ffe173"], colorModel: "hcl" } });
+    const mount = images.mountImages(root, sunset);
+    const frames: string[] = [];
+    let sampling = true;
+    const sample = () => {
+      for (const img of root.querySelectorAll("img"))
+        if (getComputedStyle(img).visibility === "visible" && img.complete)
+          frames.push(img.currentSrc.startsWith("blob:") ? "recolored" : "original");
+      if (sampling) requestAnimationFrame(sample);
+    };
+    requestAnimationFrame(sample);
+    const add = () => {
+      const img = Object.assign(document.createElement("img"), { src: `${fixture}#${Math.random()}` });
+      img.setAttribute("data-huet-recolor", "");
+      root.append(img);
+      return img;
+    };
+    // An image added after mounting, and one whose src changes.
+    const changed = add();
+    await new Promise((r) => setTimeout(r, 50));
+    await mount.ready();
+    changed.src = `${fixture}#changed`;
+    add();
+    await new Promise((r) => setTimeout(r, 50));
+    await mount.ready();
+    mount.update(core.createTheme({ dark: "#302723", light: "#f1e4cd" }));
+    await mount.ready();
+    for (let i = 0; i < 3; i++) await new Promise((r) => requestAnimationFrame(r));
+    sampling = false;
+    mount.destroy();
+    return frames;
+  });
+  expect(frames.length).toBeGreaterThan(0);
+  expect(frames).not.toContain("original");
 });
 
 test("recolorImage matches on the GPU and CPU", async ({ browser }) => {

@@ -105,6 +105,8 @@ interface Entry {
   written?: string;
   recolored?: string;
   generation: number;
+  /** The inline `visibility` to put back once the image can be shown. */
+  hidden?: [string, string];
   leave?: () => void;
 }
 
@@ -112,6 +114,7 @@ interface Entry {
  * Recolor matching `<img>` elements under `root` into a theme, and keep them
  * recolored as images are added, change `src`, or the theme is updated.
  * Each image's `src` is replaced with a recolored copy; `destroy` restores it.
+ * New originals stay hidden until their recolored copy is ready to paint.
  */
 export function mountImages(
   root: ParentNode & Node,
@@ -142,12 +145,31 @@ export function mountImages(
     entry.written = src;
     if (img.getAttribute("src") !== src) img.setAttribute("src", src);
   };
+  const hide = (img: HTMLImageElement, entry: Entry) => {
+    if (entry.hidden) return;
+    const { style } = img;
+    entry.hidden = [style.getPropertyValue("visibility"), style.getPropertyPriority("visibility")];
+    style.setProperty("visibility", "hidden", "important");
+  };
+  const reveal = (img: HTMLImageElement, entry: Entry) => {
+    if (!entry.hidden) return;
+    const [value, priority] = entry.hidden;
+    if (value) img.style.setProperty("visibility", value, priority);
+    else img.style.removeProperty("visibility");
+    entry.hidden = undefined;
+  };
+  /** Show the original after all, marking that it couldn't be recolored. */
+  const giveUp = (img: HTMLImageElement, entry: Entry) => {
+    img.setAttribute("data-huet-recolored", "original");
+    reveal(img, entry);
+  };
   const revoke = (entry: Entry) => {
     if (entry.recolored) URL.revokeObjectURL(entry.recolored);
     entry.recolored = undefined;
   };
   const restore = (img: HTMLImageElement, entry: Entry) => {
     entry.leave?.();
+    reveal(img, entry);
     for (const [name, value] of Object.entries(entry.original))
       if (value === null) img.removeAttribute(name);
       else img.setAttribute(name, value);
@@ -159,13 +181,14 @@ export function mountImages(
   const render = async (img: HTMLImageElement, entry: Entry) => {
     const current = ++entry.generation;
     const src = entry.source;
-    if (!src) return;
+    if (!src) return giveUp(img, entry);
     try {
       const source = await load(src, img.crossOrigin);
       if (disposed || current !== entry.generation || !entries.has(img)) return;
       const canvas = recolorImage(source, target, settings);
       const blob = await new Promise<Blob | null>((resolve) => canvas.toBlob(resolve));
-      if (!blob || disposed || current !== entry.generation || !entries.has(img)) return;
+      if (disposed || current !== entry.generation || !entries.has(img)) return;
+      if (!blob) throw new Error("Could not encode the recolored image");
       revoke(entry);
       entry.recolored = URL.createObjectURL(blob);
       // `srcset` would take precedence over the recolored `src`.
@@ -173,8 +196,13 @@ export function mountImages(
       img.removeAttribute("sizes");
       if (!(hoverOriginal && img.matches(":hover"))) write(img, entry, entry.recolored);
       img.setAttribute("data-huet-recolored", "");
+      if (!entry.hidden) return;
+      // The browser keeps painting the previous image until the new one decodes.
+      await img.decode().catch(() => {});
+      if (current === entry.generation && entries.has(img)) reveal(img, entry);
     } catch {
       // Unreadable (e.g. cross-origin without CORS) or broken images stay as they are.
+      if (current === entry.generation && entries.has(img)) giveUp(img, entry);
     }
   };
   const track = (promise: Promise<void>) => {
@@ -206,6 +234,7 @@ export function mountImages(
   };
   /** Wait for the original to load, so `currentSrc` reflects srcset. */
   const start = (img: HTMLImageElement, entry: Entry) => {
+    hide(img, entry);
     const begin = async () => {
       if (!entries.has(img)) return;
       // Only srcset needs `currentSrc`, which can lag behind a new `src`.
@@ -217,7 +246,11 @@ export function mountImages(
         ? begin()
         : new Promise<void>((resolve) => {
             img.addEventListener("load", () => resolve(begin()), { once: true });
-            img.addEventListener("error", () => resolve(), { once: true });
+            img.addEventListener(
+              "error",
+              () => resolve(entries.get(img) === entry ? giveUp(img, entry) : undefined),
+              { once: true },
+            );
           }),
     );
   };
