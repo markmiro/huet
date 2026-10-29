@@ -102,7 +102,8 @@ export function mountTheme(root: HTMLElement, initialTheme: HuetTheme) {
       const specs = names.map(parseColorClass).filter(x => x !== undefined);
       const legacySurface = names.some(x => surfaceClasses.includes(x as typeof surfaceClasses[number]));
       if (el !== root && !specs.length && !legacySurface) continue;
-      const errors = validateClasses(el.className);
+      // SVG elements expose className as an SVGAnimatedString.
+      const errors = validateClasses(el.getAttribute("class") ?? "");
       if (errors.length) throw new Error(errors.join("; "));
       let parent = el.parentElement;
       while (parent && !backgrounds.has(parent)) parent = parent.parentElement;

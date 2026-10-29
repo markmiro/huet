@@ -7,7 +7,7 @@ export default defineConfig({
     browserName: "chromium",
   },
   webServer: {
-    command: "npm run dev -- --port 8733",
+    command: "pnpm exec astro dev --port 8733 --ignore-lock",
     url: "http://localhost:8733/lab.html",
     reuseExistingServer: !process.env.CI,
   },

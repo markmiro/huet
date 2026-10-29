@@ -138,4 +138,17 @@ describe("explicit contrast classes", () => {
     expect(input.value).toBe("unsaved");
     mount.destroy();
   });
+  it("colors SVG elements", () => {
+    const root = document.createElement("div");
+    root.innerHTML = '<svg><rect class="huet-text-red-100" fill="currentColor"></rect></svg>';
+    document.body.append(root);
+    const theme = createTheme();
+    const mount = mountTheme(root, theme);
+    const rect = root.querySelector("rect")!;
+    expect(rect.style.getPropertyValue("--huet-relative-text")).toBe(
+      theme.relative.contrast(100, theme.relative.theme.ramps.red).hex,
+    );
+    mount.destroy();
+    root.remove();
+  });
 });

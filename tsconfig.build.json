@@ -6,13 +6,12 @@
     "emitDeclarationOnly": true,
     "outDir": "dist"
   },
-  "include": ["src"],
+  "include": [
+    "src"
+  ],
   "exclude": [
     "src/**/*.test.ts",
-    "src/index.tsx",
-    "src/demo/pages",
-    "src/demo/YouTubeLogo.tsx",
-    "src/demo/globals.ts",
+    "src/demo",
     "vite.config.ts"
   ]
 }

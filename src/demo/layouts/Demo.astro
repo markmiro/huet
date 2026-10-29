@@ -1,0 +1,49 @@
+---
+import "../styles/demo.css";
+import Configurator from "../components/Configurator";
+
+const { title } = Astro.props;
+const base = import.meta.env.BASE_URL.replace(/\/?$/, "/");
+const pages = [
+  { name: "Basic", href: base },
+  { name: "GitHub", href: `${base}github` },
+  { name: "YouTube", href: `${base}youtube` },
+  { name: "Color Contrast", href: `${base}color-contrast` },
+];
+const current = Astro.url.pathname.replace(/(\.html|\/)$/, "") || "/";
+const isCurrent = (href: string) => (href.replace(/\/$/, "") || "/") === current;
+---
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>{title} · Huet Demo</title>
+    <noscript><style>#page { visibility: visible !important; }</style></noscript>
+  </head>
+  <body>
+    <div id="page" class="huet-text-100 flex min-h-screen flex-col">
+      <header class="huet-bg-10 huet-border-100 relative z-10 border-b">
+        <nav aria-label="Example demos" class="flex flex-wrap items-center gap-1 px-2 py-2">
+          <span class="mr-2 text-sm font-bold">Example Demos</span>
+          {pages.map((page) => (
+            <a
+              href={page.href}
+              aria-current={isCurrent(page.href) ? "page" : undefined}
+              class:list={[
+                "rounded px-3 py-1 no-underline",
+                isCurrent(page.href) ? "huet-bg-100" : "hover:underline",
+              ]}
+            >
+              {page.name}
+            </a>
+          ))}
+        </nav>
+      </header>
+      <main class="flex-auto overflow-hidden">
+        <slot />
+      </main>
+    </div>
+    <Configurator client:only="react" />
+  </body>
+</html>

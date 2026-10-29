@@ -1,0 +1,36 @@
+---
+// Renders a react-icons-kit icon as plain SVG, so static pages don't need React.
+type Node = { name: string; attribs?: Record<string, string>; children?: Node[] };
+type Props = {
+  icon: { viewBox?: string; attribs?: Record<string, string>; children: Node[] };
+  size?: number | string;
+  class?: string;
+};
+const { icon, size = 16, class: className } = Astro.props;
+
+// Same rules as react-icons-kit: icons take their color from `currentColor`.
+const attributes = ({ fill, stroke, ...rest }: Record<string, string> = {}) => ({
+  ...Object.fromEntries(Object.entries(rest).filter(([, value]) => value !== "none")),
+  ...(fill === "none" && stroke ? { fill: "none", stroke: "currentColor" } : {}),
+});
+const render = (nodes: Node[] = []): string =>
+  nodes
+    .map(({ name, attribs, children }) => {
+      const attrs = Object.entries(attributes(attribs))
+        .map(([key, value]) => ` ${key}="${String(value).replace(/"/g, "&quot;")}"`)
+        .join("");
+      return `<${name}${attrs}>${render(children)}</${name}>`;
+    })
+    .join("");
+---
+<i class:list={["inline-block", className]}>
+  <svg
+    fill="currentColor"
+    class="align-middle"
+    width={size}
+    height={size}
+    viewBox={icon.viewBox ?? "0 0 24 24"}
+    {...icon.attribs}
+    set:html={render(icon.children)}
+  />
+</i>
