@@ -1,10 +1,27 @@
 import chroma from "chroma-js";
+import { fromOklab, toOklab, luminance } from "./core/color";
 
 import type { Lab, Ramp } from "./colorModel";
 import Theme from "./Theme";
 import Cache from "./private/cache";
+import { mixSignal } from "./private/mixSignal";
+import { fadeColor } from "./private/fadeColor";
 
 const cache = new Cache();
+const enabledThemes = new WeakMap<Theme, Theme>();
+const enabledColors = new WeakMap<Color, { color: Color; origin: string }>();
+const rampSamples = new WeakMap<Ramp, { lab: Lab; luminance: number }[]>();
+function samplesFor(ramp: Ramp) {
+  let samples = rampSamples.get(ramp);
+  if (!samples) {
+    samples = Array.from({ length: 257 }, (_, i) => {
+      const lab = ramp(i / 256);
+      return { lab, luminance: chroma(chroma.lab(...lab).hex()).luminance() };
+    });
+    rampSamples.set(ramp, samples);
+  }
+  return samples;
+}
 if (typeof window !== "undefined") {
   window.cache = cache;
 }
@@ -72,7 +89,10 @@ export default class Color extends BaseColor {
       throw new Error("`theme` is required");
     }
 
-    if (baseRamp && (baseRamp.startL === undefined || baseRamp.endL === undefined)) {
+    if (
+      baseRamp &&
+      (baseRamp.startL === undefined || baseRamp.endL === undefined)
+    ) {
       throw new Error("`baseRamp` can't be a direct ramp");
     } else if (
       !baseRamp &&
@@ -88,7 +108,8 @@ export default class Color extends BaseColor {
     this.theme = theme;
     this.bgColor = bgColor;
     this.ramp = ramp;
-    this.baseRamp = baseRamp || (bgColor && bgColor.baseRamp) || theme.ramps.gray;
+    this.baseRamp =
+      baseRamp || (bgColor && bgColor.baseRamp) || theme.ramps.gray;
     this.lightness = lab[0];
   }
 
@@ -96,7 +117,7 @@ export default class Color extends BaseColor {
   static fromTheme(theme: Theme) {
     if (!(theme instanceof Theme)) {
       throw new TypeError(
-        'Need to give me a Theme instance, not a "theme config"'
+        'Need to give me a Theme instance, not a "theme config"',
       );
     }
     const ramp = theme.ramps[theme.bgRamp];
@@ -110,7 +131,11 @@ export default class Color extends BaseColor {
     });
   }
 
-  contrast(contrastAmount = 100, ramp: Ramp = this.baseRamp) {
+  contrast(contrastAmount = 100, ramp: Ramp = this.baseRamp): Color {
+    if (this.theme.contrastMultiplier >= 0 && this.theme.contrastMultiplier < 1) {
+      return cache.at([this, "fadeContrast", contrastAmount, ramp], () =>
+        this.fadeEnabled(ramp, (color, mapped) => color.contrast(contrastAmount, mapped)));
+    }
     if (ramp.config.mode === "direct") {
       return this.direct(ramp);
     }
@@ -119,6 +144,116 @@ export default class Color extends BaseColor {
     return cache.at([this.hex, this.baseRamp, contrastAmount, ramp], () => {
       const { theme } = this;
       const isRootBaseRamp = ramp === theme.ramps[theme.bgRamp];
+
+      // Neutral contrast must be measured after gamut mapping, not inferred
+      // from which side of LAB 50 the background occupies. Signal ramps use
+      // the shared-polarity contrast solver below.
+      if (
+        isRootBaseRamp &&
+        theme.rescaleContrastToGrayRange &&
+        contrastAmount >= 0
+      ) {
+        const amount = Math.max(0, Math.min(1, contrastAmount / 100 * theme.contrastMultiplier));
+        if (amount === 0) return this;
+        let best = ramp(0),
+          bestRatio = 0;
+        let chosen: Lab | undefined,
+          chosenRatio = Infinity;
+        const samples = samplesFor(ramp);
+        const bgLuminance = chroma(this.hex).luminance();
+        const endpointRatio = (value: number) =>
+          (Math.max(bgLuminance, value) + 0.05) / (Math.min(bgLuminance, value) + 0.05);
+        const low = Math.min(samples[0].luminance, samples[samples.length - 1].luminance);
+        const high = Math.max(samples[0].luminance, samples[samples.length - 1].luminance);
+        const lighter = endpointRatio(high) > endpointRatio(low);
+        // Strength spans this background's available range. Fixed targets
+        // (3, 4.5, 21) exhausted middle-tone ramps long before strength 100.
+        const available = Math.max(endpointRatio(low), endpointRatio(high));
+        if (available <= 1 + 1e-10) return this;
+        const target = available ** amount;
+        // Choose polarity once for the background, not again for each amount.
+        // Otherwise nearest-ratio selection can alternate black/light/dark.
+        for (const { lab, luminance } of samples) {
+          if (lighter ? luminance < bgLuminance : luminance > bgLuminance) continue;
+          const ratio =
+            (Math.max(bgLuminance, luminance) + 0.05) /
+            (Math.min(bgLuminance, luminance) + 0.05);
+          if (ratio > bestRatio) {
+            best = lab;
+            bestRatio = ratio;
+          }
+          if (ratio >= target && ratio < chosenRatio) {
+            chosen = lab;
+            chosenRatio = ratio;
+          }
+        }
+        return new Color({ theme, bgColor: this, lab: chosen ?? best, ramp });
+      }
+
+      if (ramp.config.mode === "furthest" && theme.rescaleContrastToGrayRange && contrastAmount >= 0) {
+        const amount = Math.max(0, Math.min(1, contrastAmount / 100 * theme.contrastMultiplier));
+        if (amount === 0) return this;
+        const root = theme.ramps[theme.bgRamp];
+        const rootEnds = [0, 1].map(n => chroma.lab(...root(n)).hex())
+          .sort((a, b) => luminance(a) - luminance(b));
+        const lighter = chroma.contrast(this.hex, rootEnds[1]) >
+          chroma.contrast(this.hex, rootEnds[0]);
+        const ends = [0, 1].map(n => chroma.lab(...ramp(n)).hex())
+          .sort((a, b) => luminance(a) - luminance(b));
+        const target = ends[lighter ? 1 : 0];
+        // A neutral overlay is still relative to the actual colored surface.
+        // Sampling the gray ramp directly discards its hue even at amount 0.
+        const onSide = lighter
+          ? luminance(target) >= luminance(this.hex)
+          : luminance(target) <= luminance(this.hex);
+        const hex = onSide ? mixSignal(this.hex, target, amount) : this.hex;
+        return new Color({ theme, bgColor: this, lab: chroma(hex).lab(), ramp });
+      }
+
+      if (ramp.config.mode === "signal" && theme.rescaleContrastToGrayRange && contrastAmount >= 0) {
+        const amount = Math.max(0, Math.min(1, contrastAmount / 100 * theme.contrastMultiplier));
+        if (amount === 0) return this;
+        const root = theme.ramps[theme.bgRamp];
+        const ends = [0, 1].map(n => chroma.lab(...root(n)).hex())
+          .sort((a, b) => luminance(a) - luminance(b));
+        const [dark, light] = ends;
+        const lighter = chroma.contrast(this.hex, light) > chroma.contrast(this.hex, dark);
+        const position = lighter ? theme.endSignalLightness : theme.startSignalLightness;
+        const anchor = chroma.lab(...ramp(position)).hex();
+        const [anchorL, a, b] = toOklab(anchor);
+        const low = toOklab(dark)[0], high = toOklab(light)[0];
+        if (Math.abs(high - low) < 1e-7) return this;
+        const [bgL] = toOklab(this.hex);
+        const fraction = Math.max(0, Math.min(1,
+          lighter ? (anchorL - low) / (high - low) : (high - anchorL) / (high - low)));
+        // The configured signal is an endpoint-relative anchor, not an
+        // absolute lightness offset and not a mandatory WCAG text ratio.
+        // At black/white this reproduces the configured anchor. In between,
+        // scale its lightness distance to the remaining room on the chosen side.
+        const endL = lighter ? high : low;
+        let targetL = bgL + (endL - bgL) * fraction;
+        let target = fromOklab([targetL, a, b]);
+        const onSide = (hex: string) => lighter
+          ? luminance(hex) >= luminance(this.hex)
+          : luminance(hex) <= luminance(this.hex);
+        // Custom anchors can change luminance at equal OKLab lightness.
+        // Move toward the shared endpoint rather than reversing one hue.
+        for (let i = 0; i < 24 && !onSide(target); i++) {
+          targetL = (targetL + endL) / 2;
+          target = fromOklab([targetL, a, b]);
+        }
+        if (!onSide(target)) target = this.hex;
+        // All channels travel together, spaced by proportional contrast
+        // so low strengths do not collapse into black.
+        let hex = mixSignal(this.hex, target, amount);
+        if (theme.rescaleSaturationToGrayRange) {
+          const [l, x, y] = toOklab(hex);
+          const [, bx, by] = toOklab(this.hex);
+          hex = fromOklab([l, bx + (x - bx) * amount, by + (y - by) * amount]);
+        }
+        if (!onSide(hex)) hex = this.hex;
+        return new Color({ theme, bgColor: this, lab: chroma(hex).lab(), ramp });
+      }
 
       const [min, max] = this._getMinMax(ramp);
       const [bgMin, bgMax] = this._getMinMax(this.ramp);
@@ -197,14 +332,18 @@ export default class Color extends BaseColor {
     });
   }
 
-  direct(ramp: Ramp) {
+  direct(ramp: Ramp): Color {
+    if (this.theme.contrastMultiplier >= 0 && this.theme.contrastMultiplier < 1) {
+      return cache.at([this, "fadeDirect", ramp], () =>
+        this.fadeEnabled(ramp, (color, mapped) => color.direct(mapped)));
+    }
     return cache.at([this.hex, ramp], () => {
       if (ramp.config.mode !== "direct") throw new Error("Not allowed");
 
       const { theme, baseRamp } = this;
       const [fgL, fgA, fgB] = ramp(
         (this.lightness - (baseRamp.startL ?? Number.NaN)) /
-          ((baseRamp.endL ?? Number.NaN) - (baseRamp.startL ?? Number.NaN))
+          ((baseRamp.endL ?? Number.NaN) - (baseRamp.startL ?? Number.NaN)),
       );
       const [bgL, bgA, bgB] = this.lab;
       const mix = Math.min(theme.contrastMultiplier, 1);
@@ -224,14 +363,48 @@ export default class Color extends BaseColor {
     });
   }
 
+  private fadeEnabled(ramp: Ramp, resolve: (color: Color, mapped: Ramp) => Color): Color {
+    let enabledTheme = enabledThemes.get(this.theme);
+    if (!enabledTheme) {
+      enabledTheme = new Theme({ ...this.theme.config, contrastMultiplier: 1 });
+      enabledThemes.set(this.theme, enabledTheme);
+    }
+    const mapRamp = (value: Ramp | null): Ramp | null => {
+      if (!value) return null;
+      const key = Object.keys(this.theme.ramps).find(key => this.theme.ramps[key] === value);
+      return key === undefined ? value : enabledTheme!.ramps[key];
+    };
+    const state = enabledColors.get(this) ?? {
+      color: new Color({
+        theme: enabledTheme, lab: this.lab,
+        ramp: mapRamp(this.ramp), baseRamp: mapRamp(this.baseRamp),
+      }),
+      origin: this.hex,
+    };
+    const enabled = resolve(state.color, mapRamp(ramp)!);
+    const hex = fadeColor(state.origin, enabled.hex, this.theme.contrastMultiplier);
+    const result = new Color({ theme: this.theme, bgColor: this, lab: chroma(hex).lab(), ramp });
+    // Even equal rounded colors need distinct reference states: their children
+    // can have different enabled colors. Never key these by displayed hex.
+    enabledColors.set(result, { color: enabled, origin: state.origin });
+    return result;
+  }
+
   base(ramp: Ramp) {
-    return new Color({
+    const result = new Color({
       theme: this.theme,
       bgColor: this.bgColor,
       lab: this.lab,
       ramp: this.ramp,
       baseRamp: ramp,
     });
+    const state = enabledColors.get(this);
+    if (state) {
+      const key = Object.keys(this.theme.ramps).find(key => this.theme.ramps[key] === ramp);
+      const mapped = key === undefined ? ramp : state.color.theme.ramps[key];
+      enabledColors.set(result, { color: state.color.base(mapped), origin: state.origin });
+    }
+    return result;
   }
 
   override alpha(amount: number) {
@@ -261,11 +434,11 @@ export default class Color extends BaseColor {
 
     const min = Math.max(
       ramp.startL ?? Number.NaN,
-      rootBaseRamp.startL ?? Number.NaN
+      rootBaseRamp.startL ?? Number.NaN,
     );
     const max = Math.min(
       ramp.endL ?? Number.NaN,
-      rootBaseRamp.endL ?? Number.NaN
+      rootBaseRamp.endL ?? Number.NaN,
     );
     return [min, max];
   }
