@@ -1,28 +1,17 @@
 import { test, expect } from "@playwright/test";
 import { toOklab, contrastRatio, luminance } from "../src/core/color";
 import { writeFileSync } from "node:fs";
+import baseThemeConfig from "../src/private/baseThemeConfig";
 const screenshots = process.env.HUET_SCREENSHOTS ?? "test-results/screenshots";
 
 test("Color Contrast forms retain hue and scale low-strength fills", async ({ page }) => {
   await page.setViewportSize({ width: 2000, height: 1100 });
   await page.goto("/");
-  await expect.poll(() => page.evaluate(() =>
-    Object.values(localStorage).some(v => { try { return !!JSON.parse(v)?.pallet; } catch { return false; } }),
-  )).toBe(true);
   const results = [];
   for (const position of [1, .75, .25, 0]) {
-    await page.evaluate(position => {
-      for (const [key, value] of Object.entries(localStorage)) {
-        try {
-          const config = JSON.parse(value);
-          if (config?.pallet && config.bgRamp) {
-            config.bgRampValue = position;
-            config.contrastMultiplier = 1;
-            localStorage.setItem(key, JSON.stringify(config));
-          }
-        } catch {}
-      }
-    }, position);
+    await page.evaluate(config => {
+      localStorage.setItem("huet:theme", JSON.stringify(config));
+    }, { ...baseThemeConfig, bgRampValue: position, contrastMultiplier: 1 });
     await page.reload();
     await page.locator("select").first().selectOption("colorContrast");
     await expect(page.getByRole("button", { name: "Submit", exact: true })).toHaveCount(24);
