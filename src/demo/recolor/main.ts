@@ -27,6 +27,7 @@ app.innerHTML = `
   <section class="controls huet-surface-5 huet-border" aria-label="Recolor controls">
     <label>Theme <select id="theme" class="huet-surface-10 huet-border">${themes.map((t, i) => `<option value="${i}">${t.name}</option>`).join("")}</select></label>
     <label class="check" title="Theme this page with Huet using the selected theme"><input id="page-theme" type="checkbox" checked> Theme the page</label>
+    <label class="check"><input id="originals" type="checkbox" checked> Show originals</label>
     <label class="check" title="Swap the theme's background between its dark and light ends. Images keep their lightness."><input id="invert-theme" type="checkbox"> Invert theme</label>
     <label>Strength <input id="strength" type="range" min="0" max="100" value="100"><output id="strength-value">100%</output></label>
     <label title="How much the neutral ramp's tint also shifts saturated colors">Neutral tint on colors <input id="tint" type="range" min="0" max="100" value="100"><output id="tint-value">100%</output></label>
@@ -36,14 +37,14 @@ app.innerHTML = `
     <button id="cube" type="button" class="huet-surface-10 huet-border">Download .cube</button>
   </section>
   <p id="metrics" class="metrics" aria-live="polite"></p>
-  <section class="ramps"><h2>Coordinate grid</h2><p class="note">Left: Huet's default ramps, which the images are read in. Right: the same coordinates in the selected theme.</p><div id="ramps"></div></section>
-  <section class="focus"><div class="section-heading"><h2>One image, every theme</h2><span class="note">Click any image below to focus it. Click a theme to select it. Hover the original to read a pixel's coordinates.</span></div>
-    <div class="focus-grid"><div class="focus-main"><img id="focus-original" class="huet-surface-5" alt=""><canvas id="focus-result" class="huet-surface-5"></canvas><div id="inspect" class="inspect">Hover the original image</div><button id="png" type="button" class="huet-surface-10 huet-border">Download recolored PNG</button></div><div id="matrix" class="matrix"></div></div>
+  <section class="ramps"><h2>Coordinate grid</h2><p class="note"><span class="before">Left: Huet's default ramps, which the images are read in. Right: the same coordinates in the selected theme.</span><span class="after">The selected theme's ramps.</span></p><div id="ramps"></div></section>
+  <section class="focus"><div class="section-heading"><h2>One image, every theme</h2><span class="note">Click any image below to focus it. Click a theme to select it. Hover an image to read a pixel's coordinates.</span></div>
+    <div class="focus-grid"><div class="focus-main"><img id="focus-original" class="huet-surface-5" alt=""><canvas id="focus-result" class="huet-surface-5"></canvas><div id="inspect" class="inspect">Hover an image to inspect a pixel</div><button id="png" type="button" class="huet-surface-10 huet-border">Download recolored PNG</button></div><div id="matrix" class="matrix"></div></div>
   </section>
   <section class="bench"><div class="section-heading"><h2>Cost</h2><button id="bench" type="button" class="huet-surface-10 huet-border">Benchmark focused image</button></div><div id="bench-result"><p class="note">Measures the exact per-pixel transform against a baked lookup table on the CPU (in a worker) and on the GPU.</p></div></section>
-  <section><div class="section-heading"><h2>Unsplash · nature and flowers</h2><span class="note">Original · recolored</span></div><div class="gallery" id="unsplash"></div></section>
+  <section><div class="section-heading"><h2>Unsplash · nature and flowers</h2><span class="note pair-note">Original · recolored</span></div><div class="gallery" id="unsplash"></div></section>
   <section><div class="section-heading"><h2>Emoji</h2><span class="note">Rendered by the system emoji font into a transparent canvas, then recolored like any image.</span></div><div class="gallery emoji" id="emoji"></div></section>
-  <section><div class="section-heading"><h2>markmiro.com</h2><span class="note">Original · recolored</span></div><div class="gallery" id="markmiro"></div></section>
+  <section><div class="section-heading"><h2>markmiro.com</h2><span class="note pair-note">Original · recolored</span></div><div class="gallery" id="markmiro"></div></section>
 </main>`;
 
 const $ = <T extends Element>(selector: string) => document.querySelector<T>(selector)!;
@@ -56,6 +57,7 @@ const sizeSelect = $<HTMLSelectElement>("#size");
 const metrics = $<HTMLElement>("#metrics");
 const pageTheme = $<HTMLInputElement>("#page-theme");
 const invertTheme = $<HTMLInputElement>("#invert-theme");
+const originals = $<HTMLInputElement>("#originals");
 
 let gpu: GpuRecolor | null = null;
 try {
@@ -267,8 +269,8 @@ function renderRamps() {
     row.className = "ramp-row";
     row.innerHTML = `<span>${hue ?? "neutral"}</span>`;
     row.append(
-      rampStrip({}, hue),
-      Object.assign(document.createElement("span"), { textContent: "→", className: "arrow" }),
+      Object.assign(rampStrip({}, hue), { className: "before" }),
+      Object.assign(document.createElement("span"), { textContent: "→", className: "arrow before" }),
       rampStrip(theme, hue),
     );
     root.append(row);
@@ -389,11 +391,17 @@ async function renderMatrix() {
 const focusOriginal = $<HTMLImageElement>("#focus-original");
 const swatch = (rgb: Triple) =>
   `<i class="swatch" style="background:rgb(${rgb.map((v) => Math.round(v * 255)).join(",")})"></i>`;
-focusOriginal.addEventListener("mousemove", (event) => {
+/** Inspect the original pixel under the cursor, on either the original or the recolored image. */
+function inspect(event: MouseEvent) {
   const data = pixelsOf(focusOriginal);
-  const rect = focusOriginal.getBoundingClientRect();
-  const x = Math.floor(((event.clientX - rect.left) / rect.width) * data.width);
-  const y = Math.floor(((event.clientY - rect.top) / rect.height) * data.height);
+  // Both images use object-fit: contain, so map through the letterboxed content box.
+  const rect = (event.currentTarget as HTMLElement).getBoundingClientRect();
+  const scale = Math.min(rect.width / data.width, rect.height / data.height);
+  const left = rect.left + (rect.width - data.width * scale) / 2,
+    top = rect.top + (rect.height - data.height * scale) / 2;
+  const x = Math.floor((event.clientX - left) / scale),
+    y = Math.floor((event.clientY - top) / scale);
+  if (x < 0 || y < 0 || x >= data.width || y >= data.height) return;
   const p = (y * data.width + x) * 4;
   const rgb = [data.data[p] / 255, data.data[p + 1] / 255, data.data[p + 2] / 255] as unknown as Triple;
   const { t, weights } = coordinatesOf(rgb);
@@ -401,8 +409,10 @@ focusOriginal.addEventListener("mousemove", (event) => {
   const theme = themes[state.theme];
   const mapped = recolorer(palette(theme), optionsFor(theme, focusOriginal))(...rgb);
   $("#inspect").innerHTML =
-    `${swatch(rgb)} t ${t.toFixed(2)}${parts.length ? " + " + parts.join(" + ") : " (neutral)"} → ${swatch(mapped)} ${theme.name}`;
-});
+    `<span class="before">${swatch(rgb)}</span> t ${t.toFixed(2)}${parts.length ? " + " + parts.join(" + ") : " (neutral)"} → ${swatch(mapped)} ${theme.name}`;
+}
+focusOriginal.addEventListener("mousemove", inspect);
+$<HTMLCanvasElement>("#focus-result").addEventListener("mousemove", inspect);
 
 // ---- Benchmark ----
 const deltaE = (a: Uint8ClampedArray, b: Uint8ClampedArray) => {
@@ -496,5 +506,11 @@ tint.addEventListener("input", () => {
   renderAll();
 });
 pageTheme.addEventListener("change", themePage);
+function showOriginals() {
+  app.classList.toggle("hide-originals", !originals.checked);
+  for (const note of document.querySelectorAll(".pair-note"))
+    note.textContent = originals.checked ? "Original · recolored" : "Recolored · hover for the original";
+}
+originals.addEventListener("change", showOriginals);
 for (const control of [polarity, invertTheme, modeSelect, sizeSelect]) control.addEventListener("change", renderAll);
 renderAll();

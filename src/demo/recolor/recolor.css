@@ -173,8 +173,47 @@ button:hover {
   background: var(--huet-background, #e9e8e2);
   border-radius: 6px;
 }
-.focus-main img {
+.focus-main img,
+.focus-main canvas {
   cursor: crosshair;
+}
+/*
+  "Show originals" off: recolored images and colors only. Each original sits
+  exactly over its recolored image and appears while hovered.
+*/
+.hide-originals .before,
+.after {
+  display: none;
+}
+.hide-originals .after {
+  display: inline;
+}
+.hide-originals .ramp-row {
+  grid-template-columns: 70px minmax(0, 1fr);
+}
+.hide-originals .pair {
+  grid-template-columns: 1fr;
+}
+.hide-originals .gallery:not(.emoji) .pair canvas {
+  height: 480px;
+}
+.hide-originals .pair {
+  position: relative;
+}
+.hide-originals .pair img {
+  position: absolute;
+  inset: 0;
+  height: 100%;
+}
+.hide-originals .focus-main > :is(img, canvas) {
+  grid-area: 1 / 1;
+}
+.hide-originals :is(.pair img, #focus-original) {
+  opacity: 0;
+  transition: opacity 0.12s;
+}
+.hide-originals :is(.pair:hover img, #focus-original:hover) {
+  opacity: 1;
 }
 .focus-main button {
   justify-self: start;

@@ -38,6 +38,45 @@ test("recolors every image through a theme LUT without errors", async ({ page })
   expect(errors).toEqual([]);
 });
 
+test("hides and shows the original images", async ({ page }) => {
+  await page.goto("/recolor.html");
+  await expect(page.locator("#metrics")).toContainText("wall clock", { timeout: 60_000 });
+  const before = page.locator("#unsplash .pair img").first();
+  const after = page.locator("#unsplash .pair canvas").first();
+  await expect(before).toBeVisible();
+  const half = (await after.boundingBox())!.width;
+  await page.locator("#originals").uncheck();
+  const opacity = (el: typeof before) => el.evaluate((x) => getComputedStyle(x).opacity);
+  await expect.poll(() => opacity(before)).toBe("0");
+  await expect.poll(() => opacity(page.locator("#focus-original"))).toBe("0");
+  // The recolored image takes the whole card, with the original laid over it.
+  expect((await after.boundingBox())!.width).toBeGreaterThan(half * 1.8);
+  expect(await before.boundingBox()).toEqual(await after.boundingBox());
+  await expect(page.locator(".pair-note").first()).toHaveText("Recolored · hover for the original");
+  // Hovering shows the original.
+  await after.hover();
+  await expect.poll(() => opacity(before)).toBe("1");
+  await page.mouse.move(0, 0);
+  await expect.poll(() => opacity(before)).toBe("0");
+  // Before ramps in the coordinate grid are hidden too; theme ramps remain.
+  await expect(page.locator(".ramp-row canvas.before").first()).toBeHidden();
+  await expect(page.locator(".ramp-row canvas:not(.before)")).toHaveCount(6);
+  await expect(page.locator(".ramp-row canvas:not(.before)").first()).toBeVisible();
+  await expect(page.locator(".ramps .note .after")).toBeVisible();
+  await expect(page.locator(".ramps .note .before")).toBeHidden();
+  // Hovering the focused image shows its original and inspects pixels.
+  const focus = page.locator("#focus-original");
+  expect(await focus.boundingBox()).toEqual(await page.locator("#focus-result").boundingBox());
+  await focus.hover();
+  await expect.poll(() => opacity(focus)).toBe("1");
+  await expect(page.locator("#inspect")).toContainText("t ");
+  await page.locator("#originals").check();
+  await expect(before).toBeVisible();
+  await expect(page.locator(".ramp-row canvas.before").first()).toBeVisible();
+  await expect(page.locator(".ramps .note .before")).toBeVisible();
+  await expect(page.locator(".ramps .note .after")).toBeHidden();
+});
+
 test("themes the page with the selected theme unless turned off", async ({ page }) => {
   const errors: string[] = [];
   page.on("pageerror", (e) => errors.push(e.message));
