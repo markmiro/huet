@@ -54,7 +54,12 @@ export function JsonUploadButton({
           // fixing it) still fires `onChange`.
           event.target.value = "";
           if (!file) return;
-          if (file.type === "application/json") {
+          // Some browsers and OSes report an empty type for .json files, so
+          // the extension counts too.
+          const isJson =
+            file.type === "application/json" ||
+            file.name.toLowerCase().endsWith(".json");
+          if (isJson) {
             reader.readAsText(file);
           } else {
             displayError("Only JSON files are accepted.");
