@@ -214,3 +214,36 @@ footer p {
     flex-wrap: wrap;
   }
 }
+.ramp {
+  grid-column: 1/-1;
+}
+.ramp-path {
+  height: 14px;
+  border-radius: 7px;
+  margin-top: 16px;
+}
+.swatches {
+  display: grid;
+  grid-template-columns: repeat(11, 1fr);
+  gap: 6px;
+  margin-top: 10px;
+}
+.swatch {
+  border-radius: 6px;
+  padding: 14px 8px;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  font-size: 11px;
+  min-width: 0;
+}
+.swatch code {
+  font-size: 10px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+@media (max-width: 760px) {
+  .swatches {
+    grid-template-columns: repeat(4, 1fr);
+  }
+}

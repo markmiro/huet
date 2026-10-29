@@ -1,5 +1,5 @@
 import { describe, it, expect } from "vitest";
-import { createTheme, hues, themeVariables } from "./theme";
+import { createTheme, hues, themeVariables, colorModels } from "./theme";
 import { contrastRatio, toOklab, fromOklab, mix, luminance } from "./color";
 import { classes, validateClasses, isHuetClass } from "./classes";
 import { readFileSync } from "node:fs";
@@ -185,5 +185,60 @@ describe("static classes and Tailwind", () => {
     expect(css).toContain("color: var(--huet-foreground)");
     expect(css).toContain("hover\\:text-huet-blue");
     expect(css).not.toContain(".bg-red-500");
+  });
+});
+describe("multi-hue neutral ramps", () => {
+  // Ported from the legacy React themes' `ramps.gray`.
+  const sunset = { neutral: { colors: ["#242744", "#ffe173"], colorModel: "hcl" }, background: 0 } as const;
+  const astro = { neutral: { colors: ["#040816", "#ffb980", "#ffffff"], colorModel: "hcl" }, background: 0 } as const;
+  const chroma = (hex: string) => Math.hypot(toOklab(hex)[1], toOklab(hex)[2]);
+
+  it("keeps the original two-point OKLab path for dark/light themes", () => {
+    const theme = createTheme({ dark: "#233b91", background: 0.4 });
+    expect(theme.background).toBe(mix("#233b91", "#ffffff", 0.4));
+    for (let i = 0; i <= 10; i++) expect(theme.ramp(i / 10)).toBe(mix("#233b91", "#ffffff", i / 10));
+    expect(theme.neutral).toEqual({ colors: ["#233b91", "#ffffff"], colorModel: "oklab" });
+  });
+  it("travels through hues in HCL instead of passing through muddy midtones", () => {
+    const before = createTheme({ dark: "#242744", light: "#ffe173", background: 0 });
+    const after = createTheme(sunset);
+    expect(after.dark).toBe("#242744");
+    expect(after.light).toBe("#ffe173");
+    expect(chroma(after.ramp(0.5))).toBeGreaterThan(2 * chroma(before.ramp(0.5)));
+    // Explicit classes (huet-bg-50, huet-text-60, ...) use the same ramp.
+    const mid = after.relative.contrast(50).hex;
+    expect(chroma(mid)).toBeGreaterThan(2 * chroma(before.relative.contrast(50).hex));
+    expect(after.relative.contrast(0).hex).toBe("#242744");
+    expect(after.relative.contrast(100).hex).toBe("#ffe173");
+  });
+  it("passes through middle stops on backgrounds, relative classes and surfaces", () => {
+    const theme = createTheme(astro);
+    expect(theme.ramp(0.5)).toBe("#ffb980");
+    expect(createTheme({ ...astro, background: 0.5 }).background).toBe("#ffb980");
+    expect(theme.surface(theme.background, 50)).toBe("#ffb980");
+    const samples = Array.from({ length: 101 }, (_, i) => theme.relative.contrast(i).hex);
+    expect(samples.some((hex) => chroma(hex) > 0.1)).toBe(true);
+  });
+  it("progresses monotonically from either end of a multi-hue ramp", () => {
+    for (const options of [sunset, astro])
+      for (const background of [0, 0.3, 0.7, 1]) {
+        const theme = createTheme({ ...options, background });
+        let previous = 1;
+        for (let amount = 0; amount <= 100; amount++) {
+          const ratio = contrastRatio(theme.background, theme.relative.contrast(amount).hex);
+          expect(ratio, `${background} ${amount}`).toBeGreaterThanOrEqual(previous - 1e-9);
+          previous = ratio;
+        }
+      }
+  });
+  it("supports every listed model and rejects invalid ramps", () => {
+    for (const colorModel of colorModels)
+      expect(createTheme({ neutral: { ...sunset.neutral, colorModel } }).ramp(1)).toBe("#ffe173");
+    expect(createTheme({ neutral: { colors: ["#000", "#fff"] } }).neutral.colorModel).toBe("oklab");
+    expect(() => createTheme({ neutral: { colors: ["#000", "#fff"], colorModel: "cmyk" as never } })).toThrow(TypeError);
+    expect(() => createTheme({ neutral: { colors: ["#000", "orange", "#fff"] } })).toThrow(TypeError);
+    expect(() => createTheme({ neutral: { colors: ["#000"] } })).toThrow(RangeError);
+    expect(() => createTheme({ neutral: { colors: ["#fff", "#000"] } })).toThrow(RangeError);
+    expect(() => createTheme({ dark: "#111", neutral: sunset.neutral })).toThrow(TypeError);
   });
 });

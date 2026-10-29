@@ -1,3 +1,4 @@
+import chroma from "chroma-js";
 import { relativeRoot } from "./relative";
 import {
   contrastRatio,
@@ -9,13 +10,25 @@ import {
 } from "./color";
 export const hues = ["red", "yellow", "green", "blue", "purple"] as const;
 export type Hue = (typeof hues)[number];
+/** Interpolation spaces for the neutral ramp. Hue-based models (hcl/lch/oklch/hsl) travel around the hue wheel. */
+export const colorModels = ["oklab", "oklch", "lab", "lch", "hcl", "lrgb", "rgb", "hsl", "hsv", "hsi"] as const;
+export type ColorModel = (typeof colorModels)[number];
+/** A neutral ramp in the shape of the legacy `ramps.gray` config. */
+export interface NeutralRamp {
+  /** Two or more stops, darkest first. The first and last are the endpoints. */
+  colors: readonly string[];
+  /** How the ramp interpolates between its stops. Defaults to OKLab. */
+  colorModel?: ColorModel;
+}
 export interface ThemeOptions {
   /** Global contrast multiplier for explicit relative-color classes: 0–1. */
   contrast?: number;
   /** Ramp endpoints. These also bound neutral foreground colors. */
   dark?: string;
   light?: string;
-  /** Position on the OKLab ramp: 0 is dark, 1 is light. */
+  /** Full neutral ramp: stops and color model. Use instead of `dark`/`light`. */
+  neutral?: NeutralRamp;
+  /** Position on the neutral ramp: 0 is dark, 1 is light. */
   background?: number;
   /** Replace anchors, retaining their hue while adapting lightness/chroma. */
   colors?: Partial<Record<Hue, string>>;
@@ -72,18 +85,55 @@ function select(
   return nearest || best;
 }
 export function createTheme(options: ThemeOptions = {}) {
-  const dark = options.dark ?? "#000000",
-    light = options.light ?? "#ffffff";
-  rgb(dark);
-  rgb(light);
+  const custom = options.neutral !== undefined;
+  if (custom && (options.dark !== undefined || options.light !== undefined))
+    throw new TypeError("Pass either neutral.colors or dark/light, not both");
+  const stops = Object.freeze([
+    ...(options.neutral?.colors ?? [options.dark ?? "#000000", options.light ?? "#ffffff"]),
+  ]);
+  if (stops.length < 2) throw new RangeError("neutral.colors needs at least two colors");
+  for (const color of stops) rgb(color);
+  const dark = stops[0],
+    light = stops[stops.length - 1];
   if (luminance(dark) > luminance(light))
     throw new RangeError("dark must be darker than light");
-  const background = mix(dark, light, options.background ?? 1);
+  const colorModel = options.neutral?.colorModel ?? "oklab";
+  if (!colorModels.includes(colorModel))
+    throw new TypeError(`Unknown color model: ${colorModel}`);
+  // Without a neutral ramp, keep the original two-point OKLab path exactly.
+  const scale = chroma.scale([...stops]).mode(colorModel);
+  const ramp = (t: number): string => {
+    if (!Number.isFinite(t) || t < 0 || t > 1)
+      throw new RangeError("Mix amount must be between 0 and 1");
+    return custom ? scale(t).hex() : mix(dark, light, t);
+  };
+  const background = ramp(options.background ?? 1);
   const colors = Object.freeze({ ...defaults, ...options.colors });
   for (const color of Object.values(colors)) rgb(color);
   const neutral = Array.from({ length: 257 }, (_, i) =>
-    candidate(mix(dark, light, i / 256)),
+    candidate(ramp(i / 256)),
   );
+  const neutralLab = neutral.map((x) => toOklab(x.color));
+  /** Ramp position of a color that lies on the neutral ramp, if any. */
+  const positionOf = (color: string): number | undefined => {
+    const [L, a, b] = toOklab(color);
+    let best = -1,
+      distance = Infinity;
+    neutralLab.forEach(([x, y, z], i) => {
+      const d = Math.hypot(L - x, a - y, b - z);
+      if (d < distance) [best, distance] = [i, d];
+    });
+    return distance < 0.01 ? best / 256 : undefined;
+  };
+  // Neutral surfaces follow the ramp's path (and its hues) when they start on it.
+  // Colored parents fall back to a straight OKLab mix toward the endpoint.
+  const path = (parent: string, end: string) => {
+    const from = custom ? positionOf(parent) : undefined;
+    if (from === undefined) return (amount: number) => mix(parent, end, amount);
+    const to = end === dark ? 0 : 1;
+    return (amount: number) =>
+      amount === 0 ? parent : ramp(from + (to - from) * amount);
+  };
   const low = toOklab(dark)[0],
     high = toOklab(light)[0];
   const ramps = Object.fromEntries(
@@ -167,13 +217,14 @@ export function createTheme(options: ThemeOptions = {}) {
         contrastRatio(parent, dark) >= contrastRatio(parent, light)
           ? dark
           : light;
-      color = mix(parent, end, amount / 100);
+      const toward = path(parent, end);
+      color = toward(amount / 100);
       if (amount !== 0 && fullTextRange && !readable(luminance(color))) {
         // Nudge to the nearest readable point on this same perceptual path.
         // Never escape the configured endpoints to manufacture contrast.
         let distance = Infinity;
         for (let i = 0; i <= 256; i++) {
-          const sample = mix(parent, end, i / 256);
+          const sample = toward(i / 256);
           const gap = Math.abs(i / 256 - amount / 100);
           if (gap < distance && readable(luminance(sample))) {
             color = sample;
@@ -186,8 +237,11 @@ export function createTheme(options: ThemeOptions = {}) {
     surfaceCache.set(key, color);
     return color;
   };
-  const relative = relativeRoot(dark, light, background, colors, options.contrast);
-  return Object.freeze({ background, dark, light, colors, tokens, surface, relative });
+  const neutralRamp: Readonly<Required<NeutralRamp>> = Object.freeze({ colors: stops, colorModel });
+  const relative = relativeRoot(background, colors, neutralRamp, options.contrast, custom);
+  return Object.freeze({
+    background, dark, light, neutral: neutralRamp, colors, ramp, tokens, surface, relative,
+  });
 }
 export type HuetTheme = ReturnType<typeof createTheme>;
 /** The same properties can be serialized into SSR markup or used by any framework. */

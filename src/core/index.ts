@@ -1,5 +1,5 @@
-export { createTheme, themeVariables, hues } from "./theme";
-export type { ThemeOptions, HuetTheme, Tokens, Hue } from "./theme";
+export { createTheme, themeVariables, hues, colorModels } from "./theme";
+export type { ThemeOptions, HuetTheme, Tokens, Hue, ColorModel, NeutralRamp } from "./theme";
 export { mountTheme } from "./dom";
 export { classes, isHuetClass, validateClasses } from "./classes";
 export type { HuetClass, RelativeClass, Amount, RampName, Surface } from "./classes";
