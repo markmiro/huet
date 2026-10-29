@@ -50,6 +50,9 @@ export function JsonUploadButton({
           reader.addEventListener("load", eventListener);
 
           const file = event.target.files?.[0];
+          // Clear the selection so picking the same file again (say, after
+          // fixing it) still fires `onChange`.
+          event.target.value = "";
           if (!file) return;
           if (file.type === "application/json") {
             reader.readAsText(file);
