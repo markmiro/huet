@@ -39,15 +39,6 @@ const urls = import.meta.glob<string>("./images/*/*", {
   import: "default",
 });
 const unsplashTitles: Record<string, string> = {
-  "1490750967868-88aa4486c946": "California poppies",
-  "1508610048659-a06b669e3321": "Rainbow roses",
-  "1455659817273-f96807779a8a": "Sunflowers",
-  "1462275646964-a0e3386b89fa": "Cherry blossoms",
-  "1444021465936-c6ca81d39b84": "Dahlia",
-  "1496062031456-07b8f162a322": "Red rose",
-  "1433086966358-54859d0ed716": "Multnomah Falls",
-  "1441974231531-c6227db76b6e": "Forest path",
-  "1426604966848-d7adac402bff": "Yosemite Valley",
   // Editorial, straight-from-camera photos for faces, depth and mid tones
   "1553755322-56baa43a31d7": "Forest in daylight",
   "1676234324899-06e4134c1f59": "Beach, sea and sky",
@@ -79,6 +70,7 @@ export const images: DemoImage[] = Object.entries(urls).map(([path, url]) => {
     title: stem
       .replace(/^project-thumb-|-2x$/g, "")
       .replace(/-/g, " ")
+      .replace("migratingcranes", "migrating cranes")
       .replace(/^\w/, (c) => c.toUpperCase()),
     source:
       stem === "github-theme-red"
@@ -86,7 +78,7 @@ export const images: DemoImage[] = Object.entries(urls).map(([path, url]) => {
         : markmiroBase + file,
   };
 });
-// Show the colorful Unsplash photos first, in the order listed above.
+// Show the Unsplash photos first, in the order listed above.
 const order = Object.values(unsplashTitles);
 images.sort(
   (a, b) =>
