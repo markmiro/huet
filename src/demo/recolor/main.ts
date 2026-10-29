@@ -30,10 +30,10 @@ app.innerHTML = `
     <label class="check"><input id="originals" type="checkbox" checked> Show originals</label>
     <label class="check" title="Swap the theme's background between its dark and light ends. Images keep their lightness."><input id="invert-theme" type="checkbox"> Invert theme</label>
     <label>Strength <input id="strength" type="range" min="0" max="100" value="100"><output id="strength-value">100%</output></label>
-    <label title="How much the neutral ramp's tint also shifts saturated colors">Neutral tint on colors <input id="tint" type="range" min="0" max="100" value="100"><output id="tint-value">100%</output></label>
+    <label title="How much the neutral ramp's tint also shifts saturated colors">Neutral tint on colors <input id="tint" type="range" min="0" max="100" value="0"><output id="tint-value">0%</output></label>
     <label class="check" title="Off: light stays light and dark stays dark. On: images detected as UI screenshots (mostly flat light or dark background) are inverted when the theme has the opposite polarity. Photos are never inverted."><input id="polarity" type="checkbox"> Invert UI screenshots for opposite-polarity themes</label>
     <label>Renderer <select id="mode" class="huet-surface-10 huet-border"><option value="gpu">GPU · WebGL2 LUT</option><option value="worker">Worker · CPU LUT</option><option value="exact">Worker · exact per pixel (slow)</option></select></label>
-    <label>LUT size <select id="size" class="huet-surface-10 huet-border"><option>17</option><option selected>33</option><option>65</option></select></label>
+    <label>LUT size <select id="size" class="huet-surface-10 huet-border"><option selected>17</option><option>33</option><option>65</option></select></label>
     <button id="cube" type="button" class="huet-surface-10 huet-border">Download .cube</button>
   </section>
   <p id="metrics" class="metrics" aria-live="polite"></p>
@@ -42,8 +42,8 @@ app.innerHTML = `
     <div class="focus-grid"><div class="focus-main"><img id="focus-original" class="huet-surface-5" alt=""><canvas id="focus-result" class="huet-surface-5"></canvas><div id="inspect" class="inspect">Hover an image to inspect a pixel</div><button id="png" type="button" class="huet-surface-10 huet-border">Download recolored PNG</button></div><div id="matrix" class="matrix"></div></div>
   </section>
   <section class="bench"><div class="section-heading"><h2>Cost</h2><button id="bench" type="button" class="huet-surface-10 huet-border">Benchmark focused image</button></div><div id="bench-result"><p class="note">Measures the exact per-pixel transform against a baked lookup table on the CPU (in a worker) and on the GPU.</p></div></section>
-  <section><div class="section-heading"><h2>Unsplash · nature and flowers</h2><span class="note pair-note">Original · recolored</span></div><div class="gallery" id="unsplash"></div></section>
   <section><div class="section-heading"><h2>Emoji</h2><span class="note">Rendered by the system emoji font into a transparent canvas, then recolored like any image.</span></div><div class="gallery emoji" id="emoji"></div></section>
+  <section><div class="section-heading"><h2>Unsplash · nature and flowers</h2><span class="note pair-note">Original · recolored</span></div><div class="gallery" id="unsplash"></div></section>
   <section><div class="section-heading"><h2>markmiro.com</h2><span class="note pair-note">Original · recolored</span></div><div class="gallery" id="markmiro"></div></section>
 </main>`;
 
