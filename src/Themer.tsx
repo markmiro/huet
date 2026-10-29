@@ -33,7 +33,8 @@ function ScrollPanel({ children }: { children?: React.ReactNode }) {
         overflowY: "scroll",
         overflowX: "hidden",
         width: "30em",
-        overscrollBehavior: "contain"
+        overscrollBehavior: "contain",
+        ...__.flex_auto
       }}
     >
       {children}
@@ -303,9 +304,9 @@ export default function Themer() {
   return (
     <Block theme={themerTheme}>
       <ThemerShell>
-        <div style={{ ...__.flex, overflow: "hidden" }}>
+        <div style={{ ...__.flex.flex_auto, overflow: "hidden" }}>
           {showHelp && <Help theme={theme} />}
-          <div style={__.flex.flex_column}>
+          <div style={__.flex.flex_column.flex_auto}>
             <div style={__.ph2.pt2.bb}>
               <HSpace growEach>
                 <Button

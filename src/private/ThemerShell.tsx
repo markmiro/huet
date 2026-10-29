@@ -56,6 +56,9 @@ function TitleBar({
   );
 }
 
+// Fits the Edit Theme tab without scrolling on most screens
+const PANEL_HEIGHT = "64em";
+
 const shadowBorderStyle = (parentBg: Color) => ({
   boxShadow: `0 5px 30px ${parentBg.contrast(100).alpha(0.125)}`,
   outlineWidth: 1,
@@ -91,7 +94,8 @@ export default function ThemerShell({
       className={themerClass}
       style={(parentBg) => ({
         ...__.flex.flex_column,
-        maxHeight: `calc(100vh - 2 * ${PANEL_INSET})`,
+        // Fixed so the panel doesn't jump when switching tabs; tab content scrolls
+        height: `min(${PANEL_HEIGHT}, 100vh - 2 * ${PANEL_INSET})`,
         ...shadowBorderStyle(parentBg),
         transform: isMounted ? "translateY(0)" : "translateY(2em)",
         opacity: isMounted ? 1 : 0,
