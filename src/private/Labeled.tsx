@@ -1,30 +1,25 @@
 import React from "react";
 
-import Block from "../Block";
-import __ from "./atoms";
-
 export default function Labeled({
   label,
   children,
   className,
-  style,
   ...rest
 }: {
   label?: React.ReactNode;
   children?: React.ReactNode;
   className?: string;
-  style?: React.CSSProperties;
 } & React.HTMLAttributes<HTMLElement>) {
   if (!label) {
     return (
-      <div className={className} style={style} {...rest}>
+      <div className={className} {...rest}>
         {children}
       </div>
     );
   }
   return (
-    <label className={className} style={style} {...rest}>
-      <Block style={{ ...__.mb1, cursor: "default" }}>{label}</Block>
+    <label className={className} {...rest}>
+      <span className="hc:mb-1 hc:cursor-default">{label}</span>
       {children}
     </label>
   );

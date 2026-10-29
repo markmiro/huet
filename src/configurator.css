@@ -1,0 +1,122 @@
+/*
+  Styles for the Theme Configurator panel, compiled by Tailwind and injected
+  once at runtime (see src/private/ConfiguratorPortal.tsx). The panel renders
+  into <div data-huet-configurator> on document.body, so it can be embedded in
+  any page, including one that runs its own Tailwind:
+
+  - Utilities are prefixed (`hc:flex`, `hc:p-2`) and theme variables are
+    `--hc-*`, so nothing here matches the host's markup or variables.
+  - No Preflight. The reset below is scoped to the panel instead.
+  - Nothing is in a cascade layer, so the host's layered CSS (Tailwind's
+    base/components/utilities) can't override the panel.
+  - Colors come from Huet classes (`huet-bg-12`), resolved by `mountTheme` on
+    the container. The color rules from core/styles.css are repeated here,
+    scoped to the container, so the host doesn't need huet/styles.css.
+*/
+@import "tailwindcss/theme.css" prefix(hc);
+
+@theme {
+  /* Huet classes own every color */
+  --color-*: initial;
+  --font-ui: -apple-system, BlinkMacSystemFont, "Segoe UI", "Roboto", "Oxygen",
+    "Ubuntu", "Cantarell", "Fira Sans", "Droid Sans", "Helvetica Neue",
+    sans-serif;
+}
+
+/* Only the configurator's own files */
+@source "./ThemeConfigurator.tsx";
+@source "./Themer.tsx";
+@source "./private/*.{ts,tsx}";
+
+/*
+  Reset. Specificity (0,1,0) beats the host's element selectors such as
+  `button { padding: 20px }`. It comes before the utilities, which have the
+  same specificity, so `hc:` utilities win by source order.
+*/
+[data-huet-configurator] {
+  all: initial;
+}
+[data-huet-configurator] * {
+  all: unset;
+  display: block;
+  box-sizing: border-box;
+}
+
+/* Huet colors, as in core/styles.css. (0,2,0) beats the reset. */
+[data-huet-configurator][data-huet-root] {
+  background-color: var(--huet-background);
+  color: var(--huet-foreground);
+}
+[data-huet-configurator][data-huet-color-bg],
+[data-huet-configurator] [data-huet-color-bg] {
+  background-color: var(--huet-background);
+  color: var(--huet-foreground);
+}
+[data-huet-configurator][data-huet-color-text],
+[data-huet-configurator] [data-huet-color-text] {
+  color: var(--huet-relative-text, var(--huet-foreground));
+}
+[data-huet-configurator][data-huet-color-border],
+[data-huet-configurator] [data-huet-color-border] {
+  border-color: var(--huet-relative-border);
+}
+[data-huet-configurator][data-huet-color-outline],
+[data-huet-configurator] [data-huet-color-outline] {
+  outline-color: var(--huet-relative-outline);
+}
+@media (forced-colors: active) {
+  [data-huet-configurator][data-huet-root],
+  [data-huet-configurator][data-huet-color-bg],
+  [data-huet-configurator] [data-huet-color-bg] {
+    background-color: Canvas;
+    color: CanvasText;
+  }
+  [data-huet-configurator][data-huet-color-text],
+  [data-huet-configurator] [data-huet-color-text] {
+    color: CanvasText;
+  }
+  [data-huet-configurator][data-huet-color-border],
+  [data-huet-configurator] [data-huet-color-border] {
+    border-color: ButtonBorder;
+  }
+  [data-huet-configurator][data-huet-color-outline],
+  [data-huet-configurator] [data-huet-color-outline] {
+    outline-color: Highlight;
+  }
+}
+
+/* Focus ring. The Import Theme button rings when its hidden file input has focus. */
+[data-huet-configurator] :focus,
+[data-huet-configurator] [data-focus-within]:focus-within {
+  box-shadow:
+    0 0 0 2px #0000ff55,
+    0 0 0 2px #ffffff55 !important;
+  z-index: 1;
+}
+
+/* Sliders: a 1px line for the thumb */
+[data-huet-configurator] input[type="range"] {
+  appearance: none;
+  /* Firefox needs an explicit width */
+  width: 100% !important;
+  background: transparent;
+}
+[data-huet-configurator] input[type="range"]::-webkit-slider-thumb {
+  -webkit-appearance: none !important;
+  background: currentColor !important;
+  width: 1px !important;
+  height: 1em !important;
+}
+
+/* Color pickers: the swatch fills the input */
+[data-huet-configurator] input[type="color"]::-webkit-color-swatch-wrapper {
+  -webkit-appearance: none !important;
+  padding: 0;
+}
+[data-huet-configurator] input[type="color"]::-webkit-color-swatch {
+  border: none;
+  padding: 0;
+}
+
+/* Unlayered, after the reset */
+@import "tailwindcss/utilities.css" source(none);

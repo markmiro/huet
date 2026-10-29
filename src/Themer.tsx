@@ -1,7 +1,6 @@
 import saveAs from "file-saver";
 import React, { useCallback } from "react";
 
-import Block from "./Block";
 import { useThemeConfigurator } from "./Body";
 import type { ThemeConfig } from "./colorModel";
 import Theme from "./Theme";
@@ -10,13 +9,13 @@ import BgColors from "./private/BgColors";
 import Button from "./private/Button";
 import Checkbox from "./private/Checkbox";
 import ColorRamps from "./private/ColorRamps";
+import ConfiguratorPortal from "./private/ConfiguratorPortal";
 import Input from "./private/Input";
 import Labeled from "./private/Labeled";
 import Pallet from "./private/Pallet";
 import Range from "./private/Range";
 import ThemerShell from "./private/ThemerShell";
 import Themes from "./private/Themes";
-import __ from "./private/atoms";
 import baseThemeConfig from "./private/baseThemeConfig";
 import usePersistentState, {
   asBoolean,
@@ -27,15 +26,7 @@ const baseTheme = new Theme(baseThemeConfig);
 
 function ScrollPanel({ children }: { children?: React.ReactNode }) {
   return (
-    <div
-      style={{
-        overflowY: "scroll",
-        overflowX: "hidden",
-        width: "30em",
-        overscrollBehavior: "contain",
-        ...__.flex_auto
-      }}
-    >
+    <div className="hc:overflow-y-scroll hc:overflow-x-hidden hc:w-[30em] hc:overscroll-contain hc:flex-auto hc:min-w-0 hc:min-h-0">
       {children}
     </div>
   );
@@ -50,9 +41,12 @@ const asTab = asOneOf(Object.values(tabEnum));
 
 function EditTheme({
   theme,
+  themerTheme,
   onThemeConfigChange,
 }: {
   theme: Theme;
+  /** The panel's own theme. The color ramps preview it. */
+  themerTheme: Theme;
   onThemeConfigChange: (config: ThemeConfig) => void;
 }) {
   const themeConfig = theme.config;
@@ -85,25 +79,22 @@ function EditTheme({
 
   return (
     <>
-      <VSpace size="2" style={__.pa3}>
+      <VSpace size={2} className="hc:p-4">
         <div>
           <Input
             label="Theme Name"
-            style={__.flex_auto.mb2}
+            className="hc:flex-auto hc:min-w-0 hc:min-h-0 hc:mb-2"
             value={themeConfig.name}
             onChange={name => onThemeConfigChange({ ...themeConfig, name })}
           />
-          <Button onClick={exportTheme} style={__.w100}>
-            Export Theme
-          </Button>
+          <Button onClick={exportTheme}>Export Theme</Button>
         </div>
         <Labeled label="Background Color">
-          <Block theme={theme}>
-            <BgColors
-              bgRampValue={themeConfig.bgRampValue}
-              onRampValueChange={setBgRampValue}
-            />
-          </Block>
+          <BgColors
+            theme={theme}
+            bgRampValue={themeConfig.bgRampValue}
+            onRampValueChange={setBgRampValue}
+          />
         </Labeled>
         <Range
           label="Contrast"
@@ -117,7 +108,7 @@ function EditTheme({
           <Pallet colors={themeConfig.pallet} onColorsChange={setPallet} />
         </Labeled>
         <Labeled label="Color ramps">
-          <ColorRamps />
+          <ColorRamps theme={themerTheme} />
         </Labeled>
         <Range
           label="Signal Lightness on 'Black'"
@@ -154,19 +145,19 @@ export default function Themer() {
   const themerTheme = shouldThemeSelf ? theme : baseTheme;
 
   return (
-    <Block theme={themerTheme}>
+    <ConfiguratorPortal themeConfig={themerTheme.config}>
       <ThemerShell>
-        <div style={{ ...__.flex.flex_column.flex_auto, overflow: "hidden" }}>
-          <div style={__.ph2.pt2.bb}>
+        <div className="hc:flex hc:flex-col hc:flex-auto hc:min-w-0 hc:min-h-0 hc:overflow-hidden">
+          <div className="hc:px-2 hc:pt-2 hc:border-b">
             <HSpace growEach>
               <Button
-                bg={currentTab === tabEnum.THEMES ? 100 : null}
+                colors={currentTab === tabEnum.THEMES ? "huet-bg-100" : "huet-text-100"}
                 onClick={() => setCurrentTab(tabEnum.THEMES)}
               >
                 Themes
               </Button>
               <Button
-                bg={currentTab === tabEnum.EDIT_THEME ? 100 : null}
+                colors={currentTab === tabEnum.EDIT_THEME ? "huet-bg-100" : "huet-text-100"}
                 onClick={() => setCurrentTab(tabEnum.EDIT_THEME)}
               >
                 Edit Theme
@@ -177,23 +168,24 @@ export default function Themer() {
             {currentTab === tabEnum.EDIT_THEME ? (
               <EditTheme
                 theme={theme}
+                themerTheme={themerTheme}
                 onThemeConfigChange={setThemeConfig}
               />
             ) : (
               <Themes />
             )}
           </ScrollPanel>
-          <Block contrast="bg=12">
-            <VSpace style={__.pa3}>
+          <div className="huet-bg-12">
+            <VSpace className="hc:p-4">
               <Checkbox
                 label="Theme the themer"
                 value={shouldThemeSelf}
                 onChange={setShouldThemeSelf}
               />
             </VSpace>
-          </Block>
+          </div>
         </div>
       </ThemerShell>
-    </Block>
+    </ConfiguratorPortal>
   );
 }
