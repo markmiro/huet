@@ -1,5 +1,5 @@
 import { test, expect } from "@playwright/test";
-import baseThemeConfig from "../src/private/baseThemeConfig";
+import baseThemeConfig from "../packages/huet/src/private/baseThemeConfig";
 const screenshots = process.env.HUET_SCREENSHOTS ?? "test-results/screenshots";
 
 test("gray controls, focus, inheritance, live themes and mobile layout", async ({
@@ -154,7 +154,7 @@ test("large trees update surface variables without replacing content", async ({
 }) => {
   await page.goto("/lab.html");
   const result = await page.evaluate(async () => {
-    const modulePath = "/src/core/index.ts";
+    const modulePath = "/packages/huet/src/core/index.ts";
     const { createTheme, mountTheme } = await import(modulePath);
     const root = document.createElement("div");
     for (let i = 0; i < 1000; i++) {

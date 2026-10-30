@@ -1,12 +1,11 @@
 import React, { createContext, useContext, useId, useMemo } from "react";
 
-import Color from "../../Color";
-import Theme, { rampModes } from "../../Theme";
-import { isHuetClass } from "../../core/classes";
+import { isHuetClass } from "huet";
+import { Color, Theme, rampModes } from "huet/config";
 import usePersistentState, {
   asOneOf,
   asString,
-} from "../../private/persistentState";
+} from "../../../packages/huet-react/src/private/persistentState";
 import { useThemeConfig } from "./themeStore";
 
 const range = (start: number, end: number, step: number) =>

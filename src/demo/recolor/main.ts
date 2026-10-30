@@ -1,4 +1,4 @@
-import { oklabFromRgb, type Triple } from "../../core/color";
+import { oklabFromRgb, type Triple } from "../../../packages/huet/src/core/color";
 import {
   coordinatesOf,
   rampColor,
@@ -6,12 +6,12 @@ import {
   toCube,
   type Palette,
   type RecolorOptions,
-} from "../../core/recolor";
-import { createTheme, mountTheme, contrastRatio } from "../../core";
-import { hues, type Hue, type HuetTheme } from "../../core/theme";
+} from "huet/images";
+import { createTheme, mountTheme, contrastRatio } from "huet";
+import { hues, type Hue, type HuetTheme } from "huet";
 import { images, themes, type DemoImage, type RecolorTheme } from "./data";
 import { emojiSheet } from "./emoji";
-import { GpuRecolor } from "../../core/gpu";
+import { GpuRecolor } from "huet/images";
 import type { Request } from "./worker";
 import "./recolor.css";
 

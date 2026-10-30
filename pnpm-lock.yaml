@@ -26,18 +26,15 @@ importers:
       '@types/file-saver':
         specifier: ^2.0.7
         version: 2.0.7
-      '@types/lodash':
-        specifier: ^4.17.26
-        version: 4.17.27
+      '@types/lodash-es':
+        specifier: ^4.17.12
+        version: 4.17.12
       '@types/react':
         specifier: ^18.3.31
         version: 18.3.31
       '@types/react-dom':
         specifier: ^18.3.7
         version: 18.3.7(@types/react@18.3.31)
-      '@typescript/typescript6':
-        specifier: ^6.0.2
-        version: 6.0.2
       '@vitejs/plugin-react':
         specifier: ^6.1.2
         version: 6.1.2(vite@8.3.5(@types/node@26.6.5)(jiti@2.7.0)(yaml@2.9.1))
@@ -47,18 +44,15 @@ importers:
       chroma-js:
         specifier: ^2.0.2
         version: 2.6.0
-      file-saver:
-        specifier: ^2.0.5
-        version: 2.0.5
       happy-dom:
         specifier: ^21.0.4
         version: 21.0.4
-      lodash:
-        specifier: ^4.18.1
-        version: 4.18.1
-      map-values:
-        specifier: ^1.0.1
-        version: 1.0.1
+      huet:
+        specifier: workspace:*
+        version: link:packages/huet
+      huet-react:
+        specifier: workspace:*
+        version: link:packages/huet-react
       react:
         specifier: ^18.3.1
         version: 18.3.1
@@ -77,12 +71,74 @@ importers:
       vite:
         specifier: ^8.3.4
         version: 8.3.5(@types/node@26.6.5)(jiti@2.7.0)(yaml@2.9.1)
-      vite-plugin-dts:
-        specifier: ^5.1.2
-        version: 5.1.2(rolldown@1.2.15)(typescript@7.0.2)(vite@8.3.5(@types/node@26.6.5)(jiti@2.7.0)(yaml@2.9.1))
       vitest:
         specifier: ^5.0.4
         version: 5.0.5(@types/node@26.6.5)(happy-dom@21.0.4)(vite@8.3.5(@types/node@26.6.5)(jiti@2.7.0)(yaml@2.9.1))
+
+  packages/huet:
+    dependencies:
+      '@types/chroma-js':
+        specifier: ^3.1.3
+        version: 3.1.3
+      chroma-js:
+        specifier: ^2.6.0
+        version: 2.6.0
+    devDependencies:
+      '@typescript/typescript6':
+        specifier: ^6.0.2
+        version: 6.0.2
+      typescript:
+        specifier: ^7.0.2
+        version: 7.0.2
+      vite:
+        specifier: ^8.3.4
+        version: 8.3.5(@types/node@26.6.5)(jiti@2.7.0)(yaml@2.9.1)
+      vite-plugin-dts:
+        specifier: ^5.1.2
+        version: 5.1.2(rolldown@1.2.15)(typescript@7.0.2)(vite@8.3.5(@types/node@26.6.5)(jiti@2.7.0)(yaml@2.9.1))
+
+  packages/huet-react:
+    dependencies:
+      chroma-js:
+        specifier: ^2.6.0
+        version: 2.6.0
+      file-saver:
+        specifier: ^2.0.5
+        version: 2.0.5
+      lodash-es:
+        specifier: ^4.18.1
+        version: 4.18.1
+    devDependencies:
+      '@tailwindcss/vite':
+        specifier: ^4.3.3
+        version: 4.3.3(vite@8.3.5(@types/node@26.6.5)(jiti@2.7.0)(yaml@2.9.1))
+      '@typescript/typescript6':
+        specifier: ^6.0.2
+        version: 6.0.2
+      '@vitejs/plugin-react':
+        specifier: ^6.1.2
+        version: 6.1.2(vite@8.3.5(@types/node@26.6.5)(jiti@2.7.0)(yaml@2.9.1))
+      huet:
+        specifier: workspace:^
+        version: link:../huet
+      react:
+        specifier: ^18.3.1
+        version: 18.3.1
+      react-dom:
+        specifier: ^18.3.1
+        version: 18.3.1(react@18.3.1)
+      tailwindcss:
+        specifier: ^4.3.3
+        version: 4.3.3
+      typescript:
+        specifier: ^7.0.2
+        version: 7.0.2
+      vite:
+        specifier: ^8.3.4
+        version: 8.3.5(@types/node@26.6.5)(jiti@2.7.0)(yaml@2.9.1)
+      vite-plugin-dts:
+        specifier: ^5.1.2
+        version: 5.1.2(rolldown@1.2.15)(typescript@7.0.2)(vite@8.3.5(@types/node@26.6.5)(jiti@2.7.0)(yaml@2.9.1))
 
 packages:
 
@@ -732,6 +788,9 @@ packages:
 
   '@types/hast@3.0.5':
     resolution: {integrity: sha512-rp/ezSWaD1m44dPKICGhiskI13nVr7qTloFwDa/IYkhhf5nzwP+zIQcIJh3WIFSBOy/H1PzB40jPjMDksN4F+g==}
+
+  '@types/lodash-es@4.17.12':
+    resolution: {integrity: sha512-0NgftHUcV4v34VhXm8QBSftKVXtbkBG3ViCjs6+eJ5a6y6Mi/jiFGPc1sC7QK+9BFhWrURE3EOggmWaSxL9OzQ==}
 
   '@types/lodash@4.17.27':
     resolution: {integrity: sha512-VenMRv/eKNrspX9v3H4dbmjsrnCOYdYBG3kxXKk3dG6X+urBGcj2Prww3xw1U5K4FV/mE4h5GbWd0szEKf+9ew==}
@@ -1412,8 +1471,8 @@ packages:
     resolution: {integrity: sha512-++gUqRDEvcnN6Zhqrr+y/CkVEHhlrR96vZn3nZZPYzMcBUyBtTKzB9NadClFIsIVSsu+3i9tfk/erqy9kAmt7Q==}
     engines: {node: '>=14'}
 
-  lodash@4.18.1:
-    resolution: {integrity: sha512-dMInicTPVE8d1e5otfwmmjlxkZoUpiVLwyeTdUsi/Caj/gfzzblBcCE5sRHV/AsjuCmxWrte2TNGSYuCeCq+0Q==}
+  lodash-es@4.18.1:
+    resolution: {integrity: sha512-J8xewKD/Gk22OZbhpOVSwcs60zhd95ESDwezOFuA3/099925PdHJ7OFHNTGtajL3AlZkykD32HykiMo+BIBI8A==}
 
   loose-envify@1.4.0:
     resolution: {integrity: sha512-lyuxPGr/Wfhrlem2CL/UcnUc1zcqKAImBDzukY7Y5F/yQiNdko6+fRLevlw1HgMySw7f611UIY408EtxRSoK3Q==}
@@ -1434,9 +1493,6 @@ packages:
 
   magicast@0.5.5:
     resolution: {integrity: sha512-UicdXN8zQ3JHlxVq+28afMXPr1z7WNY6+7EJnzTdQWkTAlMLF5fNCCKxJHBQwGaNGR11581EiQmQzx73+MvszA==}
-
-  map-values@1.0.1:
-    resolution: {integrity: sha512-BbShUnr5OartXJe1GeccAWtfro11hhgNJg6G9/UtWKjVGvV5U4C09cg5nk8JUevhXODaXY+hQ3xxMUKSs62ONQ==}
 
   mdast-util-to-hast@13.2.1:
     resolution: {integrity: sha512-cctsq2wp5vTsLIcaymblUriiTcZd0CwWtCbLvrOzYCDZoWyMNV8sZ7krj09FSnsiJi3WVsHLM4k6Dq/yaPyCXA==}
@@ -2584,6 +2640,10 @@ snapshots:
     dependencies:
       '@types/unist': 3.0.3
 
+  '@types/lodash-es@4.17.12':
+    dependencies:
+      '@types/lodash': 4.17.27
+
   '@types/lodash@4.17.27': {}
 
   '@types/mdast@4.0.4':
@@ -3181,7 +3241,7 @@ snapshots:
       pkg-types: 2.4.0
       quansync: 0.2.11
 
-  lodash@4.18.1: {}
+  lodash-es@4.18.1: {}
 
   loose-envify@1.4.0:
     dependencies:
@@ -3204,8 +3264,6 @@ snapshots:
       '@babel/parser': 7.29.11
       '@babel/types': 7.29.11
       source-map-js: 1.2.2
-
-  map-values@1.0.1: {}
 
   mdast-util-to-hast@13.2.1:
     dependencies:

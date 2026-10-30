@@ -1,8 +1,8 @@
-import ThemeConfigurator from "../../ThemeConfigurator";
-import type { ThemeConfig } from "../../colorModel";
+import { ThemeConfigurator } from "huet-react";
+import type { ThemeConfig } from "huet/config";
 import { publishTheme } from "./themeStore";
 
-function onThemeChange(config: ThemeConfig) {
+function onChange(config: ThemeConfig) {
   for (const el of document.querySelectorAll("[data-theme-name]"))
     el.textContent = config.name ?? "Untitled";
   publishTheme(config);
@@ -10,5 +10,5 @@ function onThemeChange(config: ThemeConfig) {
 
 /** Themes the page's `#page` root. */
 export default function Configurator() {
-  return <ThemeConfigurator target="#page" onThemeChange={onThemeChange} />;
+  return <ThemeConfigurator target="#page" onChange={onChange} />;
 }

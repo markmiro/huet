@@ -1,5 +1,5 @@
 import { useSyncExternalStore } from "react";
-import type { ThemeConfig } from "../../colorModel";
+import type { ThemeConfig } from "huet/config";
 
 // Astro islands and page scripts share this module.
 let current: ThemeConfig | null = null;

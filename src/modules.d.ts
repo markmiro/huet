@@ -14,10 +14,3 @@ declare module "react-icons-kit/*/*" {
   export const ic_sentiment_satisfied: any;
   export const github: any;
 }
-
-declare module "map-values" {
-  export default function mapValues<In, Out>(
-    object: Record<string, In>,
-    iteratee: (value: In, key: string) => Out
-  ): Record<string, Out>;
-}

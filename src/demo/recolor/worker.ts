@@ -6,7 +6,7 @@ import {
   recolorer,
   type Palette,
   type RecolorOptions,
-} from "../../core/recolor";
+} from "huet/images";
 
 export type Request =
   | { type: "lut"; target: Palette; options: RecolorOptions; size: number; fresh?: boolean }
