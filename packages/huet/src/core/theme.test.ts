@@ -2,7 +2,7 @@ import { fileURLToPath } from "node:url";
 import { describe, it, expect } from "vitest";
 import { createTheme, hues, themeVariables, colorModels } from "./theme";
 import { apca, contrast, lightness, textEnd, toOklab, fromOklab, mix, luminance } from "./color";
-import { classes, validateClasses, isHuetClass } from "./classes";
+import { classes, validateClasses, isHuetClass, parseColorClass, stateKey, classVariable } from "./classes";
 import { readFileSync } from "node:fs";
 import { compile } from "@tailwindcss/node";
 import { themeFromConfig } from "./fromConfig";
@@ -181,19 +181,54 @@ describe("static classes and Tailwind", () => {
     expect(validateClasses("huet-text-20 huet-bg/text-80")).toHaveLength(1);
     expect(validateClasses("huet-bg-25 huet-surface-25")).toHaveLength(1);
   });
-  it("rejects Tailwind variants on Huet classes with what to write instead", () => {
-    const [outline] = validateClasses("focus-visible:huet-outline-blue-80");
-    expect(outline).toContain("don't support Tailwind variants yet: focus-visible:huet-outline-blue-80");
-    expect(outline).toContain('"huet-outline-blue-80 focus-visible:outline-2"');
-    expect(validateClasses("hover:huet-text-60")[0]).toContain('"hover:text-huet-blue"');
-    expect(validateClasses("group-hover/card:huet-border-50")[0]).toContain('"group-hover/card:border-huet-blue"');
-    expect(validateClasses("md:hover:huet-bg-25")[0]).toContain('Keep "huet-bg-25" without the variant');
-    expect(validateClasses("[&>svg]:huet-bg/outline-80")[0]).toContain('"huet-bg/outline-80 [&>svg]:outline-2"');
-    expect(validateClasses("focus-visible:huet-focus")[0]).toContain('Use "huet-focus" alone');
-    // An unknown class stays unknown, with or without a variant.
-    expect(validateClasses("hover:huet-text-blu")).toEqual(["Unknown Huet class: hover:huet-text-blu"]);
+  it("accepts Tailwind variants on explicit-amount classes, one class per property and variant", () => {
+    for (const name of ["hover:huet-bg-25", "focus-visible:huet-outline-blue-80", "md:huet-text-60", "group-hover/card:huet-border-50",
+      "aria-pressed:huet-bg/text-90", "[&>svg]:huet-text-red-100", "md:hover:huet-bg-gray-75", "data-[state=open]:huet-bg-10"])
+      expect(isHuetClass(name), name).toBe(true);
+    expect(isHuetClass("hover:huet-muted")).toBe(false);
+    expect(isHuetClass("huet-bg-25!")).toBe(false);
+    expect(validateClasses("huet-bg-10 hover:huet-bg-25 md:hover:huet-bg-50 huet-text-60 hover:huet-bg/text-100")).toEqual([]);
+    expect(validateClasses("huet-bg-10 huet-bg-25!")).toEqual(["Use one Huet background class per element: huet-bg-10 and huet-bg-25! conflict"]);
+    expect(validateClasses("hover:huet-text-60 hover:huet-bg/text-80 focus:huet-text-10")).toEqual([
+      'Use one Huet text class per variant: hover:huet-text-60 and hover:huet-bg/text-80 both apply on "hover:"']);
+    // Important works like Tailwind's, in either position.
+    expect(validateClasses("!huet-bg-25 hover:huet-text-60!")).toEqual([]);
     // Unprefixed Huet classes still combine with variant-prefixed Tailwind utilities.
     expect(validateClasses("huet-outline-blue-80 focus-visible:outline-2 hover:text-huet-blue")).toEqual([]);
+  });
+  it("rejects variants it can't support, with what to write instead", () => {
+    const [opacity] = validateClasses("hover:huet-bg-25/50");
+    expect(opacity).toContain("don't take opacity modifiers: hover:huet-bg-25/50");
+    expect(opacity).toContain('"hover:huet-bg-10"');
+    expect(validateClasses("huet-bg/text-80/[.5]")[0]).toContain("opacity modifiers");
+    expect(validateClasses("[&>li]:huet-bg-25")[0]).toContain('"[&>li]:" styles a child or pseudo-element');
+    expect(validateClasses("*:huet-bg-25")[0]).toContain("Background variants must style the element with the class");
+    expect(validateClasses("before:huet-bg-25")).toHaveLength(1);
+    expect(validateClasses("[&:hover]:huet-bg-25 [.dark_&]:huet-bg-10 *:huet-text-60 placeholder:huet-bg/text-50")).toEqual([]);
+    expect(validateClasses("hover:huet-surface-25")[0]).toContain('"hover:huet-bg-25"');
+    expect(validateClasses("hover:huet-surface-blue")[0]).toContain('"hover:huet-bg-blue-25"');
+    expect(validateClasses("hover:huet-muted")[0]).toContain('"hover:text-huet-muted"');
+    expect(validateClasses("focus-visible:huet-focus")[0]).toContain('Use "huet-focus" alone');
+    expect(validateClasses("hover::huet-bg-25")).toEqual(["Empty Tailwind variant in hover::huet-bg-25"]);
+    // An unknown class stays unknown, with or without a variant.
+    expect(validateClasses("hover:huet-text-blu")).toEqual(["Unknown Huet class: hover:huet-text-blu"]);
+  });
+  it("ships a Tailwind utility for every explicit-amount class", () => {
+    const css = readFileSync(new URL("./tailwind-utilities.css", import.meta.url), "utf8");
+    const utilities = new Map([...css.matchAll(/^@utility (\S+) \{ (.+) \}$/gm)].map((x) => [x[1].replace("\\/", "/"), x[2]]));
+    const relative = classes.filter((x) => parseColorClass(x));
+    expect(utilities.size).toBe(relative.length);
+    const properties = { text: "color", border: "border-color", outline: "outline-color" } as const;
+    const keys = new Set<number>();
+    for (const name of relative) {
+      const spec = parseColorClass(name)!;
+      if (spec.property === "bg") keys.add(stateKey(spec));
+      expect(utilities.get(name), `${name}: run pnpm --filter huet generate`).toBe(spec.property === "bg"
+        ? `--huet-state: ${stateKey(spec)};`
+        : `${properties[spec.property]}: var(${classVariable(name)});`);
+    }
+    // Every background class selects a different state.
+    expect(keys.size).toBe(relative.filter((x) => parseColorClass(x)!.property === "bg").length);
   });
   it("compiles real Tailwind v4 variants, removes built-in colors and preserves layout", async () => {
     const compiler = await compile(
@@ -207,8 +242,17 @@ describe("static classes and Tailwind", () => {
       "hover:text-huet-blue",
       "border-huet-border",
       "bg-red-500",
+      "hover:huet-bg-blue-25",
+      "huet-text-60",
+      "focus-visible:huet-bg/outline-80",
+      "huet-bg-25/50",
     ]);
     expect(css).toContain(".p-4");
+    expect(css).toMatch(/\.hover\\:huet-bg-blue-25:hover \{\s*--huet-state: 530;/);
+    expect(css).toMatch(/\.huet-text-60 \{\s*color: var\(--huet-text-60\);/);
+    expect(css).toMatch(/\.focus-visible\\:huet-bg\\\/outline-80:focus-visible \{\s*outline-color: var\(--huet-bg-outline-80\);/);
+    // Opacity modifiers produce nothing; validateClasses reports them.
+    expect(css).not.toContain("huet-bg-25\\/50");
     expect(css).toContain(".flex");
     expect(css).toContain("color: var(--huet-foreground)");
     expect(css).toContain("hover\\:text-huet-blue");

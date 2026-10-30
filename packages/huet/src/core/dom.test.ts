@@ -2,6 +2,7 @@
 import { describe, it, expect } from "vitest";
 import { createTheme } from "./theme";
 import { mountTheme } from "./dom";
+import { stateKey } from "./classes";
 const tick = () => new Promise((resolve) => setTimeout(resolve, 0));
 const background = (el: HTMLElement) =>
   el.style.getPropertyValue("--huet-background");
@@ -45,10 +46,10 @@ describe("framework-independent surfaces", () => {
     expect(() => mount.update(theme)).toThrow();
     root.remove();
   });
-  it("rejects variant-only classes at mount and leaves no changes", () => {
+  it("rejects invalid variants at mount and leaves no changes", () => {
     const root = document.createElement("div");
-    root.innerHTML = '<p class="huet-bg-10"></p><p class="hover:huet-bg-25"></p>';
-    expect(() => mountTheme(root, createTheme())).toThrow("don't support Tailwind variants yet: hover:huet-bg-25");
+    root.innerHTML = '<p class="huet-bg-10"></p><p class="hover:huet-surface-25"></p>';
+    expect(() => mountTheme(root, createTheme())).toThrow('Tailwind variants work on huet-bg-AMOUNT classes, not huet-surface-*: hover:huet-surface-25. Use an amount, e.g. "hover:huet-bg-25".');
     expect(background(root.querySelector("p")!)).toBe("");
     expect(root.hasAttribute("data-huet-root")).toBe(false);
     expect(root.hasAttribute("data-huet-error")).toBe(false);
@@ -61,20 +62,20 @@ describe("framework-independent surfaces", () => {
     const light = background(first);
     const rootBackground = background(root);
     first.className = "huet-bg-50";
-    second.className = "huet-bg-10 hover:huet-bg-25";
+    second.className = "huet-bg-10 huet-bg-25/50";
     // The bad class comes after valid changes, which must not be written either.
-    expect(() => mount.update(createTheme({ background: 0 }))).toThrow("hover:huet-bg-25");
+    expect(() => mount.update(createTheme({ background: 0 }))).toThrow("huet-bg-25/50");
     expect(background(root)).toBe(rootBackground);
     expect(background(first)).toBe(light);
     expect(background(second)).toBe(light);
-    expect(root.getAttribute("data-huet-error")).toContain("hover:huet-bg-25");
-    second.className = "huet-bg-10";
+    expect(root.getAttribute("data-huet-error")).toContain("opacity modifiers");
+    second.className = "huet-bg-10 hover:huet-bg-25";
     const dark = createTheme({ background: 0 });
     mount.update(dark);
     expect(background(first)).toBe(dark.relative.contrast(50).hex);
     expect(root.hasAttribute("data-huet-error")).toBe(false);
-    first.className = "hover:huet-text-60";
-    expect(() => mount.update(dark)).toThrow();
+    first.className = "[&>p]:huet-bg-60";
+    expect(() => mount.update(dark)).toThrow("Background variants must style the element with the class");
     mount.destroy();
     expect(root.hasAttribute("data-huet-error")).toBe(false);
   });
@@ -195,5 +196,106 @@ describe("explicit contrast classes", () => {
     );
     mount.destroy();
     root.remove();
+  });
+});
+
+/**
+ * Evaluates mountTheme's inline CSS the way a browser would. `states` gives the
+ * --huet-state that the active background utility sets on an element; elements
+ * with data-huet-state that aren't listed are at rest.
+ */
+function computed(el: HTMLElement, name: string, states: Map<Element, number>): string {
+  let owner: HTMLElement | null = el;
+  while (owner && !owner.style.getPropertyValue(name)) owner = owner.parentElement;
+  if (!owner) throw new Error(`${name} is not set on or above ${el.outerHTML}`);
+  // var() resolves on the element that declares the property, then the result inherits.
+  const state = states.get(owner) ?? (owner.hasAttribute("data-huet-state") ? -1 : NaN);
+  const css = owner.style.getPropertyValue(name).replace(/var\((--[\w-]+)\)/g, (_, x: string) =>
+    x === "--huet-state" ? String(state) : computed(owner.parentElement!, x, states));
+  if (/^#[\da-f]{6}$/.test(css)) return css;
+  const js = css.replaceAll("color-mix(in srgb, ", "mix(").replaceAll(" max(0%", ", max(0%")
+    .replaceAll("max(", "Math.max(").replaceAll("%", "").replace(/#[\da-f]{6}/g, (x) => `"${x}"`);
+  const mix = (a: string, weight: number, b: string) => {
+    if (weight !== 0 && weight !== 100) throw new Error(`Partial mix in ${css}`);
+    return weight ? a : b;
+  };
+  return new Function("mix", `return ${js}`)(mix);
+}
+describe("Tailwind variants", () => {
+  it("computes every color for every combination of nested background states", () => {
+    const root = document.createElement("div");
+    root.innerHTML = `<section class="huet-bg-10 hover:huet-bg-25 focus-within:huet-bg-blue-50">
+      <p class="huet-text-80 hover:huet-text-red-100"></p>
+      <div><article class="group-hover:huet-bg-40 huet-bg/text-70 huet-bg/border-green-60">
+        <aside class="huet-bg-5"><span class="huet-outline-30 focus:huet-bg/outline-90"></span></aside>
+      </article></div>
+    </section>`;
+    const section = root.querySelector("section")!, p = root.querySelector("p")!;
+    const article = root.querySelector("article")!, aside = root.querySelector("aside")!;
+    const span = root.querySelector("span")!;
+    const theme = createTheme();
+    const mount = mountTheme(root, theme);
+    const rel = theme.relative, ramps = rel.theme.ramps;
+    // Rest may be unset (-1) or the resting class's key.
+    const blue = stateKey({ property: "bg", ownBackground: false, ramp: "blue", amount: 50 });
+    for (const [sectionKey, sectionBg] of [[-1, 10], [10, 10], [25, 25], [blue, "blue"]] as const)
+      for (const articleKey of [-1, 40]) {
+        const states = new Map<Element, number>([[section, sectionKey], [article, articleKey]]);
+        const outer = sectionBg === "blue" ? rel.contrast(50, ramps.blue) : rel.contrast(sectionBg);
+        const middle = articleKey === 40 ? outer.contrast(40) : outer;
+        const inner = middle.contrast(5);
+        const label = `section ${sectionKey}, article ${articleKey}`;
+        expect(computed(section, "--huet-background", states), label).toBe(outer.hex);
+        expect(computed(p, "--huet-text-80", states), label).toBe(outer.contrast(80).hex);
+        expect(computed(p, "--huet-relative-text", states), label).toBe(outer.contrast(80).hex);
+        expect(computed(p, "--huet-text-red-100", states), label).toBe(outer.contrast(100, ramps.red).hex);
+        expect(computed(article, "--huet-background", states), label).toBe(middle.hex);
+        expect(computed(article, "--huet-foreground", states), label).toBe(middle.contrast(100).hex);
+        expect(computed(article, "--huet-muted", states), label).toBe(theme.tokens(middle.hex, articleKey === 40 ? outer.hex : rel.hex).muted);
+        expect(computed(article, "--huet-bg-text-70", states), label).toBe(middle.contrast(70).hex);
+        expect(computed(article, "--huet-bg-border-green-60", states), label).toBe(middle.contrast(60, ramps.green).hex);
+        expect(computed(aside, "--huet-background", states), label).toBe(inner.hex);
+        expect(computed(span, "--huet-outline-30", states), label).toBe(inner.contrast(30).hex);
+        expect(computed(span, "--huet-bg-outline-90", states), label).toBe(inner.contrast(90).hex);
+      }
+    expect(section.hasAttribute("data-huet-state")).toBe(true);
+    expect(article.hasAttribute("data-huet-state")).toBe(true);
+    expect(aside.hasAttribute("data-huet-state")).toBe(false);
+    // Only classes without variants use the fixed names that styles.css reads.
+    expect(p.hasAttribute("data-huet-color-text")).toBe(true);
+    expect(span.hasAttribute("data-huet-color-outline")).toBe(true);
+    expect(article.hasAttribute("data-huet-color-text")).toBe(true);
+    // Removing the variants leaves plain colors, and destroy() removes everything.
+    section.className = "huet-bg-10";
+    article.className = "";
+    return tick().then(() => {
+      expect(section.hasAttribute("data-huet-state")).toBe(false);
+      expect(article.hasAttribute("data-huet-color-bg")).toBe(false);
+      expect(background(section)).toBe(rel.contrast(10).hex);
+      expect(background(aside)).toBe(rel.contrast(10).contrast(5).hex);
+      expect(section.getAttribute("style")).not.toContain("--huet-s");
+      mount.destroy();
+      for (const el of [section, p, article, aside, span]) {
+        expect(el.getAttribute("style") ?? "").toBe("");
+        expect([...el.attributes].map((x) => x.name).filter((x) => x.startsWith("data-huet"))).toEqual([]);
+      }
+    });
+  });
+  it("keeps variant-only text classes off the fixed names and rejects too many state combinations", () => {
+    const root = document.createElement("div");
+    root.innerHTML = '<a class="hover:huet-text-100 [&>svg]:huet-bg/text-60"></a>';
+    const theme = createTheme();
+    const mount = mountTheme(root, theme);
+    const a = root.querySelector("a")!;
+    expect(a.style.getPropertyValue("--huet-text-100")).toBe(theme.relative.contrast(100).hex);
+    expect(a.style.getPropertyValue("--huet-bg-text-60")).toBe(theme.relative.contrast(60).hex);
+    expect(a.style.getPropertyValue("--huet-relative-text")).toBe("");
+    expect(a.hasAttribute("data-huet-color-text")).toBe(false);
+    mount.destroy();
+    const states = "hover:huet-bg-10 focus:huet-bg-20 active:huet-bg-30";
+    root.innerHTML = Array(6).fill(`<div class="${states}">`).join("") + "</div>".repeat(6);
+    expect(() => mountTheme(root, theme)).toThrow("Too many background states");
+    root.innerHTML = Array(4).fill(`<div class="${states}">`).join("") + "</div>".repeat(4);
+    mountTheme(root, theme).destroy();
   });
 });

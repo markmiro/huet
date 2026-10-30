@@ -25,7 +25,8 @@ export type RampName = (typeof rampNames)[number];
 export type ColorProperty = "bg" | "text" | "border" | "outline";
 type ReferenceProperty = ColorProperty | `bg/${Exclude<ColorProperty, "bg">}`;
 export type RelativeClass = `huet-${ReferenceProperty}-${Amount | `${RampName}-${Amount}`}`;
-export type HuetClass = LegacyClass | RelativeClass;
+/** Explicit-amount classes also take Tailwind variants: `hover:huet-bg-25`, `md:focus:huet-text-80`. */
+export type HuetClass = LegacyClass | RelativeClass | `${string}:${RelativeClass}`;
 export interface ColorClass {
   property: ColorProperty;
   ownBackground: boolean;
@@ -38,6 +39,17 @@ export function parseColorClass(value: string): ColorClass | undefined {
   return { property: match[2] as ColorProperty, ownBackground: !!match[1],
     ramp: match[3] as RampName | undefined, amount: Number(match[4]) };
 }
+/**
+ * The number a background class's Tailwind utility writes to `--huet-state`.
+ * scripts/tailwind-utilities.mjs uses the same formula.
+ */
+export function stateKey({ ramp, amount }: ColorClass): number {
+  return (ramp ? rampNames.indexOf(ramp) + 1 : 0) * 101 + amount;
+}
+/** The custom property mountTheme writes for a text, border or outline class. */
+export function classVariable(base: string): string {
+  return "--" + base.replace("/", "-");
+}
 const relativeClasses: RelativeClass[] = [];
 for (const property of ["bg", "text", "border", "outline", "bg/text", "bg/border", "bg/outline"] as const)
   for (const ramp of [undefined, ...rampNames])
@@ -45,48 +57,94 @@ for (const property of ["bg", "text", "border", "outline", "bg/text", "bg/border
       relativeClasses.push(`huet-${property}-${ramp ? ramp + "-" : ""}${amount}` as RelativeClass);
 export const classes: readonly HuetClass[] = Object.freeze([...legacyClasses, ...relativeClasses]);
 const known = new Set<string>(classes);
-export function isHuetClass(value: string): value is HuetClass {
-  return known.has(value);
+const legacy = new Set<string>(legacyClasses);
+export interface ClassToken {
+  /** Tailwind variants including the final colon, e.g. `md:hover:`. Empty without variants. */
+  variants: string;
+  base: string;
+  important: boolean;
 }
-const propertyOf = (name: string) => parseColorClass(name)?.property ??
-  (!known.has(name) ? undefined :
-    name.startsWith("huet-surface-") ? "bg" :
-    name === "huet-border" ? "border" :
-    name === "huet-focus" ? "outline" : "text");
-/** Split Tailwind variants (`hover:`, `[&>svg]:`, `data-[x=y]:`) from the class. */
-function splitVariants(name: string): [variants: string, base: string] {
+/** Split Tailwind variants (`hover:`, `[&>svg]:`, `data-[x=y]:`) and `!` from a class. */
+export function parseClassToken(name: string): ClassToken {
   let depth = 0, end = 0;
   for (let i = 0; i < name.length; i++) {
     if (name[i] === "[" || name[i] === "(") depth++;
     else if (name[i] === "]" || name[i] === ")") depth--;
     else if (name[i] === ":" && !depth) end = i + 1;
   }
-  return [name.slice(0, end), name.slice(end)];
+  let base = name.slice(end);
+  // Tailwind v4 writes important as a suffix; v3's prefix form still parses.
+  const important = /^!|!$/.test(base);
+  if (important) base = base.replace(/^!|!$/, "");
+  return { variants: name.slice(0, end), base, important };
 }
-const tokens = "huet-fg, huet-muted, huet-border, huet-red, huet-yellow, huet-green, huet-blue, huet-purple";
+export function isHuetClass(value: string): value is HuetClass {
+  if (known.has(value)) return true;
+  const { variants, base, important } = parseClassToken(value);
+  return !important && !!variants && !legacy.has(base) && known.has(base) && classError(value) === undefined;
+}
+const propertyOf = (name: string) => parseColorClass(name)?.property ??
+  (!known.has(name) ? undefined :
+    name.startsWith("huet-surface-") ? "bg" :
+    name === "huet-border" ? "border" :
+    name === "huet-focus" ? "outline" : "text");
+/** Variant segments of `md:hover:`; brackets and parentheses may contain colons. */
+function segments(variants: string): string[] {
+  const result: string[] = [];
+  let depth = 0, start = 0;
+  for (let i = 0; i < variants.length; i++) {
+    if (variants[i] === "[" || variants[i] === "(") depth++;
+    else if (variants[i] === "]" || variants[i] === ")") depth--;
+    else if (variants[i] === ":" && !depth) {
+      result.push(variants.slice(start, i));
+      start = i + 1;
+    }
+  }
+  return result;
+}
+/** Variants that style a child or pseudo-element instead of the element with the class. */
+const elsewhere = /^(?:\*|\*\*|before|after|placeholder|file|marker|selection|first-line|first-letter|backdrop|details-content)$|^\[.*&(?:\s|_|>|\+|~|::)/;
+const replacements: Record<string, string> = {
+  "huet-text": "text-huet-fg",
+  "huet-muted": "text-huet-muted",
+  "huet-border": "border-huet-border",
+  ...Object.fromEntries(hues.map((hue) => [`huet-text-${hue}`, `text-huet-${hue}`])),
+};
 /** Why a single class token isn't a Huet class, with what to write instead. */
 function classError(name: string): string | undefined {
-  if (known.has(name) || !/(?:^|:)huet-/.test(name)) return;
-  const [variants, base] = splitVariants(name);
-  if (!variants || !known.has(base)) return `Unknown Huet class: ${name}`;
-  const property = propertyOf(base);
-  const instead =
-    base === "huet-focus" ? `Use "huet-focus" alone: it already applies only on :focus-visible.` :
-    property === "outline" ? `For an outline only with that variant, use "${base} ${variants}outline-2": ${base} sets only the outline color, and the variant turns the outline on.` :
-    property === "bg" ? `Changing a Huet background with a variant isn't supported yet. Keep "${base}" without the variant.` :
-    `For a color only with that variant, use a Tailwind token utility from huet/tailwind.css, e.g. "${variants}${property}-huet-blue" (tokens: ${tokens}).`;
-  return `Huet classes don't support Tailwind variants yet: ${name}. ${instead}`;
+  if (known.has(name) || !/(?:^|:|!)huet-/.test(name)) return;
+  const { variants, base } = parseClassToken(name);
+  const opacity = /^(.+)\/(?:\d+|\[[^\]]*\]|\([^)]*\))$/.exec(base);
+  if (opacity && known.has(opacity[1]))
+    return `Huet classes don't take opacity modifiers: ${name}. A see-through color no longer has the contrast Huet chose for it. Use a lower amount instead, e.g. "${variants}${opacity[1].replace(/\d+$/, "10")}".`;
+  if (!known.has(base)) return `Unknown Huet class: ${name}`;
+  if (!variants) return;
+  if (segments(variants).some((x) => !x)) return `Empty Tailwind variant in ${name}`;
+  if (base === "huet-focus")
+    return `Use "huet-focus" alone: it already applies only on :focus-visible. For another outline with a variant, use "${variants}huet-outline-100".`;
+  if (base.startsWith("huet-surface-"))
+    return `Tailwind variants work on huet-bg-AMOUNT classes, not huet-surface-*: ${name}. Use an amount, e.g. "${variants}huet-bg-${/\d+$/.test(base) ? base.slice(13) : `${base.slice(13)}-25`}".`;
+  if (legacy.has(base))
+    return `Tailwind variants work on explicit-amount classes, not ${base}: ${name}. Use "${variants}huet-text-60" or the token utility "${variants}${replacements[base]}".`;
+  const outside = segments(variants).find((x) => elsewhere.test(x));
+  if (propertyOf(base) === "bg" && outside)
+    return `Background variants must style the element with the class: ${name}. "${outside}:" styles a child or pseudo-element, whose background Huet can't track. Put "${base}" on that element instead.`;
 }
 /** Check a literal class list; unrelated layout classes are allowed. */
 export function validateClasses(value: string): string[] {
   const names = value.trim().split(/\s+/);
   const errors = names.map(classError).filter((x) => x !== undefined);
-  const properties = new Set<string>();
+  const seen = new Map<string, string>();
   for (const name of names) {
-    const property = propertyOf(name);
+    const { variants, base } = parseClassToken(name);
+    const property = propertyOf(base);
     if (!property) continue;
-    if (properties.has(property)) errors.push(property === "bg" ? "Use one Huet surface class per element" : `Use one Huet ${property} class per element`);
-    properties.add(property);
+    const key = variants + property, other = seen.get(key);
+    const what = property === "bg" ? "background" : property;
+    if (other) errors.push(variants
+      ? `Use one Huet ${what} class per variant: ${other} and ${name} both apply on "${variants}"`
+      : `Use one Huet ${what} class per element: ${other} and ${name} conflict`);
+    else seen.set(key, name);
   }
   return errors;
 }

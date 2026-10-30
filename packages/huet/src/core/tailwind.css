@@ -1,5 +1,9 @@
 /* Import after tailwindcss. Opt in to replacing its default color palette. */
 @import "./styles.css";
+/* Every explicit-amount class as a utility, so Tailwind variants work on it:
+   hover:huet-bg-25, focus-visible:huet-outline-blue-80, md:huet-text-60, [&>svg]:huet-text-80.
+   Tailwind emits only the ones a project uses. */
+@import "./tailwind-utilities.css";
 @theme {
   --color-*: initial;
 }
@@ -14,5 +18,4 @@
   --color-huet-purple: var(--huet-purple);
 }
 /* Use huet-bg-[ramp-]amount for backgrounds so nested colors are recalculated.
-   Tailwind variants work on token utilities, e.g. hover:text-huet-blue.
-   Opacity modifiers are allowed by Tailwind but void contrast guarantees. */
+   Opacity modifiers on the token utilities (text-huet-blue/50) void contrast guarantees. */

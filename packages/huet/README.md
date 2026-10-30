@@ -86,27 +86,29 @@ By default, every explicit property is relative to the nearest parent background
 
 ### Static checking
 
-Use literal class names. All integer amounts and built-in ramps are statically recognized:
+Use literal class names. All integer amounts and built-in ramps are statically recognized, with or without [Tailwind variants](#tailwind-variants):
 
 ```ts
 import { validateClasses, type HuetClass } from "huet";
 const background = "huet-bg-blue-25" satisfies HuetClass;
+const hover = "hover:huet-bg-blue-35" satisfies HuetClass;
 validateClasses("p-4 huet-text-blu-100"); // Unknown Huet class
 validateClasses("huet-text-60 huet-bg/text-100"); // Conflicting text classes
-validateClasses("focus-visible:huet-outline-80"); // Variants aren't supported yet; says what to use instead
+validateClasses("huet-bg-10 hover:huet-bg-25"); // Fine: one background per variant
+validateClasses("hover:huet-bg-25/50"); // Opacity modifiers aren't supported; says what to use instead
 ```
 
 ```sh
 npx huet check src/App.vue src/Card.svelte src/Page.tsx
 ```
 
-The CLI checks literal tokens, including comments/strings, and exits nonzero for unknown classes. It is a lexical checker, not a framework parser. Pass explicit files or shell-expanded globs. `validateClasses()` also detects conflicting properties. Decimal amounts, dynamically constructed names, and arbitrary ramp names are not supported yet.
+The CLI checks literal tokens, including comments/strings, and exits nonzero for unknown classes. It is a lexical checker, not a framework parser. Pass explicit files or shell-expanded globs. `validateClasses()` also detects conflicting properties: one class per property for each variant chain, so `hover:huet-text-60 hover:huet-bg/text-80` conflict but `huet-text-60 hover:huet-text-100` don't. Decimal amounts, dynamically constructed names, and arbitrary ramp names are not supported yet.
 
-Tailwind variants on Huet classes, such as `hover:huet-bg-blue-25` or `focus-visible:huet-outline-80`, are not supported yet. They are errors, and the message says what to write instead:
+These are errors, and each message says what to write instead:
 
-- Outline only on focus: `huet-outline-blue-80 focus-visible:outline-2`. The Huet class sets only the outline color; the variant turns the outline on.
-- Text or border color with a variant: Huet's [Tailwind token utilities](#tailwind-v4), e.g. `hover:text-huet-blue` or `focus:border-huet-fg`.
-- Background with a variant: not supported yet.
+- Opacity modifiers, such as `huet-bg-25/50`. A see-through color no longer has the contrast Huet chose for it; use a lower amount.
+- Background variants that style another element or a pseudo-element, such as `*:huet-bg-10`, `[&>li]:huet-bg-10` or `before:huet-bg-10`. Put the class on that element instead.
+- Variants on the first-pass classes (`huet-surface-*`, `huet-text`, `huet-muted`, `huet-border`, `huet-focus`, `huet-text-HUE`). Use an explicit amount (`hover:huet-bg-25`) or a [token utility](#tailwind-v4) (`hover:text-huet-muted`).
 
 `mountTheme()` checks every class in the tree before writing any colors. An invalid class at mount throws and leaves the tree unchanged. An invalid class added later is reported as an uncaught error, colors stay as they were, and the root gets a `data-huet-error` attribute with the messages until the class is fixed.
 
@@ -127,7 +129,28 @@ Use this CSS entry instead of importing `huet/styles.css` separately:
 </section>
 ```
 
-This bridge clears Tailwind's color namespace and keeps layout/spacing utilities. Huet's CSS lives in the `components` layer. To retain Tailwind's default colors, import `huet/styles.css` instead. Backgrounds must be managed by Huet for its relative calculations to track them. Tailwind opacity modifiers and arbitrary CSS backgrounds are not tracked.
+This bridge clears Tailwind's color namespace and keeps layout/spacing utilities. Huet's CSS lives in the `components` layer, and every explicit-amount class is also a Tailwind utility. To retain Tailwind's default colors, import `huet/styles.css` instead; you then can't use variants on Huet classes. Backgrounds must be managed by Huet for its relative calculations to track them. Tailwind opacity modifiers on the token utilities (`text-huet-blue/50`) and arbitrary CSS backgrounds are not tracked.
+
+### Tailwind variants
+
+Explicit-amount classes take any Tailwind variant, including stacked, custom and arbitrary ones:
+
+```html
+<a class="huet-text-60 hover:huet-text-100">Docs</a>
+<button class="huet-bg-blue-25 hover:huet-bg-blue-35 aria-pressed:huet-bg-blue-50 huet-outline-blue-80 focus-visible:outline-2">
+  Save
+</button>
+<div class="group huet-bg-10 hover:huet-bg-25">
+  <p class="huet-text-60">Recomputed for the card's hover background</p>
+  <span class="group-hover:huet-bg-blue-40 [&>svg]:huet-bg/text-80"><svg>…</svg></span>
+</div>
+```
+
+- A background variant changes everything the background affects. When the card above is hovered, its text color, the tokens inside it (`text-huet-muted`, `border-huet-border`, …) and every Huet class nested inside it switch to the colors for the hover background. `mountTheme()` computes each color for each background state in advance, and CSS picks the active one, so hovering runs no JavaScript.
+- A variant changes when and where a class applies, not what it is relative to. A class resolves against the background of the element it's written on: the parent's background, or the element's own with `bg/`. For a child or pseudo-element drawn over the element's own background, use the `bg/` form: `[&>svg]:huet-bg/text-80`, `placeholder:huet-bg/text-50`.
+- Important works in either position: `huet-bg-25!` or `!huet-bg-25`.
+- Each color is computed for every combination of background states above it. More than 256 combinations for one element is an error. Variant backgrounds nested several deep multiply quickly.
+- Variants need `huet/tailwind.css`. Tailwind emits only the utilities a project uses. Without Tailwind, use classes without variants.
 
 ## Form controls
 
