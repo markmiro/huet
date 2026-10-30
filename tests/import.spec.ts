@@ -61,9 +61,10 @@ test("importing the same file twice adds two separately selectable themes", asyn
   await input.setInputFiles(themeFile);
 
   await expect(listed(page)).toHaveCount(2);
-  // Only the latest import is selected; the other is still a button
+  // Only the latest import is selected; the other is still a button. (The
+  // header's theme button is named "Theme: Import Test".)
   await expect(
-    page.getByRole("button", { name: /Import Test/ }),
+    page.getByRole("button", { name: /^Import Test/ }),
   ).toHaveCount(1);
   expect(errors.filter((e) => e.includes("key"))).toEqual([]);
   expect(alerts).toEqual([]);

@@ -60,6 +60,11 @@ describe("writing", () => {
     expect(localStorage.getItem("huet:a")).toBe("2");
   });
 
+  it("reads writes that haven't been flushed yet", () => {
+    writeStored("a", 1);
+    expect(readStored("a", 0, asNumber)).toBe(1);
+  });
+
   it("survives storage errors", () => {
     vi.spyOn(Storage.prototype, "setItem").mockImplementation(() => {
       throw new Error("QuotaExceededError");
@@ -118,6 +123,42 @@ describe("usePersistentState", () => {
     );
     flushStored();
     expect(localStorage.getItem("huet:flag")).toBeNull();
+    unmount();
+  });
+
+  it("keeps hooks with the same key in sync", () => {
+    // Parsing copies the value, like parseThemeConfig does
+    const asCopy = (stored: unknown) =>
+      typeof stored === "object" && stored !== null
+        ? { ...(stored as { n: number }) }
+        : undefined;
+    const setters: ((value: { n: number }) => void)[] = [];
+    function Count({ index }: { index: number }) {
+      const [count, set] = usePersistentState("count", { n: 0 }, asCopy);
+      setters[index] = set;
+      return React.createElement("span", null, count.n);
+    }
+    const writes = vi.spyOn(localStorage, "setItem");
+    const { container, unmount } = render(
+      React.createElement(
+        React.Fragment,
+        null,
+        React.createElement(Count, { index: 0 }),
+        React.createElement(Count, { index: 1 })
+      )
+    );
+
+    act(() => setters[0]({ n: 1 }));
+    expect(container.textContent).toBe("11");
+    act(() => setters[1]({ n: 2 }));
+    expect(container.textContent).toBe("22");
+    act(() => setters[0]({ n: 3 }));
+    expect(container.textContent).toBe("33");
+
+    // Bouncing values between the hooks would never settle inside act()
+    flushStored();
+    expect(writes).toHaveBeenCalledTimes(1);
+    expect(localStorage.getItem("huet:count")).toBe('{"n":3}');
     unmount();
   });
 

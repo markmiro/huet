@@ -62,11 +62,14 @@ function useThemeTarget(target: Target | undefined, config: ThemeConfig) {
   useLayoutEffect(() => mount.current?.update(theme), [theme]);
 }
 
+type WithChildren = { children?: React.ReactNode };
+
 function Panel({
   target,
   config,
   setConfig,
-}: {
+  children,
+}: WithChildren & {
   target?: Target;
   config: ThemeConfig;
   setConfig: React.Dispatch<React.SetStateAction<ThemeConfig>>;
@@ -75,7 +78,7 @@ function Panel({
   useThemeTarget(target, config);
   return (
     <ThemeConfiguratorContext.Provider value={[theme, setConfig]}>
-      <Themer />
+      {children}
     </ThemeConfiguratorContext.Provider>
   );
 }
@@ -84,7 +87,10 @@ function Controlled({
   value,
   onChange,
   target,
-}: Required<Pick<ThemeConfiguratorProps, "value">> & ThemeConfiguratorProps) {
+  children,
+}: Required<Pick<ThemeConfiguratorProps, "value">> &
+  ThemeConfiguratorProps &
+  WithChildren) {
   const latest = useRef(value);
   latest.current = value;
   const onChangeRef = useRef(onChange);
@@ -96,19 +102,50 @@ function Controlled({
     },
     [],
   );
-  return <Panel target={target} config={value} setConfig={setConfig} />;
+  return (
+    <Panel target={target} config={value} setConfig={setConfig}>
+      {children}
+    </Panel>
+  );
 }
 
 function Uncontrolled({
   defaultValue = baseThemeConfig,
   onChange,
   target,
-}: ThemeConfiguratorProps) {
+  children,
+}: ThemeConfiguratorProps & WithChildren) {
   const [config, setConfig] = usePersistentState("theme", defaultValue, parseThemeConfig);
   const onChangeRef = useRef(onChange);
   onChangeRef.current = onChange;
   useLayoutEffect(() => onChangeRef.current?.(config), [config]);
-  return <Panel target={target} config={config} setConfig={setConfig} />;
+  return (
+    <Panel target={target} config={config} setConfig={setConfig}>
+      {children}
+    </Panel>
+  );
+}
+
+/**
+ * Holds the edited theme, controlled or saved in localStorage, applies it to
+ * `target`, and shares it with `children` through ThemeConfiguratorContext.
+ */
+export function ConfiguratorRoot({
+  componentName,
+  children,
+  ...props
+}: ThemeConfiguratorProps & WithChildren & { componentName: string }) {
+  return (
+    <ErrorBoundary componentName={componentName}>
+      {props.value ? (
+        <Controlled {...props} value={props.value}>
+          {children}
+        </Controlled>
+      ) : (
+        <Uncontrolled {...props}>{children}</Uncontrolled>
+      )}
+    </ErrorBoundary>
+  );
 }
 
 /**
@@ -118,12 +155,8 @@ function Uncontrolled({
  */
 export default function ThemeConfigurator(props: ThemeConfiguratorProps) {
   return (
-    <ErrorBoundary componentName="Theme Configurator">
-      {props.value ? (
-        <Controlled {...props} value={props.value} />
-      ) : (
-        <Uncontrolled {...props} />
-      )}
-    </ErrorBoundary>
+    <ConfiguratorRoot componentName="Theme Configurator" {...props}>
+      <Themer />
+    </ConfiguratorRoot>
   );
 }

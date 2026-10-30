@@ -26,6 +26,7 @@
 /* Only the configurator's own files */
 @source "./ThemeConfigurator.tsx";
 @source "./Themer.tsx";
+@source "./EmbeddedThemeConfigurator.tsx";
 @source "./private/*.{ts,tsx}";
 
 /*
@@ -36,7 +37,8 @@
 [data-huet-configurator] {
   all: initial;
 }
-[data-huet-configurator] * {
+/* Icons keep their SVG attributes, such as stroke and path data */
+[data-huet-configurator] :where(:not(svg, svg *)) {
   all: unset;
   display: block;
   box-sizing: border-box;

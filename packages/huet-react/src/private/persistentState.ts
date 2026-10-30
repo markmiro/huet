@@ -60,6 +60,8 @@ function storageKeys(storage: Storage) {
 }
 
 export function readStored<T>(key: string, fallback: T, parse: Parse<T>): T {
+  // A value written moments ago may not have been flushed yet
+  if (pending.has(key)) return parse(pending.get(key)) ?? fallback;
   const storage = getStorage();
   if (!storage) return fallback;
   try {
@@ -169,8 +171,9 @@ export function useIsSaving() {
 }
 
 /**
- * Like `useState`, but the value survives reloads.
- * `key` must be unique and stable across renders.
+ * Like `useState`, but the value survives reloads. Hooks with the same `key`
+ * share the value, so two configurators on one page stay in sync.
+ * `key` must be stable across renders.
  */
 export default function usePersistentState<T>(
   key: string,
@@ -180,12 +183,33 @@ export default function usePersistentState<T>(
   const [value, setValue] = useState(() =>
     readStored(key, defaultValue, parse)
   );
+  const latest = useRef(value);
+  latest.current = value;
   // Only write after the user changes something, so loading never touches storage.
   const hasChanged = useRef(false);
+  // The last value taken from another hook. It isn't written back, which
+  // would bounce it between the two forever.
+  const received = useRef<{ raw: unknown; value: T }>(undefined);
 
   useEffect(() => {
-    if (hasChanged.current) writeStored(key, value);
+    if (hasChanged.current && value !== received.current?.value)
+      writeStored(key, value);
   }, [key, value]);
+
+  useEffect(
+    () =>
+      subscribe(() => {
+        if (!pending.has(key)) return;
+        const raw = pending.get(key);
+        // Our own write, or one we already took
+        if (raw === latest.current || raw === received.current?.raw) return;
+        const next = parse(raw);
+        if (next === undefined) return;
+        received.current = { raw, value: next };
+        setValue(next);
+      }),
+    [key, parse]
+  );
 
   const set = useCallback<Dispatch<SetStateAction<T>>>((action) => {
     hasChanged.current = true;

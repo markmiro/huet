@@ -7,7 +7,7 @@ import { mountTheme } from "huet";
 import { themeFromConfig } from "huet/config";
 
 /** One shared stylesheet, so consumers don't import any CSS. */
-function injectStyles() {
+export function injectStyles() {
   if (document.head.querySelector("style[data-huet-configurator-styles]")) return;
   const style = document.createElement("style");
   style.setAttribute("data-huet-configurator-styles", "");

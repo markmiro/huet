@@ -308,7 +308,7 @@ function ThemePreview({
 }
 
 // Drop individual broken themes rather than losing every saved theme
-const parseConfigs: Parse<ThemeConfig[]> = (stored) => {
+export const parseConfigs: Parse<ThemeConfig[]> = (stored) => {
   if (!Array.isArray(stored)) return undefined;
   const configs = stored
     .map(parseThemeConfig)
