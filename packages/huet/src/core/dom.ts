@@ -97,14 +97,20 @@ export function mountTheme(root: HTMLElement, initialTheme: HuetTheme) {
     const active = new Set<HTMLElement>();
     const backgrounds = new Map<HTMLElement, Color>();
     const elements = [root, ...root.querySelectorAll<HTMLElement>(selector)];
+    // Check every element before writing, so an invalid class can't leave the tree
+    // half-updated. Errors after mount have no caller, so the root records them too.
+    // SVG elements expose className as an SVGAnimatedString.
+    const errors = [...new Set(elements.flatMap((el) => validateClasses(el.getAttribute("class") ?? "")))];
+    if (errors.length) {
+      root.setAttribute("data-huet-error", errors.join("\n"));
+      throw new Error(errors.join("\n"));
+    }
+    root.removeAttribute("data-huet-error");
     for (const el of elements) {
       const names = [...el.classList];
       const specs = names.map(parseColorClass).filter(x => x !== undefined);
       const legacySurface = names.some(x => surfaceClasses.includes(x as typeof surfaceClasses[number]));
       if (el !== root && !specs.length && !legacySurface) continue;
-      // SVG elements expose className as an SVGAnimatedString.
-      const errors = validateClasses(el.getAttribute("class") ?? "");
-      if (errors.length) throw new Error(errors.join("; "));
       let parent = el.parentElement;
       while (parent && !backgrounds.has(parent)) parent = parent.parentElement;
       const parentColor = backgrounds.get(parent!) ?? theme.relative;
@@ -139,6 +145,7 @@ export function mountTheme(root: HTMLElement, initialTheme: HuetTheme) {
     refresh();
   } catch (error) {
     for (const el of originals.keys()) restore(el);
+    root.removeAttribute("data-huet-error");
     if (previousRoot === null) root.removeAttribute("data-huet-root");
     else root.setAttribute("data-huet-root", previousRoot);
     mounted.delete(root);
@@ -161,6 +168,7 @@ export function mountTheme(root: HTMLElement, initialTheme: HuetTheme) {
       disposed = true;
       observer.disconnect();
       for (const el of originals.keys()) restore(el);
+      root.removeAttribute("data-huet-error");
       if (previousRoot === null) root.removeAttribute("data-huet-root");
       else root.setAttribute("data-huet-root", previousRoot);
       mounted.delete(root);

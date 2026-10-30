@@ -92,13 +92,22 @@ import { validateClasses, type HuetClass } from "huet";
 const background = "huet-bg-blue-25" satisfies HuetClass;
 validateClasses("p-4 huet-text-blu-100"); // Unknown Huet class
 validateClasses("huet-text-60 huet-bg/text-100"); // Conflicting text classes
+validateClasses("focus-visible:huet-outline-80"); // Variants aren't supported yet; says what to use instead
 ```
 
 ```sh
 npx huet check src/App.vue src/Card.svelte src/Page.tsx
 ```
 
-The CLI checks literal tokens, including comments/strings, and exits nonzero for unknown classes. It is a lexical checker, not a framework parser. Pass explicit files or shell-expanded globs. `validateClasses()` also detects conflicting properties. Decimal amounts, dynamically constructed names, arbitrary ramp names, and variants such as `hover:huet-bg-blue-25` are not supported yet.
+The CLI checks literal tokens, including comments/strings, and exits nonzero for unknown classes. It is a lexical checker, not a framework parser. Pass explicit files or shell-expanded globs. `validateClasses()` also detects conflicting properties. Decimal amounts, dynamically constructed names, and arbitrary ramp names are not supported yet.
+
+Tailwind variants on Huet classes, such as `hover:huet-bg-blue-25` or `focus-visible:huet-outline-80`, are not supported yet. They are errors, and the message says what to write instead:
+
+- Outline only on focus: `huet-outline-blue-80 focus-visible:outline-2`. The Huet class sets only the outline color; the variant turns the outline on.
+- Text or border color with a variant: Huet's [Tailwind token utilities](#tailwind-v4), e.g. `hover:text-huet-blue` or `focus:border-huet-fg`.
+- Background with a variant: not supported yet.
+
+`mountTheme()` checks every class in the tree before writing any colors. An invalid class at mount throws and leaves the tree unchanged. An invalid class added later is reported as an uncaught error, colors stay as they were, and the root gets a `data-huet-error` attribute with the messages until the class is fixed.
 
 ## Tailwind v4
 

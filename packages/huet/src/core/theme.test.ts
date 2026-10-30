@@ -168,6 +168,20 @@ describe("static classes and Tailwind", () => {
     expect(validateClasses("huet-text-20 huet-bg/text-80")).toHaveLength(1);
     expect(validateClasses("huet-bg-25 huet-surface-25")).toHaveLength(1);
   });
+  it("rejects Tailwind variants on Huet classes with what to write instead", () => {
+    const [outline] = validateClasses("focus-visible:huet-outline-blue-80");
+    expect(outline).toContain("don't support Tailwind variants yet: focus-visible:huet-outline-blue-80");
+    expect(outline).toContain('"huet-outline-blue-80 focus-visible:outline-2"');
+    expect(validateClasses("hover:huet-text-60")[0]).toContain('"hover:text-huet-blue"');
+    expect(validateClasses("group-hover/card:huet-border-50")[0]).toContain('"group-hover/card:border-huet-blue"');
+    expect(validateClasses("md:hover:huet-bg-25")[0]).toContain('Keep "huet-bg-25" without the variant');
+    expect(validateClasses("[&>svg]:huet-bg/outline-80")[0]).toContain('"huet-bg/outline-80 [&>svg]:outline-2"');
+    expect(validateClasses("focus-visible:huet-focus")[0]).toContain('Use "huet-focus" alone');
+    // An unknown class stays unknown, with or without a variant.
+    expect(validateClasses("hover:huet-text-blu")).toEqual(["Unknown Huet class: hover:huet-text-blu"]);
+    // Unprefixed Huet classes still combine with variant-prefixed Tailwind utilities.
+    expect(validateClasses("huet-outline-blue-80 focus-visible:outline-2 hover:text-huet-blue")).toEqual([]);
+  });
   it("compiles real Tailwind v4 variants, removes built-in colors and preserves layout", async () => {
     const compiler = await compile(
       '@import "tailwindcss"; @import "./tailwind.css";',
