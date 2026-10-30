@@ -14,6 +14,9 @@ importers:
       '@playwright/test':
         specifier: ^1.64.1
         version: 1.64.1
+      '@shikijs/transformers':
+        specifier: ^4.5.0
+        version: 4.5.0
       '@tailwindcss/node':
         specifier: ^4.3.3
         version: 4.3.3
@@ -87,6 +90,9 @@ importers:
       '@typescript/typescript6':
         specifier: ^6.0.2
         version: 6.0.2
+      shiki:
+        specifier: ^4.5.0
+        version: 4.5.0
       typescript:
         specifier: ^7.0.2
         version: 7.0.2
@@ -892,6 +898,10 @@ packages:
 
   '@shikijs/themes@4.5.0':
     resolution: {integrity: sha512-zGb87H3UBbpuI4yoh5UguB1XbU+2BDU3kflM7UfZ+Cy2hWo9lBtqjSVK20gmLY6ukYl040hAypGXMgud9vul8Q==}
+    engines: {node: '>=20'}
+
+  '@shikijs/transformers@4.5.0':
+    resolution: {integrity: sha512-LM7twi043qCC3gRyGQfjoC2/sowzbEltWuruyRtT3RlBlk1hKzWk9ETnU7RcDBoVWQBmC8Mebnr7p28W7kPoaA==}
     engines: {node: '>=20'}
 
   '@shikijs/types@4.5.0':
@@ -3035,6 +3045,11 @@ snapshots:
 
   '@shikijs/themes@4.5.0':
     dependencies:
+      '@shikijs/types': 4.5.0
+
+  '@shikijs/transformers@4.5.0':
+    dependencies:
+      '@shikijs/core': 4.5.0
       '@shikijs/types': 4.5.0
 
   '@shikijs/types@4.5.0':

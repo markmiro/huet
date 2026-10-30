@@ -271,6 +271,23 @@ For canvases, video frames, or your own pipeline, use the lower-level functions:
 
 The [image recolor demo](https://markmiro.github.io/huet/recolor.html) compares renderers and themes. The example demos' [Images page](https://markmiro.github.io/huet/images.html) recolors a photo and screenshot gallery into whichever theme you pick in the theme configurator.
 
+## Code blocks
+
+`huetShikiTheme()` is a [Shiki](https://shiki.style) theme whose token colors are Huet variables instead of hex values, e.g. `var(--huet-code-keyword, var(--huet-red))`. Highlight once, at build time or on the server, and the mounted theme colors every block. `update()` re-themes them without re-highlighting. `huetShikiTransformer()` puts a Huet background class on each `<pre>` (`huet-bg-5` by default), so tokens are solved for readable contrast against the block itself. Use `huet-bg-0` to `huet-bg-25` for a block on the page's side of the ramp, or `huet-bg-75` to `huet-bg-100` for the opposite side, such as dark code on a light page.
+
+```js
+// astro.config.mjs: Markdown and MDX code blocks
+import { huetShikiTheme, huetShikiTransformer } from "huet";
+
+export default defineConfig({
+  markdown: {
+    shikiConfig: { theme: huetShikiTheme(), transformers: [huetShikiTransformer({ surface: "huet-bg-90" })] },
+  },
+});
+```
+
+Rows marked with Shiki's `// [!code ++]` and `// [!code --]` notation (from `@shikijs/transformers`) get green and red Huet backgrounds nested in the block, and their tokens are solved against the row. `// [!code highlight]` rows are left for a CSS highlighter tint; see the docs. Astro's `<Code>` component takes the same `theme` and `transformers` props. Shiki isn't a dependency of `huet`; the theme is a plain object. See [code blocks](https://github.com/markmiro/huet/blob/master/docs/code-blocks.md) for the token roles and overrides, and the example demos' [Code page](https://markmiro.github.io/huet/code.html).
+
 React, Vue, Svelte, and Astro lifecycle examples are in [framework integration](https://github.com/markmiro/huet/blob/master/docs/frameworks.md). Portals and shadow roots require independent mounts. The DOM adapter runs only in a browser; SSR can compute colors through `theme.relative` and emit matching styles before mounting.
 
 ## Compatibility and limits
