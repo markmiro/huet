@@ -152,7 +152,6 @@
   }
   /* The top half steps up and the bottom half steps down */
   [data-huet-forms] :where(input[type="number"])::-webkit-inner-spin-button {
-    align-self: center;
     height: 1.25em;
     --_icon: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 30' fill='none' stroke='black' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='m7 11 5-5 5 5M7 19l5 5 5-5'/%3E%3C/svg%3E");
   }
@@ -295,7 +294,7 @@
   /* Progress bars and meters: the track is a softer version of the line color,
      since the whole bar is filled */
   [data-huet-forms] :where(progress, meter) {
-    --_track: color-mix(in oklab, var(--_line) 40%, var(--huet-background));
+    --_track: color-mix(in oklab, var(--_line) 25%, var(--huet-background));
     appearance: none;
     box-sizing: border-box;
     height: 0.5em;
@@ -447,8 +446,10 @@
   [data-huet-forms] :where(input, textarea, select):where(:user-invalid, [aria-invalid="true"]) {
     --_line: var(--huet-red);
   }
+  /* Disabled controls are drawn at about a third of their usual contrast.
+     In the color property, currentColor is the inherited text color. */
   [data-huet-forms] :where(input, textarea, select, button, fieldset):disabled {
-    color: var(--huet-muted);
+    color: color-mix(in oklab, currentColor 35%, var(--huet-background));
     cursor: not-allowed;
   }
   /* Disabled controls lose their outline and get a flat fill instead */
@@ -462,8 +463,23 @@
   [data-huet-forms] :where(input[type="checkbox"], input[type="radio"]):disabled:not(:checked, :indeterminate),
   [data-huet-forms] :where(input[type="file"]:disabled)::file-selector-button {
     border-color: transparent;
-    background-color: color-mix(in oklab, var(--_line) 30%, var(--huet-background));
+    background-color: color-mix(in oklab, var(--_line) 20%, var(--huet-background));
     cursor: not-allowed;
+  }
+  /* Icons inside disabled fields fade with their text */
+  [data-huet-forms] :where(select:disabled)::picker-icon,
+  [data-huet-forms] :where(input:disabled)::-webkit-calendar-picker-indicator,
+  [data-huet-forms] :where(input:disabled)::-webkit-inner-spin-button,
+  [data-huet-forms] :where(input:disabled)::-webkit-search-cancel-button {
+    background-color: currentColor;
+    cursor: not-allowed;
+  }
+  @supports not (appearance: base-select) {
+    [data-huet-forms] :where(select:not([multiple], [size]):disabled) {
+      background-image:
+        linear-gradient(45deg, transparent 50%, currentColor 50%),
+        linear-gradient(135deg, currentColor 50%, transparent 50%);
+    }
   }
   [data-huet-forms] :where(input, textarea, select, button):focus-visible {
     outline: 2px solid currentColor;
