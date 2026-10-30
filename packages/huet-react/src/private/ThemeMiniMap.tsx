@@ -1,11 +1,11 @@
 import React from "react";
-import { contrastRatio } from "huet";
+import chroma from "chroma-js";
 import { rampModes, type Color } from "huet/config";
 
 // Pill stops, from full contrast down to the background itself
 const pillContrasts = [100, 87.5, 75, 62.5, 50, 37.5, 25, 12.5, 0];
 
-/** Colored ramps at full contrast on `bg`, sorted from highest to lowest contrast. */
+/** Colored ramps at full contrast on `bg`, sorted from furthest to nearest in lightness. */
 export function swatchesByContrast(bg: Color) {
   const theme = bg.theme;
   return Object.keys(theme.ramps)
@@ -18,9 +18,10 @@ export function swatchesByContrast(bg: Color) {
     })
     .map((rampKey) => {
       const color = bg.contrast(100, theme.ramps[rampKey]).hex;
-      return { rampKey, color, ratio: contrastRatio(bg.hex, color) };
+      const distance = Math.abs(chroma(color).get("lab.l") - chroma(bg.hex).get("lab.l"));
+      return { rampKey, color, distance };
     })
-    .sort((a, b) => b.ratio - a.ratio);
+    .sort((a, b) => b.distance - a.distance);
 }
 
 /** The neutral colors reachable from `bg`, highest contrast first. */

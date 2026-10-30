@@ -1,11 +1,12 @@
 import chroma from "chroma-js";
 import { relativeRoot } from "./relative";
 import {
-  contrastRatio,
+  contrast,
   fromOklab,
   luminance,
   mix,
   rgb,
+  textEnd,
   toOklab,
   type Triple,
 } from "./color";
@@ -57,46 +58,40 @@ const candidate = (color: string): Candidate => ({
   color,
   luminance: luminance(color),
 });
-const ratioOf = (a: number, b: number) =>
-  (Math.max(a, b) + 0.05) / (Math.min(a, b) + 0.05);
-/** Choose a readable candidate nearest to the background, or the best available. */
+/**
+ * APCA lightness contrast (Lc) the preset roles aim for. Signal hues aim for the
+ * muted level, and colored fills for the border level against their parent.
+ */
+const roles = { foreground: 90, muted: 60, border: 30 } as const;
+/** The candidate nearest the target without falling short, or the strongest one. */
 function select(
   background: string,
   candidates: readonly Candidate[],
   target: number,
-  adjacent = background,
 ): string {
   let best = candidates[0].color,
-    bestRatio = 0,
+    bestLc = -1,
     nearest = "",
-    nearestRatio = Infinity;
-  const bgL = luminance(background),
-    adjacentL = luminance(adjacent);
-  for (const { color, luminance: value } of candidates) {
-    const ratio = Math.min(ratioOf(bgL, value), ratioOf(adjacentL, value));
-    if (ratio > bestRatio) {
+    nearestLc = Infinity;
+  for (const { color } of candidates) {
+    const lc = contrast(background, color);
+    if (lc > bestLc) {
       best = color;
-      bestRatio = ratio;
+      bestLc = lc;
     }
-    if (ratio >= target && ratio < nearestRatio) {
+    if (lc >= target && lc < nearestLc) {
       nearest = color;
-      nearestRatio = ratio;
+      nearestLc = lc;
     }
   }
   return nearest || best;
 }
-/**
- * The contrast a preset role aims for on a background that can reach `available`.
- * Where the background can carry readable text, roles keep their WCAG ratios
- * (7, 4.5 and 3:1). Below that, each role keeps its share of the foreground's
- * contrast, so foreground, muted and border stay distinct instead of all
- * clamping to the endpoint. A short band between 4:1 and 4.5:1 blends the two.
- */
-function roleTarget(ratio: number, available: number): number {
-  const proportional = Math.min(7, available) ** (Math.log(ratio) / Math.log(7));
-  const weight = Math.max(0, Math.min(1, Math.log(available / 4) / Math.log(4.5 / 4)));
-  return Math.min(available, proportional ** (1 - weight) * ratio ** weight);
-}
+/** The first step along a path that reaches the target. */
+const first = (steps: readonly string[], measure: (color: string) => number, target: number) =>
+  steps.find((color) => measure(color) >= target - 1e-9);
+/** The step that measures highest. */
+const strongest = (steps: readonly string[], measure: (color: string) => number) =>
+  steps.reduce((a, b) => (measure(b) > measure(a) ? b : a));
 /** Validate a theme's neutral ramp and return a sampler for it. */
 export function neutralRampOf(options: Pick<ThemeOptions, "dark" | "light" | "neutral">) {
   const custom = options.neutral !== undefined;
@@ -190,10 +185,10 @@ export function createTheme(options: ThemeOptions = {}) {
     }),
   ) as Record<Hue, Candidate[]>;
   // Polarity belongs to the background, never to an individual hue or role.
-  // Resolve ties toward dark so every semantic color crosses over together.
+  // textEnd resolves ties toward dark so every semantic color crosses over together.
   const semanticCandidates = (bg: string, hue: Hue) => {
     const bgL = luminance(bg);
-    const lighter = contrastRatio(bg, light) > contrastRatio(bg, dark);
+    const lighter = textEnd(bg, dark, light) === light;
     const candidates = ramps[hue].filter((x) =>
       lighter ? x.luminance >= bgL : x.luminance <= bgL,
     );
@@ -201,6 +196,10 @@ export function createTheme(options: ThemeOptions = {}) {
     // Returning the background is preferable to silently reversing polarity.
     return candidates.length ? candidates : [candidate(bg)];
   };
+  // The Lc between the endpoints, in whichever direction is weaker. Narrow ramps
+  // deliberately lower the signal hues' targets along with it.
+  const range = Math.min(contrast(dark, light), contrast(light, dark));
+  const budget = Math.min(1, range / roles.foreground);
   const cache = new Map<string, Readonly<Tokens>>();
   const tokens = (bg = background, adjacent = bg): Readonly<Tokens> => {
     rgb(bg);
@@ -208,35 +207,34 @@ export function createTheme(options: ThemeOptions = {}) {
     const key = bg + adjacent;
     const cached = cache.get(key);
     if (cached) return cached;
-    // Neutral roles step from the background toward the endpoint with more contrast,
-    // so they share the text's polarity. On a colored surface the steps keep its hue.
-    const end =
-      contrastRatio(bg, light) > contrastRatio(bg, dark) ? light : dark;
-    const available = contrastRatio(bg, end);
+    // Roles step from the background toward the endpoint text reads best against
+    // (by APCA), so they share the text's side. On a colored surface they keep its hue.
+    const end = textEnd(bg, dark, light);
     const stepsTo = (endpoint: string) => {
       const toward = path(bg, endpoint);
-      return Array.from({ length: 257 }, (_, i) => candidate(toward(i / 256)));
+      return Array.from({ length: 257 }, (_, i) => toward(i / 256));
     };
     const steps = stepsTo(end);
+    const onBg = (color: string) => contrast(bg, color);
+    // Where the background can't reach Lc 90, the roles keep their proportions of
+    // what it can reach, so they stay distinct and ordered on narrow ramps.
+    const fg = Math.min(onBg(end), roles.foreground);
+    const share = (role: number) => (fg * role) / roles.foreground;
     // A border also outlines the surface against its parent. When the text's side
     // can't reach the target against both, the other side may.
-    const borderTarget = roleTarget(3, available);
-    const outline = (color: string) =>
-      Math.min(contrastRatio(bg, color), contrastRatio(adjacent, color));
-    let border = select(bg, steps, borderTarget, adjacent);
-    if (outline(border) < borderTarget) {
-      const other = select(bg, stepsTo(end === light ? dark : light), borderTarget, adjacent);
-      if (outline(other) > outline(border)) border = other;
+    const outline = (color: string) => Math.min(onBg(color), contrast(adjacent, color));
+    let border = first(steps, outline, share(roles.border));
+    if (border === undefined) {
+      const other = stepsTo(end === light ? dark : light);
+      border = first(other, outline, share(roles.border)) ?? strongest([...steps, ...other], outline);
     }
-    // Narrow ramps deliberately lower the contrast budget, including signal colors.
-    const budget = Math.min(1, (contrastRatio(dark, light) - 1) / 6);
     const result = Object.freeze({
       background: bg,
-      foreground: select(bg, steps, roleTarget(7, available)),
-      muted: select(bg, steps, roleTarget(4.5, available)),
+      foreground: first(steps, onBg, fg) ?? end,
+      muted: first(steps, onBg, share(roles.muted)) ?? end,
       border,
       ...Object.fromEntries(
-        hues.map((hue) => [hue, select(bg, semanticCandidates(bg, hue), 1 + 3.5 * budget)]),
+        hues.map((hue) => [hue, select(bg, semanticCandidates(bg, hue), roles.muted * budget)]),
       ),
     }) as Readonly<Tokens>;
     // Bound caches for continuously changing backgrounds.
@@ -245,11 +243,10 @@ export function createTheme(options: ThemeOptions = {}) {
     return result;
   };
   const surfaceCache = new Map<string, string>();
-  const darkL = luminance(dark),
-    lightL = luminance(light);
-  const fullTextRange = contrastRatio(dark, light) >= 4.5;
-  const readable = (value: number) =>
-    Math.max(ratioOf(value, darkL), ratioOf(value, lightL)) >= 4.5;
+  // A fill is readable when muted-level text fits on it on one side or the other.
+  const fullTextRange = range >= roles.muted;
+  const readable = (color: string) =>
+    Math.max(contrast(color, dark), contrast(color, light)) >= roles.muted;
   const surface = (parent: string, amount: number | Hue): string => {
     const key = parent + ":" + amount;
     const cached = surfaceCache.get(key);
@@ -261,29 +258,24 @@ export function createTheme(options: ThemeOptions = {}) {
       // against the parent. Some branded ramps have an unreadable middle band.
       const directional = semanticCandidates(parent, amount);
       const allowed = fullTextRange
-        ? directional.filter((x) => readable(x.luminance))
+        ? directional.filter((x) => readable(x.color))
         : directional;
-      const budget = Math.min(1, (contrastRatio(dark, light) - 1) / 6);
       color = select(
         parent,
         allowed.length ? allowed : directional,
-        1 + 2 * budget,
+        roles.border * budget,
       );
     } else {
-      const end =
-        contrastRatio(parent, dark) >= contrastRatio(parent, light)
-          ? dark
-          : light;
-      const toward = path(parent, end);
+      const toward = path(parent, textEnd(parent, dark, light));
       color = toward(amount / 100);
-      if (amount !== 0 && fullTextRange && !readable(luminance(color))) {
+      if (amount !== 0 && fullTextRange && !readable(color)) {
         // Nudge to the nearest readable point on this same perceptual path.
         // Never escape the configured endpoints to manufacture contrast.
         let distance = Infinity;
         for (let i = 0; i <= 256; i++) {
           const sample = toward(i / 256);
           const gap = Math.abs(i / 256 - amount / 100);
-          if (gap < distance && readable(luminance(sample))) {
+          if (gap < distance && readable(sample)) {
             color = sample;
             distance = gap;
           }

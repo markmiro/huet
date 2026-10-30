@@ -5,6 +5,10 @@ import { BaseColor, default as Color, getLightness } from "./Color";
 import type { ThemeConfig } from "./colorModel";
 import Theme from "./Theme";
 import baseThemeConfig from "./private/baseThemeConfig";
+import { contrast, lightness, textEnd } from "./core/color";
+
+/** Distance in CIE L* (0–1) between two colors. */
+const distance = (a: string, b: string) => Math.abs(lightness(a) - lightness(b));
 
 function themeWith(overrides: Partial<ThemeConfig> = {}) {
   return new Theme({ ...baseThemeConfig, ...overrides });
@@ -161,17 +165,16 @@ describe("Color contrast", () => {
 });
 
 describe("neutral midpoint regressions", () => {
-  it("keeps full-strength text readable on both sides of LAB 50", async () => {
-    const chroma = (await import("chroma-js")).default;
+  it("keeps full-strength text readable on both sides of LAB 50", () => {
     for (const bgRampValue of [0.49, 0.5, 0.51]) {
       const bg = Color.fromTheme(themeWith({ bgRampValue }));
-      expect(
-        chroma.contrast(bg.hex, bg.contrast(100).hex),
-      ).toBeGreaterThanOrEqual(4.5);
-      expect(chroma.contrast(bg.hex, bg.contrast(25).hex))
-        .toBeLessThan(chroma.contrast(bg.hex, bg.contrast(50).hex));
-      expect(chroma.contrast(bg.hex, bg.contrast(50).hex))
-        .toBeLessThan(chroma.contrast(bg.hex, bg.contrast(100).hex));
+      // Full strength reaches the endpoint text reads best against.
+      expect(bg.contrast(100).hex).toBe(textEnd(bg.hex, "#000000", "#ffffff"));
+      expect(contrast(bg.hex, bg.contrast(100).hex)).toBeGreaterThanOrEqual(60);
+      expect(distance(bg.hex, bg.contrast(25).hex))
+        .toBeLessThan(distance(bg.hex, bg.contrast(50).hex));
+      expect(distance(bg.hex, bg.contrast(50).hex))
+        .toBeLessThan(distance(bg.hex, bg.contrast(100).hex));
       expect(bg.contrast(0).hex).toBe(bg.hex);
     }
   });
@@ -183,7 +186,7 @@ describe("semantic midpoint regressions", () => {
     const theme = themeWith({ ramps: { ...baseThemeConfig.ramps, gray: { colors } } });
     for (let i = 0; i <= 100; i++) {
       const bg = new Color({ theme, lab: theme.ramps.gray(i / 100), ramp: theme.ramps.gray });
-      const lighter = chroma.contrast(bg.hex, "#fff") > chroma.contrast(bg.hex, "#000");
+      const lighter = textEnd(bg.hex, "#000000", "#ffffff") === "#ffffff";
       for (const hue of ["red", "yellow", "green", "blue", "purple"]) {
         for (const amount of [12, 25, 100]) {
           const color = bg.contrast(amount, theme.ramps[hue]);
@@ -226,7 +229,7 @@ describe("ramp progression", () => {
     const theme = themeWith();
     for (let position = 0; position <= 100; position++) {
       const bg = new Color({ theme, ramp: theme.ramps.gray, lab: theme.ramps.gray(position / 100) });
-      const lighter = chroma.contrast(bg.hex, "#fff") > chroma.contrast(bg.hex, "#000");
+      const lighter = textEnd(bg.hex, "#000000", "#ffffff") === "#ffffff";
       for (const hue of ["gray", "red", "yellow", "green", "blue", "purple"]) {
         let previous = chroma(bg.hex).luminance();
         for (let amount = 0; amount <= 100; amount++) {
@@ -265,12 +268,11 @@ describe("neutral overlays on a colored background ramp", () => {
         const bg = Color.fromTheme(theme);
         const [, a, b] = toOklab(bg.hex);
         expect(bg.contrast(0, theme.ramps.gray)).toBe(bg);
-        let previous = 1;
+        let previous = 0;
         for (const amount of [5, 20, 40, 60, 80, 100]) {
           const color = bg.contrast(amount, theme.ramps.gray);
-          const ratio = chroma.contrast(bg.hex, color.hex);
-          expect(ratio).toBeGreaterThanOrEqual(previous);
-          previous = ratio;
+          expect(distance(bg.hex, color.hex)).toBeGreaterThanOrEqual(previous);
+          previous = distance(bg.hex, color.hex);
           if (amount < 100) {
             const [, x, y] = toOklab(color.hex);
             expect(Math.hypot(x, y), bgRamp + " " + amount).toBeGreaterThan(.005);
@@ -298,11 +300,12 @@ describe("matching background ramp spacing", () => {
         const root = Color.fromTheme(theme);
         for (const row of [20, 40, 60, 80]) {
           const bg = root.contrast(row, theme.ramps[bgRamp]);
-          const full = chroma.contrast(bg.hex, bg.contrast(100).hex);
+          const full = distance(bg.hex, bg.contrast(100).hex);
           const colors = [0, 20, 40, 60, 80, 100].map(amount => bg.contrast(amount).hex);
           expect(new Set(colors).size, bgRamp + " row " + row).toBe(6);
+          // Equal strength steps are equal steps in L*.
           for (let i = 0; i < colors.length; i++) {
-            const progress = Math.log(chroma.contrast(bg.hex, colors[i])) / Math.log(full);
+            const progress = distance(bg.hex, colors[i]) / full;
             expect(Math.abs(progress - i / 5), bgRamp + " row " + row).toBeLessThan(.025);
           }
         }

@@ -5,4 +5,3 @@ export type { ThemeConfig } from "../colorModel";
 export { mountTheme } from "./dom";
 export { classes, isHuetClass, validateClasses } from "./classes";
 export type { HuetClass, RelativeClass, Amount, RampName, Surface } from "./classes";
-export { contrastRatio } from "./color";

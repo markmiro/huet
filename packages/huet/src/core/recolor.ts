@@ -1,4 +1,7 @@
-import { oklabFromRgb, rgbFromOklab, toOklab, type Triple } from "./color";
+import {
+  fromLightness, lightnessOf as lightness, lightnessToe as toe,
+  oklabFromRgb, rgbFromOklab, toOklab, type Triple,
+} from "./color";
 import { defaultColors, hues, neutralRampOf, type Hue, type NeutralRamp } from "./theme";
 
 /*
@@ -58,11 +61,8 @@ export interface RecolorOptions {
   OKLab L, so mappings there are unchanged. Near black, OKLab's cube root is
   infinitely steep: sRGB 0 → 1 spans 6.7% of the lightness range (0.27% in
   L*). Lifting a ramp's dark end would turn that invisible step into a band.
+  The conversions live in ./color, shared with the contrast solver.
 */
-const toe = 6 / 29;
-const lightness = (L: number) => (L > toe ? 1.16 * L - 0.16 : (24389 / 2700) * L ** 3);
-const fromLightness = (v: number) =>
-  v > 0.08 ? (v + 0.16) / 1.16 : Math.cbrt((v * 2700) / 24389);
 /*
   OKLab's a and b come from the same cube roots, so near-black colors read as
   far more colorful than they look: (8, 0, 0) would become a visible red once

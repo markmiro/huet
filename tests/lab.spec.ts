@@ -1,5 +1,12 @@
 import { test, expect } from "@playwright/test";
 import baseThemeConfig from "../packages/huet/src/private/baseThemeConfig";
+import { contrast } from "../packages/huet/src/core/color";
+/** Unsigned APCA Lc of a computed CSS color on another. */
+const lc = (background: string, color: string) => {
+  const hex = (value: string) => value.startsWith("#") ? value : "#" + value.match(/[\d.]+/g)!.slice(0, 3)
+    .map((n) => Math.round(Number(n)).toString(16).padStart(2, "0")).join("");
+  return contrast(hex(background), hex(color));
+};
 const screenshots = process.env.HUET_SCREENSHOTS ?? "test-results/screenshots";
 
 test("gray controls, focus, inheritance, live themes and mobile layout", async ({
@@ -20,22 +27,6 @@ test("gray controls, focus, inheritance, live themes and mobile layout", async (
     await page.locator("#preset").selectOption(preset);
     await expect(page.locator("#metrics")).toContainText("Root text");
     const checks = await page.evaluate(() => {
-      const lum = (color: string) => {
-        const c = color
-          .match(/[\d.]+/g)!
-          .slice(0, 3)
-          .map(Number)
-          .map((x) => x / 255)
-          .map((x) =>
-            x <= 0.04045 ? x / 12.92 : ((x + 0.055) / 1.055) ** 2.4,
-          );
-        return 0.2126 * c[0] + 0.7152 * c[1] + 0.0722 * c[2];
-      };
-      const ratio = (a: string, b: string) => {
-        const x = lum(a),
-          y = lum(b);
-        return (Math.max(x, y) + 0.05) / (Math.min(x, y) + 0.05);
-      };
       const bg = (el: Element): string => {
         const color = getComputedStyle(el).backgroundColor;
         return color === "rgba(0, 0, 0, 0)" && el.parentElement
@@ -51,24 +42,27 @@ test("gray controls, focus, inheritance, live themes and mobile layout", async (
         return {
           tag: el.tagName,
           class: el.className,
-          text: ratio(s.color, bg(el)),
-          border: ratio(s.borderColor, bg(el)),
-          outerBorder: ratio(s.borderColor, bg(el.parentElement!)),
+          color: s.color,
+          borderColor: s.borderColor,
+          background: bg(el),
+          parent: bg(el.parentElement!),
+          // The surface's text, which is as far as its roles can go (up to Lc 90).
+          foreground: s.getPropertyValue("--huet-foreground").trim(),
         };
       });
     });
     if (["gray49", "gray51", "light", "dark", "blue", "paper"].includes(preset))
       for (const row of checks) {
+        // Text reaches at least the muted share (⅔) of the surface's text contrast,
+        // and borders the border share (⅓), against the surface and its parent.
+        const text = lc(row.background, row.foreground);
         expect(
-          row.text,
+          lc(row.background, row.color),
           `${preset} ${JSON.stringify(row)}`,
-        ).toBeGreaterThanOrEqual(4.5);
+        ).toBeGreaterThanOrEqual((text * 2) / 3 - 0.5);
         if (row.tag === "INPUT" || row.tag === "SELECT") {
-          expect(row.border, `${preset} border`).toBeGreaterThanOrEqual(3);
-          expect(
-            row.outerBorder,
-            `${preset} outer border`,
-          ).toBeGreaterThanOrEqual(3);
+          expect(lc(row.background, row.borderColor), `${preset} border`).toBeGreaterThanOrEqual(text / 3 - 0.5);
+          expect(lc(row.parent, row.borderColor), `${preset} outer border`).toBeGreaterThanOrEqual(text / 3 - 0.5);
         }
       }
     await page.screenshot({

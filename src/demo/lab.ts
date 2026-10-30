@@ -1,11 +1,10 @@
 import {
   createTheme,
   mountTheme,
-  contrastRatio,
   type ColorModel,
   type ThemeOptions,
 } from "huet";
-import { toOklab } from "../../packages/huet/src/core/color";
+import { apca, toOklab } from "../../packages/huet/src/core/color";
 import "huet/styles.css";
 import "./lab.css";
 
@@ -52,8 +51,9 @@ let theme = createTheme(options);
 const controller = mountTheme(root, theme);
 function report(elapsed: number) {
   const t = theme.tokens();
+  const lc = (color: string) => Math.abs(apca(color, t.background)).toFixed(0);
   document.querySelector("#metrics")!.textContent =
-    `Root text ${contrastRatio(t.background, t.foreground).toFixed(2)}:1 · secondary ${contrastRatio(t.background, t.muted).toFixed(2)}:1 · border ${contrastRatio(t.background, t.border).toFixed(2)}:1 · theme update ${elapsed.toFixed(1)} ms`;
+    `Root text Lc ${lc(t.foreground)} · secondary Lc ${lc(t.muted)} · border Lc ${lc(t.border)} · theme update ${elapsed.toFixed(1)} ms`;
   document.querySelector("#position-value")!.textContent =
     `${Math.round((options.background ?? 1) * 100)}% ${theme.neutral.colorModel}`;
   document.querySelector("#ramp-label")!.textContent =

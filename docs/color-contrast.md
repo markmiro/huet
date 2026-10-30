@@ -56,6 +56,8 @@ The neutral gray Submit button remains visually uneven in light, middle-gray, an
 
 ## Near-black spacing and monotonic progression checkpoint
 
+> Superseded: strengths are now equal steps in CIE L\*. See [APCA roles and L* strengths](#apca-roles-and-l-strengths).
+
 The next correction keeps the semantic anchors and OKLab paths, but spaces strength by **proportional contrast**, using `ratio(amount) = ratio(anchor) ** amount`. It finds the closest quantized color on that same path. This supersedes the raw 12% OKLab-distance rule above: small steps on black no longer round almost to black, and zero/full strength remain unchanged. The contrast target is derived from the chosen anchor, not a mandatory accessibility threshold.
 
 The neutral solver now also chooses its direction once per background. Previously it could choose a dark sample for one strength and a light sample for the next. Every increasing-strength sequence now stays on one side and progresses monotonically. This shared algorithm correction also affects neutral submit fills; no button-specific style or tuning was added.
@@ -73,6 +75,8 @@ Coverage checks all five colored background ramps, several ramp positions, monot
 ## Matching-ramp spacing in rows 40 and 60
 
 When the requested ramp was also the selected background ramp, it still used the original absolute targets (3:1 at 25, 4.5:1 at 50, 21:1 at 100). A middle-tone background cannot provide 21:1. It reached the endpoint early, flattening the rest of the ramp into repeated colors.
+
+> Superseded: this path now spaces strengths by equal steps in CIE L\*. See [APCA roles and L* strengths](#apca-roles-and-l-strengths).
 
 That path now uses `availableContrast ** strength`, choosing samples on the configured ramp in the shared direction. Equal strength increments consume equal fractions of the available log-contrast range. Zero preserves the background and 100 reaches the strongest endpoint; intermediate steps no longer require impossible absolute ratios. This supersedes the earlier legacy 25/50 role guarantees. It does not change the standalone core's role targets.
 
@@ -96,6 +100,8 @@ Regression coverage sweeps nested colors through all 101 slider values and drive
 
 The roles now step from the actual background toward the endpoint the text uses. Neutral backgrounds on the ramp follow the ramp, as `huet-surface-N` does. Colored backgrounds start at the ramp position with the same OKLab lightness and follow the ramp's shape toward the endpoint, offset by the difference between the surface and that ramp color. The offset's lightness fades out linearly, and its hue and chroma by `1 - amount³`, so they last until close to the endpoint. A straight mix (or a linear fade) halves the chroma by the time it reaches a 3:1 border: Base's light blue `huet-bg-blue-25` got slate-gray `#6c7986` lines (chroma 0.025 against the surface's 0.044); they're now `#657a8f` (0.041). On a multi-hue ramp the ramp's own hues still come through: on Sunset's slate `huet-bg-blue-25` muted text and borders are salmon and dusty rose rather than the olive a straight mix to the yellow text would give. Nested `huet-surface-N` surfaces on colored parents follow the same path. Explicit-amount classes are unchanged: `huet-text-60` on a blue surface still samples the gray ramp.
 
+> Superseded: the WCAG targets below were replaced by APCA targets. See [APCA roles and L* strengths](#apca-roles-and-l-strengths).
+
 Where a background reaches 4.5:1, the WCAG targets stay as they were. Below 4:1, each role takes the same share of the foreground's log-contrast that it has at 7:1 (`available ** (ln 4.5 / ln 7)` for muted, `ln 3 / ln 7` for border), as the matching-ramp solver above does for strengths. Between 4 and 4.5:1 the two blend, so dragging the configurator doesn't make the roles jump. Muted text and borders also stay on the text's side of the background; previously a mid-gray surface could get white text with a near-black muted color. A border can still cross to the other side when that's the only way to reach its target against both the surface and its parent, so it keeps outlining the surface.
 
 Unit tests cover the Orange Boost ramp and its blue surface, polarity on three ramps, the outline fallback, smoothness through the blend, tinting on blue surfaces in Base, Base Inverted and Orange Boost (keeping at least 80% of the surface's chroma in Base and Base Inverted), and that on blue, red and green surfaces in Sunset and A Box of Macaroni the roles sit closer to the ramp's hue than a straight mix at the same lightness does.
@@ -112,3 +118,24 @@ Before is the PR base `c77e701ba5261a0d95ab80332eee078cc9602235`; after is imple
 | Blue | ![Blue before](screenshots/ramp-squares-blue-before.png) | ![Blue after](screenshots/ramp-squares-blue-after.png) |
 
 Reproduce by serving the baseline checkout separately, then running `HUET_BEFORE_URL=http://127.0.0.1:8734/ npx playwright test tests/ramp-screenshots.spec.ts`. The screenshot test starts the current implementation on port 8733 and uses fresh browser contexts for both revisions. It is skipped in normal test runs unless the baseline URL is supplied.
+
+## APCA roles and L* strengths
+
+Huet no longer uses the WCAG 2 contrast ratio, `(L1 + 0.05) / (L2 + 0.05)` on sRGB relative luminance. It overstates contrast on dark backgrounds and treats both polarities alike. Two measures replace it, each where it fits:
+
+- **Preset roles use APCA.** `--huet-foreground`, `--huet-muted` and `--huet-border` (`theme.tokens()`, `huet-surface-*`, the root, and every form control) aim for lightness contrast (Lc) 90, 60 and 30, with the APCA-W3 0.0.98G-4g constants. APCA is polarity-aware, so dark-mode text comes out brighter than before (Base Inverted: `#959595` → `#e4e4e4` on black) and light-mode borders lighter (`#949494` → `#c7c7c7` on white). Where a background can't reach Lc 90, the three keep their proportions (⅔ and ⅓) of what it can reach, so they stay distinct and ordered on narrow ramps such as Orange Boost. The old 4–4.5:1 blend band is gone; the proportional rule is already continuous. Signal hues aim for the muted level. Colored `huet-surface-*` fills aim for the border level against their parent and must leave room for Lc 60 text.
+- **Explicit strengths use CIE L\*.** `huet-bg-25`, `huet-text-60`, signal colors and neutral overlays move the requested percentage of the L\* distance toward the endpoint. This replaces `available ** strength` on the background ramp and `ratio ** amount` in `mixSignal`. APCA reports anything below Lc 7.3 as 0, so it can't space low strengths such as `huet-bg-6`. L\* is linear in luminance near black and close to symmetric, so strengths on white look as before, and low strengths on black come out slightly darker (strength 6: `#1a1a1a` → `#141414`). It's the same lightness the image recolorer uses.
+- **One rule picks the side.** `textEnd()` returns whichever endpoint reads better by APCA, with ties going dark. The solver, the preset roles, signal hues and surfaces all call it, so they always agree. On a black-to-white ramp APCA switches at `#a4a4a4`, where WCAG switched at `#767676`. Mid grays from about `#777` to `#a3a3a3` now get light text, and nested `huet-bg-*` surfaces inside them step lighter.
+
+Below the reference's Lc 7.3 cutoff, Huet's `apca()` falls continuously to 0 instead of jumping, so small role targets on very narrow ramps stay reachable. Above it, values match the reference implementation's published test values. Lc targets are design targets: APCA is still a draft, and Huet makes no conformance claim. `contrastRatio` was removed from the public API.
+
+Unit tests check the APCA reference values; the role targets and their proportions on all 256 sRGB grays; light text on middle grays; that the solver, roles and signal hues pick the same side on Base, Orange Boost, Sunset and a blue/white theme; equal L\* spacing for explicit strengths; and the existing tinting, outline and smoothness behavior. Two checks from the previous section loosen: muted text and borders on Base Inverted's blue surface keep at least 60% of its chroma rather than 80%, because Lc 60 muted text is much lighter than the old 4.5:1 one; and the multi-hue ramp check covers muted text only, because an Lc 30 border on a light surface sits close to it and keeps the surface's own hue. Browser tests check L\* spacing in the Color Contrast matrix and form, and the lab's roles against their share of each surface's text contrast.
+
+The Forms page's "On other surfaces" section, with minimal styling on:
+
+| Theme | Before | After |
+| --- | --- | --- |
+| Base | ![Base before](screenshots/forms-apca-surfaces-base-before.png) | ![Base after](screenshots/forms-apca-surfaces-base-after.png) |
+| Base Inverted | ![Base Inverted before](screenshots/forms-apca-surfaces-base-inverted-before.png) | ![Base Inverted after](screenshots/forms-apca-surfaces-base-inverted-after.png) |
+| Orange Boost | ![Orange Boost before](screenshots/forms-apca-surfaces-orange-boost-before.png) | ![Orange Boost after](screenshots/forms-apca-surfaces-orange-boost-after.png) |
+| Sunset | ![Sunset before](screenshots/forms-apca-surfaces-sunset-before.png) | ![Sunset after](screenshots/forms-apca-surfaces-sunset-after.png) |

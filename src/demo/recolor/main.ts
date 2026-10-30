@@ -1,4 +1,4 @@
-import { oklabFromRgb, type Triple } from "../../../packages/huet/src/core/color";
+import { oklabFromRgb, textEnd, type Triple } from "../../../packages/huet/src/core/color";
 import {
   coordinatesOf,
   rampColor,
@@ -7,7 +7,7 @@ import {
   type Palette,
   type RecolorOptions,
 } from "huet/images";
-import { createTheme, mountTheme, contrastRatio } from "huet";
+import { createTheme, mountTheme } from "huet";
 import { hues, type Hue, type HuetTheme } from "huet";
 import { images, themes, type DemoImage, type RecolorTheme } from "./data";
 import { emojiSheet } from "./emoji";
@@ -278,7 +278,7 @@ function themePage() {
   else pageMount = mountTheme(document.body, next);
   // Match native controls and scrollbars to the page's polarity.
   const bg = next.tokens().background;
-  root.style.colorScheme = contrastRatio(bg, "#ffffff") > contrastRatio(bg, "#000000") ? "dark" : "light";
+  root.style.colorScheme = textEnd(bg, "#000000", "#ffffff") === "#ffffff" ? "dark" : "light";
 }
 
 // ---- Rendering passes ----
