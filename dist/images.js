@@ -1,4 +1,4 @@
-import { a as e, g as t, h as n, i as r, m as i, r as a } from "./theme-NOxmHyYn.js";
+import { _ as e, a as t, g as n, h as r, i, r as a } from "./theme-C2LgQ8y2.js";
 // src/core/gpu.ts
 var o = "#version 300 es\nin vec2 position;\nout vec2 uv;\nvoid main() {\n  uv = position * 0.5 + 0.5;\n  gl_Position = vec4(position, 0.0, 1.0);\n}", s = "#version 300 es\nprecision highp float;\nprecision highp sampler3D;\nuniform sampler2D image;\nuniform sampler3D lut;\nuniform float size;\nin vec2 uv;\nout vec4 color;\nvoid main() {\n  vec4 c = texture(image, vec2(uv.x, 1.0 - uv.y));\n  // Sample lattice centers so 0 and 1 hit the first and last LUT entries.\n  vec3 p = (c.rgb * (size - 1.0) + 0.5) / size;\n  color = vec4(texture(lut, p).rgb, c.a);\n}", c = class {
 	constructor() {
@@ -61,16 +61,16 @@ var o = "#version 300 es\nin vec2 position;\nout vec2 uv;\nvoid main() {\n  uv =
 	}
 }, l = 6 / 29, u = (e) => e > l ? 1.16 * e - .16 : 24389 / 2700 * e ** 3, d = (e) => e > .08 ? (e + .16) / 1.16 : Math.cbrt(e * 2700 / 24389), f = (e) => e < l ? (e / l) ** 2 : 1, p = /* @__PURE__ */ new Map();
 function m(n) {
-	let i = JSON.stringify(n), o = p.get(i);
+	let r = JSON.stringify(n), o = p.get(r);
 	if (o) return o;
-	let { dark: s, light: c, neutral: l, colors: d } = n, { ramp: f } = e({
+	let { dark: s, light: c, neutral: l, colors: d } = n, { ramp: f } = t({
 		dark: s,
 		light: c,
 		neutral: l
 	}), m = /* @__PURE__ */ new Float64Array(257), h = /* @__PURE__ */ new Float64Array(257), g = /* @__PURE__ */ new Float64Array(257);
-	for (let e = 0; e < 257; e++) {
-		let [n, r, i] = t(f(e / 256));
-		m[e] = Math.max(u(n), e ? m[e - 1] : 0), h[e] = r, g[e] = i;
+	for (let t = 0; t < 257; t++) {
+		let [n, r, i] = e(f(t / 256));
+		m[t] = Math.max(u(n), t ? m[t - 1] : 0), h[t] = r, g[t] = i;
 	}
 	let _ = m[0], v = m[256], y = [0, 0], b = (e) => {
 		let t = _ + e * (v - _), n = 0, r = 256;
@@ -82,18 +82,18 @@ function m(n) {
 		}
 		let i = m[r] > m[n] ? (t - m[n]) / (m[r] - m[n]) : 0;
 		return y[0] = h[n] + i * (h[r] - h[n]), y[1] = g[n] + i * (g[r] - g[n]), y;
-	}, x = r.map((e) => t(d?.[e] ?? a[e]));
+	}, x = i.map((t) => e(d?.[t] ?? a[t]));
 	return o = {
 		low: _,
 		high: v,
 		neutralAt: b,
 		a: Float64Array.from(x, (e) => e[1]),
 		b: Float64Array.from(x, (e) => e[2])
-	}, p.size >= 64 && p.clear(), p.set(i, o), o;
+	}, p.size >= 64 && p.clear(), p.set(r, o), o;
 }
 function h(e) {
-	let t = r.length, n = (t) => Math.atan2(e.b[t], e.a[t]), i = Array.from({ length: t }, (e, t) => t).sort((e, t) => n(e) - n(t)), a = i.map((n, r) => {
-		let a = i[(r + 1) % t], [o, s, c, l] = [
+	let t = i.length, n = (t) => Math.atan2(e.b[t], e.a[t]), r = Array.from({ length: t }, (e, t) => t).sort((e, t) => n(e) - n(t)), a = r.map((n, i) => {
+		let a = r[(i + 1) % t], [o, s, c, l] = [
 			e.a[n],
 			e.b[n],
 			e.a[a],
@@ -144,28 +144,28 @@ function h(e) {
 	};
 }
 function g([e, t, n], a = {}) {
-	let { t: o, i0: s, i1: c, w0: l, w1: u } = h(m(a))(i(e, t, n)), d = {};
-	return l > 1e-6 && (d[r[s]] = l), u > 1e-6 && (d[r[c]] = (d[r[c]] ?? 0) + u), {
+	let { t: o, i0: s, i1: c, w0: l, w1: u } = h(m(a))(r(e, t, n)), d = {};
+	return l > 1e-6 && (d[i[s]] = l), u > 1e-6 && (d[i[c]] = (d[i[c]] ?? 0) + u), {
 		t: o,
 		weights: d
 	};
 }
 function _(e, t = {}) {
-	let r = t.strength ?? 1, a = t.tint ?? 1;
-	if (!(r >= 0 && r <= 1)) throw RangeError("strength must be between 0 and 1");
+	let i = t.strength ?? 1, a = t.tint ?? 1;
+	if (!(i >= 0 && i <= 1)) throw RangeError("strength must be between 0 and 1");
 	if (!(a >= 0 && a <= 1)) throw RangeError("tint must be between 0 and 1");
 	let o = h(m(t.source ?? {})), s = m(e), { low: c, high: l } = s;
 	return (e, u, p) => {
-		let m = i(e, u, p), { t: h, i0: g, i1: _, w0: v, w1: y } = o(m), b = t.invert ? 1 - h : h, x = a + (1 - a) * Math.max(0, 1 - v - y), S = d(c + b * (l - c)), C = 1 / Math.max(f(S), 1e-6), [w, T] = s.neutralAt(b), E = [
+		let m = r(e, u, p), { t: h, i0: g, i1: _, w0: v, w1: y } = o(m), b = t.invert ? 1 - h : h, x = a + (1 - a) * Math.max(0, 1 - v - y), S = d(c + b * (l - c)), C = 1 / Math.max(f(S), 1e-6), [w, T] = s.neutralAt(b), E = [
 			S,
 			x * w + C * (v * s.a[g] + y * s.a[_]),
 			x * T + C * (v * s.b[g] + y * s.b[_])
 		];
-		return n(r === 1 ? E : m.map((e, t) => e + (E[t] - e) * r));
+		return n(i === 1 ? E : m.map((e, t) => e + (E[t] - e) * i));
 	};
 }
-function v(e, t, i) {
-	let { low: a, high: o, neutralAt: s, a: c, b: l } = m(e), u = i ? r.indexOf(i) : -1, [f, p] = s(t);
+function v(e, t, r) {
+	let { low: a, high: o, neutralAt: s, a: c, b: l } = m(e), u = r ? i.indexOf(r) : -1, [f, p] = s(t);
 	return n([
 		d(a + t * (o - a)),
 		f + (u >= 0 ? c[u] : 0),

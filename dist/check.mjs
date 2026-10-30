@@ -1,7 +1,7 @@
 #!/usr/bin/env node
 // Intentionally lexical: checks literal huet-* tokens in supplied source files.
 import { readFile } from "node:fs/promises";
-import { isHuetClass } from "./core.js";
+import { isHuetClass } from "./index.js";
 const [command, ...files] = process.argv.slice(2);
 if (command !== "check" || !files.length) {
   console.error(

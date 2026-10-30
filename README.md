@@ -1,24 +1,29 @@
-# Huet
+# huet
 
-Relative UI colors for utility apps. Choose a theme, then specify a ramp and contrast amount in class names. Layout stays with your framework or Tailwind. The framework-independent entry point is `huet/core`; the original React API remains at `huet`.
+Relative UI colors and themed images from one theme, for any framework. Choose a theme, then give each element a ramp and a contrast amount in its class name, such as `huet-bg-blue-25`. Huet works out the actual colors from the element's parent background, and recolors images to match. Layout stays with your framework or Tailwind.
 
-## Install before the npm release
+For a React theme editor that drives these themes, see [`huet-react`](https://www.npmjs.com/package/huet-react).
 
-These changes have not been published to npm yet. Every push to `master` builds the package and commits it to the [`dist`](https://github.com/markmiro/huet/tree/dist) branch, so you can install it from GitHub without building anything:
+## Install
 
 ```sh
-npm install github:markmiro/huet#dist
-# or: pnpm add github:markmiro/huet#dist, bun add github:markmiro/huet#dist
+pnpm add huet   # or: npm install huet
 ```
 
-Your lockfile pins the exact `dist` commit; each commit message names the `master` commit it was built from. Run `npm update huet` (or your package manager's equivalent) to pick up newer builds.
+| Entry point | Contents |
+| --- | --- |
+| `huet` | `createTheme`, `mountTheme`, class validation, contrast helpers |
+| `huet/images` | `mountImages`, `recolorImage`, and the lower-level recoloring functions |
+| `huet/config` | The theme config format that `huet-react` and exported theme files use, and `themeFromConfig` |
+| `huet/styles.css` | Huet's class styles |
+| `huet/tailwind.css` | The same styles as a Tailwind v4 bridge |
 
-The core bundles its color calculations and does not require React. React peers are optional and only needed for the original entry point.
+`huet/core` is an alias of `huet`. Huet doesn't depend on React or any other framework.
 
 ## Minimal setup
 
 ```ts
-import { createTheme, mountTheme } from "huet/core";
+import { createTheme, mountTheme } from "huet";
 import "huet/styles.css";
 
 const theme = createTheme({
@@ -62,7 +67,7 @@ Examples: `huet-bg-blue-25`, `huet-text-100`, `huet-border-red-60`, `huet-outlin
 
 Amounts use the original 0–100 relative contrast scale, not Tailwind shades, opacity, or literal WCAG ratios. Zero matches the reference background; 100 requests the full available ramp strength. Omitting the ramp uses the inherited base ramp (gray for `createTheme`). Choosing a blue background does not automatically switch that base ramp to blue. The `white` ramp preserves the original direct-ramp behavior: it chooses a discrete color from the background, ignoring the local amount.
 
-The new classes call the **same `Color.contrast()` solver as the original API**, including the neutral/semantic ramp corrections and stable global contrast fade.
+The classes use the same `Color.contrast()` solver as Huet's original React API, including the neutral/semantic ramp corrections and stable global contrast fade.
 
 ### What colors are relative to
 
@@ -83,7 +88,7 @@ By default, every explicit property is relative to the nearest parent background
 Use literal class names. All integer amounts and built-in ramps are statically recognized:
 
 ```ts
-import { validateClasses, type HuetClass } from "huet/core";
+import { validateClasses, type HuetClass } from "huet";
 const background = "huet-bg-blue-25" satisfies HuetClass;
 validateClasses("p-4 huet-text-blu-100"); // Unknown Huet class
 validateClasses("huet-text-60 huet-bg/text-100"); // Conflicting text classes
@@ -141,10 +146,10 @@ Read inherited CSS variables with `getComputedStyle()` when a chart needs the ac
 
 ## Multi-hue ramps
 
-`dark` and `light` make a straight OKLab ramp. A theme like Sunset (navy to yellow) loses its in-between hues on that line, and its midtones turn muddy. To change that, pass a `neutral` ramp, which has the same shape as the legacy React `ramps.gray` config. `colors` lists the stops, darkest first. `colorModel` sets how to interpolate between them. Hue-based models such as `hcl` travel around the hue wheel:
+`dark` and `light` make a straight OKLab ramp. A theme like Sunset (navy to yellow) loses its in-between hues on that line, and its midtones turn muddy. To change that, pass a `neutral` ramp, which has the same shape as a theme config's `ramps.gray`. `colors` lists the stops, darkest first. `colorModel` sets how to interpolate between them. Hue-based models such as `hcl` travel around the hue wheel:
 
 ```ts
-import { createTheme, mountTheme } from "huet/core";
+import { createTheme, mountTheme } from "huet";
 import "huet/styles.css";
 
 // Sunset: navy → purple → pink → orange → yellow
@@ -192,32 +197,22 @@ Pass either `neutral` or `dark`/`light`, not both. The first and last stops beco
 const gradient = `linear-gradient(to right, ${Array.from({ length: 17 }, (_, i) => astro.ramp(i / 16)).join(", ")})`;
 ```
 
-To use a legacy React theme (a `ThemeConfig`, such as an exported configurator theme) as is, pass it to `themeFromConfig`. Explicit-amount classes then resolve exactly as `<Block contrast="…">` did with that theme:
+To use a theme from the [`huet-react`](https://www.npmjs.com/package/huet-react) configurator (a `ThemeConfig`, such as an exported theme file) as is, pass it to `themeFromConfig`:
 
 ```ts
-import { mountTheme, themeFromConfig } from "huet/core";
+import { mountTheme } from "huet";
+import { themeFromConfig } from "huet/config";
 mountTheme(document.querySelector("#app")!, themeFromConfig(exportedTheme));
 ```
 
-To port one by hand instead, replace each name in `ramps.gray.colors` with its `pallet` hex value (Astro's `["black", "gray", "white"]` becomes `["#040816", "#ffb980", "#ffffff"]`), then keep `colorModel` as is. See [multi-hue ramps](docs/color-models.md) for before/after screenshots. The lab demo (`/lab.html`) includes Sunset and Astro presets, a middle-stop control, and a color-model picker.
-
-## Theme configurator
-
-`ThemeConfigurator` is a floating React panel for picking and editing themes. It saves the theme in localStorage and applies it to `target` (an element or selector) through Huet classes. It doesn't need `<Body>`:
-
-```tsx
-import { ThemeConfigurator } from "huet";
-<ThemeConfigurator target="#app" onThemeChange={(config) => console.log(config.name)} />
-```
-
-The panel renders into its own `<div data-huet-configurator>` on `document.body` and injects its own scoped, `hc:`-prefixed styles, so it needs no CSS import. The page's element selectors and its own Tailwind (layered or prefixed differently) don't reach it, though more specific page selectors such as `#app button` still can. Because that container is in `body`, the target can't be `body` or `html`. Inside a legacy `<Body>`, the panel edits Body's theme instead. The demo site (`npm run dev`) is built with Astro: its pages use Tailwind for layout and Huet classes for color, and the configurator is a React island (`src/demo/layouts/Demo.astro`).
+To turn one into `createTheme` options by hand instead, replace each name in `ramps.gray.colors` with its `pallet` hex value (Astro's `["black", "gray", "white"]` becomes `["#040816", "#ffb980", "#ffffff"]`), then keep `colorModel` as is. See [multi-hue ramps](https://github.com/markmiro/huet/blob/master/docs/color-models.md) for before/after screenshots. The [lab demo](https://markmiro.github.io/huet/lab.html) includes Sunset and Astro presets, a middle-stop control, and a color-model picker.
 
 ## Themed images
 
 `huet/images` recolors images into a theme. Each pixel is read as a position on Huet's default ramps (lightness along the neutral ramp, plus weights on the two nearest hue ramps) and written back at the same position in your theme. Grays follow your neutral ramp, and greens become your green.
 
 ```ts
-import { createTheme, mountTheme } from "huet/core";
+import { createTheme, mountTheme } from "huet";
 import { mountImages } from "huet/images";
 
 const sunset = createTheme({ neutral: { colors: ["#242744", "#ffe173"], colorModel: "hcl" } });
@@ -265,26 +260,18 @@ For canvases, video frames, or your own pipeline, use the lower-level functions:
 - `coordinatesOf` / `rampColor` read a pixel's ramp coordinates, or the color at a coordinate.
 - `paletteOf(theme)` converts a `createTheme` result into the palette these functions take.
 
-The [image recolor demo](https://markmiro.github.io/huet/recolor.html) (`/recolor.html`) compares renderers and themes. The example demos' [Images page](https://markmiro.github.io/huet/images.html) (`/images`) recolors a photo and screenshot gallery into whichever theme you pick in the theme configurator.
+The [image recolor demo](https://markmiro.github.io/huet/recolor.html) compares renderers and themes. The example demos' [Images page](https://markmiro.github.io/huet/images.html) recolors a photo and screenshot gallery into whichever theme you pick in the theme configurator.
 
-React, Vue, Svelte, and Astro lifecycle examples are in [framework integration](docs/frameworks.md). Portals and shadow roots require independent mounts. The DOM adapter runs only in a browser; SSR can compute colors through `theme.relative` and emit matching styles before mounting.
+React, Vue, Svelte, and Astro lifecycle examples are in [framework integration](https://github.com/markmiro/huet/blob/master/docs/frameworks.md). Portals and shadow roots require independent mounts. The DOM adapter runs only in a browser; SSR can compute colors through `theme.relative` and emit matching styles before mounting.
 
 ## Compatibility and limits
 
-The first-pass `huet-surface-*`, `huet-muted`, `huet-focus`, and amount-free text/border classes remain supported so existing examples keep working. They use preset roles, as do `theme.tokens()` and `theme.surface()`. They are not equivalent to the new explicit-amount classes. Prefer the new syntax for new projects; do not mix old and new classes for the same property. The old `/lab.html` remains a demonstration of those presets.
+The first-pass `huet-surface-*`, `huet-muted`, `huet-focus`, and amount-free text/border classes remain supported so existing examples keep working. They use preset roles, as do `theme.tokens()` and `theme.surface()`. They are not equivalent to the new explicit-amount classes. Prefer the new syntax for new projects; do not mix old and new classes for the same property. The [lab demo](https://markmiro.github.io/huet/lab.html) demonstrates those presets.
 
 Relative contrast preserves the intended ramp and hue; it does not promise fixed accessibility ratios at every strength/background. Explicitly low strengths and narrow endpoint ranges stay low contrast. The algorithm supports opaque backgrounds only; gradients, images, alpha compositing, arbitrary CSS backgrounds, and independent CSS color overrides are not tracked. Theme changes still require browser style/paint work.
 
-See [Color Contrast findings](docs/color-contrast.md) for algorithm decisions and [legacy React documentation](docs/legacy-react.md) for the original API.
+See [Color Contrast findings](https://github.com/markmiro/huet/blob/master/docs/color-contrast.md) for algorithm decisions.
 
-## Development and checks
+## License
 
-```sh
-npm run dev
-npm run typecheck
-npm test
-npx playwright install chromium
-npm run test:browser
-npm run build:lib
-npm run build
-```
+MIT

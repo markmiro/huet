@@ -50,11 +50,11 @@ export declare function createTheme(options?: ThemeOptions): Readonly<{
     light: string;
     neutral: Readonly<Required<NeutralRamp>>;
     colors: Readonly<{
-        blue: string;
-        green: string;
-        purple: string;
         red: string;
         yellow: string;
+        green: string;
+        blue: string;
+        purple: string;
     }>;
     ramp: (t: number) => string;
     tokens: (bg?: string, adjacent?: string) => Readonly<Tokens>;
