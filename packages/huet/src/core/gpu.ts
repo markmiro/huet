@@ -105,12 +105,13 @@ export class GpuRecolor {
   render(image: TexImageSource, out: HTMLCanvasElement, width: number, height: number) {
     const gl = this.gl;
     this.texture(image);
-    this.canvas.width = width;
-    this.canvas.height = height;
+    // Resizing a canvas reallocates it, even to the same size.
+    for (const canvas of [this.canvas, out]) {
+      if (canvas.width !== width) canvas.width = width;
+      if (canvas.height !== height) canvas.height = height;
+    }
     gl.viewport(0, 0, width, height);
     gl.drawArrays(gl.TRIANGLE_STRIP, 0, 4);
-    out.width = width;
-    out.height = height;
     const context = out.getContext("2d")!;
     context.clearRect(0, 0, width, height);
     context.drawImage(this.canvas, 0, 0);
