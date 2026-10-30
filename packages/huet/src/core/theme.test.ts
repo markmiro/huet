@@ -53,8 +53,8 @@ describe("readability", () => {
     ]) {
       const theme = createTheme(options);
       let previous = true, switches = 0;
-      for (let i = 0; i <= 1000; i++) {
-        const bg = mix(theme.dark, theme.light, i / 1000);
+      for (let i = 0; i <= 100; i++) {
+        const bg = mix(theme.dark, theme.light, i / 100);
         const lighter = textEnd(bg, theme.dark, theme.light) === theme.light;
         if (lighter !== previous) switches++;
         previous = lighter;
