@@ -21,6 +21,16 @@ export interface ThemeConfiguratorProps {
      */
     onChange?: (config: ThemeConfig) => void;
 }
+type WithChildren = {
+    children?: React.ReactNode;
+};
+/**
+ * Holds the edited theme, controlled or saved in localStorage, applies it to
+ * `target`, and shares it with `children` through ThemeConfiguratorContext.
+ */
+export declare function ConfiguratorRoot({ componentName, children, ...props }: ThemeConfiguratorProps & WithChildren & {
+    componentName: string;
+}): React.JSX.Element;
 /**
  * A floating theme editor, fixed to the bottom-right corner of the viewport.
  * It renders into its own container on `document.body` with its own scoped

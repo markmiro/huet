@@ -14,7 +14,8 @@ export declare function reset(): void;
 /** True while there are changes that haven't been written to storage yet. */
 export declare function useIsSaving(): boolean;
 /**
- * Like `useState`, but the value survives reloads.
- * `key` must be unique and stable across renders.
+ * Like `useState`, but the value survives reloads. Hooks with the same `key`
+ * share the value, so two configurators on one page stay in sync.
+ * `key` must be stable across renders.
  */
 export default function usePersistentState<T>(key: string, defaultValue: T, parse: Parse<T>): [T, Dispatch<SetStateAction<T>>];
