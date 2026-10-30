@@ -158,6 +158,207 @@ function w(t, n) {
 		}
 	};
 }
-export { f as classes, a as colorModels, i as contrastRatio, n as createTheme, t as hues, m as isHuetClass, w as mountTheme, o as themeFromConfig, r as themeVariables, y as validateClasses };
+// src/core/shiki.ts
+var T = {
+	foreground: "var(--huet-foreground)",
+	background: "var(--huet-background)",
+	comment: "var(--huet-muted)",
+	keyword: "var(--huet-red)",
+	function: "var(--huet-purple)",
+	constant: "var(--huet-blue)",
+	string: "color-mix(in oklab, var(--huet-blue) 55%, var(--huet-foreground))",
+	variable: "var(--huet-yellow)",
+	tag: "var(--huet-green)",
+	punctuation: "var(--huet-muted)",
+	invalid: "var(--huet-red)",
+	inserted: "var(--huet-green)",
+	deleted: "var(--huet-red)",
+	changed: "var(--huet-yellow)"
+}, E = (e) => `var(--huet-code-${e}, ${T[e]})`, D = [
+	[[
+		"comment",
+		"punctuation.definition.comment",
+		"string.comment"
+	], "comment"],
+	[[
+		"constant",
+		"entity.name.constant",
+		"variable.other.constant",
+		"variable.other.enummember",
+		"variable.language"
+	], "constant"],
+	[["entity", "entity.name"], "function"],
+	[["variable.parameter.function"], "foreground"],
+	[["entity.name.tag"], "tag"],
+	[[
+		"keyword",
+		"storage",
+		"storage.type"
+	], "keyword"],
+	[[
+		"storage.modifier.package",
+		"storage.modifier.import",
+		"storage.type.java"
+	], "foreground"],
+	[[
+		"string",
+		"punctuation.definition.string",
+		"string punctuation.section.embedded source"
+	], "string"],
+	[["support", "meta.property-name"], "constant"],
+	[["variable"], "variable"],
+	[["variable.other"], "foreground"],
+	[
+		[
+			"invalid.broken",
+			"invalid.deprecated",
+			"invalid.illegal",
+			"invalid.unimplemented"
+		],
+		"invalid",
+		"italic"
+	],
+	[["message.error"], "invalid"],
+	[["string variable"], "constant"],
+	[[
+		"source.regexp",
+		"string.regexp",
+		"string.regexp.character-class",
+		"string.regexp constant.character.escape",
+		"string.regexp source.ruby.embedded",
+		"string.regexp string.regexp.arbitrary-repitition"
+	], "string"],
+	[
+		["string.regexp constant.character.escape"],
+		"tag",
+		"bold"
+	],
+	[[
+		"support.constant",
+		"support.variable",
+		"meta.module-reference"
+	], "constant"],
+	[["punctuation.definition.list.begin.markdown"], "variable"],
+	[
+		["markup.heading", "markup.heading entity.name"],
+		"constant",
+		"bold"
+	],
+	[["markup.quote"], "tag"],
+	[
+		["markup.italic"],
+		"foreground",
+		"italic"
+	],
+	[
+		["markup.bold"],
+		"foreground",
+		"bold"
+	],
+	[
+		["markup.underline"],
+		void 0,
+		"underline"
+	],
+	[
+		["markup.strikethrough"],
+		void 0,
+		"strikethrough"
+	],
+	[["markup.inline.raw"], "constant"],
+	[[
+		"markup.deleted",
+		"meta.diff.header.from-file",
+		"punctuation.definition.deleted"
+	], "deleted"],
+	[[
+		"markup.inserted",
+		"meta.diff.header.to-file",
+		"punctuation.definition.inserted"
+	], "inserted"],
+	[["markup.changed", "punctuation.definition.changed"], "changed"],
+	[["markup.ignored", "markup.untracked"], "comment"],
+	[
+		["meta.diff.range"],
+		"function",
+		"bold"
+	],
+	[["meta.diff.header"], "constant"],
+	[
+		["meta.separator"],
+		"constant",
+		"bold"
+	],
+	[["meta.output"], "constant"],
+	[[
+		"brackethighlighter.tag",
+		"brackethighlighter.curly",
+		"brackethighlighter.round",
+		"brackethighlighter.square",
+		"brackethighlighter.angle",
+		"brackethighlighter.quote"
+	], "punctuation"],
+	[["brackethighlighter.unmatched"], "invalid"],
+	[
+		["constant.other.reference.link", "string.other.link"],
+		"string",
+		"underline"
+	]
+];
+function O({ name: e = "huet" } = {}) {
+	return {
+		name: e,
+		type: "light",
+		fg: E("foreground"),
+		bg: E("background"),
+		colors: {
+			"editor.foreground": E("foreground"),
+			"editor.background": E("background")
+		},
+		tokenColors: D.map(([e, t, n]) => ({
+			scope: e,
+			settings: {
+				...t && { foreground: E(t) },
+				...n && { fontStyle: n }
+			}
+		}))
+	};
+}
+var k = {
+	add: "huet-bg-green-20",
+	remove: "huet-bg-red-20"
+}, A = (e) => {
+	let t = e.properties?.class;
+	return Array.isArray(t) ? t.map(String) : typeof t == "string" ? t.split(/\s+/).filter(Boolean) : [];
+};
+function j(e, t) {
+	if (u(t)?.property !== "bg") throw TypeError(`huetShikiTransformer: ${e} must be a plain Huet background class like "huet-bg-5" or "huet-bg-green-15", got "${t}"`);
+}
+function M({ surface: e = "huet-bg-5", lines: t = {} } = {}) {
+	j("surface", e);
+	let n = t === !1 ? {} : {
+		...k,
+		...t
+	};
+	for (let [e, t] of Object.entries(n)) j(`lines.${e}`, t);
+	let r = (e) => {
+		let t = A(e);
+		if (t.includes("line")) {
+			let r = [...new Set(t.flatMap((e) => n[e] ? [n[e]] : []))];
+			if (r.length > 1) throw Error(`huetShikiTransformer: a line has classes for more than one row background (${r.join(", ")}); remove one notation`);
+			r.length && (e.properties.class = [...t, r[0]].join(" "));
+		} else e.children?.forEach(r);
+	};
+	return {
+		name: "huet",
+		pre(t) {
+			t.properties.class = [...A(t), e].join(" ");
+		},
+		root(e) {
+			Object.keys(n).length && r(e);
+		}
+	};
+}
+export { f as classes, T as codeRoles, a as colorModels, i as contrastRatio, n as createTheme, k as defaultLineSurfaces, t as hues, O as huetShikiTheme, M as huetShikiTransformer, m as isHuetClass, w as mountTheme, o as themeFromConfig, r as themeVariables, y as validateClasses };
 
 //# sourceMappingURL=index.js.map
