@@ -1,10 +1,10 @@
 import { default as React } from 'react';
 import { Color } from 'huet/config';
-/** Colored ramps at full contrast on `bg`, sorted from highest to lowest contrast. */
+/** Colored ramps at full contrast on `bg`, sorted from furthest to nearest in lightness. */
 export declare function swatchesByContrast(bg: Color): {
     rampKey: string;
     color: string;
-    ratio: number;
+    distance: number;
 }[];
 /** The neutral colors reachable from `bg`, highest contrast first. */
 export declare function neutralGradient(bg: Color): string;
