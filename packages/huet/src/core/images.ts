@@ -88,8 +88,9 @@ export function recolorImage(
     renderer.render(source, out, width, height);
     return out;
   }
-  out.width = width;
-  out.height = height;
+  // Resizing a canvas reallocates it, even to the same size.
+  if (out.width !== width) out.width = width;
+  if (out.height !== height) out.height = height;
   const context = out.getContext("2d", { willReadFrequently: true })!;
   context.clearRect(0, 0, width, height);
   context.drawImage(source, 0, 0);
@@ -107,23 +108,35 @@ export interface MountImagesOptions extends ImageOptions {
 }
 
 interface Entry {
-  original: { src: string | null; srcset: string | null; sizes: string | null };
-  /** The URL the browser picked for the original, once it has loaded. */
-  source?: string;
-  /** The URL this mount last wrote to `src`, so its own writes can be ignored. */
-  written?: string;
-  recolored?: string;
+  /** The decoded original, once the `<img>` has loaded it. */
+  image?: HTMLImageElement;
+  /** Shows the recolored pixels in place of the `<img>`. */
+  canvas?: HTMLCanvasElement;
+  /** Whether the canvas holds the current original, drawn at some version. */
+  ready: boolean;
+  /** The theme and options version the canvas was last drawn with. */
+  drawn: number;
+  failed: boolean;
+  hovering: boolean;
+  /** Whether the `<img>` or the canvas is near the viewport. */
+  near: { img: boolean; canvas: boolean };
   generation: number;
-  /** The inline `visibility` to put back once the image can be shown. */
-  hidden?: [string, string];
+  /** The inline styles this mount overrode on the `<img>`, to put back. */
+  saved: Map<string, [string, string]>;
   leave?: () => void;
 }
+
+/** Attributes the canvas copies from its `<img>`, and keeps in sync. */
+const mirrored = ["class", "title", "alt"];
 
 /**
  * Recolor matching `<img>` elements under `root` into a theme, and keep them
  * recolored as images are added, change `src`, or the theme is updated.
- * Each image's `src` is replaced with a recolored copy; `destroy` restores it.
+ * Each image is drawn into a `<canvas>` inserted after it, which takes the
+ * image's class and inline style; the `<img>` itself is hidden but left as is.
  * New originals stay hidden until their recolored copy is ready to paint.
+ * Theme updates redraw once per frame, and images far outside the viewport
+ * are redrawn when they scroll near it. `destroy` removes the canvases.
  */
 export function mountImages(
   root: ParentNode & Node,
@@ -133,8 +146,11 @@ export function mountImages(
   const { selector = "img[data-huet-recolor]", hoverOriginal = false, ...recolor } = options;
   let target = paletteOf(theme),
     settings: ImageOptions = recolor,
+    version = 0,
+    frame: number | undefined,
     disposed = false;
   const entries = new Map<HTMLImageElement, Entry>();
+  const canvases = new Map<HTMLCanvasElement, HTMLImageElement>();
   const sources = new Map<string, Promise<HTMLImageElement>>();
   let pending = new Set<Promise<void>>();
 
@@ -150,70 +166,134 @@ export function mountImages(
     }
     return source;
   };
-  const write = (img: HTMLImageElement, entry: Entry, src: string) => {
-    entry.written = src;
-    if (img.getAttribute("src") !== src) img.setAttribute("src", src);
+
+  /** Override an inline style on the `<img>`, or put the page's value back. */
+  const style = (img: HTMLImageElement, entry: Entry, property: string, value?: string) => {
+    const saved = entry.saved.get(property);
+    if (value === undefined) {
+      if (!saved) return;
+      entry.saved.delete(property);
+      if (saved[0]) img.style.setProperty(property, saved[0], saved[1]);
+      else img.style.removeProperty(property);
+      return;
+    }
+    if (!saved)
+      entry.saved.set(property, [img.style.getPropertyValue(property), img.style.getPropertyPriority(property)]);
+    img.style.setProperty(property, value, "important");
   };
-  const hide = (img: HTMLImageElement, entry: Entry) => {
-    if (entry.hidden) return;
-    const { style } = img;
-    entry.hidden = [style.getPropertyValue("visibility"), style.getPropertyPriority("visibility")];
-    style.setProperty("visibility", "hidden", "important");
+  const mirror = (img: HTMLImageElement, canvas: HTMLCanvasElement, name: string) => {
+    const value = img.getAttribute(name);
+    if (name === "alt") {
+      // An empty alt marks a decorative image.
+      if (value) canvas.setAttribute("aria-label", value);
+      else canvas.removeAttribute("aria-label");
+      if (value === "") canvas.setAttribute("aria-hidden", "true");
+      else canvas.removeAttribute("aria-hidden");
+    } else if (value === null) canvas.removeAttribute(name);
+    else canvas.setAttribute(name, value);
   };
-  const reveal = (img: HTMLImageElement, entry: Entry) => {
-    if (!entry.hidden) return;
-    const [value, priority] = entry.hidden;
-    if (value) img.style.setProperty("visibility", value, priority);
-    else img.style.removeProperty("visibility");
-    entry.hidden = undefined;
+  const createCanvas = (img: HTMLImageElement, entry: Entry) => {
+    const canvas = document.createElement("canvas");
+    canvas.setAttribute("role", "img");
+    for (const name of mirrored) mirror(img, canvas, name);
+    // The page's inline style, without this mount's overrides.
+    canvas.style.cssText = img.style.cssText;
+    for (const [property, [value, priority]] of entry.saved)
+      if (value) canvas.style.setProperty(property, value, priority);
+      else canvas.style.removeProperty(property);
+    if (hoverOriginal) {
+      const enter = () => {
+        entry.hovering = true;
+        present(img, entry);
+      };
+      const leave = () => {
+        entry.hovering = false;
+        present(img, entry);
+      };
+      canvas.addEventListener("pointerenter", enter);
+      img.addEventListener("pointerleave", leave);
+      entry.leave = () => img.removeEventListener("pointerleave", leave);
+    }
+    canvases.set(canvas, img);
+    visibility.observe(canvas);
+    return canvas;
+  };
+
+  const showsCanvas = (entry: Entry) => entry.ready && !entry.failed && !entry.hovering;
+  /** Show the canvas, the original, or neither, from the entry's state. */
+  const present = (img: HTMLImageElement, entry: Entry) => {
+    const { canvas } = entry;
+    if (canvas && showsCanvas(entry)) {
+      if (img.nextSibling !== canvas) img.after(canvas);
+      style(img, entry, "display", "none");
+    } else {
+      canvas?.remove();
+      style(img, entry, "display");
+    }
+    // Waiting for a recolored copy: keep the space, but don't paint the original.
+    if (entry.ready || entry.failed) style(img, entry, "visibility");
+    else style(img, entry, "visibility", "hidden");
+    if (entry.failed) img.setAttribute("data-huet-recolored", "original");
+    else if (entry.ready) img.setAttribute("data-huet-recolored", "");
+    else img.removeAttribute("data-huet-recolored");
   };
   /** Show the original after all, marking that it couldn't be recolored. */
   const giveUp = (img: HTMLImageElement, entry: Entry) => {
-    img.setAttribute("data-huet-recolored", "original");
-    reveal(img, entry);
-  };
-  const revoke = (entry: Entry) => {
-    if (entry.recolored) URL.revokeObjectURL(entry.recolored);
-    entry.recolored = undefined;
+    entry.failed = true;
+    entry.ready = false;
+    present(img, entry);
   };
   const restore = (img: HTMLImageElement, entry: Entry) => {
     entry.leave?.();
-    reveal(img, entry);
-    for (const [name, value] of Object.entries(entry.original))
-      if (value === null) img.removeAttribute(name);
-      else img.setAttribute(name, value);
-    revoke(entry);
+    if (entry.canvas) {
+      entry.canvas.remove();
+      canvases.delete(entry.canvas);
+      visibility.unobserve(entry.canvas);
+    }
+    visibility.unobserve(img);
+    for (const property of [...entry.saved.keys()]) style(img, entry, property);
     img.removeAttribute("data-huet-recolored");
     entries.delete(img);
   };
 
-  const render = async (img: HTMLImageElement, entry: Entry) => {
-    const current = ++entry.generation;
-    const src = entry.source;
-    if (!src) return giveUp(img, entry);
+  const draw = (img: HTMLImageElement, entry: Entry) => {
     try {
-      const source = await load(src, img.crossOrigin);
-      if (disposed || current !== entry.generation || !entries.has(img)) return;
-      const canvas = recolorImage(source, target, settings);
-      const blob = await new Promise<Blob | null>((resolve) => canvas.toBlob(resolve));
-      if (disposed || current !== entry.generation || !entries.has(img)) return;
-      if (!blob) throw new Error("Could not encode the recolored image");
-      revoke(entry);
-      entry.recolored = URL.createObjectURL(blob);
-      // `srcset` would take precedence over the recolored `src`.
-      img.removeAttribute("srcset");
-      img.removeAttribute("sizes");
-      if (!(hoverOriginal && img.matches(":hover"))) write(img, entry, entry.recolored);
-      img.setAttribute("data-huet-recolored", "");
-      if (!entry.hidden) return;
-      // The browser keeps painting the previous image until the new one decodes.
-      await img.decode().catch(() => {});
-      if (current === entry.generation && entries.has(img)) reveal(img, entry);
+      const canvas = (entry.canvas ??= createCanvas(img, entry));
+      recolorImage(entry.image!, target, settings, canvas);
+      entry.drawn = version;
+      entry.ready = true;
+      present(img, entry);
     } catch {
-      // Unreadable (e.g. cross-origin without CORS) or broken images stay as they are.
-      if (current === entry.generation && entries.has(img)) giveUp(img, entry);
+      // Unreadable (e.g. cross-origin without CORS) images stay as they are.
+      giveUp(img, entry);
     }
   };
+  const stale = (entry: Entry) => entry.image && !entry.failed && entry.drawn !== version;
+  /** Draw stale images near the viewport, or every stale image with `all`. */
+  const flush = (all = false) => {
+    frame = undefined;
+    for (const [img, entry] of entries)
+      if (stale(entry) && (all || entry.near.img || entry.near.canvas)) draw(img, entry);
+  };
+  const schedule = () => {
+    if (disposed || frame !== undefined) return;
+    frame = requestAnimationFrame(() => flush());
+  };
+  // Start drawing a screen ahead, so scrolling rarely reveals a stale image.
+  const visibility = new IntersectionObserver(
+    (records) => {
+      for (const { target: element, isIntersecting } of records) {
+        const isCanvas = element instanceof HTMLCanvasElement;
+        const img = isCanvas ? canvases.get(element) : (element as HTMLImageElement);
+        const entry = img && entries.get(img);
+        if (!entry) continue;
+        entry.near[isCanvas ? "canvas" : "img"] = isIntersecting;
+        if (isIntersecting && stale(entry)) schedule();
+      }
+    },
+    { rootMargin: "100% 0px" },
+  );
+
   const track = (promise: Promise<void>) => {
     pending.add(promise);
     void promise.finally(() => pending.delete(promise));
@@ -221,34 +301,38 @@ export function mountImages(
 
   const adopt = (img: HTMLImageElement) => {
     const entry: Entry = {
-      original: {
-        src: img.getAttribute("src"),
-        srcset: img.getAttribute("srcset"),
-        sizes: img.getAttribute("sizes"),
-      },
+      ready: false,
+      drawn: -1,
+      failed: false,
+      hovering: false,
+      near: { img: false, canvas: false },
       generation: 0,
+      saved: new Map(),
     };
     entries.set(img, entry);
-    if (hoverOriginal) {
-      const enter = () => entry.source && write(img, entry, entry.source);
-      const leave = () => entry.recolored && write(img, entry, entry.recolored);
-      img.addEventListener("pointerenter", enter);
-      img.addEventListener("pointerleave", leave);
-      entry.leave = () => {
-        img.removeEventListener("pointerenter", enter);
-        img.removeEventListener("pointerleave", leave);
-      };
-    }
+    visibility.observe(img);
     start(img, entry);
   };
   /** Wait for the original to load, so `currentSrc` reflects srcset. */
   const start = (img: HTMLImageElement, entry: Entry) => {
-    hide(img, entry);
+    const current = ++entry.generation;
+    entry.image = undefined;
+    entry.ready = entry.failed = entry.hovering = false;
+    present(img, entry);
     const begin = async () => {
-      if (!entries.has(img)) return;
+      if (entries.get(img) !== entry || current !== entry.generation) return;
       // Only srcset needs `currentSrc`, which can lag behind a new `src`.
-      entry.source = (img.srcset ? img.currentSrc : "") || img.src || undefined;
-      await render(img, entry);
+      const src = (img.srcset ? img.currentSrc : "") || img.src;
+      if (!src) return giveUp(img, entry);
+      try {
+        const image = await load(src, img.crossOrigin);
+        if (entries.get(img) !== entry || current !== entry.generation) return;
+        entry.image = image;
+        entry.drawn = -1;
+        schedule();
+      } catch {
+        if (entries.get(img) === entry && current === entry.generation) giveUp(img, entry);
+      }
     };
     track(
       img.complete
@@ -257,7 +341,12 @@ export function mountImages(
             img.addEventListener("load", () => resolve(begin()), { once: true });
             img.addEventListener(
               "error",
-              () => resolve(entries.get(img) === entry ? giveUp(img, entry) : undefined),
+              () =>
+                resolve(
+                  entries.get(img) === entry && current === entry.generation
+                    ? giveUp(img, entry)
+                    : undefined,
+                ),
               { once: true },
             );
           }),
@@ -268,8 +357,13 @@ export function mountImages(
     if (disposed) return;
     const found = new Set<HTMLImageElement>();
     if (root instanceof HTMLImageElement && root.matches(selector)) found.add(root);
-    for (const img of root.querySelectorAll<HTMLImageElement>(selector)) found.add(img);
-    for (const [img, entry] of entries) if (!found.has(img)) restore(img, entry);
+    // A selector that matches by class also matches the canvases, which copy it.
+    for (const img of root.querySelectorAll(selector))
+      if (img instanceof HTMLImageElement) found.add(img);
+    for (const [img, entry] of entries)
+      if (!found.has(img)) restore(img, entry);
+      // Moved images take their canvas along, and a removed canvas comes back.
+      else if (showsCanvas(entry) && img.nextSibling !== entry.canvas) present(img, entry);
     for (const img of found) if (!entries.has(img)) adopt(img);
   };
 
@@ -277,16 +371,13 @@ export function mountImages(
     for (const { type, target: node, attributeName } of records) {
       if (type !== "attributes" || !(node instanceof HTMLImageElement)) continue;
       const entry = entries.get(node);
-      if (!entry || attributeName === "data-huet-recolor") continue;
-      const value = node.getAttribute(attributeName!);
-      // This mount's own writes: the recolored `src` and the removed srcset.
-      if (attributeName === "src" ? value === entry.written : value === null) continue;
-      // The page changed the image itself: recolor its new original.
-      if (attributeName === "src") entry.original.src = value;
-      else entry.original.srcset = value;
-      entry.source = entry.written = undefined;
-      entry.generation++;
-      start(node, entry);
+      if (!entry) continue;
+      if (mirrored.includes(attributeName!)) {
+        if (entry.canvas) mirror(node, entry.canvas, attributeName!);
+      } else if (attributeName !== "data-huet-recolor") {
+        // The page changed the image itself: recolor its new original.
+        start(node, entry);
+      }
     }
     scan();
   });
@@ -295,7 +386,7 @@ export function mountImages(
     subtree: true,
     childList: true,
     attributes: true,
-    attributeFilter: ["src", "srcset", "data-huet-recolor"],
+    attributeFilter: ["src", "srcset", "sizes", "data-huet-recolor", ...mirrored],
   });
 
   return {
@@ -304,16 +395,25 @@ export function mountImages(
       if (disposed) throw new Error("Cannot update a destroyed Huet image mount");
       target = paletteOf(next);
       if (nextOptions) settings = nextOptions;
-      for (const [img, entry] of entries) track(render(img, entry));
+      version++;
+      schedule();
     },
-    /** Resolves once every image queued so far has been recolored. */
+    /**
+     * Resolves once every image queued so far has been recolored, including
+     * images outside the viewport, which this draws right away.
+     */
     async ready() {
-      while (pending.size) await Promise.all(pending);
+      do {
+        await Promise.all(pending);
+        if (!disposed) flush(true);
+      } while (pending.size);
     },
     destroy() {
       if (disposed) return;
       disposed = true;
+      if (frame !== undefined) cancelAnimationFrame(frame);
       observer.disconnect();
+      visibility.disconnect();
       for (const [img, entry] of entries) restore(img, entry);
       pending = new Set();
     },

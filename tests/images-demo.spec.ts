@@ -1,25 +1,33 @@
-import { expect, test } from "@playwright/test";
+import { expect, test, type Page } from "@playwright/test";
 
-const firstImages = (page: import("@playwright/test").Page) =>
+// A coarse fingerprint of the first recolored canvases, to tell when they're redrawn.
+const firstCanvases = (page: Page) =>
   page.locator("img[data-huet-recolor]").evaluateAll((els) =>
-    (els as HTMLImageElement[]).slice(0, 3).map((img) => img.src),
+    (els as HTMLImageElement[]).slice(0, 3).map((img) => {
+      const canvas = img.nextElementSibling;
+      if (!(canvas instanceof HTMLCanvasElement) || !img.hasAttribute("data-huet-recolored")) return null;
+      const small = Object.assign(document.createElement("canvas"), { width: 8, height: 8 });
+      const context = small.getContext("2d")!;
+      context.drawImage(canvas, 0, 0, 8, 8);
+      return Array.from(context.getImageData(0, 0, 8, 8).data).join();
+    }),
   );
 
 test("images follow the configurator's theme", async ({ page }) => {
   const errors: string[] = [];
   page.on("pageerror", (error) => errors.push(error.message));
   await page.goto("/images");
-  const isRecolored = (srcs: string[]) => srcs.every((src) => src.startsWith("blob:"));
-  await expect.poll(async () => isRecolored(await firstImages(page)), { timeout: 30_000 }).toBe(true);
-  const before = await firstImages(page);
+  const isRecolored = (prints: (string | null)[]) => prints.every((print) => print !== null);
+  await expect.poll(async () => isRecolored(await firstCanvases(page)), { timeout: 30_000 }).toBe(true);
+  const before = await firstCanvases(page);
 
   await page.getByRole("button", { name: /^Sunset/ }).first().click();
   await expect(page.getByRole("heading", { level: 1 })).toHaveText("Sunset");
-  // Every image gets a new recolored copy for the new theme.
+  // Every image is redrawn for the new theme.
   await expect
     .poll(async () => {
-      const srcs = await firstImages(page);
-      return isRecolored(srcs) && srcs.every((src, i) => src !== before[i]);
+      const prints = await firstCanvases(page);
+      return isRecolored(prints) && prints.every((print, i) => print !== before[i]);
     }, { timeout: 30_000 })
     .toBe(true);
   expect(errors).toEqual([]);
@@ -40,6 +48,16 @@ test.skip("emoji are drawn into images and recolored", async ({ page }) => {
 });
 
 test("image controls default to no neutral tint, the GPU and a 17³ LUT", async ({ page }) => {
+  // The CPU renderer writes pixels back with putImageData; the GPU one never does.
+  await page.addInitScript(() => {
+    const w = window as any;
+    w.cpuDraws = 0;
+    const putImageData = CanvasRenderingContext2D.prototype.putImageData;
+    CanvasRenderingContext2D.prototype.putImageData = function (this: CanvasRenderingContext2D, ...args: any[]) {
+      if (this.canvas.getAttribute("role") === "img") w.cpuDraws++;
+      return (putImageData as any).apply(this, args);
+    };
+  });
   await page.goto("/images");
   await expect(page.getByLabel("Neutral tint on colors")).toHaveValue("0");
   await expect(page.getByLabel("Renderer")).toHaveValue("gpu");
@@ -50,10 +68,10 @@ test("image controls default to no neutral tint, the GPU and a 17³ LUT", async 
   await expect(status).toContainText("the GPU (WebGL2)");
 
   const image = page.locator("img[data-huet-recolor]").first();
-  await expect(image).toHaveAttribute("src", /^blob:/, { timeout: 30_000 });
-  const gpuSrc = await image.getAttribute("src");
+  await expect(image).toHaveAttribute("data-huet-recolored", "", { timeout: 30_000 });
+  expect(await page.evaluate(() => (window as any).cpuDraws)).toBe(0);
   await page.getByLabel("Renderer").selectOption("cpu");
   await expect(status).toContainText("Rendering on the CPU through");
-  await expect.poll(() => image.getAttribute("src"), { timeout: 30_000 }).not.toBe(gpuSrc);
-  await expect(image).toHaveAttribute("src", /^blob:/);
+  await expect.poll(() => page.evaluate(() => (window as any).cpuDraws), { timeout: 30_000 }).toBeGreaterThan(0);
+  await expect(image).toHaveAttribute("data-huet-recolored", "");
 });
