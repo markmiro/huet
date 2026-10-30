@@ -447,13 +447,13 @@
     --_line: var(--huet-red);
   }
   /* Disabled controls, and the labels and fieldsets around them, mix their
-     text and line colors 45% over the background. Fading both by the same
+     text and line colors 55% over the background. Fading both by the same
      amount keeps a slider's filled part stronger than its track. In the color
      property, currentColor is the inherited text color, so a control inside a
      faded label or fieldset is skipped to avoid fading it twice. Mixing in sRGB
      fades light and dark themes by a similar contrast ratio. */
   [data-huet-forms] {
-    --_disabled: 45%;
+    --_disabled: 55%;
   }
   [data-huet-forms]
     :where(

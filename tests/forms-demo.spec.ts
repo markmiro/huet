@@ -55,8 +55,8 @@ test("disabled controls fade along with their labels, once", async ({ page }) =>
   await toggle.click();
   const color = (text: string) => page.locator("label", { hasText: text }).evaluate((el) => getComputedStyle(el).color);
   const drone = page.getByLabel("Drone (disabled)");
-  // Black text mixed 45% over white
-  const faded = "color(srgb 0.55 0.55 0.55)";
+  // Black text mixed 55% over white
+  const faded = "color(srgb 0.45 0.45 0.45)";
   expect(await color("Express")).toBe("rgb(0, 0, 0)");
   expect(await color("Drone (disabled)")).toBe(faded);
   // The radio inherits the faded color rather than fading it again
