@@ -19,6 +19,7 @@ const src = dirname(fileURLToPath(import.meta.url));
 const sources = [
   "ThemeConfigurator.tsx",
   "Themer.tsx",
+  "EmbeddedThemeConfigurator.tsx",
   ...readdirSync(join(src, "private"))
     .filter((name) => /\.tsx?$/.test(name) && !name.includes(".test."))
     .map((name) => join("private", name)),

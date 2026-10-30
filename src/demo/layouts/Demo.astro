@@ -1,6 +1,7 @@
 ---
 import "../styles/demo.css";
 import Configurator from "../components/Configurator";
+import ThemeButton from "../components/ThemeButton";
 
 const { title } = Astro.props;
 const base = import.meta.env.BASE_URL.replace(/\/?$/, "/");
@@ -24,7 +25,7 @@ const isCurrent = (href: string) => (href.replace(/\/$/, "") || "/") === current
   </head>
   <body>
     <div id="page" class="huet-text-100 flex min-h-screen flex-col">
-      <header class="huet-bg-10 huet-border-100 relative z-10 border-b">
+      <header class="huet-bg-10 huet-border-100 relative z-10 flex flex-wrap items-center border-b">
         <nav aria-label="Example demos" class="flex flex-wrap items-center gap-1 px-2 py-2">
           <span class="mr-2 text-sm font-bold">Example Demos</span>
           {pages.map((page) => (
@@ -40,6 +41,7 @@ const isCurrent = (href: string) => (href.replace(/\/$/, "") || "/") === current
             </a>
           ))}
         </nav>
+        <ThemeButton client:only="react" />
       </header>
       <main class="flex-auto overflow-hidden">
         <slot />
