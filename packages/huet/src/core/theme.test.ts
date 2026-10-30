@@ -5,6 +5,8 @@ import { contrastRatio, toOklab, fromOklab, mix, luminance } from "./color";
 import { classes, validateClasses, isHuetClass } from "./classes";
 import { readFileSync } from "node:fs";
 import { compile } from "@tailwindcss/node";
+import { themeFromConfig } from "./fromConfig";
+import themes from "../themeConfigs";
 
 describe("color math", () => {
   it("matches reference sRGB contrast and round trips saturated colors", () => {
@@ -255,5 +257,101 @@ describe("multi-hue neutral ramps", () => {
     expect(() => createTheme({ neutral: { colors: ["#000"] } })).toThrow(RangeError);
     expect(() => createTheme({ neutral: { colors: ["#fff", "#000"] } })).toThrow(RangeError);
     expect(() => createTheme({ dark: "#111", neutral: sunset.neutral })).toThrow(TypeError);
+  });
+});
+describe("preset roles", () => {
+  const orangeBoost = themeFromConfig(themes.find((x) => x.name === "Orange Boost")!);
+  const base = themeFromConfig(themes.find((x) => x.name === "Base")!);
+  const chroma = (hex: string) => Math.hypot(toOklab(hex)[1], toOklab(hex)[2]);
+  const hue = (hex: string) => Math.atan2(toOklab(hex)[2], toOklab(hex)[1]);
+  const side = (bg: string, color: string) => Math.sign(luminance(color) - luminance(bg));
+
+  it("keeps foreground, muted and border apart when a ramp can't reach 7, 4.5 and 3:1", () => {
+    const { relative } = orangeBoost;
+    const blue = relative.contrast(25, relative.theme.ramps.blue).hex;
+    for (const bg of [orangeBoost.background, blue, ...[10, 25, 50, 75, 100].map((n) => relative.contrast(n).hex)]) {
+      const t = orangeBoost.tokens(bg);
+      const [fg, muted, border] = [t.foreground, t.muted, t.border].map((x) => contrastRatio(bg, x));
+      if (fg < 1.5) continue;
+      // A slider's track (border) must stand out from its filled part (text).
+      expect(contrastRatio(t.foreground, t.border), bg).toBeGreaterThanOrEqual(1.25);
+      expect(contrastRatio(t.foreground, t.muted), bg).toBeGreaterThanOrEqual(1.1);
+      expect(fg, bg).toBeGreaterThan(muted);
+      expect(muted, bg).toBeGreaterThan(border);
+      expect(border, bg).toBeGreaterThan(1.3);
+    }
+    // At the root, the reported collapse: all three were the light endpoint.
+    expect(new Set(Object.values(orangeBoost.tokens()).slice(1, 4)).size).toBe(3);
+  });
+  it("keeps every neutral role on the text's side of each background", () => {
+    for (const theme of [base, orangeBoost, createTheme({ dark: "#3c3d43", light: "#b2bdff" })])
+      for (let i = 0; i <= 100; i++) {
+        const bg = theme.ramp(i / 100);
+        const t = theme.tokens(bg);
+        expect(side(bg, t.muted), bg).toBe(side(bg, t.foreground));
+        expect(side(bg, t.border), bg).toBe(side(bg, t.foreground));
+      }
+  });
+  it("lets a border outline a surface against its parent from the other side", () => {
+    const theme = createTheme();
+    const t = theme.tokens("#707070", "#ffffff");
+    expect(luminance(t.foreground)).toBeGreaterThan(luminance("#707070"));
+    expect(contrastRatio("#707070", t.border)).toBeGreaterThanOrEqual(3);
+    expect(contrastRatio("#ffffff", t.border)).toBeGreaterThanOrEqual(3);
+  });
+  it("changes smoothly as the available contrast drops below readable", () => {
+    for (const options of [{ dark: "#474b56", light: "#ff7c49" }, { dark: "#3c3d43", light: "#b2bdff" }, {}]) {
+      const theme = createTheme(options);
+      let previous: number[] | undefined;
+      for (let i = 0; i <= 400; i++) {
+        const bg = theme.ramp(i / 400);
+        const t = theme.tokens(bg);
+        const ratios = [t.muted, t.border].map((x) => contrastRatio(bg, x));
+        if (previous) ratios.forEach((x, j) => expect(Math.abs(x - previous![j]), bg).toBeLessThan(0.25));
+        previous = ratios;
+      }
+    }
+  });
+  it("follows a multi-hue ramp's shape on colored surfaces", () => {
+    // Sunset's HCL ramp passes through mauve and salmon; a straight mix from a
+    // blue surface to the yellow text would pass through olive instead.
+    const lightness = (hex: string) => toOklab(hex)[0];
+    const nearest = (colors: string[], hex: string) => colors.reduce((a, b) =>
+      Math.abs(lightness(b) - lightness(hex)) < Math.abs(lightness(a) - lightness(hex)) ? b : a);
+    const gap = (a: string, b: string) => {
+      const d = Math.abs(hue(a) - hue(b));
+      return Math.min(d, 2 * Math.PI - d);
+    };
+    for (const name of ["Sunset", "A Box of Macaroni"]) {
+      const theme = themeFromConfig(themes.find((x) => x.name === name)!);
+      const samples = Array.from({ length: 257 }, (_, i) => theme.ramp(i / 256));
+      for (const ramp of ["blue", "red", "green"]) {
+        const bg = theme.relative.contrast(25, theme.relative.theme.ramps[ramp]).hex;
+        const end = contrastRatio(bg, theme.light) > contrastRatio(bg, theme.dark) ? theme.light : theme.dark;
+        const straight = Array.from({ length: 257 }, (_, i) => mix(bg, end, i / 256));
+        const t = theme.tokens(bg, theme.background);
+        for (const color of [t.muted, t.border]) {
+          const line = nearest(straight, color);
+          expect(gap(color, nearest(samples, color)), `${name} ${ramp} ${color} vs ${line}`)
+            .toBeLessThan(gap(line, nearest(samples, line)) - 0.2);
+        }
+      }
+    }
+  });
+  it("tints muted and border with a colored surface's hue", () => {
+    for (const theme of [base, themeFromConfig(themes.find((x) => x.name === "Base Inverted")!), orangeBoost]) {
+      const { relative } = theme;
+      const bg = relative.contrast(25, relative.theme.ramps.blue).hex;
+      const t = theme.tokens(bg, theme.background);
+      for (const color of [t.muted, t.border]) {
+        expect(chroma(color), `${bg} ${color}`).toBeGreaterThan(0.02);
+        // Lines and secondary text keep most of the surface's color rather than graying.
+        if (theme !== orangeBoost) expect(chroma(color), `${bg} ${color}`).toBeGreaterThan(0.8 * chroma(bg));
+        if (theme !== orangeBoost) expect(Math.abs(hue(color) - hue(bg)), `${bg} ${color}`).toBeLessThan(0.2);
+      }
+    }
+    // Neutral surfaces keep neutral roles.
+    const t = base.tokens(base.relative.contrast(6).hex);
+    for (const color of [t.foreground, t.muted, t.border]) expect(chroma(color)).toBeLessThan(0.005);
   });
 });

@@ -171,6 +171,18 @@ describe("explicit contrast classes", () => {
     expect(input.value).toBe("unsaved");
     mount.destroy();
   });
+  it("gives colored surfaces tinted muted and border tokens", () => {
+    const root = document.createElement("div");
+    root.innerHTML = '<fieldset class="huet-bg-blue-25"></fieldset>';
+    const theme = createTheme();
+    const mount = mountTheme(root, theme);
+    const fieldset = root.querySelector("fieldset")!;
+    const token = (name: string) => fieldset.style.getPropertyValue(`--huet-${name}`);
+    expect(token("muted")).toBe(theme.tokens(background(fieldset), theme.background).muted);
+    // Not neutral gray: red, green and blue channels differ.
+    for (const name of ["muted", "border"]) expect(new Set(token(name).match(/[\da-f]{2}/g)).size, name).toBe(3);
+    mount.destroy();
+  });
   it("colors SVG elements", () => {
     const root = document.createElement("div");
     root.innerHTML = '<svg><rect class="huet-text-red-100" fill="currentColor"></rect></svg>';

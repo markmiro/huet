@@ -55,14 +55,55 @@ test("disabled controls fade along with their labels, once", async ({ page }) =>
   await toggle.click();
   const color = (text: string) => page.locator("label", { hasText: text }).evaluate((el) => getComputedStyle(el).color);
   const drone = page.getByLabel("Drone (disabled)");
-  // Black text mixed 35% over white
-  const faded = "color(srgb 0.65 0.65 0.65)";
+  // Black text mixed 55% over white
+  const faded = "color(srgb 0.45 0.45 0.45)";
   expect(await color("Express")).toBe("rgb(0, 0, 0)");
   expect(await color("Drone (disabled)")).toBe(faded);
   // The radio inherits the faded color rather than fading it again
   await expect(drone).toHaveCSS("color", faded);
   await expect(page.locator("form button[type=button][disabled]")).toHaveCSS("color", faded);
 });
+
+test("disabled fields keep a faded outline, and disabled sliders keep their fill stronger than the track", async ({ page }) => {
+  const toggle = await open(page);
+  await toggle.click();
+  const field = page.locator("form label", { hasText: "Disabled" }).locator("input[type=text]");
+  await expect(field).toHaveCSS("background-color", "rgba(0, 0, 0, 0)");
+  await expect(field).not.toHaveCSS("border-top-color", "rgba(0, 0, 0, 0)");
+  for (const theme of ["Base", "Orange Boost"]) {
+    await page.getByRole("button", { name: /^Theme:/ }).click();
+    await page.getByRole("dialog").getByRole("button", { name: theme, exact: true }).click();
+    await page.reload();
+    await expect(page.locator("h1[data-theme-name]")).toHaveText(theme);
+    const [fill, track, background] = await page.locator("form input[type=range][disabled]").evaluate((el) => {
+      // Resolve a color expression the way the browser paints it
+      const resolve = (value: string) => {
+        const probe = document.createElement("span");
+        probe.style.color = value;
+        el.parentElement!.append(probe);
+        const color = getComputedStyle(probe).color;
+        probe.remove();
+        return color;
+      };
+      const style = getComputedStyle(el);
+      return [style.color, resolve(style.getPropertyValue("--_line")), resolve(style.getPropertyValue("--huet-background"))];
+    });
+    expect(contrast(fill, background), `${theme} fill ${fill}, track ${track}`).toBeGreaterThan(contrast(track, background));
+  }
+});
+
+/** WCAG contrast of two computed colors, rgb() or color(srgb …) */
+function contrast(a: string, b: string) {
+  const luminance = (color: string) => {
+    const [r, g, bl] = color.startsWith("color(")
+      ? color.slice(11, -1).split(" ").map(Number)
+      : color.slice(color.indexOf("(") + 1, -1).split(",").map((x) => Number(x) / 255);
+    const linear = (v: number) => (v <= 0.04045 ? v / 12.92 : ((v + 0.055) / 1.055) ** 2.4);
+    return 0.2126 * linear(r) + 0.7152 * linear(g) + 0.0722 * linear(bl);
+  };
+  const [x, y] = [luminance(a), luminance(b)].sort((m, n) => n - m);
+  return (x + 0.05) / (y + 0.05);
+}
 
 function hexToRgb(hex: string) {
   const [r, g, b] = [1, 3, 5].map((i) => parseInt(hex.trim().slice(i, i + 2), 16));
