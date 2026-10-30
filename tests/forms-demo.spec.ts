@@ -1,4 +1,5 @@
 import { expect, test, type Page } from "@playwright/test";
+import { contrast as apcaContrast } from "../packages/huet/src/core/color";
 
 async function open(page: Page) {
   await page.goto("/forms");
@@ -55,8 +56,8 @@ test("disabled controls fade along with their labels, once", async ({ page }) =>
   await toggle.click();
   const color = (text: string) => page.locator("label", { hasText: text }).evaluate((el) => getComputedStyle(el).color);
   const drone = page.getByLabel("Drone (disabled)");
-  // Black text mixed 45% over white
-  const faded = "color(srgb 0.55 0.55 0.55)";
+  // Black text mixed 55% over white
+  const faded = "color(srgb 0.45 0.45 0.45)";
   expect(await color("Express")).toBe("rgb(0, 0, 0)");
   expect(await color("Drone (disabled)")).toBe(faded);
   // The radio inherits the faded color rather than fading it again
@@ -92,17 +93,15 @@ test("disabled fields keep a faded outline, and disabled sliders keep their fill
   }
 });
 
-/** WCAG contrast of two computed colors, rgb() or color(srgb …) */
-function contrast(a: string, b: string) {
-  const luminance = (color: string) => {
-    const [r, g, bl] = color.startsWith("color(")
-      ? color.slice(11, -1).split(" ").map(Number)
-      : color.slice(color.indexOf("(") + 1, -1).split(",").map((x) => Number(x) / 255);
-    const linear = (v: number) => (v <= 0.04045 ? v / 12.92 : ((v + 0.055) / 1.055) ** 2.4);
-    return 0.2126 * linear(r) + 0.7152 * linear(g) + 0.0722 * linear(bl);
+/** APCA contrast (unsigned Lc) of a computed color on a background, rgb() or color(srgb …) */
+function contrast(color: string, background: string) {
+  const hex = (value: string) => {
+    const channels = value.startsWith("color(")
+      ? value.slice(11, -1).split(" ").map(Number)
+      : value.slice(value.indexOf("(") + 1, -1).split(",").map((x) => Number(x) / 255);
+    return "#" + channels.slice(0, 3).map((x) => Math.round(x * 255).toString(16).padStart(2, "0")).join("");
   };
-  const [x, y] = [luminance(a), luminance(b)].sort((m, n) => n - m);
-  return (x + 0.05) / (y + 0.05);
+  return apcaContrast(hex(background), hex(color));
 }
 
 function hexToRgb(hex: string) {
