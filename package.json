@@ -49,6 +49,7 @@
     },
     "./styles.css": "./dist/styles.css",
     "./tailwind.css": "./dist/tailwind.css",
+    "./forms.css": "./dist/forms.css",
     "./package.json": "./package.json"
   },
   "files": [

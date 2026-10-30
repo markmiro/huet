@@ -17,6 +17,7 @@ pnpm add huet   # or: npm install huet
 | `huet/config` | The theme config format that `huet-react` and exported theme files use, and `themeFromConfig` |
 | `huet/styles.css` | Huet's class styles |
 | `huet/tailwind.css` | The same styles as a Tailwind v4 bridge |
+| `huet/forms.css` | Optional minimal styles for native form controls, drawn from the theme |
 
 `huet/core` is an alias of `huet`. Huet doesn't depend on React or any other framework.
 
@@ -127,6 +128,40 @@ Use this CSS entry instead of importing `huet/styles.css` separately:
 ```
 
 This bridge clears Tailwind's color namespace and keeps layout/spacing utilities. Huet's CSS lives in the `components` layer. To retain Tailwind's default colors, import `huet/styles.css` instead. Backgrounds must be managed by Huet for its relative calculations to track them. Tailwind opacity modifiers and arbitrary CSS backgrounds are not tracked.
+
+## Form controls
+
+Native form controls ignore page colors in places: checkboxes, slider tracks, progress bars and date pickers keep the browser's light or dark look whatever your theme is. `huet/forms.css` gives them a minimal style drawn from the nearest Huet surface. Import it, then add `data-huet-forms` to any container:
+
+```css
+@import "huet/forms.css"; /* after tailwindcss and huet/tailwind.css, if you use them */
+```
+
+```html
+<form data-huet-forms>
+  <input type="text" placeholder="Name" />
+  <input type="range" />
+  <label><input type="checkbox" role="switch" /> Notifications</label>
+  <button type="submit">Save</button>
+</form>
+```
+
+It styles every part of each control, not just the outer box:
+
+| Control | Parts |
+| --- | --- |
+| Text fields, textareas, selects | Border, placeholder, autofill colors, select chevron, multi-select highlight, and in Chromium the dropdown list (`appearance: base-select`) |
+| Number, search, date and time inputs | Spin buttons, clear button, calendar and clock icons, datalist arrow, the highlighted part of a date |
+| Checkboxes, radios, switches | Box, check, indeterminate dash, dot; `<input type="checkbox" role="switch">` (or Safari's `switch` attribute) gets a track and thumb |
+| Range sliders | Track, filled part of the track, thumb, in Chromium, Safari and Firefox |
+| Progress bars, meters | Track and value, an animated indeterminate state, and meters' good, fair and poor values in the theme's green, yellow and red |
+| Color and file inputs, buttons, fieldsets | Swatch and frame, the file button, a filled submit button, the fieldset border |
+
+Lines (borders and unfilled tracks) use the surface's border color, or the control's `huet-border-*` class. Fills (checks, thumbs, filled tracks, switches, the submit button) use the text color, so `huet-text-blue-100` on a control or its label makes it blue. Progress and meter tracks use a softer version of the line color. Disabled controls and their labels drop to about a third of their usual contrast, and fields and buttons get a flat fill instead of a border; invalid fields (`:user-invalid` or `aria-invalid="true"`) get the theme's red border. The rules are in the `base` cascade layer with zero-specificity selectors inside the scope, so Huet classes and Tailwind utilities on a control still win.
+
+Popups the browser draws itself, such as the date picker, the color picker and datalist suggestions, follow the page's `color-scheme`, not the theme. Set `color-scheme: dark` on dark themes so they match.
+
+The example demos' [Forms page](https://markmiro.github.io/huet/forms.html) shows every control with the styles on and off.
 
 ## Shared colors and theme updates
 
