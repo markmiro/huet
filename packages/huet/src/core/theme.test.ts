@@ -315,18 +315,25 @@ describe("preset roles", () => {
   it("follows a multi-hue ramp's shape on colored surfaces", () => {
     // Sunset's HCL ramp passes through mauve and salmon; a straight mix from a
     // blue surface to the yellow text would pass through olive instead.
+    const lightness = (hex: string) => toOklab(hex)[0];
+    const nearest = (colors: string[], hex: string) => colors.reduce((a, b) =>
+      Math.abs(lightness(b) - lightness(hex)) < Math.abs(lightness(a) - lightness(hex)) ? b : a);
+    const gap = (a: string, b: string) => {
+      const d = Math.abs(hue(a) - hue(b));
+      return Math.min(d, 2 * Math.PI - d);
+    };
     for (const name of ["Sunset", "A Box of Macaroni"]) {
       const theme = themeFromConfig(themes.find((x) => x.name === name)!);
       const samples = Array.from({ length: 257 }, (_, i) => theme.ramp(i / 256));
-      const lightness = (hex: string) => toOklab(hex)[0];
-      const rampAt = (hex: string) => samples.reduce((a, b) =>
-        Math.abs(lightness(b) - lightness(hex)) < Math.abs(lightness(a) - lightness(hex)) ? b : a);
       for (const ramp of ["blue", "red", "green"]) {
         const bg = theme.relative.contrast(25, theme.relative.theme.ramps[ramp]).hex;
+        const end = contrastRatio(bg, theme.light) > contrastRatio(bg, theme.dark) ? theme.light : theme.dark;
+        const straight = Array.from({ length: 257 }, (_, i) => mix(bg, end, i / 256));
         const t = theme.tokens(bg, theme.background);
         for (const color of [t.muted, t.border]) {
-          const gap = Math.abs(hue(color) - hue(rampAt(color)));
-          expect(Math.min(gap, 2 * Math.PI - gap), `${name} ${ramp} ${color}`).toBeLessThan(0.5);
+          const line = nearest(straight, color);
+          expect(gap(color, nearest(samples, color)), `${name} ${ramp} ${color} vs ${line}`)
+            .toBeLessThan(gap(line, nearest(samples, line)) - 0.2);
         }
       }
     }
@@ -338,6 +345,8 @@ describe("preset roles", () => {
       const t = theme.tokens(bg, theme.background);
       for (const color of [t.muted, t.border]) {
         expect(chroma(color), `${bg} ${color}`).toBeGreaterThan(0.02);
+        // Lines and secondary text keep most of the surface's color rather than graying.
+        if (theme !== orangeBoost) expect(chroma(color), `${bg} ${color}`).toBeGreaterThan(0.8 * chroma(bg));
         if (theme !== orangeBoost) expect(Math.abs(hue(color) - hue(bg)), `${bg} ${color}`).toBeLessThan(0.2);
       }
     }

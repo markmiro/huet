@@ -446,34 +446,35 @@
   [data-huet-forms] :where(input, textarea, select):where(:user-invalid, [aria-invalid="true"]) {
     --_line: var(--huet-red);
   }
-  /* Disabled controls, and the labels and fieldsets around them, are drawn at
-     about a third of their usual contrast. In the color property, currentColor
-     is the inherited text color, so a control inside a faded label or fieldset
-     is skipped to avoid fading it twice. Mixing in sRGB fades light and dark
-     themes by a similar contrast ratio. */
+  /* Disabled controls, and the labels and fieldsets around them, mix their
+     text and line colors 45% over the background. Fading both by the same
+     amount keeps a slider's filled part stronger than its track. In the color
+     property, currentColor is the inherited text color, so a control inside a
+     faded label or fieldset is skipped to avoid fading it twice. Mixing in sRGB
+     fades light and dark themes by a similar contrast ratio. */
+  [data-huet-forms] {
+    --_disabled: 45%;
+  }
   [data-huet-forms]
     :where(
       label:has(:disabled),
       fieldset:disabled,
       :is(input, textarea, select, button):disabled:not(label:has(:disabled) *, fieldset:disabled *)
     ) {
-    color: color-mix(in srgb, currentColor 35%, var(--huet-background));
+    color: color-mix(in srgb, currentColor var(--_disabled), var(--huet-background));
   }
-  [data-huet-forms] :where(input, textarea, select, button):disabled {
+  [data-huet-forms] :where(input, textarea, select, button, fieldset):disabled {
+    --_line: color-mix(in srgb, var(--huet-border) var(--_disabled), var(--huet-background));
     cursor: not-allowed;
   }
-  /* Disabled controls lose their outline and get a flat fill instead */
-  [data-huet-forms]
-    :where(
-      input:not([type="checkbox"], [type="radio"], [type="range"], [type="file"], [type="hidden"]),
-      textarea,
-      select,
-      button
-    ):disabled,
-  [data-huet-forms] :where(input[type="checkbox"], input[type="radio"]):disabled:not(:checked, :indeterminate),
+  [data-huet-forms] :where([data-huet-color-border]):disabled {
+    --_line: color-mix(in srgb, var(--huet-relative-border) var(--_disabled), var(--huet-background));
+  }
+  /* Disabled fields keep their faded outline; disabled buttons get a flat fill instead */
+  [data-huet-forms] :where(button, input:is([type="button"], [type="submit"], [type="reset"])):disabled,
   [data-huet-forms] :where(input[type="file"]:disabled)::file-selector-button {
     border-color: transparent;
-    background-color: color-mix(in srgb, var(--_line) 20%, var(--huet-background));
+    background-color: color-mix(in srgb, var(--_line) 40%, var(--huet-background));
     cursor: not-allowed;
   }
   /* Icons inside disabled fields fade with their text */

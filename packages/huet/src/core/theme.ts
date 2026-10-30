@@ -152,8 +152,9 @@ export function createTheme(options: ThemeOptions = {}) {
   };
   // Neutral surfaces follow the ramp's path (and its hues) when they start on it.
   // Colored parents follow the same shape from the ramp position with their
-  // lightness, offset by their own color, which fades out toward the endpoint.
-  // On a straight two-stop ramp that is exactly an OKLab mix toward the endpoint.
+  // lightness, offset by their own color. The hue and chroma of that offset
+  // last until close to the endpoint, so steps on a blue surface stay blue
+  // rather than graying as they darken or lighten.
   const path = (parent: string, end: string) => {
     const to = end === dark ? 0 : 1;
     const from = custom ? positionOf(parent) : undefined;
@@ -161,13 +162,6 @@ export function createTheme(options: ThemeOptions = {}) {
       return (amount: number) =>
         amount === 0 ? parent : ramp(from + (to - from) * amount);
     const x = toOklab(parent);
-    if (!custom) {
-      // Same as mix(parent, end, amount), converting the endpoints once.
-      const y = toOklab(end);
-      return (amount: number) =>
-        amount === 0 ? parent : amount === 1 ? end
-          : fromOklab(x.map((v, i) => v + (y[i] - v) * amount) as unknown as Triple);
-    }
     let start = 0;
     neutralLab.forEach(([L], i) => {
       if (Math.abs(L - x[0]) < Math.abs(neutralLab[start][0] - x[0])) start = i;
@@ -177,7 +171,8 @@ export function createTheme(options: ThemeOptions = {}) {
       if (amount === 0) return parent;
       if (amount === 1) return end;
       const base = rampLab(start / 256 + (to - start / 256) * amount);
-      return fromOklab(base.map((v, i) => v + (x[i] - origin[i]) * (1 - amount)) as unknown as Triple);
+      const fade = [1 - amount, 1 - amount ** 3, 1 - amount ** 3];
+      return fromOklab(base.map((v, i) => v + (x[i] - origin[i]) * fade[i]) as unknown as Triple);
     };
   };
   const low = toOklab(dark)[0],
