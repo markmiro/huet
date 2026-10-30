@@ -1,7 +1,7 @@
-import { c as e, i as t, n, o as r, p as i, t as a } from "./theme-C2LgQ8y2.js";
-import { t as o } from "./fromConfig-CzKp10jk.js";
-import s from "chroma-js";
-var c = Object.freeze([
+import { c as e, i as t, n, o as r, t as i } from "./theme-MTtaYU1H.js";
+import { t as a } from "./fromConfig-B720i2e4.js";
+import o from "chroma-js";
+var s = Object.freeze([
 	...[
 		0,
 		5,
@@ -17,7 +17,7 @@ var c = Object.freeze([
 	"huet-border",
 	"huet-focus",
 	...t.map((e) => `huet-text-${e}`)
-]), l = [
+]), c = [
 	"gray",
 	"red",
 	"yellow",
@@ -26,7 +26,7 @@ var c = Object.freeze([
 	"purple",
 	"white"
 ];
-function u(e) {
+function l(e) {
 	let t = /^huet-(bg\/)?(bg|text|border|outline)-(?:(gray|red|yellow|green|blue|purple|white)-)?(0|[1-9]\d?|100)$/.exec(e);
 	if (!(!t || t[1] && t[2] === "bg")) return {
 		property: t[2],
@@ -35,7 +35,7 @@ function u(e) {
 		amount: Number(t[4])
 	};
 }
-var d = [];
+var u = [];
 for (let e of [
 	"bg",
 	"text",
@@ -44,51 +44,51 @@ for (let e of [
 	"bg/text",
 	"bg/border",
 	"bg/outline"
-]) for (let t of [void 0, ...l]) for (let n = 0; n <= 100; n++) d.push(`huet-${e}-${t ? t + "-" : ""}${n}`);
-var f = Object.freeze([...c, ...d]), p = new Set(f);
-function m(e) {
-	return p.has(e);
+]) for (let t of [void 0, ...c]) for (let n = 0; n <= 100; n++) u.push(`huet-${e}-${t ? t + "-" : ""}${n}`);
+var d = Object.freeze([...s, ...u]), f = new Set(d);
+function p(e) {
+	return f.has(e);
 }
-var h = (e) => u(e)?.property ?? (p.has(e) ? e.startsWith("huet-surface-") ? "bg" : e === "huet-border" ? "border" : e === "huet-focus" ? "outline" : "text" : void 0);
-function g(e) {
+var m = (e) => l(e)?.property ?? (f.has(e) ? e.startsWith("huet-surface-") ? "bg" : e === "huet-border" ? "border" : e === "huet-focus" ? "outline" : "text" : void 0);
+function h(e) {
 	let t = 0, n = 0;
 	for (let r = 0; r < e.length; r++) e[r] === "[" || e[r] === "(" ? t++ : e[r] === "]" || e[r] === ")" ? t-- : e[r] === ":" && !t && (n = r + 1);
 	return [e.slice(0, n), e.slice(n)];
 }
-var _ = "huet-fg, huet-muted, huet-border, huet-red, huet-yellow, huet-green, huet-blue, huet-purple";
-function v(e) {
-	if (p.has(e) || !/(?:^|:)huet-/.test(e)) return;
-	let [t, n] = g(e);
-	if (!t || !p.has(n)) return `Unknown Huet class: ${e}`;
-	let r = h(n);
-	return `Huet classes don't support Tailwind variants yet: ${e}. ${n === "huet-focus" ? "Use \"huet-focus\" alone: it already applies only on :focus-visible." : r === "outline" ? `For an outline only with that variant, use "${n} ${t}outline-2": ${n} sets only the outline color, and the variant turns the outline on.` : r === "bg" ? `Changing a Huet background with a variant isn't supported yet. Keep "${n}" without the variant.` : `For a color only with that variant, use a Tailwind token utility from huet/tailwind.css, e.g. "${t}${r}-huet-blue" (tokens: ${_}).`}`;
+var g = "huet-fg, huet-muted, huet-border, huet-red, huet-yellow, huet-green, huet-blue, huet-purple";
+function _(e) {
+	if (f.has(e) || !/(?:^|:)huet-/.test(e)) return;
+	let [t, n] = h(e);
+	if (!t || !f.has(n)) return `Unknown Huet class: ${e}`;
+	let r = m(n);
+	return `Huet classes don't support Tailwind variants yet: ${e}. ${n === "huet-focus" ? "Use \"huet-focus\" alone: it already applies only on :focus-visible." : r === "outline" ? `For an outline only with that variant, use "${n} ${t}outline-2": ${n} sets only the outline color, and the variant turns the outline on.` : r === "bg" ? `Changing a Huet background with a variant isn't supported yet. Keep "${n}" without the variant.` : `For a color only with that variant, use a Tailwind token utility from huet/tailwind.css, e.g. "${t}${r}-huet-blue" (tokens: ${g}).`}`;
 }
-function y(e) {
-	let t = e.trim().split(/\s+/), n = t.map(v).filter((e) => e !== void 0), r = /* @__PURE__ */ new Set();
+function v(e) {
+	let t = e.trim().split(/\s+/), n = t.map(_).filter((e) => e !== void 0), r = /* @__PURE__ */ new Set();
 	for (let e of t) {
-		let t = h(e);
+		let t = m(e);
 		t && (r.has(t) && n.push(t === "bg" ? "Use one Huet surface class per element" : `Use one Huet ${t} class per element`), r.add(t));
 	}
 	return n;
 }
 // src/core/dom.ts
-var b = f.filter((e) => e.startsWith("huet-surface-")), x = "[class*=\"huet-\"]", S = /* @__PURE__ */ new WeakSet(), C = /* @__PURE__ */ new WeakMap();
-function w(t, n) {
-	if (S.has(t) || t.parentElement?.closest("[data-huet-root]") || t.querySelector("[data-huet-root]")) throw Error("Huet theme roots must be independent, non-overlapping trees");
-	S.add(t);
+var y = d.filter((e) => e.startsWith("huet-surface-")), b = "[class*=\"huet-\"]", x = /* @__PURE__ */ new WeakSet(), S = /* @__PURE__ */ new WeakMap();
+function C(t, n) {
+	if (x.has(t) || t.parentElement?.closest("[data-huet-root]") || t.querySelector("[data-huet-root]")) throw Error("Huet theme roots must be independent, non-overlapping trees");
+	x.add(t);
 	let i = t.getAttribute("data-huet-root");
 	t.setAttribute("data-huet-root", "");
-	let a = n, o = !1, c = /* @__PURE__ */ new Map(), l = /* @__PURE__ */ new Map(), d = {
+	let a = n, s = !1, c = /* @__PURE__ */ new Map(), u = /* @__PURE__ */ new Map(), d = {
 		"--huet-background": "data-huet-color-bg",
 		"--huet-relative-text": "data-huet-color-text",
 		"--huet-relative-border": "data-huet-color-border",
 		"--huet-relative-outline": "data-huet-color-outline"
 	}, f = (e, t) => {
 		let n = c.get(e);
-		n || (C.get(e)?.(), n = /* @__PURE__ */ new Map(), c.set(e, n), C.set(e, () => p(e)));
+		n || (S.get(e)?.(), n = /* @__PURE__ */ new Map(), c.set(e, n), S.set(e, () => p(e)));
 		for (let [r, [i, a]] of n) r in t || (i ? e.style.setProperty(r, i, a) : e.style.removeProperty(r), n.delete(r));
-		let r = l.get(e);
-		r || l.set(e, r = /* @__PURE__ */ new Map());
+		let r = u.get(e);
+		r || u.set(e, r = /* @__PURE__ */ new Map());
 		for (let [n, i] of Object.entries(d)) if (n in t) r.has(i) || r.set(i, e.getAttribute(i)), e.setAttribute(i, "");
 		else if (r.has(i)) {
 			let t = r.get(i);
@@ -98,38 +98,38 @@ function w(t, n) {
 	}, p = (e) => {
 		if (c.has(e)) {
 			for (let [t, [n, r]] of c.get(e) ?? []) n ? e.style.setProperty(t, n, r) : e.style.removeProperty(t);
-			for (let [t, n] of l.get(e) ?? []) n === null ? e.removeAttribute(t) : e.setAttribute(t, n);
-			l.delete(e), c.delete(e), C.delete(e);
+			for (let [t, n] of u.get(e) ?? []) n === null ? e.removeAttribute(t) : e.setAttribute(t, n);
+			u.delete(e), c.delete(e), S.delete(e);
 		}
 	}, m = (e, t) => {
-		let n = b.find((t) => e.classList.contains(t));
+		let n = y.find((t) => e.classList.contains(t));
 		if (!n) return t;
 		let r = n.slice(13);
 		return a.surface(t, /^\d+$/.test(r) ? Number(r) : r);
 	}, h = () => {
-		if (o) return;
-		let n = /* @__PURE__ */ new Set(), i = /* @__PURE__ */ new Map(), l = [t, ...t.querySelectorAll(x)], d = [...new Set(l.flatMap((e) => y(e.getAttribute("class") ?? "")))];
+		if (s) return;
+		let n = /* @__PURE__ */ new Set(), i = /* @__PURE__ */ new Map(), u = [t, ...t.querySelectorAll(b)], d = [...new Set(u.flatMap((e) => v(e.getAttribute("class") ?? "")))];
 		if (d.length) throw t.setAttribute("data-huet-error", d.join("\n")), Error(d.join("\n"));
 		t.removeAttribute("data-huet-error");
-		for (let o of l) {
-			let c = [...o.classList], l = c.map(u).filter((e) => e !== void 0), d = c.some((e) => b.includes(e));
-			if (o !== t && !l.length && !d) continue;
-			let p = o.parentElement;
+		for (let s of u) {
+			let c = [...s.classList], u = c.map(l).filter((e) => e !== void 0), d = c.some((e) => y.includes(e));
+			if (s !== t && !u.length && !d) continue;
+			let p = s.parentElement;
 			for (; p && !i.has(p);) p = p.parentElement;
-			let h = i.get(p) ?? a.relative, g = l.find((e) => e.property === "bg"), _ = (e, t) => e.contrast(t.amount, t.ramp ? e.theme.ramps[t.ramp] : void 0), v = g ? _(h, g) : h;
+			let h = i.get(p) ?? a.relative, g = u.find((e) => e.property === "bg"), _ = (e, t) => e.contrast(t.amount, t.ramp ? e.theme.ramps[t.ramp] : void 0), v = g ? _(h, g) : h;
 			d && (v = new e({
 				theme: h.theme,
 				bgColor: h,
-				lab: s(m(o, h.hex)).lab()
+				lab: o(m(s, h.hex)).lab()
 			}));
-			let y = {};
-			(o === t || g || d) && (i.set(o, v), Object.assign(y, r(a.tokens(v.hex, h.hex))), g && (y["--huet-foreground"] = v.contrast(100).hex));
-			for (let e of l) {
+			let b = {};
+			(s === t || g || d) && (i.set(s, v), Object.assign(b, r(a.tokens(v.hex, h.hex))), g && (b["--huet-foreground"] = v.contrast(100).hex));
+			for (let e of u) {
 				if (e.property === "bg") continue;
 				let t = _(e.ownBackground ? v : h, e);
-				y[`--huet-relative-${e.property}`] = t.hex;
+				b[`--huet-relative-${e.property}`] = t.hex;
 			}
-			n.add(o), f(o, y);
+			n.add(s), f(s, b);
 		}
 		for (let e of c.keys()) n.has(e) || p(e);
 	}, g = t.ownerDocument.defaultView.MutationObserver, _ = new g(h);
@@ -137,7 +137,7 @@ function w(t, n) {
 		h();
 	} catch (e) {
 		for (let e of c.keys()) p(e);
-		throw t.removeAttribute("data-huet-error"), i === null ? t.removeAttribute("data-huet-root") : t.setAttribute("data-huet-root", i), S.delete(t), e;
+		throw t.removeAttribute("data-huet-error"), i === null ? t.removeAttribute("data-huet-root") : t.setAttribute("data-huet-root", i), x.delete(t), e;
 	}
 	return _.observe(t, {
 		subtree: !0,
@@ -146,20 +146,20 @@ function w(t, n) {
 		attributeFilter: ["class"]
 	}), {
 		update(e) {
-			if (o) throw Error("Cannot update a destroyed Huet mount");
+			if (s) throw Error("Cannot update a destroyed Huet mount");
 			a = e, h();
 		},
 		destroy() {
-			if (!o) {
-				o = !0, _.disconnect();
+			if (!s) {
+				s = !0, _.disconnect();
 				for (let e of c.keys()) p(e);
-				t.removeAttribute("data-huet-error"), i === null ? t.removeAttribute("data-huet-root") : t.setAttribute("data-huet-root", i), S.delete(t);
+				t.removeAttribute("data-huet-error"), i === null ? t.removeAttribute("data-huet-root") : t.setAttribute("data-huet-root", i), x.delete(t);
 			}
 		}
 	};
 }
 // src/core/shiki.ts
-var T = {
+var w = {
 	foreground: "var(--huet-foreground)",
 	background: "var(--huet-background)",
 	comment: "var(--huet-muted)",
@@ -174,7 +174,7 @@ var T = {
 	inserted: "var(--huet-green)",
 	deleted: "var(--huet-red)",
 	changed: "var(--huet-yellow)"
-}, E = (e) => `var(--huet-code-${e}, ${T[e]})`, D = [
+}, T = (e) => `var(--huet-code-${e}, ${w[e]})`, E = [
 	[[
 		"comment",
 		"punctuation.definition.comment",
@@ -305,44 +305,44 @@ var T = {
 		"underline"
 	]
 ];
-function O({ name: e = "huet" } = {}) {
+function D({ name: e = "huet" } = {}) {
 	return {
 		name: e,
 		type: "light",
-		fg: E("foreground"),
-		bg: E("background"),
+		fg: T("foreground"),
+		bg: T("background"),
 		colors: {
-			"editor.foreground": E("foreground"),
-			"editor.background": E("background")
+			"editor.foreground": T("foreground"),
+			"editor.background": T("background")
 		},
-		tokenColors: D.map(([e, t, n]) => ({
+		tokenColors: E.map(([e, t, n]) => ({
 			scope: e,
 			settings: {
-				...t && { foreground: E(t) },
+				...t && { foreground: T(t) },
 				...n && { fontStyle: n }
 			}
 		}))
 	};
 }
-var k = {
+var O = {
 	add: "huet-bg-green-20",
 	remove: "huet-bg-red-20"
-}, A = (e) => {
+}, k = (e) => {
 	let t = e.properties?.class;
 	return Array.isArray(t) ? t.map(String) : typeof t == "string" ? t.split(/\s+/).filter(Boolean) : [];
 };
-function j(e, t) {
-	if (u(t)?.property !== "bg") throw TypeError(`huetShikiTransformer: ${e} must be a plain Huet background class like "huet-bg-5" or "huet-bg-green-15", got "${t}"`);
+function A(e, t) {
+	if (l(t)?.property !== "bg") throw TypeError(`huetShikiTransformer: ${e} must be a plain Huet background class like "huet-bg-5" or "huet-bg-green-15", got "${t}"`);
 }
-function M({ surface: e = "huet-bg-5", lines: t = {} } = {}) {
-	j("surface", e);
+function j({ surface: e = "huet-bg-5", lines: t = {} } = {}) {
+	A("surface", e);
 	let n = t === !1 ? {} : {
-		...k,
+		...O,
 		...t
 	};
-	for (let [e, t] of Object.entries(n)) j(`lines.${e}`, t);
+	for (let [e, t] of Object.entries(n)) A(`lines.${e}`, t);
 	let r = (e) => {
-		let t = A(e);
+		let t = k(e);
 		if (t.includes("line")) {
 			let r = [...new Set(t.flatMap((e) => n[e] ? [n[e]] : []))];
 			if (r.length > 1) throw Error(`huetShikiTransformer: a line has classes for more than one row background (${r.join(", ")}); remove one notation`);
@@ -352,13 +352,13 @@ function M({ surface: e = "huet-bg-5", lines: t = {} } = {}) {
 	return {
 		name: "huet",
 		pre(t) {
-			t.properties.class = [...A(t), e].join(" ");
+			t.properties.class = [...k(t), e].join(" ");
 		},
 		root(e) {
 			Object.keys(n).length && r(e);
 		}
 	};
 }
-export { f as classes, T as codeRoles, a as colorModels, i as contrastRatio, n as createTheme, k as defaultLineSurfaces, t as hues, O as huetShikiTheme, M as huetShikiTransformer, m as isHuetClass, w as mountTheme, o as themeFromConfig, r as themeVariables, y as validateClasses };
+export { d as classes, w as codeRoles, i as colorModels, n as createTheme, O as defaultLineSurfaces, t as hues, D as huetShikiTheme, j as huetShikiTransformer, p as isHuetClass, C as mountTheme, a as themeFromConfig, r as themeVariables, v as validateClasses };
 
 //# sourceMappingURL=index.js.map

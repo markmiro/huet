@@ -48,8 +48,8 @@ export type SurfaceClass = Extract<RelativeClass, `huet-bg-${string}`>;
  * the block. Rows start from the block's color, so inside a block of another
  * hue they drift toward it (an added row in a red block is olive at 15,
  * greener at 25). 20 balances hue against token contrast: higher amounts move
- * rows toward the middle of the ramp, where narrow themes like Paperback drop
- * below 4.5:1.
+ * rows toward the middle of the ramp, where narrow themes like Paperback lose
+ * token contrast.
  *
  * `// [!code highlight]` rows aren't mapped. A Huet yellow background moves
  * away from the block's lightness, which turns light themes' highlights tan.

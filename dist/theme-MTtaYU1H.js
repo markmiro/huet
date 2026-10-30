@@ -15,11 +15,25 @@ function a(e) {
 	let [t, i, a] = n(e).map(r);
 	return .2126 * t + .7152 * i + .0722 * a;
 }
-function o(e, t) {
-	let n = a(e), r = a(t);
-	return (Math.max(n, r) + .05) / (Math.min(n, r) + .05);
+var o = 6 / 29, s = (e) => e > .20689655172413793 ? 1.16 * e - .16 : 24389 / 2700 * e ** 3, c = (e) => e > .08 ? (e + .16) / 1.16 : Math.cbrt(e * 2700 / 24389);
+function l(e) {
+	return s(h(e)[0]);
 }
-function s(e, t, n) {
+function u(e) {
+	let [t, r, i] = n(e), a = .2126729 * t ** 2.4 + .7151522 * r ** 2.4 + .072175 * i ** 2.4;
+	return a < .022 ? a + (.022 - a) ** 1.414 : a;
+}
+function d(e, t) {
+	let n = u(e), r = u(t);
+	if (Math.abs(r - n) < 5e-4) return 0;
+	let i = r > n ? (r ** .56 - n ** .57) * 1.14 : (r ** .65 - n ** .62) * 1.14;
+	return Math.sign(i) * Math.max(0, Math.abs(i) - .027) * 100;
+}
+var f = (e, t) => Math.abs(d(t, e));
+function p(e, t, n) {
+	return f(e, n) > f(e, t) ? n : t;
+}
+function m(e, t, n) {
 	e = r(e), t = r(t), n = r(n);
 	let i = Math.cbrt(.4122214708 * e + .5363325363 * t + .0514459929 * n), a = Math.cbrt(.2119034982 * e + .6806995451 * t + .1073969566 * n), o = Math.cbrt(.0883024619 * e + .2817188376 * t + .6299787005 * n);
 	return [
@@ -28,10 +42,10 @@ function s(e, t, n) {
 		.0259040371 * i + .7827717662 * a - .808675766 * o
 	];
 }
-function c(e) {
-	return s(...n(e));
+function h(e) {
+	return m(...n(e));
 }
-function l([e, t, n]) {
+function g([e, t, n]) {
 	let r = (e + .3963377774 * t + .2158037573 * n) ** 3, i = (e - .1055613458 * t - .0638541728 * n) ** 3, a = (e - .0894841775 * t - 1.291485548 * n) ** 3;
 	return [
 		4.0767416621 * r - 3.3077115913 * i + .2309699292 * a,
@@ -39,9 +53,9 @@ function l([e, t, n]) {
 		-.0041960863 * r - .7034186147 * i + 1.707614701 * a
 	];
 }
-function u([e, n, r]) {
+function _([e, n, r]) {
 	e = t(e);
-	let a = l([
+	let a = g([
 		e,
 		n,
 		r
@@ -50,13 +64,13 @@ function u([e, n, r]) {
 		let t = 0, i = 1;
 		for (let a = 0; a < 20; a++) {
 			let a = (t + i) / 2;
-			o(l([
+			o(g([
 				e,
 				n * a,
 				r * a
 			])) ? t = a : i = a;
 		}
-		a = l([
+		a = g([
 			e,
 			n * t,
 			r * t
@@ -64,39 +78,39 @@ function u([e, n, r]) {
 	}
 	return a.map((e) => t(i(e)));
 }
-function d(e) {
-	return "#" + u(e).map((e) => Math.round(e * 255).toString(16).padStart(2, "0")).join("");
+function v(e) {
+	return "#" + _(e).map((e) => Math.round(e * 255).toString(16).padStart(2, "0")).join("");
 }
-function f(e, t, n) {
+function y(e, t, n) {
 	if (!Number.isFinite(n) || n < 0 || n > 1) throw RangeError("Mix amount must be between 0 and 1");
-	let r = c(e), i = c(t);
-	return n === 0 ? e : n === 1 ? t : d(r.map((e, t) => e + (i[t] - e) * n));
+	let r = h(e), i = h(t);
+	return n === 0 ? e : n === 1 ? t : v(r.map((e, t) => e + (i[t] - e) * n));
 }
 // src/colorModel.ts
-var p = {
+var b = {
 	SIGNAL: "signal",
 	DIRECT: "direct",
 	FURTHEST: "furthest"
-}, m = 20, h = 50, g = 60, _ = [
+}, x = 20, S = 50, C = 60, w = [
 	[0, "red"],
 	[1, "yellow"],
 	[2, "green"],
 	[4, "blue"],
 	[5, "purple"]
-], v = 60, y = Object.fromEntries(_.map(([t, n]) => [n, e.hcl(v * t + m, g, h).hex()])), b = Object.fromEntries(_.map(([, e]) => [e, {
+], T = 60, E = Object.fromEntries(w.map(([t, n]) => [n, e.hcl(T * t + x, C, S).hex()])), D = Object.fromEntries(w.map(([, e]) => [e, {
 	colors: [
 		"black",
 		e,
 		"white"
 	],
 	mode: "signal"
-}])), x = {
+}])), O = {
 	id: 0,
 	name: "Base",
 	pallet: {
 		black: "#000000",
 		white: "#ffffff",
-		...y
+		...E
 	},
 	ramps: {
 		gray: { colorModel: "lab" },
@@ -109,7 +123,7 @@ var p = {
 			],
 			mode: "direct"
 		},
-		...b
+		...D
 	},
 	bgRamp: "gray",
 	bgRampValue: 1,
@@ -117,7 +131,7 @@ var p = {
 	endSignalLightness: .49,
 	contrastMultiplier: 1,
 	rescaleContrastToGrayRange: !0
-}, S = [
+}, k = [
 	"id",
 	"name",
 	"pallet",
@@ -128,26 +142,26 @@ var p = {
 	"endSignalLightness",
 	"contrastMultiplier",
 	"rescaleContrastToGrayRange"
-], C = {
+], A = {
 	colors: ["black", "white"],
 	colorModel: "lab",
 	correctLightness: !0,
-	mode: p.FURTHEST
-}, w = class {
-	constructor(e = x) {
+	mode: b.FURTHEST
+}, j = class {
+	constructor(e = O) {
 		this.config = e;
-		for (let t of Object.keys(e)) if (!S.includes(t)) throw Error(`${t} isn't allowed in Theme`);
-		this.id = e.id, this.name = e.name, this.pallet = e.pallet, this.bgRamp = e.bgRamp, this.bgRampValue = e.bgRampValue, this.startSignalLightness = e.startSignalLightness, this.endSignalLightness = e.endSignalLightness, this.contrastMultiplier = e.contrastMultiplier, this.rescaleContrastToGrayRange = e.rescaleContrastToGrayRange, this.ramps = Object.fromEntries(Object.entries(e.ramps).map(([t, n]) => [t, T(e, n)]));
+		for (let t of Object.keys(e)) if (!k.includes(t)) throw Error(`${t} isn't allowed in Theme`);
+		this.id = e.id, this.name = e.name, this.pallet = e.pallet, this.bgRamp = e.bgRamp, this.bgRampValue = e.bgRampValue, this.startSignalLightness = e.startSignalLightness, this.endSignalLightness = e.endSignalLightness, this.contrastMultiplier = e.contrastMultiplier, this.rescaleContrastToGrayRange = e.rescaleContrastToGrayRange, this.ramps = Object.fromEntries(Object.entries(e.ramps).map(([t, n]) => [t, M(e, n)]));
 	}
 };
-function T(t, n) {
+function M(t, n) {
 	let r = {
-		...C,
+		...A,
 		...n,
-		colors: n.colors ?? C.colors,
-		colorModel: n.colorModel ?? C.colorModel,
-		correctLightness: n.correctLightness ?? C.correctLightness,
-		mode: n.mode ?? C.mode
+		colors: n.colors ?? A.colors,
+		colorModel: n.colorModel ?? A.colorModel,
+		correctLightness: n.correctLightness ?? A.correctLightness,
+		mode: n.mode ?? A.mode
 	}, i = r.colors.map((e) => {
 		if (e in t.pallet) return t.pallet[e];
 		throw Error(`Couldn't find color "${e}" in themeConfig.pallet`);
@@ -155,52 +169,52 @@ function T(t, n) {
 	r.colorModel && a.mode(r.colorModel), r.classes && a.classes(r.classes);
 	let o;
 	switch (r.mode) {
-		case p.DIRECT:
-			o = O(a);
+		case b.DIRECT:
+			o = F(a);
 			break;
-		case p.SIGNAL:
-		default: r.correctLightness && a.correctLightness(), o = D(a);
+		case b.SIGNAL:
+		default: r.correctLightness && a.correctLightness(), o = P(a);
 	}
 	return o.config = r, o;
 }
-function E(e) {
+function N(e) {
 	return (t) => e(t).lab();
 }
-function D(e) {
-	let t = E(e);
-	return t.startL = H(e(0)), t.endL = H(e(1)), t;
+function P(e) {
+	let t = N(e);
+	return t.startL = G(e(0)), t.endL = G(e(1)), t;
 }
-function O(e) {
-	return E(e);
+function F(e) {
+	return N(e);
 }
 // src/private/cache.ts
-var k = "MISS";
-function A(e, t, n) {
+var I = "MISS";
+function L(e, t, n) {
 	let r = e;
 	for (let e = 0; e < t.length; e++) {
 		let i = t[e];
 		e === t.length - 1 ? r.set(i, n) : (r.has(i) || r.set(i, /* @__PURE__ */ new Map()), r = r.get(i));
 	}
 }
-function j(e, t) {
+function ee(e, t) {
 	let n = e;
 	for (let e = 0; e < t.length; e++) {
 		let r = t[e];
-		if (!(n instanceof Map) || !n.has(r)) return k;
+		if (!(n instanceof Map) || !n.has(r)) return I;
 		n = n.get(r);
 	}
 	return n;
 }
-var M = class {
+var te = class {
 	constructor(e = 500) {
 		this.resetAtItemCount = e, this.cached = /* @__PURE__ */ new Map(), this.itemCount = 0, this.tries = 0, this.hits = 0;
 	}
 	set(e, t) {
-		this.itemCount > this.resetAtItemCount && this.reset(), A(this.cached, e, t), this.itemCount++;
+		this.itemCount > this.resetAtItemCount && this.reset(), L(this.cached, e, t), this.itemCount++;
 	}
 	get(e) {
-		let t = j(this.cached, e);
-		return this.tries++, t === k ? null : (this.hits++, t);
+		let t = ee(this.cached, e);
+		return this.tries++, t === I ? null : (this.hits++, t);
 	}
 	at(e, t) {
 		let n = this.get(e);
@@ -220,38 +234,39 @@ Tries: ${this.tries}`);
 	}
 };
 // src/private/mixSignal.ts
-function N(e, t, n) {
+function R(e, t, n) {
 	if (n === 0) return e;
 	if (n === 1) return t;
-	let r = a(e), i = a(t);
-	if (Math.abs(i - r) < 1e-10) return f(e, t, n);
-	let s = i > r, c = o(e, t) ** n, l = s ? (r + .05) * c - .05 : (r + .05) / c - .05, u = 0, d = 1, p = e, m = Math.abs(l - r);
+	let r = l(e), i = l(t);
+	if (Math.abs(i - r) < 1e-10) return y(e, t, n);
+	let a = i > r, o = r + (i - r) * n, s = 0, c = 1, u = e, d = Math.abs(o - r);
 	for (let n = 0; n < 18; n++) {
-		let n = (u + d) / 2, r = f(e, t, n), i = a(r), o = Math.abs(i - l);
-		o < m && (p = r, m = o), (s ? i < l : i > l) ? u = n : d = n;
+		let n = (s + c) / 2, r = y(e, t, n), i = l(r), f = Math.abs(i - o);
+		f < d && (u = r, d = f), (a ? i < o : i > o) ? s = n : c = n;
 	}
-	return p;
+	return u;
 }
 // src/private/fadeColor.ts
-function P(e, t, r) {
+function ne(e, t, r) {
 	if (r === 0) return e;
 	if (r === 1) return t;
 	let i = (e) => e <= .04045 ? e / 12.92 : ((e + .055) / 1.055) ** 2.4, a = (e) => e <= .0031308 ? 12.92 * e : 1.055 * e ** (1 / 2.4) - .055, o = n(e).map(i), s = n(t).map(i);
 	return "#" + o.map((e, t) => Math.round(Math.max(0, Math.min(1, a(e + (s[t] - e) * r))) * 255).toString(16).padStart(2, "0")).join("");
 }
 // src/Color.ts
-var F = new M(), I = /* @__PURE__ */ new WeakMap(), L = /* @__PURE__ */ new WeakMap(), R = /* @__PURE__ */ new WeakMap();
-function z(t) {
-	let n = R.get(t);
+var z = new te(), B = /* @__PURE__ */ new WeakMap(), V = /* @__PURE__ */ new WeakMap(), H = /* @__PURE__ */ new WeakMap();
+function re(t) {
+	let n = H.get(t);
 	return n || (n = Array.from({ length: 257 }, (n, r) => {
-		let i = t(r / 256);
+		let i = t(r / 256), a = e.lab(...i).hex();
 		return {
 			lab: i,
-			luminance: e(e.lab(...i).hex()).luminance()
+			hex: a,
+			lightness: l(a)
 		};
-	}), R.set(t, n)), n;
+	}), H.set(t, n)), n;
 }
-var B = class {
+var U = class {
 	constructor(t) {
 		if (!t) throw Error("`lab` is required");
 		this.lab = t, this.hex = e.lab(...this.lab).hex();
@@ -262,7 +277,7 @@ var B = class {
 	toString() {
 		return this.hex;
 	}
-}, V = class t extends B {
+}, W = class t extends U {
 	constructor({ theme: e, bgColor: t = null, lab: n, ramp: r = null, baseRamp: i = null }) {
 		if (super(n), !e) throw Error("`theme` is required");
 		if (i && (i.startL === void 0 || i.endL === void 0)) throw Error("`baseRamp` can't be a direct ramp");
@@ -270,7 +285,7 @@ var B = class {
 		this.theme = e, this.bgColor = t, this.ramp = r, this.baseRamp = i || t && t.baseRamp || e.ramps.gray, this.lightness = n[0];
 	}
 	static fromTheme(e) {
-		if (!(e instanceof w)) throw TypeError("Need to give me a Theme instance, not a \"theme config\"");
+		if (!(e instanceof j)) throw TypeError("Need to give me a Theme instance, not a \"theme config\"");
 		let n = e.ramps[e.bgRamp], r = n(e.bgRampValue);
 		return new t({
 			theme: e,
@@ -281,12 +296,12 @@ var B = class {
 		});
 	}
 	contrast(n = 100, r = this.baseRamp) {
-		return this.theme.contrastMultiplier >= 0 && this.theme.contrastMultiplier < 1 ? F.at([
+		return this.theme.contrastMultiplier >= 0 && this.theme.contrastMultiplier < 1 ? z.at([
 			this,
 			"fadeContrast",
 			n,
 			r
-		], () => this.fadeEnabled(r, (e, t) => e.contrast(n, t))) : r.config.mode === "direct" ? this.direct(r) : F.at([
+		], () => this.fadeEnabled(r, (e, t) => e.contrast(n, t))) : r.config.mode === "direct" ? this.direct(r) : z.at([
 			this.hex,
 			this.baseRamp,
 			n,
@@ -294,27 +309,27 @@ var B = class {
 		], () => {
 			let { theme: i } = this, o = r === i.ramps[i.bgRamp];
 			if (o && i.rescaleContrastToGrayRange && n >= 0) {
-				let a = Math.max(0, Math.min(1, n / 100 * i.contrastMultiplier));
-				if (a === 0) return this;
-				let o = r(0), s = 0, c, l = Infinity, u = z(r), d = e(this.hex).luminance(), f = (e) => (Math.max(d, e) + .05) / (Math.min(d, e) + .05), p = Math.min(u[0].luminance, u[u.length - 1].luminance), m = Math.max(u[0].luminance, u[u.length - 1].luminance), h = f(m) > f(p), g = Math.max(f(p), f(m));
-				if (g <= 1 + 1e-10) return this;
-				let _ = g ** a;
-				for (let { lab: e, luminance: t } of u) {
-					if (h ? t < d : t > d) continue;
-					let n = (Math.max(d, t) + .05) / (Math.min(d, t) + .05);
-					n > s && (o = e, s = n), n >= _ && n < l && (c = e, l = n);
+				let e = Math.max(0, Math.min(1, n / 100 * i.contrastMultiplier));
+				if (e === 0) return this;
+				let a = re(r), [o, s] = [a[0], a[a.length - 1]].sort((e, t) => e.lightness - t.lightness), c = p(this.hex, o.hex, s.hex) === s.hex, u = l(this.hex), d = Math.abs((c ? s : o).lightness - u);
+				if (d <= 1e-10) return this;
+				let f = d * e, m = r(0), h = -1, g, _ = Infinity;
+				for (let { lab: e, lightness: t } of a) {
+					if (c ? t < u : t > u) continue;
+					let n = Math.abs(t - u);
+					n > h && (m = e, h = n), n >= f && n < _ && (g = e, _ = n);
 				}
 				return new t({
 					theme: i,
 					bgColor: this,
-					lab: c ?? o,
+					lab: g ?? m,
 					ramp: r
 				});
 			}
 			if (r.config.mode === "furthest" && i.rescaleContrastToGrayRange && n >= 0) {
 				let o = Math.max(0, Math.min(1, n / 100 * i.contrastMultiplier));
 				if (o === 0) return this;
-				let s = i.ramps[i.bgRamp], c = [0, 1].map((t) => e.lab(...s(t)).hex()).sort((e, t) => a(e) - a(t)), l = e.contrast(this.hex, c[1]) > e.contrast(this.hex, c[0]), u = [0, 1].map((t) => e.lab(...r(t)).hex()).sort((e, t) => a(e) - a(t))[+!!l], d = (l ? a(u) >= a(this.hex) : a(u) <= a(this.hex)) ? N(this.hex, u, o) : this.hex;
+				let s = i.ramps[i.bgRamp], c = [0, 1].map((t) => e.lab(...s(t)).hex()).sort((e, t) => a(e) - a(t)), l = p(this.hex, c[0], c[1]) === c[1], u = [0, 1].map((t) => e.lab(...r(t)).hex()).sort((e, t) => a(e) - a(t))[+!!l], d = (l ? a(u) >= a(this.hex) : a(u) <= a(this.hex)) ? R(this.hex, u, o) : this.hex;
 				return new t({
 					theme: i,
 					bgColor: this,
@@ -325,56 +340,56 @@ var B = class {
 			if (r.config.mode === "signal" && i.rescaleContrastToGrayRange && n >= 0) {
 				let o = Math.max(0, Math.min(1, n / 100 * i.contrastMultiplier));
 				if (o === 0) return this;
-				let s = i.ramps[i.bgRamp], [l, u] = [0, 1].map((t) => e.lab(...s(t)).hex()).sort((e, t) => a(e) - a(t)), f = e.contrast(this.hex, u) > e.contrast(this.hex, l), p = f ? i.endSignalLightness : i.startSignalLightness, [m, h, g] = c(e.lab(...r(p)).hex()), _ = c(l)[0], v = c(u)[0];
-				if (Math.abs(v - _) < 1e-7) return this;
-				let [y] = c(this.hex), b = Math.max(0, Math.min(1, f ? (m - _) / (v - _) : (v - m) / (v - _))), x = f ? v : _, S = y + (x - y) * b, C = d([
-					S,
-					h,
+				let s = i.ramps[i.bgRamp], [c, l] = [0, 1].map((t) => e.lab(...s(t)).hex()).sort((e, t) => a(e) - a(t)), u = p(this.hex, c, l) === l, d = u ? i.endSignalLightness : i.startSignalLightness, [f, m, g] = h(e.lab(...r(d)).hex()), _ = h(c)[0], y = h(l)[0];
+				if (Math.abs(y - _) < 1e-7) return this;
+				let [b] = h(this.hex), x = Math.max(0, Math.min(1, u ? (f - _) / (y - _) : (y - f) / (y - _))), S = u ? y : _, C = b + (S - b) * x, w = v([
+					C,
+					m,
 					g
-				]), w = (e) => f ? a(e) >= a(this.hex) : a(e) <= a(this.hex);
-				for (let e = 0; e < 24 && !w(C); e++) S = (S + x) / 2, C = d([
-					S,
-					h,
+				]), T = (e) => u ? a(e) >= a(this.hex) : a(e) <= a(this.hex);
+				for (let e = 0; e < 24 && !T(w); e++) C = (C + S) / 2, w = v([
+					C,
+					m,
 					g
 				]);
-				w(C) || (C = this.hex);
-				let T = N(this.hex, C, o);
-				return w(T) || (T = this.hex), new t({
+				T(w) || (w = this.hex);
+				let E = R(this.hex, w, o);
+				return T(E) || (E = this.hex), new t({
 					theme: i,
 					bgColor: this,
-					lab: e(T).lab(),
+					lab: e(E).lab(),
 					ramp: r
 				});
 			}
-			let [s, l] = this._getMinMax(r), [u, f] = this._getMinMax(this.ramp), p = (this.lightness - u) / (f - u), m = (() => {
-				let e = (s + l) / 2;
-				return (this.lightness < e ? 1 : -1) * ((l - s) / 100);
-			})(), h = (() => {
+			let [s, c] = this._getMinMax(r), [u, d] = this._getMinMax(this.ramp), f = (this.lightness - u) / (d - u), m = (() => {
+				let e = (s + c) / 2;
+				return (this.lightness < e ? 1 : -1) * ((c - s) / 100);
+			})(), g = (() => {
 				let e = 1, t = 1, n = 1;
-				if ((o || i.contrastMultiplier < 1) && (e = i.contrastMultiplier), i.rescaleContrastToGrayRange && o && (t = Math.abs(p - .5) + .5), !o) {
-					let e = (s + l) / 2;
+				if ((o || i.contrastMultiplier < 1) && (e = i.contrastMultiplier), i.rescaleContrastToGrayRange && o && (t = Math.abs(f - .5) + .5), !o) {
+					let e = (s + c) / 2;
 					n = this.lightness < e ? i.endSignalLightness : 1 - i.startSignalLightness;
 				}
 				return e * t * n;
-			})(), g = (this.lightness + n * m * h - (r.startL ?? NaN)) / ((r.endL ?? NaN) - (r.startL ?? NaN)), [_, v, y] = this.lab, [b, x, S] = r(g), C = o || i.contrastMultiplier > 1 ? 1 : i.contrastMultiplier, w = [
-				_ + (b - _) * 1,
-				v + (x - v) * C,
-				y + (S - y) * C
+			})(), _ = (this.lightness + n * m * g - (r.startL ?? NaN)) / ((r.endL ?? NaN) - (r.startL ?? NaN)), [y, b, x] = this.lab, [S, C, w] = r(_), T = o || i.contrastMultiplier > 1 ? 1 : i.contrastMultiplier, E = [
+				y + (S - y) * 1,
+				b + (C - b) * T,
+				x + (w - x) * T
 			];
 			return new t({
 				theme: i,
 				bgColor: this,
-				lab: w,
+				lab: E,
 				ramp: r
 			});
 		});
 	}
 	direct(e) {
-		return this.theme.contrastMultiplier >= 0 && this.theme.contrastMultiplier < 1 ? F.at([
+		return this.theme.contrastMultiplier >= 0 && this.theme.contrastMultiplier < 1 ? z.at([
 			this,
 			"fadeDirect",
 			e
-		], () => this.fadeEnabled(e, (e, t) => e.direct(t))) : F.at([this.hex, e], () => {
+		], () => this.fadeEnabled(e, (e, t) => e.direct(t))) : z.at([this.hex, e], () => {
 			if (e.config.mode !== "direct") throw Error("Not allowed");
 			let { theme: n, baseRamp: r } = this, [i, a, o] = e((this.lightness - (r.startL ?? NaN)) / ((r.endL ?? NaN) - (r.startL ?? NaN))), [s, c, l] = this.lab, u = Math.min(n.contrastMultiplier, 1), d = [
 				s + (i - s) * u,
@@ -390,16 +405,16 @@ var B = class {
 		});
 	}
 	fadeEnabled(n, r) {
-		let i = I.get(this.theme);
-		i || (i = new w({
+		let i = B.get(this.theme);
+		i || (i = new j({
 			...this.theme.config,
 			contrastMultiplier: 1
-		}), I.set(this.theme, i));
+		}), B.set(this.theme, i));
 		let a = (e) => {
 			if (!e) return null;
 			let t = Object.keys(this.theme.ramps).find((t) => this.theme.ramps[t] === e);
 			return t === void 0 ? e : i.ramps[t];
-		}, o = L.get(this) ?? {
+		}, o = V.get(this) ?? {
 			color: new t({
 				theme: i,
 				lab: this.lab,
@@ -407,13 +422,13 @@ var B = class {
 				baseRamp: a(this.baseRamp)
 			}),
 			origin: this.hex
-		}, s = r(o.color, a(n)), c = P(o.origin, s.hex, this.theme.contrastMultiplier), l = new t({
+		}, s = r(o.color, a(n)), c = ne(o.origin, s.hex, this.theme.contrastMultiplier), l = new t({
 			theme: this.theme,
 			bgColor: this,
 			lab: e(c).lab(),
 			ramp: n
 		});
-		return L.set(l, {
+		return V.set(l, {
 			color: s,
 			origin: o.origin
 		}), l;
@@ -425,10 +440,10 @@ var B = class {
 			lab: this.lab,
 			ramp: this.ramp,
 			baseRamp: e
-		}), r = L.get(this);
+		}), r = V.get(this);
 		if (r) {
 			let t = Object.keys(this.theme.ramps).find((t) => this.theme.ramps[t] === e), i = t === void 0 ? e : r.color.theme.ramps[t];
-			L.set(n, {
+			V.set(n, {
 				color: r.color.base(i),
 				origin: r.origin
 			});
@@ -446,23 +461,23 @@ var B = class {
 		return !e || e.config.mode === "direct" ? [t.startL ?? NaN, t.endL ?? NaN] : [Math.max(e.startL ?? NaN, t.startL ?? NaN), Math.min(e.endL ?? NaN, t.endL ?? NaN)];
 	}
 };
-function H(t) {
+function G(t) {
 	return Math.max(0, e(t).get("lab.l"));
 }
 // src/core/relative.ts
-function U(t, n, r, i = 1, a = !0) {
+function ie(t, n, r, i = 1, a = !0) {
 	if (!Number.isFinite(i) || i < 0 || i > 1) throw RangeError("contrast must be between 0 and 1");
-	let o = Object.fromEntries(r.colors.slice(1, -1).map((e, t) => [`stop${t}`, e])), s = new w({
-		...x,
+	let o = Object.fromEntries(r.colors.slice(1, -1).map((e, t) => [`stop${t}`, e])), s = new j({
+		...O,
 		pallet: {
-			...x.pallet,
+			...O.pallet,
 			...n,
 			...o,
 			black: r.colors[0],
 			white: r.colors[r.colors.length - 1]
 		},
 		ramps: a ? {
-			...x.ramps,
+			...O.ramps,
 			gray: {
 				colors: [
 					"black",
@@ -471,23 +486,23 @@ function U(t, n, r, i = 1, a = !0) {
 				],
 				colorModel: r.colorModel
 			}
-		} : x.ramps,
+		} : O.ramps,
 		contrastMultiplier: i
 	});
-	return new V({
+	return new W({
 		theme: s,
 		lab: e(t).lab(),
 		ramp: s.ramps.gray
 	});
 }
 // src/core/theme.ts
-var W = [
+var K = [
 	"red",
 	"yellow",
 	"green",
 	"blue",
 	"purple"
-], G = [
+], q = [
 	"oklab",
 	"oklch",
 	"lab",
@@ -498,25 +513,30 @@ var W = [
 	"hsl",
 	"hsv",
 	"hsi"
-], K = {
+], J = {
 	red: "#d14457",
 	yellow: "#9d6f00",
 	green: "#298830",
 	blue: "#0082dc",
 	purple: "#a359b9"
-}, q = (e) => ({
+}, Y = (e) => ({
 	color: e,
 	luminance: a(e)
-}), J = (e, t) => (Math.max(e, t) + .05) / (Math.min(e, t) + .05);
-function Y(e, t, n, r = e) {
-	let i = t[0].color, o = 0, s = "", c = Infinity, l = a(e), u = a(r);
-	for (let { color: e, luminance: r } of t) {
-		let t = Math.min(J(l, r), J(u, r));
-		t > o && (i = e, o = t), t >= n && t < c && (s = e, c = t);
+}), X = {
+	foreground: 90,
+	muted: 60,
+	border: 30
+};
+function Z(e, t, n) {
+	let r = t[0].color, i = -1, a = "", o = Infinity;
+	for (let { color: s } of t) {
+		let t = f(e, s);
+		t > i && (r = s, i = t), t >= n && t < o && (a = s, o = t);
 	}
-	return s || i;
+	return a || r;
 }
-function X(t) {
+var Q = (e, t, n) => e.find((e) => t(e) >= n - 1e-9), ae = (e, t) => e.reduce((e, n) => t(n) > t(e) ? n : e);
+function $(t) {
 	let r = t.neutral !== void 0;
 	if (r && (t.dark !== void 0 || t.light !== void 0)) throw TypeError("Pass either neutral.colors or dark/light, not both");
 	let i = Object.freeze([...t.neutral?.colors ?? [t.dark ?? "#000000", t.light ?? "#ffffff"]]);
@@ -525,7 +545,7 @@ function X(t) {
 	let o = i[0], s = i[i.length - 1];
 	if (a(o) > a(s)) throw RangeError("dark must be darker than light");
 	let c = t.neutral?.colorModel ?? "oklab";
-	if (!G.includes(c)) throw TypeError(`Unknown color model: ${c}`);
+	if (!q.includes(c)) throw TypeError(`Unknown color model: ${c}`);
 	let l = e.scale([...i]).mode(c);
 	return {
 		custom: r,
@@ -535,87 +555,111 @@ function X(t) {
 		colorModel: c,
 		ramp: (e) => {
 			if (!Number.isFinite(e) || e < 0 || e > 1) throw RangeError("Mix amount must be between 0 and 1");
-			return r ? l(e).hex() : f(o, s, e);
+			return r ? l(e).hex() : y(o, s, e);
 		}
 	};
 }
-function Z(e = {}) {
-	let { custom: t, stops: r, dark: i, light: s, colorModel: l, ramp: u } = X(e), p = u(e.background ?? 1), m = Object.freeze({
-		...K,
+function oe(e = {}) {
+	let { custom: t, stops: r, dark: i, light: o, colorModel: s, ramp: c } = $(e), l = c(e.background ?? 1), u = Object.freeze({
+		...J,
 		...e.colors
 	});
-	for (let e of Object.values(m)) n(e);
-	let h = Array.from({ length: 257 }, (e, t) => q(u(t / 256))), g = h.map((e) => c(e.color)), _ = (e) => {
-		let [t, n, r] = c(e), i = -1, a = Infinity;
-		return g.forEach(([e, o, s], c) => {
+	for (let e of Object.values(u)) n(e);
+	let d = Array.from({ length: 257 }, (e, t) => Y(c(t / 256))).map((e) => h(e.color)), m = (e) => {
+		let [t, n, r] = h(e), i = -1, a = Infinity;
+		return d.forEach(([e, o, s], c) => {
 			let l = Math.hypot(t - e, n - o, r - s);
 			l < a && ([i, a] = [c, l]);
 		}), a < .01 ? i / 256 : void 0;
-	}, v = (e, n) => {
-		let r = t ? _(e) : void 0;
-		if (r === void 0) return (t) => f(e, n, t);
-		let a = n === i ? 0 : 1;
-		return (t) => t === 0 ? e : u(r + (a - r) * t);
-	}, y = c(i)[0], b = c(s)[0], x = Object.fromEntries(W.map((e) => {
-		let [, t, n] = c(m[e]);
-		return [e, Array.from({ length: 257 }, (e, r) => q(d([
+	}, g = (e) => {
+		let t = e * 256, n = Math.min(255, Math.floor(t)), r = t - n;
+		return d[n].map((e, t) => e + (d[n + 1][t] - e) * r);
+	}, _ = (e, n) => {
+		let r = n === i ? 0 : 1, a = t ? m(e) : void 0;
+		if (a !== void 0) return (t) => t === 0 ? e : c(a + (r - a) * t);
+		let o = h(e), s = 0;
+		d.forEach(([e], t) => {
+			Math.abs(e - o[0]) < Math.abs(d[s][0] - o[0]) && (s = t);
+		});
+		let l = d[s];
+		return (t) => {
+			if (t === 0) return e;
+			if (t === 1) return n;
+			let i = g(s / 256 + (r - s / 256) * t), a = [
+				1 - t,
+				1 - t ** 3,
+				1 - t ** 3
+			];
+			return v(i.map((e, t) => e + (o[t] - l[t]) * a[t]));
+		};
+	}, y = h(i)[0], b = h(o)[0], x = Object.fromEntries(K.map((e) => {
+		let [, t, n] = h(u[e]);
+		return [e, Array.from({ length: 257 }, (e, r) => Y(v([
 			y + (b - y) * r / 256,
 			t,
 			n
 		])))];
 	})), S = (e, t) => {
-		let n = a(e), r = o(e, s) > o(e, i), c = x[t].filter((e) => r ? e.luminance >= n : e.luminance <= n);
-		return c.length ? c : [q(e)];
-	}, C = /* @__PURE__ */ new Map(), w = (e = p, t = e) => {
+		let n = a(e), r = p(e, i, o) === o, s = x[t].filter((e) => r ? e.luminance >= n : e.luminance <= n);
+		return s.length ? s : [Y(e)];
+	}, C = Math.min(f(i, o), f(o, i)), w = Math.min(1, C / X.foreground), T = /* @__PURE__ */ new Map(), E = (e = l, t = e) => {
 		n(e), n(t);
-		let r = e + t, a = C.get(r);
+		let r = e + t, a = T.get(r);
 		if (a) return a;
-		let c = Math.max(o(e, i), o(e, s)), l = Math.min(1, (o(i, s) - 1) / 6), u = Object.freeze({
+		let s = p(e, i, o), c = (t) => {
+			let n = _(e, t);
+			return Array.from({ length: 257 }, (e, t) => n(t / 256));
+		}, u = c(s), d = (t) => f(e, t), m = Math.min(d(s), X.foreground), h = (e) => m * e / X.foreground, g = (e) => Math.min(d(e), f(t, e)), v = Q(u, g, h(X.border));
+		if (v === void 0) {
+			let e = c(s === o ? i : o);
+			v = Q(e, g, h(X.border)) ?? ae([...u, ...e], g);
+		}
+		let y = Object.freeze({
 			background: e,
-			foreground: Y(e, h, Math.min(7, c)),
-			muted: Y(e, h, Math.min(4.5, c)),
-			border: Y(e, h, 3, t),
-			...Object.fromEntries(W.map((t) => [t, Y(e, S(e, t), 1 + 3.5 * l)]))
+			foreground: Q(u, d, m) ?? s,
+			muted: Q(u, d, h(X.muted)) ?? s,
+			border: v,
+			...Object.fromEntries(K.map((t) => [t, Z(e, S(e, t), X.muted * w)]))
 		});
-		return C.size >= 512 && C.clear(), C.set(r, u), u;
-	}, T = /* @__PURE__ */ new Map(), E = a(i), D = a(s), O = o(i, s) >= 4.5, k = (e) => Math.max(J(e, E), J(e, D)) >= 4.5, A = (e, t) => {
-		let n = e + ":" + t, r = T.get(n);
+		return T.size >= 512 && T.clear(), T.set(r, y), y;
+	}, D = /* @__PURE__ */ new Map(), O = C >= X.muted, k = (e) => Math.max(f(e, i), f(e, o)) >= X.muted, A = (e, t) => {
+		let n = e + ":" + t, r = D.get(n);
 		if (r) return r;
-		let c;
+		let a;
 		if (typeof t == "string") {
-			if (!W.includes(t)) throw TypeError(`Unknown hue: ${t}`);
-			let n = S(e, t), r = O ? n.filter((e) => k(e.luminance)) : n, a = Math.min(1, (o(i, s) - 1) / 6);
-			c = Y(e, r.length ? r : n, 1 + 2 * a);
+			if (!K.includes(t)) throw TypeError(`Unknown hue: ${t}`);
+			let n = S(e, t), r = O ? n.filter((e) => k(e.color)) : n;
+			a = Z(e, r.length ? r : n, X.border * w);
 		} else {
-			let n = o(e, i) >= o(e, s) ? i : s, r = v(e, n);
-			if (c = r(t / 100), t !== 0 && O && !k(a(c))) {
+			let n = _(e, p(e, i, o));
+			if (a = n(t / 100), t !== 0 && O && !k(a)) {
 				let e = Infinity;
-				for (let n = 0; n <= 256; n++) {
-					let i = r(n / 256), o = Math.abs(n / 256 - t / 100);
-					o < e && k(a(i)) && (c = i, e = o);
+				for (let r = 0; r <= 256; r++) {
+					let i = n(r / 256), o = Math.abs(r / 256 - t / 100);
+					o < e && k(i) && (a = i, e = o);
 				}
 			}
 		}
-		return T.size >= 512 && T.clear(), T.set(n, c), c;
+		return D.size >= 512 && D.clear(), D.set(n, a), a;
 	}, j = Object.freeze({
 		colors: r,
-		colorModel: l
-	}), M = U(p, m, j, e.contrast, t);
+		colorModel: s
+	}), M = ie(l, u, j, e.contrast, t);
 	return Object.freeze({
-		background: p,
+		background: l,
 		dark: i,
-		light: s,
+		light: o,
 		neutral: j,
-		colors: m,
-		ramp: u,
-		tokens: w,
+		colors: u,
+		ramp: c,
+		tokens: E,
 		surface: A,
 		relative: M
 	});
 }
-function Q(e) {
+function se(e) {
 	return Object.fromEntries(Object.entries(e).map(([e, t]) => [`--huet-${e}`, t]));
 }
-export { c as _, X as a, V as c, x as d, p as f, u as g, s as h, W as i, H as l, a as m, Z as n, Q as o, o as p, K as r, B as s, G as t, w as u };
+export { m as _, $ as a, W as c, O as d, b as f, a as g, o as h, K as i, G as l, s as m, oe as n, se as o, c as p, J as r, U as s, q as t, j as u, _ as v, h as y };
 
-//# sourceMappingURL=theme-C2LgQ8y2.js.map
+//# sourceMappingURL=theme-MTtaYU1H.js.map

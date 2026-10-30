@@ -1,6 +1,6 @@
-import { _ as e, a as t, g as n, h as r, i, r as a } from "./theme-C2LgQ8y2.js";
+import { _ as e, a as t, h as n, i as r, m as i, p as a, r as o, v as s, y as c } from "./theme-MTtaYU1H.js";
 // src/core/gpu.ts
-var o = "#version 300 es\nin vec2 position;\nout vec2 uv;\nvoid main() {\n  uv = position * 0.5 + 0.5;\n  gl_Position = vec4(position, 0.0, 1.0);\n}", s = "#version 300 es\nprecision highp float;\nprecision highp sampler3D;\nuniform sampler2D image;\nuniform sampler3D lut;\nuniform float size;\nin vec2 uv;\nout vec4 color;\nvoid main() {\n  vec4 c = texture(image, vec2(uv.x, 1.0 - uv.y));\n  // Sample lattice centers so 0 and 1 hit the first and last LUT entries.\n  vec3 p = (c.rgb * (size - 1.0) + 0.5) / size;\n  color = vec4(texture(lut, p).rgb, c.a);\n}", c = class {
+var l = "#version 300 es\nin vec2 position;\nout vec2 uv;\nvoid main() {\n  uv = position * 0.5 + 0.5;\n  gl_Position = vec4(position, 0.0, 1.0);\n}", u = "#version 300 es\nprecision highp float;\nprecision highp sampler3D;\nuniform sampler2D image;\nuniform sampler3D lut;\nuniform float size;\nin vec2 uv;\nout vec4 color;\nvoid main() {\n  vec4 c = texture(image, vec2(uv.x, 1.0 - uv.y));\n  // Sample lattice centers so 0 and 1 hit the first and last LUT entries.\n  vec3 p = (c.rgb * (size - 1.0) + 0.5) / size;\n  color = vec4(texture(lut, p).rgb, c.a);\n}", d = class {
 	constructor() {
 		this.canvas = document.createElement("canvas"), this.textures = /* @__PURE__ */ new WeakMap(), this.scratch = null, this.currentLut = null;
 		let e = this.canvas.getContext("webgl2", {
@@ -10,7 +10,7 @@ var o = "#version 300 es\nin vec2 position;\nout vec2 uv;\nvoid main() {\n  uv =
 		if (!e) throw Error("WebGL2 is not available");
 		this.gl = e;
 		let t = e.createProgram();
-		for (let [n, r] of [[e.VERTEX_SHADER, o], [e.FRAGMENT_SHADER, s]]) {
+		for (let [n, r] of [[e.VERTEX_SHADER, l], [e.FRAGMENT_SHADER, u]]) {
 			let i = e.createShader(n);
 			if (e.shaderSource(i, r), e.compileShader(i), !e.getShaderParameter(i, e.COMPILE_STATUS)) throw Error(e.getShaderInfoLog(i) ?? "Shader error");
 			e.attachShader(t, i);
@@ -61,18 +61,18 @@ var o = "#version 300 es\nin vec2 position;\nout vec2 uv;\nvoid main() {\n  uv =
 		let e = /* @__PURE__ */ new Uint8Array(4);
 		this.gl.readPixels(0, 0, 1, 1, this.gl.RGBA, this.gl.UNSIGNED_BYTE, e);
 	}
-}, l = 6 / 29, u = (e) => e > l ? 1.16 * e - .16 : 24389 / 2700 * e ** 3, d = (e) => e > .08 ? (e + .16) / 1.16 : Math.cbrt(e * 2700 / 24389), f = (e) => e < l ? (e / l) ** 2 : 1, p = /* @__PURE__ */ new Map();
-function m(n) {
-	let r = JSON.stringify(n), o = p.get(r);
-	if (o) return o;
-	let { dark: s, light: c, neutral: l, colors: d } = n, { ramp: f } = t({
+}, f = (e) => e < .20689655172413793 ? (e / n) ** 2 : 1, p = /* @__PURE__ */ new Map();
+function m(e) {
+	let n = JSON.stringify(e), a = p.get(n);
+	if (a) return a;
+	let { dark: s, light: l, neutral: u, colors: d } = e, { ramp: f } = t({
 		dark: s,
-		light: c,
-		neutral: l
+		light: l,
+		neutral: u
 	}), m = /* @__PURE__ */ new Float64Array(257), h = /* @__PURE__ */ new Float64Array(257), g = /* @__PURE__ */ new Float64Array(257);
-	for (let t = 0; t < 257; t++) {
-		let [n, r, i] = e(f(t / 256));
-		m[t] = Math.max(u(n), t ? m[t - 1] : 0), h[t] = r, g[t] = i;
+	for (let e = 0; e < 257; e++) {
+		let [t, n, r] = c(f(e / 256));
+		m[e] = Math.max(i(t), e ? m[e - 1] : 0), h[e] = n, g[e] = r;
 	}
 	let _ = m[0], v = m[256], y = [0, 0], b = (e) => {
 		let t = _ + e * (v - _), n = 0, r = 256;
@@ -84,26 +84,26 @@ function m(n) {
 		}
 		let i = m[r] > m[n] ? (t - m[n]) / (m[r] - m[n]) : 0;
 		return y[0] = h[n] + i * (h[r] - h[n]), y[1] = g[n] + i * (g[r] - g[n]), y;
-	}, x = i.map((t) => e(d?.[t] ?? a[t]));
-	return o = {
+	}, x = r.map((e) => c(d?.[e] ?? o[e]));
+	return a = {
 		low: _,
 		high: v,
 		neutralAt: b,
 		a: Float64Array.from(x, (e) => e[1]),
 		b: Float64Array.from(x, (e) => e[2])
-	}, p.size >= 64 && p.clear(), p.set(r, o), o;
+	}, p.size >= 64 && p.clear(), p.set(n, a), a;
 }
 function h(e) {
-	let t = i.length, n = (t) => Math.atan2(e.b[t], e.a[t]), r = Array.from({ length: t }, (e, t) => t).sort((e, t) => n(e) - n(t)), a = r.map((n, i) => {
-		let a = r[(i + 1) % t], [o, s, c, l] = [
+	let t = r.length, n = (t) => Math.atan2(e.b[t], e.a[t]), a = Array.from({ length: t }, (e, t) => t).sort((e, t) => n(e) - n(t)), o = a.map((n, r) => {
+		let i = a[(r + 1) % t], [o, s, c, l] = [
 			e.a[n],
 			e.b[n],
-			e.a[a],
-			e.b[a]
+			e.a[i],
+			e.b[i]
 		], u = o * l - c * s;
 		return {
 			i0: n,
-			i1: a,
+			i1: i,
 			det: u,
 			m: [
 				l / u,
@@ -112,66 +112,66 @@ function h(e) {
 				o / u
 			]
 		};
-	}), { low: o, high: s } = e, c = s - o || 1, l = {
+	}), { low: s, high: c } = e, l = c - s || 1, u = {
 		t: 0,
 		i0: 0,
 		i1: 0,
 		w0: 0,
 		w1: 0
 	};
-	return ([n, r, i]) => {
-		let s = (u(n) - o) / c, [d, p] = e.neutralAt(s), m = f(n), h = (r - d) * m, g = (i - p) * m;
-		if (l.t = s, l.w0 = l.w1 = 0, h * h + g * g < 1e-10) return l;
-		for (let { i0: e, i1: t, det: n, m: r } of a) {
+	return ([n, r, a]) => {
+		let c = (i(n) - s) / l, [d, p] = e.neutralAt(c), m = f(n), h = (r - d) * m, g = (a - p) * m;
+		if (u.t = c, u.w0 = u.w1 = 0, h * h + g * g < 1e-10) return u;
+		for (let { i0: e, i1: t, det: n, m: r } of o) {
 			if (n <= 1e-12) continue;
 			let i = r[0] * h + r[1] * g, a = r[2] * h + r[3] * g;
-			if (i >= -1e-9 && a >= -1e-9) return Object.assign(l, {
+			if (i >= -1e-9 && a >= -1e-9) return Object.assign(u, {
 				i0: e,
 				i1: t,
 				w0: Math.max(0, i),
 				w1: Math.max(0, a)
-			}), l;
+			}), u;
 		}
 		let _ = -Infinity;
 		for (let n = 0; n < t; n++) {
 			let t = e.a[n] ** 2 + e.b[n] ** 2, r = (h * e.a[n] + g * e.b[n]) / (t || 1), i = r * Math.sqrt(t);
-			i > _ && (Object.assign(l, {
+			i > _ && (Object.assign(u, {
 				i0: n,
 				i1: n,
 				w0: Math.max(0, r),
 				w1: 0
 			}), _ = i);
 		}
-		return l;
+		return u;
 	};
 }
-function g([e, t, n], a = {}) {
-	let { t: o, i0: s, i1: c, w0: l, w1: u } = h(m(a))(r(e, t, n)), d = {};
-	return l > 1e-6 && (d[i[s]] = l), u > 1e-6 && (d[i[c]] = (d[i[c]] ?? 0) + u), {
+function g([t, n, i], a = {}) {
+	let { t: o, i0: s, i1: c, w0: l, w1: u } = h(m(a))(e(t, n, i)), d = {};
+	return l > 1e-6 && (d[r[s]] = l), u > 1e-6 && (d[r[c]] = (d[r[c]] ?? 0) + u), {
 		t: o,
 		weights: d
 	};
 }
-function _(e, t = {}) {
-	let i = t.strength ?? 1, a = t.tint ?? 1;
-	if (!(i >= 0 && i <= 1)) throw RangeError("strength must be between 0 and 1");
-	if (!(a >= 0 && a <= 1)) throw RangeError("tint must be between 0 and 1");
-	let o = h(m(t.source ?? {})), s = m(e), { low: c, high: l } = s;
-	return (e, u, p) => {
-		let m = r(e, u, p), { t: h, i0: g, i1: _, w0: v, w1: y } = o(m), b = t.invert ? 1 - h : h, x = a + (1 - a) * Math.max(0, 1 - v - y), S = d(c + b * (l - c)), C = 1 / Math.max(f(S), 1e-6), [w, T] = s.neutralAt(b), E = [
+function _(t, n = {}) {
+	let r = n.strength ?? 1, i = n.tint ?? 1;
+	if (!(r >= 0 && r <= 1)) throw RangeError("strength must be between 0 and 1");
+	if (!(i >= 0 && i <= 1)) throw RangeError("tint must be between 0 and 1");
+	let o = h(m(n.source ?? {})), c = m(t), { low: l, high: u } = c;
+	return (t, d, p) => {
+		let m = e(t, d, p), { t: h, i0: g, i1: _, w0: v, w1: y } = o(m), b = n.invert ? 1 - h : h, x = i + (1 - i) * Math.max(0, 1 - v - y), S = a(l + b * (u - l)), C = 1 / Math.max(f(S), 1e-6), [w, T] = c.neutralAt(b), E = [
 			S,
-			x * w + C * (v * s.a[g] + y * s.a[_]),
-			x * T + C * (v * s.b[g] + y * s.b[_])
+			x * w + C * (v * c.a[g] + y * c.a[_]),
+			x * T + C * (v * c.b[g] + y * c.b[_])
 		];
-		return n(i === 1 ? E : m.map((e, t) => e + (E[t] - e) * i));
+		return s(r === 1 ? E : m.map((e, t) => e + (E[t] - e) * r));
 	};
 }
-function v(e, t, r) {
-	let { low: a, high: o, neutralAt: s, a: c, b: l } = m(e), u = r ? i.indexOf(r) : -1, [f, p] = s(t);
-	return n([
-		d(a + t * (o - a)),
-		f + (u >= 0 ? c[u] : 0),
-		p + (u >= 0 ? l[u] : 0)
+function v(e, t, n) {
+	let { low: i, high: o, neutralAt: c, a: l, b: u } = m(e), d = n ? r.indexOf(n) : -1, [f, p] = c(t);
+	return s([
+		a(i + t * (o - i)),
+		f + (d >= 0 ? l[d] : 0),
+		p + (d >= 0 ? u[d] : 0)
 	]);
 }
 function y(e, t = 33) {
@@ -232,7 +232,7 @@ function T(e, { lutSize: t = 17, ...n }) {
 }
 var E, D = () => {
 	if (E === void 0) try {
-		E = new c();
+		E = new d();
 	} catch {
 		E = null;
 	}
@@ -389,6 +389,6 @@ function M(e, t, n = {}) {
 		}
 	};
 }
-export { c as GpuRecolor, b as applyLut, x as applyTransform, y as buildLut, g as coordinatesOf, O as hasGpu, M as mountImages, C as paletteOf, v as rampColor, A as recolorImage, _ as recolorer, S as toCube };
+export { d as GpuRecolor, b as applyLut, x as applyTransform, y as buildLut, g as coordinatesOf, O as hasGpu, M as mountImages, C as paletteOf, v as rampColor, A as recolorImage, _ as recolorer, S as toCube };
 
 //# sourceMappingURL=images.js.map
