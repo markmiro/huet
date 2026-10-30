@@ -12,8 +12,8 @@ async function setup(page: Page, { webgl = true } = {}) {
   await page.goto("/lab.html");
   await page.evaluate(async () => {
     const w = window as any;
-    w.images = await import("/src/core/images.ts");
-    w.core = await import("/src/core/index.ts");
+    w.images = await import("/packages/huet/src/core/images.ts");
+    w.core = await import("/packages/huet/src/core/index.ts");
     // A gray ramp over a band of the default theme's hue anchors.
     const canvas = document.createElement("canvas");
     canvas.width = 64;

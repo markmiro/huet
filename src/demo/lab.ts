@@ -4,9 +4,9 @@ import {
   contrastRatio,
   type ColorModel,
   type ThemeOptions,
-} from "../core";
-import { toOklab } from "../core/color";
-import "../core/styles.css";
+} from "huet";
+import { toOklab } from "../../packages/huet/src/core/color";
+import "huet/styles.css";
 import "./lab.css";
 
 const shell = document.querySelector<HTMLElement>("#lab")!;

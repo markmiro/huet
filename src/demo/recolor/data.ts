@@ -1,6 +1,6 @@
-import type { Palette } from "../../core/recolor";
-import { hues } from "../../core/theme";
-import themeConfigs from "../themeConfigs";
+import type { Palette } from "huet/images";
+import { hues } from "huet";
+import { themeConfigs } from "huet/config";
 
 export interface RecolorTheme extends Palette {
   name: string;

@@ -1,0 +1,88 @@
+{
+  "name": "huet",
+  "version": "1.0.0-alpha.1",
+  "description": "Relative UI colors and themed images from one theme, for any framework",
+  "license": "MIT",
+  "author": "Mark Miro",
+  "homepage": "https://markmiro.github.io/huet/",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/markmiro/huet.git",
+    "directory": "packages/huet"
+  },
+  "bugs": {
+    "url": "https://github.com/markmiro/huet/issues"
+  },
+  "keywords": [
+    "huet",
+    "theme",
+    "color",
+    "contrast",
+    "oklab",
+    "tailwind",
+    "image recolor"
+  ],
+  "type": "module",
+  "sideEffects": [
+    "**/*.css"
+  ],
+  "exports": {
+    ".": "./src/core/index.ts",
+    "./core": "./src/core/index.ts",
+    "./images": "./src/core/images.ts",
+    "./config": "./src/config.ts",
+    "./styles.css": "./src/core/styles.css",
+    "./tailwind.css": "./src/core/tailwind.css",
+    "./package.json": "./package.json"
+  },
+  "publishConfig": {
+    "main": "./dist/index.cjs",
+    "module": "./dist/index.js",
+    "types": "./dist/core/index.d.ts",
+    "exports": {
+      ".": {
+        "types": "./dist/core/index.d.ts",
+        "import": "./dist/index.js",
+        "require": "./dist/index.cjs"
+      },
+      "./core": {
+        "types": "./dist/core/index.d.ts",
+        "import": "./dist/index.js",
+        "require": "./dist/index.cjs"
+      },
+      "./images": {
+        "types": "./dist/core/images.d.ts",
+        "import": "./dist/images.js",
+        "require": "./dist/images.cjs"
+      },
+      "./config": {
+        "types": "./dist/config.d.ts",
+        "import": "./dist/config.js",
+        "require": "./dist/config.cjs"
+      },
+      "./styles.css": "./dist/styles.css",
+      "./tailwind.css": "./dist/tailwind.css",
+      "./package.json": "./package.json"
+    },
+    "bin": {
+      "huet": "./dist/check.mjs"
+    }
+  },
+  "files": [
+    "dist"
+  ],
+  "scripts": {
+    "build": "vite build && node scripts/copy-css.mjs",
+    "prepack": "pnpm run build"
+  },
+  "dependencies": {
+    "@types/chroma-js": "^3.1.3",
+    "chroma-js": "^2.6.0"
+  },
+  "devDependencies": {
+    "@typescript/typescript6": "^6.0.2",
+    "typescript": "^7.0.2",
+    "vite": "^8.3.4",
+    "vite-plugin-dts": "^5.1.2"
+  }
+}

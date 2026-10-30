@@ -3,7 +3,7 @@ import { test, expect } from "@playwright/test";
 test("explicit contrast classes render original colors and update live", async ({ page }) => {
   await page.goto("/lab.html");
   const result = await page.evaluate(async () => {
-    const modulePath = "/src/core/index.ts";
+    const modulePath = "/packages/huet/src/core/index.ts";
     const { createTheme, mountTheme } = await import(modulePath);
     const root = document.createElement("div");
     root.innerHTML = `<section class="huet-bg-gray-60"><div>

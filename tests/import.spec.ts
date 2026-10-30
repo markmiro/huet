@@ -1,6 +1,6 @@
 import { test, expect, type Page } from "@playwright/test";
 
-import baseThemeConfig from "../src/private/baseThemeConfig";
+import baseThemeConfig from "../packages/huet/src/private/baseThemeConfig";
 
 // No `id`, like a hand-written theme file
 const { id: _id, ...theme } = { ...baseThemeConfig, name: "Import Test" };

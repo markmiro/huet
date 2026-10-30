@@ -1,7 +1,7 @@
 import { test, expect, type Page } from "@playwright/test";
-import { toOklab, contrastRatio, luminance } from "../src/core/color";
+import { toOklab, contrastRatio, luminance } from "../packages/huet/src/core/color";
 import { writeFileSync } from "node:fs";
-import baseThemeConfig from "../src/private/baseThemeConfig";
+import baseThemeConfig from "../packages/huet/src/private/baseThemeConfig";
 const screenshots = process.env.HUET_SCREENSHOTS ?? "test-results/screenshots";
 const rampButton = (page: Page, ramp: string) =>
   page.getByRole("group", { name: "Background ramp" }).getByRole("button", { name: ramp, exact: true });

@@ -1,3 +1,5 @@
+> **Removed.** The React components described here (`Block`, `Body`, `Contrast`, and the theme contexts) were removed in 1.0.0-alpha.1. Use Huet classes with `mountTheme` from [`huet`](../packages/huet/README.md), and [`huet-react`](../packages/huet-react/README.md) for the theme configurator. This page is kept for reference.
+
 # Huet ([alpha](#future-developments))
 
 **NOTE: THIS PROJECT IS UNDER ACTIVE CONSTRUCTION AND LIKELY DOESN'T WORK**
