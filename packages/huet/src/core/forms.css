@@ -462,6 +462,14 @@
   [data-huet-forms] :where(input, textarea, select, button):disabled {
     cursor: not-allowed;
   }
+  /* A disabled slider's thumb and filled track fade with its text color, so its
+     unfilled track fades by the same amount */
+  [data-huet-forms] :where(input[type="range"]:disabled)::-webkit-slider-runnable-track {
+    background-color: color-mix(in srgb, var(--_line) 35%, var(--huet-background));
+  }
+  [data-huet-forms] :where(input[type="range"]:disabled)::-moz-range-track {
+    background-color: color-mix(in srgb, var(--_line) 35%, var(--huet-background));
+  }
   /* Disabled controls lose their outline and get a flat fill instead */
   [data-huet-forms]
     :where(
