@@ -7,6 +7,7 @@ import {
   mix,
   rgb,
   toOklab,
+  type Triple,
 } from "./color";
 export const hues = ["red", "yellow", "green", "blue", "purple"] as const;
 export type Hue = (typeof hues)[number];
@@ -142,21 +143,42 @@ export function createTheme(options: ThemeOptions = {}) {
     });
     return distance < 0.01 ? best / 256 : undefined;
   };
+  /** The neutral ramp in OKLab at any position, between the precomputed samples. */
+  const rampLab = (t: number): Triple => {
+    const x = t * 256,
+      i = Math.min(255, Math.floor(x)),
+      f = x - i;
+    return neutralLab[i].map((v, k) => v + (neutralLab[i + 1][k] - v) * f) as unknown as Triple;
+  };
   // Neutral surfaces follow the ramp's path (and its hues) when they start on it.
-  // Colored parents fall back to a straight OKLab mix toward the endpoint.
+  // Colored parents follow the same shape from the ramp position with their
+  // lightness, offset by their own color, which fades out toward the endpoint.
+  // On a straight two-stop ramp that is exactly an OKLab mix toward the endpoint.
   const path = (parent: string, end: string) => {
+    const to = end === dark ? 0 : 1;
     const from = custom ? positionOf(parent) : undefined;
-    if (from === undefined) {
+    if (from !== undefined)
+      return (amount: number) =>
+        amount === 0 ? parent : ramp(from + (to - from) * amount);
+    const x = toOklab(parent);
+    if (!custom) {
       // Same as mix(parent, end, amount), converting the endpoints once.
-      const x = toOklab(parent),
-        y = toOklab(end);
+      const y = toOklab(end);
       return (amount: number) =>
         amount === 0 ? parent : amount === 1 ? end
-          : fromOklab(x.map((v, i) => v + (y[i] - v) * amount) as unknown as typeof x);
+          : fromOklab(x.map((v, i) => v + (y[i] - v) * amount) as unknown as Triple);
     }
-    const to = end === dark ? 0 : 1;
-    return (amount: number) =>
-      amount === 0 ? parent : ramp(from + (to - from) * amount);
+    let start = 0;
+    neutralLab.forEach(([L], i) => {
+      if (Math.abs(L - x[0]) < Math.abs(neutralLab[start][0] - x[0])) start = i;
+    });
+    const origin = neutralLab[start];
+    return (amount: number) => {
+      if (amount === 0) return parent;
+      if (amount === 1) return end;
+      const base = rampLab(start / 256 + (to - start / 256) * amount);
+      return fromOklab(base.map((v, i) => v + (x[i] - origin[i]) * (1 - amount)) as unknown as Triple);
+    };
   };
   const low = toOklab(dark)[0],
     high = toOklab(light)[0];

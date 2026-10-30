@@ -312,6 +312,25 @@ describe("preset roles", () => {
       }
     }
   });
+  it("follows a multi-hue ramp's shape on colored surfaces", () => {
+    // Sunset's HCL ramp passes through mauve and salmon; a straight mix from a
+    // blue surface to the yellow text would pass through olive instead.
+    for (const name of ["Sunset", "A Box of Macaroni"]) {
+      const theme = themeFromConfig(themes.find((x) => x.name === name)!);
+      const samples = Array.from({ length: 257 }, (_, i) => theme.ramp(i / 256));
+      const lightness = (hex: string) => toOklab(hex)[0];
+      const rampAt = (hex: string) => samples.reduce((a, b) =>
+        Math.abs(lightness(b) - lightness(hex)) < Math.abs(lightness(a) - lightness(hex)) ? b : a);
+      for (const ramp of ["blue", "red", "green"]) {
+        const bg = theme.relative.contrast(25, theme.relative.theme.ramps[ramp]).hex;
+        const t = theme.tokens(bg, theme.background);
+        for (const color of [t.muted, t.border]) {
+          const gap = Math.abs(hue(color) - hue(rampAt(color)));
+          expect(Math.min(gap, 2 * Math.PI - gap), `${name} ${ramp} ${color}`).toBeLessThan(0.5);
+        }
+      }
+    }
+  });
   it("tints muted and border with a colored surface's hue", () => {
     for (const theme of [base, themeFromConfig(themes.find((x) => x.name === "Base Inverted")!), orangeBoost]) {
       const { relative } = theme;
