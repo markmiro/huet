@@ -1,0 +1,312 @@
+---
+import Section from "../components/Section.astro";
+import Demo from "../layouts/Demo.astro";
+
+const textFields = [
+  { label: "Name", type: "text", placeholder: "Ada Lovelace" },
+  { label: "Email", type: "email", value: "ada@", invalid: "Enter a complete email address" },
+  { label: "Password", type: "password", value: "hunter2" },
+  { label: "Search", type: "search", value: "relative colors" },
+  { label: "Website", type: "url", placeholder: "https://example.com" },
+  { label: "Phone", type: "tel", placeholder: "555 0100" },
+  { label: "Quantity", type: "number", value: "3" },
+  { label: "Fruit", type: "text", list: "fruits", placeholder: "Pick or type one" },
+  { label: "Disabled", type: "text", value: "Can't change this", disabled: true },
+  { label: "Read-only", type: "text", value: "Can select this", readonly: true },
+];
+const dateFields = [
+  { label: "Date", type: "date", value: "2026-10-29" },
+  { label: "Time", type: "time", value: "09:30" },
+  { label: "Date and time", type: "datetime-local", value: "2026-10-29T09:30" },
+  { label: "Month", type: "month", value: "2026-10" },
+  { label: "Week", type: "week", value: "2026-W44" },
+];
+const meters = [
+  { label: "Battery (optimum)", value: 0.8 },
+  { label: "Battery (low)", value: 0.35 },
+  { label: "Battery (critical)", value: 0.1 },
+];
+const field = "grid content-start gap-1";
+const fieldInput = "w-full";
+const hint = "huet-text-50 text-sm";
+const grid = "grid grid-cols-[repeat(auto-fill,minmax(14em,1fr))] gap-x-6 gap-y-4";
+---
+<Demo title="Forms">
+  <div class="mx-auto max-w-[60em] p-8">
+    <h1 data-theme-name class="my-[0.67em] border-b-[.125em] pb-1 text-5xl font-bold">&nbsp;</h1>
+    <p class="huet-text-50 max-w-[42em]">
+      Native form controls, first as the browser draws them, then with Huet's minimal form styles.
+      Turn the styles on to theme every part of every control, such as a slider's track, thumb and
+      filled part, from the theme you pick in the configurator.
+    </p>
+
+    <div class="huet-bg-6 mt-6 flex flex-wrap items-center gap-x-8 gap-y-4 rounded p-4">
+      <label data-huet-forms class="flex items-center gap-3 font-bold">
+        <input data-toggle-styles type="checkbox" role="switch" />
+        Minimal styling
+      </label>
+      <div class="grid gap-1 text-sm">
+        <span class="huet-text-50">Add it to your app:</span>
+        <code class="font-mono">@import "huet/forms.css";</code>
+        <code class="font-mono">&lt;form data-huet-forms&gt;…&lt;/form&gt;</code>
+      </div>
+    </div>
+
+    <form data-forms-demo>
+      <Section title="Text fields">
+        <div class={grid}>
+          {textFields.map((input) => (
+            <label class={field}>
+              {input.label}
+              <input
+                class={fieldInput}
+                type={input.type}
+                value={input.value}
+                placeholder={input.placeholder}
+                list={input.list}
+                disabled={input.disabled}
+                readonly={input.readonly}
+                aria-invalid={input.invalid ? "true" : undefined}
+              />
+              {input.invalid && <span class="huet-text-red-100 text-sm">{input.invalid}</span>}
+            </label>
+          ))}
+          <datalist id="fruits">
+            <option value="Apple" />
+            <option value="Banana" />
+            <option value="Cherry" />
+          </datalist>
+        </div>
+        <label class={`${field} mt-4`}>
+          Message
+          <textarea class={fieldInput} rows="3" placeholder="Write a few lines…"></textarea>
+          <span class={hint}>Fields use the surface's border color and keep its background.</span>
+        </label>
+      </Section>
+
+      <Section title="Selects">
+        <div class={grid}>
+          <label class={field}>
+            Plan
+            <select class={fieldInput}>
+              <option>Free</option>
+              <option selected>Pro</option>
+              <option>Team</option>
+              <option disabled>Enterprise (contact us)</option>
+            </select>
+          </label>
+          <label class={field}>
+            Timezone
+            <select class={fieldInput}>
+              <optgroup label="Americas">
+                <option>Los Angeles</option>
+                <option>New York</option>
+              </optgroup>
+              <optgroup label="Europe">
+                <option>London</option>
+                <option>Berlin</option>
+              </optgroup>
+            </select>
+          </label>
+          <label class={field}>
+            Disabled
+            <select class={fieldInput} disabled>
+              <option>Can't open this</option>
+            </select>
+          </label>
+          <label class={field}>
+            Toppings (multiple)
+            <select class={fieldInput} multiple size="4">
+              <option selected>Cheese</option>
+              <option>Mushrooms</option>
+              <option selected>Olives</option>
+              <option>Peppers</option>
+            </select>
+          </label>
+        </div>
+      </Section>
+
+      <Section title="Checkboxes, radios and switches">
+        <div class={grid}>
+          <fieldset class="grid content-start gap-2">
+            <legend>Checkboxes</legend>
+            <label class="flex items-center gap-2"><input type="checkbox" checked /> Checked</label>
+            <label class="flex items-center gap-2"><input type="checkbox" /> Unchecked</label>
+            <label class="flex items-center gap-2"><input data-indeterminate type="checkbox" /> Indeterminate</label>
+            <label class="flex items-center gap-2"><input type="checkbox" disabled /> Disabled</label>
+            <label class="flex items-center gap-2"><input type="checkbox" checked disabled /> Disabled, checked</label>
+          </fieldset>
+          <fieldset class="grid content-start gap-2">
+            <legend>Shipping</legend>
+            <label class="flex items-center gap-2"><input type="radio" name="shipping" checked /> Standard</label>
+            <label class="flex items-center gap-2"><input type="radio" name="shipping" /> Express</label>
+            <label class="flex items-center gap-2"><input type="radio" name="shipping" /> Overnight</label>
+            <label class="flex items-center gap-2"><input type="radio" name="shipping" disabled /> Drone (disabled)</label>
+          </fieldset>
+          <fieldset class="grid content-start gap-2">
+            <legend>Switches</legend>
+            <label class="flex items-center gap-2"><input type="checkbox" role="switch" checked /> Notifications</label>
+            <label class="flex items-center gap-2"><input type="checkbox" role="switch" /> Newsletter</label>
+            <label class="flex items-center gap-2"><input type="checkbox" role="switch" checked disabled /> Required (disabled)</label>
+            <label class="huet-text-blue-100 flex items-center gap-2"><input type="checkbox" role="switch" checked /> Blue, from huet-text-blue-100</label>
+          </fieldset>
+        </div>
+      </Section>
+
+      <Section title="Sliders, progress and meters">
+        <div class={grid}>
+          <label class={field}>
+            Volume
+            <input class={fieldInput} type="range" value="40" />
+          </label>
+          <label class={field}>
+            Steps of 10
+            <input class={fieldInput} type="range" step="10" value="70" />
+          </label>
+          <label class={field}>
+            Disabled
+            <input class={fieldInput} type="range" value="25" disabled />
+          </label>
+          <label class={`${field} huet-text-blue-100`}>
+            Blue, from huet-text-blue-100
+            <input class={fieldInput} type="range" value="60" />
+          </label>
+          <label class={field}>
+            Upload, 30%
+            <progress class={fieldInput} max="100" value="30">30%</progress>
+          </label>
+          <label class={field}>
+            Upload, 75%
+            <progress class={fieldInput} max="100" value="75">75%</progress>
+          </label>
+          <label class={field}>
+            Loading (indeterminate)
+            <progress class={fieldInput}>Loading</progress>
+          </label>
+          <div></div>
+          {meters.map((meter) => (
+            <label class={field}>
+              {meter.label}
+              <meter class={fieldInput} min="0" max="1" low="0.25" high="0.5" optimum="1" value={meter.value}>
+                {meter.value * 100}%
+              </meter>
+            </label>
+          ))}
+        </div>
+        <p class={`${hint} mt-4`}>
+          Tracks use the surface's border color. Thumbs and filled parts use the text color, and meters
+          use the theme's green, yellow and red.
+        </p>
+      </Section>
+
+      <Section title="Dates and times">
+        <div class={grid}>
+          {dateFields.map((input) => (
+            <label class={field}>
+              {input.label}
+              <input class={fieldInput} type={input.type} value={input.value} />
+            </label>
+          ))}
+        </div>
+      </Section>
+
+      <Section title="Colors and files">
+        <div class={grid}>
+          <label class={field}>
+            Accent color
+            <input type="color" value="#0082dc" />
+          </label>
+          <label class={field}>
+            Avatar
+            <input type="file" />
+          </label>
+          <label class={field}>
+            Attachments (disabled)
+            <input type="file" multiple disabled />
+          </label>
+        </div>
+      </Section>
+
+      <Section title="Buttons">
+        <div class="flex flex-wrap gap-3">
+          <button type="submit">Save changes</button>
+          <button type="button">Cancel</button>
+          <input type="reset" value="Reset" />
+          <input type="button" value="Input button" />
+          <button type="button" disabled>Disabled</button>
+          <button type="submit" disabled>Submit disabled</button>
+        </div>
+      </Section>
+
+      <Section title="On other surfaces">
+        <p class={`${hint} -mt-12 mb-6`}>
+          The same controls inside Huet surfaces take their colors from the surface they're on.
+        </p>
+        <div class="grid gap-4 md:grid-cols-2">
+          {["huet-bg-100", "huet-bg-blue-25"].map((surface) => (
+            <fieldset class={`${surface} grid gap-3 rounded border-0 p-4`}>
+              <legend class="float-left mb-1 p-0 font-bold">{surface}</legend>
+              <label class={field}>
+                Project name
+                <input class={fieldInput} type="text" placeholder="Untitled" />
+              </label>
+              <label class={field}>
+                Visibility
+                <select class={fieldInput}>
+                  <option>Private</option>
+                  <option>Public</option>
+                </select>
+              </label>
+              <label class={field}>
+                Opacity
+                <input class={fieldInput} type="range" value="65" />
+              </label>
+              <progress class={fieldInput} max="100" value="45">45%</progress>
+              <div class="flex flex-wrap items-center gap-4">
+                <label class="flex items-center gap-2"><input type="checkbox" checked /> Starred</label>
+                <label class="flex items-center gap-2"><input type="radio" name={surface} checked /> On</label>
+                <label class="flex items-center gap-2"><input type="radio" name={surface} /> Off</label>
+                <label class="flex items-center gap-2"><input type="checkbox" role="switch" checked /> Sync</label>
+              </div>
+              <div class="flex gap-3">
+                <button type="submit">Create</button>
+                <button type="button">Cancel</button>
+              </div>
+            </fieldset>
+          ))}
+        </div>
+      </Section>
+    </form>
+  </div>
+</Demo>
+
+<script>
+  const key = "huet:demo:forms:styled";
+  const form = document.querySelector<HTMLFormElement>("[data-forms-demo]")!;
+  const toggle = document.querySelector<HTMLInputElement>("[data-toggle-styles]")!;
+
+  const render = () => form.toggleAttribute("data-huet-forms", toggle.checked);
+  try {
+    toggle.checked = localStorage.getItem(key) === "true";
+  } catch {
+    // Storage may be unavailable
+  }
+  toggle.addEventListener("change", () => {
+    try {
+      localStorage.setItem(key, String(toggle.checked));
+    } catch {
+      // Storage may be unavailable
+    }
+    render();
+  });
+  render();
+
+  // Indeterminate can only be set from script
+  for (const box of form.querySelectorAll<HTMLInputElement>("[data-indeterminate]")) box.indeterminate = true;
+  form.addEventListener("submit", (event) => event.preventDefault());
+  form.addEventListener("reset", () =>
+    requestAnimationFrame(() => {
+      for (const box of form.querySelectorAll<HTMLInputElement>("[data-indeterminate]")) box.indeterminate = true;
+    }),
+  );
+</script>

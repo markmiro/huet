@@ -1,5 +1,6 @@
 @import "tailwindcss" source(none);
 @import "huet/tailwind.css";
+@import "huet/forms.css";
 @source "../";
 
 /* The configurator applies the saved theme after it loads. Until then, hide
