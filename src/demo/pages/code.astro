@@ -1,0 +1,290 @@
+---
+import { transformerNotationDiff, transformerNotationHighlight } from "@shikijs/transformers";
+import { Code } from "astro:components";
+import { codeRoles, huetShikiTheme, huetShikiTransformer, type CodeRole } from "huet";
+import { themeConfigs } from "huet/config";
+import Section from "../components/Section.astro";
+import Demo from "../layouts/Demo.astro";
+import { card, languages, post, rows } from "../code/samples";
+
+// Highlighted once, at build time, like Markdown code blocks on markmiro.com.
+const theme = huetShikiTheme();
+const transformers = [huetShikiTransformer()];
+// `// [!code ++]`, `// [!code --]` and `// [!code highlight]` mark rows; Huet makes them surfaces.
+const notation = [transformerNotationDiff(), transformerNotationHighlight()];
+// Code block backgrounds stay near either end of the ramp: the page's side
+// (0–25) or the opposite side (75–100), never the mid-ramp grays.
+const surfaces = [0, 5, 10, 15, 20, 25, 75, 80, 85, 90, 95, 100];
+const roles = (Object.keys(codeRoles) as CodeRole[]).filter((r) => r !== "background" && r !== "punctuation");
+const role = (r: CodeRole) => `var(--huet-code-${r}, ${codeRoles[r]})`;
+const cards = themeConfigs.filter((config) => config.name);
+const inline = "huet-bg-10 rounded-xs px-1 font-mono text-[0.9em]";
+---
+<Demo title="Code">
+  <div class="mx-auto max-w-[70em] p-8">
+    <h1 data-theme-name class="my-[0.67em] border-b-[.125em] pb-1 text-5xl font-bold">&nbsp;</h1>
+    <p class="huet-text-50 max-w-[44em]">
+      Code here is highlighted once, at build time, with
+      <code class={inline}>huetShikiTheme()</code>: a Shiki theme whose colors are Huet variables
+      such as <code class={inline}>var(--huet-code-keyword, var(--huet-red))</code>. The theme you
+      pick in the configurator fills them in for each block's own background. Nothing is re-highlighted.
+    </p>
+    <label class="mt-6 block max-w-[28em]" title="The Huet background class on each <pre>, relative to the page. Skips the middle of the ramp.">
+      <span class="mb-1 flex justify-between">
+        Code block background
+        <output id="surface-value" class="huet-text-50 font-mono text-sm">huet-bg-5</output>
+      </span>
+      <input id="surface" type="range" min="0" max={surfaces.length - 1} step="1" value="1" list="surface-ticks" data-surfaces={surfaces.join(",")} class="block w-full accent-current" />
+      <datalist id="surface-ticks">{surfaces.map((_, i) => <option value={i} />)}</datalist>
+      <span class="huet-text-50 flex justify-between text-xs"><span>page's side · 0–25</span><span>opposite side · 75–100</span></span>
+    </label>
+
+    <Section title="Before and after">
+      <p class="huet-text-50 -mt-12 mb-6 text-sm">The same Shiki output for a markmiro.com snippet</p>
+      <div class="grid gap-6 md:grid-cols-2">
+        <figure>
+          <figcaption class="huet-text-50 mb-2 text-sm">markmiro.com today · <code class={inline}>github-dark</code>, fixed colors</figcaption>
+          <div id="before"><Code code={post.sales.code} lang={post.sales.lang} theme="github-dark" /></div>
+        </figure>
+        <figure>
+          <figcaption class="huet-text-50 mb-2 text-sm">Huet theme · follows the configurator</figcaption>
+          <div id="after"><Code code={post.sales.code} lang={post.sales.lang} theme={theme} transformers={transformers} /></div>
+        </figure>
+      </div>
+    </Section>
+
+    <Section title="In a post">
+      <div class="grid items-start gap-10 lg:grid-cols-[minmax(0,1fr)_20em]">
+        <article class="post max-w-[44em] space-y-4">
+          <h3 class="text-2xl font-bold">How I learned to code</h3>
+          <p>In Flash, you could write XML right in your code, which looked a lot like JSX does today:</p>
+          <figure><Code code={post.sales.code} lang={post.sales.lang} theme={theme} transformers={transformers} /><figcaption class="huet-text-50 mt-1 text-xs">From “{post.sales.source}” · {post.sales.lang}</figcaption></figure>
+          <p>The point of nesting functions like this is to make it clear that <code class={inline}>second()</code> and <code class={inline}>third()</code> aren't used anywhere else:</p>
+          <figure><Code code={post.scope.code} lang={post.scope.lang} theme={theme} transformers={transformers} /><figcaption class="huet-text-50 mt-1 text-xs">From “{post.scope.source}” · {post.scope.lang}</figcaption></figure>
+          <p>And here's the kind of class list Tailwind's home page shows:</p>
+          <figure><Code code={post.tailwind.code} lang={post.tailwind.lang} theme={theme} transformers={transformers} /><figcaption class="huet-text-50 mt-1 text-xs">From “{post.tailwind.source}” · {post.tailwind.lang}</figcaption></figure>
+        </article>
+        <aside class="lg:sticky lg:top-4">
+          <h3 class="text-xl font-bold">Token roles</h3>
+          <p class="huet-text-50 mt-1 mb-3 text-sm">
+            Contrast against the first block in the post. Override a role with <code class={inline}>--huet-code-&lt;role&gt;</code>.
+          </p>
+          <table id="roles" class="w-full text-sm">
+            <thead><tr class="huet-text-50 text-left"><th class="py-1 font-normal">Role</th><th class="py-1 font-normal">Default</th><th class="py-1 text-right font-normal">Contrast</th></tr></thead>
+            <tbody>
+              {roles.map((r) => (
+                <tr class="huet-border-15 border-t">
+                  <td class="py-1 pr-3 font-mono whitespace-nowrap" style={`color: ${role(r)}`}>
+                    <span class="mr-2 inline-block size-2.5 rounded-xs" style={`background: ${role(r)}`}></span>{r}
+                  </td>
+                  <td class="huet-text-50 py-1 text-xs">{codeRoles[r].replace(/var\(--huet-(\w+)\)/g, "$1")}</td>
+                  <td data-ratio={role(r)} class="py-1 text-right tabular-nums"></td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </aside>
+      </div>
+    </Section>
+
+    <Section title="Highlighted rows">
+      <p class="huet-text-50 -mt-12 mb-6 max-w-[44em] text-sm">
+        Removed, added and highlighted rows from Shiki's <code class={inline}>// [!code --]</code>,
+        <code class={inline}>// [!code ++]</code> and <code class={inline}>// [!code highlight]</code> notation.
+        Each row is a Huet surface nested in the block, so tokens and the +/− markers are solved against
+        the row they sit on.
+      </p>
+      <figure data-rows class="max-w-[44em]">
+        <Code code={rows.code} lang={rows.lang} theme={theme} transformers={[...notation, ...transformers]} />
+        <figcaption class="huet-text-50 mt-2 text-xs">
+          Block <code class={inline} data-surface-name>huet-bg-5</code>
+          <span data-row-contrast class="block tabular-nums">&nbsp;</span>
+        </figcaption>
+      </figure>
+    </Section>
+
+    <Section title="Other languages">
+      <p class="huet-text-50 -mt-12 mb-6 text-sm">Scopes follow GitHub's VS Code theme</p>
+      <div class="grid gap-6 md:grid-cols-2">
+        {languages.map(({ lang, code }) => (
+          <figure><Code code={code} lang={lang} theme={theme} transformers={transformers} /><figcaption class="huet-text-50 mt-1 text-xs">{lang}</figcaption></figure>
+        ))}
+      </div>
+    </Section>
+
+    <Section title="Every theme">
+      <p class="huet-text-50 -mt-12 mb-6 text-sm">
+        Identical HTML in every card. The page is already a theme root, so each card gets its colors from
+        <code class={inline}>themeVariables()</code> instead of a nested mount, the way a server-rendered page would.
+      </p>
+      <div class="grid grid-cols-[repeat(auto-fill,minmax(16em,1fr))] gap-4">
+        {cards.map((config, i) => (
+          <figure data-card={i} class="rounded-lg p-3 outline-offset-2" style="background: var(--huet-background); color: var(--huet-foreground)">
+            <figcaption class="mb-2 text-sm font-bold">{config.name}</figcaption>
+            <Code code={card.code} lang={card.lang} theme={theme} />
+          </figure>
+        ))}
+      </div>
+    </Section>
+  </div>
+</Demo>
+
+<style is:global>
+  pre.astro-code {
+    margin: 0;
+    padding: 1rem 1.25rem;
+    border-radius: 0.5rem;
+    overflow-x: auto;
+    font: 0.85rem/1.6 ui-monospace, SFMono-Regular, Menlo, monospace;
+    tab-size: 2;
+  }
+  [data-card] pre.astro-code {
+    font-size: 0.72rem;
+    padding: 0.6rem 0.75rem;
+  }
+  /* Highlighted rows span the block, edge to edge. */
+  pre.astro-code .line {
+    display: inline-block;
+    box-sizing: border-box;
+    min-width: calc(100% + 2.5rem);
+    margin-inline: -1.25rem;
+    padding-inline: 1.25rem;
+  }
+  pre.has-diff .line::before {
+    content: "  ";
+  }
+  /* Highlighted rows: a highlighter yellow at the block's own lightness, so the block's
+     tokens stay readable on it, and a bar in the block's solved yellow. */
+  pre.astro-code {
+    --code-block-bg: var(--huet-background);
+  }
+  pre.astro-code .line.highlighted {
+    background-color: oklch(from var(--code-block-bg) l 0.11 95);
+    box-shadow: inset 0.3rem 0 var(--huet-yellow);
+  }
+  /* Markers use the row's own solved green and red, so they stay readable on it. */
+  pre.has-diff .line.add::before {
+    content: "+ ";
+    color: var(--huet-green);
+  }
+  pre.has-diff .line.remove::before {
+    content: "- ";
+    color: var(--huet-red);
+  }
+  [data-card][data-selected] {
+    outline: 2px solid var(--huet-foreground);
+  }
+</style>
+
+<script>
+  import { contrastRatio, themeVariables, type HuetTheme } from "huet";
+  import { themeConfigs, themeFromConfig } from "huet/config";
+  import { subscribeTheme } from "../components/themeStore";
+
+  const $ = <T extends Element>(selector: string) => document.querySelector<T>(selector)!;
+  const slider = $<HTMLInputElement>("#surface");
+  const surfaces = slider.dataset.surfaces!.split(",").map(Number);
+  const surfaceValue = $("#surface-value");
+  const firstBlock = $<HTMLElement>(".post pre");
+  const cards = themeConfigs.filter((config) => config.name);
+  let current: string | undefined;
+
+  // Probes resolve each role exactly as a token inside the first post block would.
+  const ratioCells = [...document.querySelectorAll<HTMLElement>("[data-ratio]")];
+  const probes = document.createElement("span");
+  probes.hidden = true;
+  for (const cell of ratioCells) probes.appendChild(document.createElement("span")).style.color = cell.dataset.ratio!;
+  firstBlock.append(probes);
+
+  // Read any CSS color (oklab(), color-mix(), …) back as sRGB hex.
+  const pixel = document.createElement("canvas").getContext("2d", { willReadFrequently: true })!;
+  function hexOf(css: string) {
+    pixel.clearRect(0, 0, 1, 1);
+    pixel.fillStyle = css;
+    pixel.fillRect(0, 0, 1, 1);
+    const [r, g, b] = pixel.getImageData(0, 0, 1, 1).data;
+    return "#" + [r, g, b].map((x) => x.toString(16).padStart(2, "0")).join("");
+  }
+  function measure() {
+    const bg = hexOf(getComputedStyle(firstBlock).backgroundColor);
+    [...probes.children].forEach((probe, i) => {
+      const ratio = contrastRatio(hexOf(getComputedStyle(probe).color), bg);
+      const cell = ratioCells[i];
+      const text = `${ratio.toFixed(1)}:1${ratio < 4.5 ? " ⚠︎" : ""}`;
+      if (cell.textContent !== text) cell.textContent = text;
+    });
+  }
+
+  // Same values mountTheme writes for a root and a `huet-bg-<amount>` child.
+  function surfaceVariables(theme: HuetTheme, amount: number) {
+    const root = theme.relative;
+    const block = root.contrast(amount);
+    return {
+      root: themeVariables(theme.tokens(root.hex, root.hex)),
+      block: { ...themeVariables(theme.tokens(block.hex, root.hex)), "--huet-foreground": block.contrast(100).hex },
+    };
+  }
+  const cardThemes = cards.map((config) => themeFromConfig(config));
+  function paintCards(amount: number) {
+    document.querySelectorAll<HTMLElement>("[data-card]").forEach((el, i) => {
+      const { root, block } = surfaceVariables(cardThemes[i], amount);
+      for (const [key, value] of Object.entries(root)) el.style.setProperty(key, value);
+      const pre = el.querySelector<HTMLElement>("pre")!;
+      for (const [key, value] of Object.entries(block)) pre.style.setProperty(key, value);
+      el.toggleAttribute("data-selected", cards[i].name === current);
+    });
+  }
+
+  function setSurface(amount: number) {
+    surfaceValue.textContent = `huet-bg-${amount}`;
+    for (const name of document.querySelectorAll("[data-surface-name]")) name.textContent = `huet-bg-${amount}`;
+    // Only blocks from huetShikiTransformer carry a surface class; the cards don't.
+    for (const pre of document.querySelectorAll<HTMLElement>('pre[class*="huet-bg-"]')) {
+      for (const s of surfaces) pre.classList.remove(`huet-bg-${s}`);
+      pre.classList.add(`huet-bg-${amount}`);
+    }
+    paintCards(amount);
+  }
+  // Lowest contrast in the rows example, against the background each token or marker sits on.
+  const painted = (el: Element) => !/^(transparent|rgba\(0, 0, 0, 0\))$/.test(getComputedStyle(el).backgroundColor);
+  function measureRows(figure: HTMLElement) {
+    const lowest = { block: Infinity, rows: Infinity };
+    const backgrounds = new Map<Element, string>();
+    for (const token of figure.querySelectorAll<HTMLElement>("pre .line > span")) {
+      if (!token.textContent!.trim()) continue;
+      // A tinted row (a Huet surface, or the CSS highlight), else the block.
+      const line = token.closest(".line")!;
+      const under = painted(line) ? line : token.closest("pre")!;
+      if (!backgrounds.has(under)) backgrounds.set(under, hexOf(getComputedStyle(under).backgroundColor));
+      const ratio = contrastRatio(hexOf(getComputedStyle(token).color), backgrounds.get(under)!);
+      const kind = under === line ? "rows" : "block";
+      lowest[kind] = Math.min(lowest[kind], ratio);
+    }
+    let markers = Infinity;
+    for (const row of figure.querySelectorAll<HTMLElement>(".line.add, .line.remove")) {
+      const ratio = contrastRatio(hexOf(getComputedStyle(row, "::before").color), hexOf(getComputedStyle(row).backgroundColor));
+      markers = Math.min(markers, ratio);
+    }
+    const text = `Lowest contrast: block ${lowest.block.toFixed(1)}:1 · rows ${lowest.rows.toFixed(1)}:1 · +/− ${markers.toFixed(1)}:1`;
+    const out = figure.querySelector("[data-row-contrast]")!;
+    if (out.textContent !== text) out.textContent = text;
+  }
+  const rowsFigure = $<HTMLElement>("[data-rows]");
+  new MutationObserver(() => measureRows(rowsFigure)).observe(rowsFigure, { subtree: true, attributes: true, attributeFilter: ["style"] });
+
+  // Measure whenever mountTheme rewrites the block's variables (theme or class changes).
+  new MutationObserver(measure).observe(firstBlock, { attributes: true, attributeFilter: ["style"] });
+
+  const requested = new URLSearchParams(location.search).get("surface");
+  if (requested !== null) {
+    const index = surfaces.indexOf(Number(requested));
+    if (index < 0) throw new RangeError(`?surface must be one of ${surfaces.join(", ")}, got ${requested}`);
+    slider.value = String(index);
+  }
+  slider.addEventListener("input", () => setSurface(surfaces[Number(slider.value)]));
+  subscribeTheme((config) => {
+    current = config.name;
+    setSurface(surfaces[Number(slider.value)]);
+    document.body.dataset.ready = "";
+  });
+</script>

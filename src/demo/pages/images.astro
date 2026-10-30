@@ -2,7 +2,7 @@
 import Section from "../components/Section.astro";
 import Demo from "../layouts/Demo.astro";
 import { images } from "../recolor/data";
-import { emojiRows } from "../recolor/emoji";
+// import { emojiRows } from "../recolor/emoji";
 
 const unsplash = (kind: string) =>
   images.filter((image) => image.group === "unsplash" && image.kind === kind);
@@ -81,6 +81,7 @@ const selectClass = "huet-border-25 block w-full rounded-xs border bg-transparen
     </div>
     <p data-renderer-status class="huet-text-50 mt-2 text-sm">&nbsp;</p>
 
+    {/* Emoji section, commented out for now.
     <Section title="Emoji">
       <p class="huet-text-50 -mt-12 mb-6 text-sm">
         Drawn by your system's emoji font into a transparent canvas, then recolored like any image
@@ -98,6 +99,7 @@ const selectClass = "huet-border-25 block w-full rounded-xs border bg-transparen
         ))}
       </div>
     </Section>
+    */}
 
     {galleries.map((gallery) => (
       <Section title={gallery.title}>
@@ -125,7 +127,7 @@ const selectClass = "huet-border-25 block w-full rounded-xs border bg-transparen
 </Demo>
 
 <style is:global>
-  /* Hide originals until their recolored copy is ready. */
+  /* Hide originals until their recolored canvas is ready. */
   img[data-huet-recolor]:not([data-huet-recolored]) {
     visibility: hidden;
   }
@@ -135,11 +137,11 @@ const selectClass = "huet-border-25 block w-full rounded-xs border bg-transparen
   import { hasGpu, mountImages, type ImageOptions } from "huet/images";
   import { themeFromConfig } from "huet/config";
   import { subscribeTheme } from "../components/themeStore";
-  import { emojiSheet } from "../recolor/emoji";
+  // import { emojiSheet } from "../recolor/emoji";
 
   // Emoji are font glyphs, so draw each one into an image first.
-  for (const img of document.querySelectorAll<HTMLImageElement>("img[data-emoji]"))
-    img.src = emojiSheet([[img.dataset.emoji!]]);
+  // for (const img of document.querySelectorAll<HTMLImageElement>("img[data-emoji]"))
+  //   img.src = emojiSheet([[img.dataset.emoji!]]);
 
   const page = document.querySelector<HTMLElement>("#page")!;
   const control = (name: string) =>

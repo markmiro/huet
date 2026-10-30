@@ -267,14 +267,14 @@ const images = mountImages(document.body, sunset, { hoverOriginal: true });
 const paper = createTheme({ dark: "#302723", light: "#f1e4cd" });
 colors.update(paper);
 images.update(paper);
-// On unmount: images.destroy() puts the original src and srcset back.
+// On unmount: images.destroy() removes the canvases and shows the original images.
 ```
 
 ```html
 <img data-huet-recolor src="/photo.jpg" alt="" />
 ```
 
-`mountImages` swaps each matching image's `src` for a recolored copy. It picks up images that are added later or whose `src` changes, and it waits for `srcset` to choose a size first. Options:
+`mountImages` draws each matching image, recolored, into a `<canvas>` inserted right after it, and hides the `<img>` (`display: none`). The image's `src` and `srcset` are left alone. The canvas copies the image's `class` and inline `style` and gets `role="img"` with the image's `alt` as its label; later changes to `class`, `alt`, and `title` carry over. Size images with CSS, since `width` and `height` attributes don't carry over. `mountImages` picks up images that are added later or whose `src` changes, and it waits for `srcset` to choose a size first. Options:
 
 | Option | Default | Effect |
 | --- | --- | --- |
@@ -287,13 +287,13 @@ images.update(paper);
 | `lutSize` | `17` | Size of the lookup table each theme is baked into |
 | `renderer` | `"gpu"` | `"gpu"` renders with WebGL2 and falls back to the CPU without it; `"cpu"` always uses the CPU. `hasGpu()` tells you which one `"gpu"` gets |
 
-Images whose original hasn't been recolored yet are hidden (`visibility: hidden`, so layout doesn't shift) until the recolored copy is ready to paint, so the original never flashes. Theme updates keep showing the previous recolored image until the new one is ready. Once an image is handled, it gets `data-huet-recolored`, set to `"original"` if it couldn't be read. Server-rendered pages can paint images before the script runs; to hide them from the first paint while mounted, add:
+Images whose original hasn't been recolored yet are hidden (`visibility: hidden`, so layout doesn't shift) until the recolored copy is ready to paint, so the original never flashes. Theme updates redraw the canvases in place, at most once per frame, so a dragged slider doesn't queue work. Images more than a screen away from the viewport are redrawn when they scroll near it; `await images.ready()` draws them right away. Once an image is handled, it gets `data-huet-recolored`, set to `"original"` if it couldn't be read. Server-rendered pages can paint images before the script runs; to hide them from the first paint while mounted, add:
 
 ```css
 img[data-huet-recolor]:not([data-huet-recolored]) { visibility: hidden; }
 ```
 
-Rendering runs on the GPU (WebGL2) and falls back to the CPU. The browser must be able to read the pixels, so cross-origin images need CORS headers and a `crossorigin` attribute. Images it can't read keep their original `src`. `<picture>` sources are not recolored.
+Rendering runs on the GPU (WebGL2) and falls back to the CPU. The browser must be able to read the pixels, so cross-origin images need CORS headers and a `crossorigin` attribute. Images it can't read are shown as they are, without a canvas. `<picture>` sources are not recolored.
 
 For canvases, video frames, or your own pipeline, use the lower-level functions:
 
@@ -305,6 +305,23 @@ For canvases, video frames, or your own pipeline, use the lower-level functions:
 - `paletteOf(theme)` converts a `createTheme` result into the palette these functions take.
 
 The [image recolor demo](https://markmiro.github.io/huet/recolor.html) compares renderers and themes. The example demos' [Images page](https://markmiro.github.io/huet/images.html) recolors a photo and screenshot gallery into whichever theme you pick in the theme configurator.
+
+## Code blocks
+
+`huetShikiTheme()` is a [Shiki](https://shiki.style) theme whose token colors are Huet variables instead of hex values, e.g. `var(--huet-code-keyword, var(--huet-red))`. Highlight once, at build time or on the server, and the mounted theme colors every block. `update()` re-themes them without re-highlighting. `huetShikiTransformer()` puts a Huet background class on each `<pre>` (`huet-bg-5` by default), so tokens are solved for readable contrast against the block itself. Use `huet-bg-0` to `huet-bg-25` for a block on the page's side of the ramp, or `huet-bg-75` to `huet-bg-100` for the opposite side, such as dark code on a light page.
+
+```js
+// astro.config.mjs: Markdown and MDX code blocks
+import { huetShikiTheme, huetShikiTransformer } from "huet";
+
+export default defineConfig({
+  markdown: {
+    shikiConfig: { theme: huetShikiTheme(), transformers: [huetShikiTransformer({ surface: "huet-bg-90" })] },
+  },
+});
+```
+
+Rows marked with Shiki's `// [!code ++]` and `// [!code --]` notation (from `@shikijs/transformers`) get green and red Huet backgrounds nested in the block, and their tokens are solved against the row. `// [!code highlight]` rows are left for a CSS highlighter tint; see the docs. Astro's `<Code>` component takes the same `theme` and `transformers` props. Shiki isn't a dependency of `huet`; the theme is a plain object. See [code blocks](https://github.com/markmiro/huet/blob/master/docs/code-blocks.md) for the token roles and overrides, and the example demos' [Code page](https://markmiro.github.io/huet/code.html).
 
 React, Vue, Svelte, and Astro lifecycle examples are in [framework integration](https://github.com/markmiro/huet/blob/master/docs/frameworks.md). Portals and shadow roots require independent mounts. The DOM adapter runs only in a browser; SSR can compute colors through `theme.relative` and emit matching styles before mounting.
 
