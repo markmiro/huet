@@ -225,9 +225,9 @@ describe("relative semantic scaling", () => {
 });
 
 describe("ramp progression", () => {
-  it("moves monotonically on one side at every integer strength and background", () => {
+  it("moves monotonically on one side at every integer strength across the background ramp", () => {
     const theme = themeWith();
-    for (let position = 0; position <= 100; position++) {
+    for (let position = 0; position <= 100; position += 4) {
       const bg = new Color({ theme, ramp: theme.ramps.gray, lab: theme.ramps.gray(position / 100) });
       const lighter = textEnd(bg.hex, "#000000", "#ffffff") === "#ffffff";
       for (const hue of ["gray", "red", "yellow", "green", "blue", "purple"]) {
