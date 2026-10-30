@@ -1,5 +1,7 @@
 # Framework-independent Huet: first pass
 
+> Huet no longer measures contrast with WCAG 2 ratios. The ratio targets below (3:1, 4.5:1, 7:1) describe this first pass; see [APCA roles and L* strengths](color-contrast.md#apca-roles-and-l-strengths) for the current model.
+
 ## Assumptions made
 
 1. “49% / 51%” means the old LAB ramp position around its midpoint. I reproduced those exact backgrounds (`#747474`, `#797979`) and also tested OKLab 49/51% and sRGB 49/51% so the fix is not tied to that interpretation.

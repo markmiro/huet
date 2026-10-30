@@ -78,7 +78,7 @@ const inline = "huet-bg-10 rounded-xs px-1 font-mono text-[0.9em]";
                     <span class="mr-2 inline-block size-2.5 rounded-xs" style={`background: ${role(r)}`}></span>{r}
                   </td>
                   <td class="huet-text-50 py-1 text-xs">{codeRoles[r].replace(/var\(--huet-(\w+)\)/g, "$1")}</td>
-                  <td data-ratio={role(r)} class="py-1 text-right tabular-nums"></td>
+                  <td data-lc={role(r)} class="py-1 text-right tabular-nums"></td>
                 </tr>
               ))}
             </tbody>
@@ -177,7 +177,8 @@ const inline = "huet-bg-10 rounded-xs px-1 font-mono text-[0.9em]";
 </style>
 
 <script>
-  import { contrastRatio, themeVariables, type HuetTheme } from "huet";
+  import { themeVariables, type HuetTheme } from "huet";
+  import { contrast } from "../../../packages/huet/src/core/color";
   import { themeConfigs, themeFromConfig } from "huet/config";
   import { subscribeTheme } from "../components/themeStore";
 
@@ -190,10 +191,10 @@ const inline = "huet-bg-10 rounded-xs px-1 font-mono text-[0.9em]";
   let current: string | undefined;
 
   // Probes resolve each role exactly as a token inside the first post block would.
-  const ratioCells = [...document.querySelectorAll<HTMLElement>("[data-ratio]")];
+  const lcCells = [...document.querySelectorAll<HTMLElement>("[data-lc]")];
   const probes = document.createElement("span");
   probes.hidden = true;
-  for (const cell of ratioCells) probes.appendChild(document.createElement("span")).style.color = cell.dataset.ratio!;
+  for (const cell of lcCells) probes.appendChild(document.createElement("span")).style.color = cell.dataset.lc!;
   firstBlock.append(probes);
 
   // Read any CSS color (oklab(), color-mix(), …) back as sRGB hex.
@@ -208,9 +209,10 @@ const inline = "huet-bg-10 rounded-xs px-1 font-mono text-[0.9em]";
   function measure() {
     const bg = hexOf(getComputedStyle(firstBlock).backgroundColor);
     [...probes.children].forEach((probe, i) => {
-      const ratio = contrastRatio(hexOf(getComputedStyle(probe).color), bg);
-      const cell = ratioCells[i];
-      const text = `${ratio.toFixed(1)}:1${ratio < 4.5 ? " ⚠︎" : ""}`;
+      // APCA Lc; 60 is the level the hue tokens and muted text aim for.
+      const lc = Math.round(contrast(bg, hexOf(getComputedStyle(probe).color)));
+      const cell = lcCells[i];
+      const text = `Lc ${lc}${lc < 60 ? " ⚠︎" : ""}`;
       if (cell.textContent !== text) cell.textContent = text;
     });
   }
@@ -256,16 +258,17 @@ const inline = "huet-bg-10 rounded-xs px-1 font-mono text-[0.9em]";
       const line = token.closest(".line")!;
       const under = painted(line) ? line : token.closest("pre")!;
       if (!backgrounds.has(under)) backgrounds.set(under, hexOf(getComputedStyle(under).backgroundColor));
-      const ratio = contrastRatio(hexOf(getComputedStyle(token).color), backgrounds.get(under)!);
+      const lc = contrast(backgrounds.get(under)!, hexOf(getComputedStyle(token).color));
       const kind = under === line ? "rows" : "block";
-      lowest[kind] = Math.min(lowest[kind], ratio);
+      lowest[kind] = Math.min(lowest[kind], lc);
     }
     let markers = Infinity;
     for (const row of figure.querySelectorAll<HTMLElement>(".line.add, .line.remove")) {
-      const ratio = contrastRatio(hexOf(getComputedStyle(row, "::before").color), hexOf(getComputedStyle(row).backgroundColor));
-      markers = Math.min(markers, ratio);
+      const lc = contrast(hexOf(getComputedStyle(row).backgroundColor), hexOf(getComputedStyle(row, "::before").color));
+      markers = Math.min(markers, lc);
     }
-    const text = `Lowest contrast: block ${lowest.block.toFixed(1)}:1 · rows ${lowest.rows.toFixed(1)}:1 · +/− ${markers.toFixed(1)}:1`;
+    const round = (lc: number) => Math.round(lc);
+    const text = `Lowest contrast: block Lc ${round(lowest.block)} · rows Lc ${round(lowest.rows)} · +/− Lc ${round(markers)}`;
     const out = figure.querySelector("[data-row-contrast]")!;
     if (out.textContent !== text) out.textContent = text;
   }

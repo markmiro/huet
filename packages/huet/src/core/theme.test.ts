@@ -1,7 +1,7 @@
 import { fileURLToPath } from "node:url";
 import { describe, it, expect } from "vitest";
 import { createTheme, hues, themeVariables, colorModels } from "./theme";
-import { contrastRatio, toOklab, fromOklab, mix, luminance } from "./color";
+import { apca, contrast, lightness, textEnd, toOklab, fromOklab, mix, luminance } from "./color";
 import { classes, validateClasses, isHuetClass } from "./classes";
 import { readFileSync } from "node:fs";
 import { compile } from "@tailwindcss/node";
@@ -9,9 +9,22 @@ import { themeFromConfig } from "./fromConfig";
 import themes from "../themeConfigs";
 
 describe("color math", () => {
-  it("matches reference sRGB contrast and round trips saturated colors", () => {
-    expect(contrastRatio("#000", "#fff")).toBe(21);
-    expect(contrastRatio("#777", "#fff")).toBeCloseTo(4.478, 2);
+  it("matches the APCA-W3 reference, measures L* and round trips saturated colors", () => {
+    // Published test values for APCA-W3 0.0.98G-4g.
+    expect(apca("#888888", "#ffffff")).toBeCloseTo(63.056, 3);
+    expect(apca("#ffffff", "#888888")).toBeCloseTo(-68.541, 3);
+    expect(apca("#000000", "#aaaaaa")).toBeCloseTo(58.146, 3);
+    expect(apca("#aaaaaa", "#000000")).toBeCloseTo(-56.241, 3);
+    expect(apca("#112233", "#ddeeff")).toBeCloseTo(91.668, 3);
+    expect(apca("#ddeeff", "#112233")).toBeCloseTo(-93.068, 3);
+    // Below the reference's Lc 7.3 cutoff, values fall continuously to 0.
+    expect(apca("#7a7a7a", "#777777")).toBeLessThan(0);
+    expect(contrast("#777777", "#7a7a7a")).toBeGreaterThan(0);
+    expect(contrast("#777777", "#7a7a7a")).toBeLessThan(7.3);
+    expect(apca("#777777", "#777777")).toBe(0);
+    expect(lightness("#000000")).toBe(0);
+    expect(lightness("#ffffff")).toBeCloseTo(1, 4);
+    expect(lightness("#777777")).toBeCloseTo(0.5, 2);
     for (const color of [
       "#ff0000",
       "#00ff00",
@@ -42,7 +55,7 @@ describe("readability", () => {
       let previous = true, switches = 0;
       for (let i = 0; i <= 1000; i++) {
         const bg = mix(theme.dark, theme.light, i / 1000);
-        const lighter = contrastRatio(bg, theme.light) > contrastRatio(bg, theme.dark);
+        const lighter = textEnd(bg, theme.dark, theme.light) === theme.light;
         if (lighter !== previous) switches++;
         previous = lighter;
         const tokens = theme.tokens(bg);
@@ -57,35 +70,37 @@ describe("readability", () => {
     }
   });
 
-  it("meets text, secondary and border targets across every sRGB gray", () => {
+  it("reaches Lc 90, 60 and 30 for text, muted and border across every sRGB gray", () => {
     const theme = createTheme();
+    let hueTargetMet = 0;
     for (let i = 0; i < 256; i++) {
       const bg = "#" + i.toString(16).padStart(2, "0").repeat(3);
       const t = theme.tokens(bg);
-      expect(contrastRatio(bg, t.foreground), bg).toBeGreaterThanOrEqual(4.5);
-      expect(contrastRatio(bg, t.muted), bg).toBeGreaterThanOrEqual(4.5);
-      expect(contrastRatio(bg, t.border), bg).toBeGreaterThanOrEqual(3);
-      for (const hue of hues)
-        expect(
-          contrastRatio(bg, t[hue]),
-          bg + " " + hue,
-        ).toBeGreaterThanOrEqual(4.5);
+      // Where the background can't reach Lc 90, the roles keep their proportions.
+      const fg = Math.min(contrast(bg, textEnd(bg, theme.dark, theme.light)), 90);
+      expect(contrast(bg, t.foreground), bg).toBeGreaterThanOrEqual(fg - 1e-9);
+      expect(contrast(bg, t.muted), bg).toBeGreaterThanOrEqual((fg * 2) / 3 - 1e-9);
+      expect(contrast(bg, t.border), bg).toBeGreaterThanOrEqual(fg / 3 - 1e-9);
+      expect(contrast(bg, t.muted), bg).toBeLessThan(contrast(bg, t.foreground));
+      expect(contrast(bg, t.border), bg).toBeLessThan(contrast(bg, t.muted));
+      // Signal hues aim for the muted level. Next to the switch point a hue's
+      // ramp can fall a little short; there it uses its strongest color.
+      for (const hue of hues) {
+        expect(contrast(bg, t[hue]), bg + " " + hue).toBeGreaterThanOrEqual(50);
+        if (contrast(bg, t[hue]) >= 60) hueTargetMet++;
+      }
     }
+    expect(hueTargetMet / (256 * hues.length)).toBeGreaterThan(0.9);
   });
-  it("fixes legacy 49/51%, OKLab 49/51%, and sRGB 49/51%", () => {
+  it("puts light text on middle grays, where APCA reads it better", () => {
     const theme = createTheme();
-    for (const bg of [
-      "#747474",
-      "#797979",
-      "#7d7d7d",
-      "#828282",
-      mix("#000", "#fff", 0.49),
-      mix("#000", "#fff", 0.51),
-    ]) {
+    for (const bg of ["#747474", "#797979", "#7d7d7d", "#828282", "#8b8b8b", "#9b9b9b"]) {
       const t = theme.tokens(bg);
-      expect(contrastRatio(bg, t.muted)).toBeGreaterThanOrEqual(4.5);
-      expect(contrastRatio(bg, t.border)).toBeGreaterThanOrEqual(3);
+      expect(t.foreground, bg).toBe("#ffffff");
+      expect(contrast(bg, "#ffffff"), bg).toBeGreaterThan(contrast(bg, "#000000"));
+      for (const color of [t.muted, t.border]) expect(luminance(color), bg).toBeGreaterThan(luminance(bg));
     }
+    expect(theme.tokens("#a8a8a8").foreground).toBe("#000000");
   });
   it("keeps signal hues recognizable on a blue/white theme", () => {
     const theme = createTheme({ dark: "#233b91" });
@@ -97,10 +112,7 @@ describe("readability", () => {
           (Math.atan2(a * y - b * x, a * x + b * y) * 180) / Math.PI;
         expect(Math.abs(angle), hue).toBeLessThan(5);
         expect(Math.hypot(x, y), hue).toBeGreaterThan(0.025);
-        expect(
-          contrastRatio(bg, theme.tokens(bg)[hue]),
-          hue,
-        ).toBeGreaterThanOrEqual(4.5);
+        expect(contrast(bg, theme.tokens(bg)[hue]), hue).toBeGreaterThanOrEqual(60);
       }
   });
   it("keeps branded surface fills readable, including the middle of the ramp", () => {
@@ -115,9 +127,8 @@ describe("readability", () => {
             parent,
             amount as number | (typeof hues)[number],
           );
-          expect(
-            contrastRatio(bg, theme.tokens(bg).muted),
-          ).toBeGreaterThanOrEqual(4.5);
+          // Text reaches at least Lc 60 on every fill.
+          expect(contrast(bg, theme.tokens(bg).foreground), bg).toBeGreaterThanOrEqual(60);
         }
       }
     }
@@ -129,7 +140,7 @@ describe("readability", () => {
     ]) {
       const theme = createTheme(options);
       const t = theme.tokens();
-      expect(contrastRatio(t.background, t.foreground)).toBeLessThan(1.5);
+      expect(contrast(t.background, t.foreground)).toBeLessThan(10);
       for (const value of Object.values(t))
         expect(value).toMatch(/^#[0-9a-f]{6}$/);
     }
@@ -140,7 +151,7 @@ describe("readability", () => {
     for (let depth = 0; depth < 20; depth++) {
       bg = theme.surface(bg, 25);
       const t = theme.tokens(bg);
-      expect(contrastRatio(bg, t.foreground)).toBeGreaterThanOrEqual(4.5);
+      expect(contrast(bg, t.foreground)).toBeGreaterThanOrEqual(60);
       expect(theme.tokens(bg)).toBe(t);
       expect(Object.isFrozen(t)).toBe(true);
     }
@@ -240,11 +251,11 @@ describe("multi-hue neutral ramps", () => {
     for (const options of [sunset, astro])
       for (const background of [0, 0.3, 0.7, 1]) {
         const theme = createTheme({ ...options, background });
-        let previous = 1;
+        let previous = 0;
         for (let amount = 0; amount <= 100; amount++) {
-          const ratio = contrastRatio(theme.background, theme.relative.contrast(amount).hex);
-          expect(ratio, `${background} ${amount}`).toBeGreaterThanOrEqual(previous - 1e-9);
-          previous = ratio;
+          const distance = Math.abs(lightness(theme.relative.contrast(amount).hex) - lightness(theme.background));
+          expect(distance, `${background} ${amount}`).toBeGreaterThanOrEqual(previous - 1e-9);
+          previous = distance;
         }
       }
   });
@@ -266,19 +277,19 @@ describe("preset roles", () => {
   const hue = (hex: string) => Math.atan2(toOklab(hex)[2], toOklab(hex)[1]);
   const side = (bg: string, color: string) => Math.sign(luminance(color) - luminance(bg));
 
-  it("keeps foreground, muted and border apart when a ramp can't reach 7, 4.5 and 3:1", () => {
+  it("keeps foreground, muted and border apart when a ramp can't reach Lc 90", () => {
     const { relative } = orangeBoost;
     const blue = relative.contrast(25, relative.theme.ramps.blue).hex;
     for (const bg of [orangeBoost.background, blue, ...[10, 25, 50, 75, 100].map((n) => relative.contrast(n).hex)]) {
       const t = orangeBoost.tokens(bg);
-      const [fg, muted, border] = [t.foreground, t.muted, t.border].map((x) => contrastRatio(bg, x));
-      if (fg < 1.5) continue;
+      const [fg, muted, border] = [t.foreground, t.muted, t.border].map((x) => contrast(bg, x));
+      if (fg < 15) continue;
+      // Each role keeps its share of what the background can reach.
+      expect(muted / fg, bg).toBeCloseTo(2 / 3, 1);
+      expect(border / fg, bg).toBeCloseTo(1 / 3, 1);
       // A slider's track (border) must stand out from its filled part (text).
-      expect(contrastRatio(t.foreground, t.border), bg).toBeGreaterThanOrEqual(1.25);
-      expect(contrastRatio(t.foreground, t.muted), bg).toBeGreaterThanOrEqual(1.1);
-      expect(fg, bg).toBeGreaterThan(muted);
-      expect(muted, bg).toBeGreaterThan(border);
-      expect(border, bg).toBeGreaterThan(1.3);
+      expect(contrast(t.border, t.foreground), bg).toBeGreaterThanOrEqual(10);
+      expect(contrast(t.muted, t.foreground), bg).toBeGreaterThanOrEqual(5);
     }
     // At the root, the reported collapse: all three were the light endpoint.
     expect(new Set(Object.values(orangeBoost.tokens()).slice(1, 4)).size).toBe(3);
@@ -292,23 +303,42 @@ describe("preset roles", () => {
         expect(side(bg, t.border), bg).toBe(side(bg, t.foreground));
       }
   });
+  it("puts the solver's colors and the preset roles on the same side of every background", () => {
+    const sunset = themeFromConfig(themes.find((x) => x.name === "Sunset")!);
+    for (const theme of [base, orangeBoost, sunset, createTheme({ dark: "#233b91" })]) {
+      const { relative } = theme;
+      const { ramps } = relative.theme;
+      for (let n = 0; n <= 100; n += 5)
+        for (const bg of [relative.contrast(n), relative.contrast(n, ramps.blue)]) {
+          // Text on a huet-bg-* surface is the solver's strength 100.
+          const text = side(bg.hex, bg.contrast(100).hex);
+          if (text === 0) continue;
+          const t = theme.tokens(bg.hex, theme.background);
+          for (const color of [t.foreground, t.muted, bg.contrast(30).hex, bg.contrast(100, ramps.red).hex])
+            expect([0, text], `${n} ${bg.hex} ${color}`).toContain(side(bg.hex, color));
+        }
+    }
+  });
   it("lets a border outline a surface against its parent from the other side", () => {
     const theme = createTheme();
-    const t = theme.tokens("#707070", "#ffffff");
+    // Light text on #707070; toward white, a border can't also stand out from #d6d6d6.
+    const t = theme.tokens("#707070", "#d6d6d6");
+    const target = contrast("#707070", t.foreground) / 3;
     expect(luminance(t.foreground)).toBeGreaterThan(luminance("#707070"));
-    expect(contrastRatio("#707070", t.border)).toBeGreaterThanOrEqual(3);
-    expect(contrastRatio("#ffffff", t.border)).toBeGreaterThanOrEqual(3);
+    expect(luminance(t.border)).toBeLessThan(luminance("#707070"));
+    expect(contrast("#707070", t.border)).toBeGreaterThanOrEqual(target);
+    expect(contrast("#d6d6d6", t.border)).toBeGreaterThanOrEqual(target);
   });
-  it("changes smoothly as the available contrast drops below readable", () => {
+  it("changes smoothly as the available contrast drops below Lc 90", () => {
     for (const options of [{ dark: "#474b56", light: "#ff7c49" }, { dark: "#3c3d43", light: "#b2bdff" }, {}]) {
       const theme = createTheme(options);
       let previous: number[] | undefined;
       for (let i = 0; i <= 400; i++) {
         const bg = theme.ramp(i / 400);
         const t = theme.tokens(bg);
-        const ratios = [t.muted, t.border].map((x) => contrastRatio(bg, x));
-        if (previous) ratios.forEach((x, j) => expect(Math.abs(x - previous![j]), bg).toBeLessThan(0.25));
-        previous = ratios;
+        const values = [t.muted, t.border].map((x) => contrast(bg, x));
+        if (previous) values.forEach((x, j) => expect(Math.abs(x - previous![j]), bg).toBeLessThan(1.5));
+        previous = values;
       }
     }
   });
@@ -327,10 +357,12 @@ describe("preset roles", () => {
       const samples = Array.from({ length: 257 }, (_, i) => theme.ramp(i / 256));
       for (const ramp of ["blue", "red", "green"]) {
         const bg = theme.relative.contrast(25, theme.relative.theme.ramps[ramp]).hex;
-        const end = contrastRatio(bg, theme.light) > contrastRatio(bg, theme.dark) ? theme.light : theme.dark;
+        const end = textEnd(bg, theme.dark, theme.light);
         const straight = Array.from({ length: 257 }, (_, i) => mix(bg, end, i / 256));
         const t = theme.tokens(bg, theme.background);
-        for (const color of [t.muted, t.border]) {
+        // Muted text travels far enough for the ramp's hues to show. A border on a
+        // light surface sits close to it (Lc 30), where it keeps the surface's hue.
+        for (const color of [t.muted]) {
           const line = nearest(straight, color);
           expect(gap(color, nearest(samples, color)), `${name} ${ramp} ${color} vs ${line}`)
             .toBeLessThan(gap(line, nearest(samples, line)) - 0.2);
@@ -346,7 +378,8 @@ describe("preset roles", () => {
       for (const color of [t.muted, t.border]) {
         expect(chroma(color), `${bg} ${color}`).toBeGreaterThan(0.02);
         // Lines and secondary text keep most of the surface's color rather than graying.
-        if (theme !== orangeBoost) expect(chroma(color), `${bg} ${color}`).toBeGreaterThan(0.8 * chroma(bg));
+        // (On a dark surface, Lc 60 muted text is far lighter than the surface.)
+        if (theme !== orangeBoost) expect(chroma(color), `${bg} ${color}`).toBeGreaterThan(0.6 * chroma(bg));
         if (theme !== orangeBoost) expect(Math.abs(hue(color) - hue(bg)), `${bg} ${color}`).toBeLessThan(0.2);
       }
     }

@@ -1,5 +1,7 @@
 import { test, expect, type Page } from "@playwright/test";
-import { toOklab, contrastRatio, luminance } from "../packages/huet/src/core/color";
+import { toOklab, contrast, lightness, luminance } from "../packages/huet/src/core/color";
+/** Distance in CIE L* (0–1) between two colors. */
+const distance = (a: string, b: string) => Math.abs(lightness(a) - lightness(b));
 import { writeFileSync } from "node:fs";
 import baseThemeConfig from "../packages/huet/src/private/baseThemeConfig";
 const screenshots = process.env.HUET_SCREENSHOTS ?? "test-results/screenshots";
@@ -30,14 +32,15 @@ test("Color Contrast forms retain hue and scale low-strength fills", async ({ pa
       for (let i = 1; i < column.borders.length; i++) {
         const [, a, b] = toOklab(column.borders[i]);
         expect(Math.hypot(a, b), JSON.stringify(column)).toBeGreaterThan(.035);
-        const fraction = Math.log(contrastRatio(column.background, column.fills[i])) /
-          Math.log(contrastRatio(column.background, column.borders[i]));
+        // A 12-strength fill travels 12% of the L* distance to the 100-strength border.
+        const fraction = distance(column.background, column.fills[i]) /
+          distance(column.background, column.borders[i]);
         expect(fraction).toBeGreaterThan(.10);
         expect(fraction).toBeLessThan(.14);
       }
     }
     results.push({ position, columns: colors.map(c => ({
-      ...c, semanticContrast: c.borders.slice(1).map(color => contrastRatio(c.background, color)),
+      ...c, semanticLc: c.borders.slice(1).map(color => contrast(c.background, color)),
     })) });
     await form.screenshot({ path: screenshots + "/contrast-" + position * 100 + "-after.png" });
   }
@@ -112,9 +115,9 @@ test("matching gray and blue ramps keep distinct evenly spaced steps in middle r
             .map(el => hex(getComputedStyle(el).backgroundColor));
         }, index);
       expect(new Set(colors).size, name + " " + amount).toBe(6);
-      const full = contrastRatio(colors[0], colors[5]);
+      const full = distance(colors[0], colors[5]);
       for (let step = 0; step < 6; step++) {
-        const progress = Math.log(contrastRatio(colors[0], colors[step])) / Math.log(full);
+        const progress = distance(colors[0], colors[step]) / full;
         expect(Math.abs(progress - step / 5)).toBeLessThan(.025);
       }
     }

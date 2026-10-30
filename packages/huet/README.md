@@ -12,7 +12,7 @@ pnpm add huet   # or: npm install huet
 
 | Entry point | Contents |
 | --- | --- |
-| `huet` | `createTheme`, `mountTheme`, class validation, contrast helpers |
+| `huet` | `createTheme`, `mountTheme`, class validation |
 | `huet/images` | `mountImages`, `recolorImage`, and the lower-level recoloring functions |
 | `huet/config` | The theme config format that `huet-react` and exported theme files use, and `themeFromConfig` |
 | `huet/styles.css` | Huet's class styles |
@@ -66,7 +66,7 @@ Huet supplies colors. Add padding, border widths/styles, focus behavior, radii, 
 
 Examples: `huet-bg-blue-25`, `huet-text-100`, `huet-border-red-60`, `huet-outline-blue-80`.
 
-Amounts use the original 0–100 relative contrast scale, not Tailwind shades, opacity, or literal WCAG ratios. Zero matches the reference background; 100 requests the full available ramp strength. Omitting the ramp uses the inherited base ramp (gray for `createTheme`). Choosing a blue background does not automatically switch that base ramp to blue. The `white` ramp preserves the original direct-ramp behavior: it chooses a discrete color from the background, ignoring the local amount.
+Amounts use the original 0–100 relative contrast scale, not Tailwind shades, opacity, or contrast ratios. Zero matches the reference background; 100 requests the full available ramp strength. Equal steps in amount are equal steps in CIE L* lightness, toward whichever end of the ramp text reads better against (measured with [APCA](https://github.com/Myndex/apca-w3)). Omitting the ramp uses the inherited base ramp (gray for `createTheme`). Choosing a blue background does not automatically switch that base ramp to blue. The `white` ramp preserves the original direct-ramp behavior: it chooses a discrete color from the background, ignoring the local amount.
 
 The classes use the same `Color.contrast()` solver as Huet's original React API, including the neutral/semantic ramp corrections and stable global contrast fade.
 
@@ -329,9 +329,9 @@ React, Vue, Svelte, and Astro lifecycle examples are in [framework integration](
 
 The first-pass `huet-surface-*`, `huet-muted`, `huet-focus`, and amount-free text/border classes remain supported so existing examples keep working. They use preset roles, as do `theme.tokens()` and `theme.surface()`. They are not equivalent to the new explicit-amount classes. Prefer the new syntax for new projects; do not mix old and new classes for the same property. The [lab demo](https://markmiro.github.io/huet/lab.html) demonstrates those presets.
 
-Preset roles aim for 7:1 (foreground), 4.5:1 (muted) and 3:1 (border). On a background that can't reach 4.5:1, such as anywhere on a narrow ramp, each role takes a proportional share of the contrast that's available instead, so the three stay distinct. Muted and border step from the surface toward the text's endpoint along the neutral ramp's shape, so on a colored surface they start in its hue and pass through the ramp's hues. Explicit neutral classes such as `huet-text-60` stay on the base ramp there.
+Preset roles aim for APCA lightness contrast (Lc) 90 (foreground), 60 (muted) and 30 (border). On a background that can't reach Lc 90, such as anywhere on a narrow ramp, they keep those proportions of the contrast that's available instead, so the three stay distinct. Muted and border step from the surface toward the text's endpoint along the neutral ramp's shape, so on a colored surface they start in its hue and pass through the ramp's hues. Explicit neutral classes such as `huet-text-60` stay on the base ramp there. Lc values are design targets, not an accessibility conformance claim: APCA is still a draft.
 
-Relative contrast preserves the intended ramp and hue; it does not promise fixed accessibility ratios at every strength/background. Explicitly low strengths and narrow endpoint ranges stay low contrast. The algorithm supports opaque backgrounds only; gradients, images, alpha compositing, arbitrary CSS backgrounds, and independent CSS color overrides are not tracked. Theme changes still require browser style/paint work.
+Relative contrast preserves the intended ramp and hue; it does not promise a fixed contrast at every strength/background. Explicitly low strengths and narrow endpoint ranges stay low contrast. The algorithm supports opaque backgrounds only; gradients, images, alpha compositing, arbitrary CSS backgrounds, and independent CSS color overrides are not tracked. Theme changes still require browser style/paint work.
 
 See [Color Contrast findings](https://github.com/markmiro/huet/blob/master/docs/color-contrast.md) for algorithm decisions.
 

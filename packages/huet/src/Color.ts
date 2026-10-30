@@ -1,5 +1,5 @@
 import chroma from "chroma-js";
-import { fromOklab, toOklab, luminance } from "./core/color";
+import { fromOklab, toOklab, luminance, lightness, textEnd } from "./core/color";
 
 import type { Lab, Ramp } from "./colorModel";
 import Theme from "./Theme";
@@ -10,13 +10,14 @@ import { fadeColor } from "./private/fadeColor";
 const cache = new Cache();
 const enabledThemes = new WeakMap<Theme, Theme>();
 const enabledColors = new WeakMap<Color, { color: Color; origin: string }>();
-const rampSamples = new WeakMap<Ramp, { lab: Lab; luminance: number }[]>();
+const rampSamples = new WeakMap<Ramp, { lab: Lab; hex: string; lightness: number }[]>();
 function samplesFor(ramp: Ramp) {
   let samples = rampSamples.get(ramp);
   if (!samples) {
     samples = Array.from({ length: 257 }, (_, i) => {
       const lab = ramp(i / 256);
-      return { lab, luminance: chroma(chroma.lab(...lab).hex()).luminance() };
+      const hex = chroma.lab(...lab).hex();
+      return { lab, hex, lightness: lightness(hex) };
     });
     rampSamples.set(ramp, samples);
   }
@@ -147,36 +148,32 @@ export default class Color extends BaseColor {
       ) {
         const amount = Math.max(0, Math.min(1, contrastAmount / 100 * theme.contrastMultiplier));
         if (amount === 0) return this;
-        let best = ramp(0),
-          bestRatio = 0;
-        let chosen: Lab | undefined,
-          chosenRatio = Infinity;
         const samples = samplesFor(ramp);
-        const bgLuminance = chroma(this.hex).luminance();
-        const endpointRatio = (value: number) =>
-          (Math.max(bgLuminance, value) + 0.05) / (Math.min(bgLuminance, value) + 0.05);
-        const low = Math.min(samples[0].luminance, samples[samples.length - 1].luminance);
-        const high = Math.max(samples[0].luminance, samples[samples.length - 1].luminance);
-        const lighter = endpointRatio(high) > endpointRatio(low);
-        // Strength spans this background's available range. Fixed targets
-        // (3, 4.5, 21) exhausted middle-tone ramps long before strength 100.
-        const available = Math.max(endpointRatio(low), endpointRatio(high));
-        if (available <= 1 + 1e-10) return this;
-        const target = available ** amount;
-        // Choose polarity once for the background, not again for each amount.
-        // Otherwise nearest-ratio selection can alternate black/light/dark.
-        for (const { lab, luminance } of samples) {
-          if (lighter ? luminance < bgLuminance : luminance > bgLuminance) continue;
-          const ratio =
-            (Math.max(bgLuminance, luminance) + 0.05) /
-            (Math.min(bgLuminance, luminance) + 0.05);
-          if (ratio > bestRatio) {
+        const [dark, light] = [samples[0], samples[samples.length - 1]]
+          .sort((a, b) => a.lightness - b.lightness);
+        // Choose the side once for the background, not again for each amount.
+        // Otherwise nearest-step selection can alternate black/light/dark.
+        const lighter = textEnd(this.hex, dark.hex, light.hex) === light.hex;
+        const bgL = lightness(this.hex);
+        // Strength spans this background's available range in equal L* steps.
+        // Fixed targets exhausted middle-tone ramps long before strength 100.
+        const available = Math.abs((lighter ? light : dark).lightness - bgL);
+        if (available <= 1e-10) return this;
+        const target = available * amount;
+        let best = ramp(0),
+          bestDistance = -1;
+        let chosen: Lab | undefined,
+          chosenDistance = Infinity;
+        for (const { lab, lightness: value } of samples) {
+          if (lighter ? value < bgL : value > bgL) continue;
+          const distance = Math.abs(value - bgL);
+          if (distance > bestDistance) {
             best = lab;
-            bestRatio = ratio;
+            bestDistance = distance;
           }
-          if (ratio >= target && ratio < chosenRatio) {
+          if (distance >= target && distance < chosenDistance) {
             chosen = lab;
-            chosenRatio = ratio;
+            chosenDistance = distance;
           }
         }
         return new Color({ theme, bgColor: this, lab: chosen ?? best, ramp });
@@ -188,8 +185,7 @@ export default class Color extends BaseColor {
         const root = theme.ramps[theme.bgRamp];
         const rootEnds = [0, 1].map(n => chroma.lab(...root(n)).hex())
           .sort((a, b) => luminance(a) - luminance(b));
-        const lighter = chroma.contrast(this.hex, rootEnds[1]) >
-          chroma.contrast(this.hex, rootEnds[0]);
+        const lighter = textEnd(this.hex, rootEnds[0], rootEnds[1]) === rootEnds[1];
         const ends = [0, 1].map(n => chroma.lab(...ramp(n)).hex())
           .sort((a, b) => luminance(a) - luminance(b));
         const target = ends[lighter ? 1 : 0];
@@ -209,7 +205,7 @@ export default class Color extends BaseColor {
         const ends = [0, 1].map(n => chroma.lab(...root(n)).hex())
           .sort((a, b) => luminance(a) - luminance(b));
         const [dark, light] = ends;
-        const lighter = chroma.contrast(this.hex, light) > chroma.contrast(this.hex, dark);
+        const lighter = textEnd(this.hex, dark, light) === light;
         const position = lighter ? theme.endSignalLightness : theme.startSignalLightness;
         const anchor = chroma.lab(...ramp(position)).hex();
         const [anchorL, a, b] = toOklab(anchor);
@@ -219,7 +215,7 @@ export default class Color extends BaseColor {
         const fraction = Math.max(0, Math.min(1,
           lighter ? (anchorL - low) / (high - low) : (high - anchorL) / (high - low)));
         // The configured signal is an endpoint-relative anchor, not an
-        // absolute lightness offset and not a mandatory WCAG text ratio.
+        // absolute lightness offset and not a mandatory contrast target.
         // At black/white this reproduces the configured anchor. In between,
         // scale its lightness distance to the remaining room on the chosen side.
         const endL = lighter ? high : low;
@@ -235,7 +231,7 @@ export default class Color extends BaseColor {
           target = fromOklab([targetL, a, b]);
         }
         if (!onSide(target)) target = this.hex;
-        // All channels travel together, spaced by proportional contrast
+        // All channels travel together, spaced by equal L* steps
         // so low strengths do not collapse into black.
         let hex = mixSignal(this.hex, target, amount);
         if (!onSide(hex)) hex = this.hex;

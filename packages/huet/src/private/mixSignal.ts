@@ -1,32 +1,30 @@
-import { contrastRatio, luminance, mix } from "../core/color";
+import { lightness, mix } from "../core/color";
 
 /**
- * Travel along the same OKLab path, spacing strengths by relative contrast.
- * Raw OKLab interpolation crushes small steps near black. A geometric ratio
- * scale gives the same proportional contrast growth on either polarity:
- * ratio(amount) = ratio(full-strength) ** amount.
- * The full-strength anchor is unchanged; this does not impose a WCAG target.
+ * Travel along the same OKLab path, spacing strengths by equal CIE L* steps.
+ * Raw OKLab interpolation crushes small steps near black, because OKLab's
+ * lightness is steep there. L* is linear in luminance near black, so equal
+ * strength steps look about equally far apart on either polarity:
+ * L*(amount) = L*(background) + (L*(target) − L*(background)) × amount.
+ * The full-strength anchor is unchanged; this does not impose a contrast target.
  */
 export function mixSignal(background: string, target: string, amount: number) {
   if (amount === 0) return background;
   if (amount === 1) return target;
-  const bgY = luminance(background), endY = luminance(target);
-  if (Math.abs(endY - bgY) < 1e-10) return mix(background, target, amount);
-  const lighter = endY > bgY;
-  const ratio = contrastRatio(background, target) ** amount;
-  const desiredY = lighter
-    ? (bgY + 0.05) * ratio - 0.05
-    : (bgY + 0.05) / ratio - 0.05;
+  const bgL = lightness(background), endL = lightness(target);
+  if (Math.abs(endL - bgL) < 1e-10) return mix(background, target, amount);
+  const lighter = endL > bgL;
+  const desired = bgL + (endL - bgL) * amount;
   let low = 0, high = 1, best = background;
-  let error = Math.abs(desiredY - bgY);
+  let error = Math.abs(desired - bgL);
   // Select on the actual rounded sRGB path, retaining its hue/chroma scaling.
   for (let i = 0; i < 18; i++) {
     const middle = (low + high) / 2;
     const color = mix(background, target, middle);
-    const value = luminance(color);
-    const distance = Math.abs(value - desiredY);
+    const value = lightness(color);
+    const distance = Math.abs(value - desired);
     if (distance < error) { best = color; error = distance; }
-    if (lighter ? value < desiredY : value > desiredY) low = middle;
+    if (lighter ? value < desired : value > desired) low = middle;
     else high = middle;
   }
   return best;
