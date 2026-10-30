@@ -51,7 +51,9 @@ var o = "#version 300 es\nin vec2 position;\nout vec2 uv;\nvoid main() {\n  uv =
 	}
 	render(e, t, n, r) {
 		let i = this.gl;
-		this.texture(e), this.canvas.width = n, this.canvas.height = r, i.viewport(0, 0, n, r), i.drawArrays(i.TRIANGLE_STRIP, 0, 4), t.width = n, t.height = r;
+		this.texture(e);
+		for (let e of [this.canvas, t]) e.width !== n && (e.width = n), e.height !== r && (e.height = r);
+		i.viewport(0, 0, n, r), i.drawArrays(i.TRIANGLE_STRIP, 0, 4);
 		let a = t.getContext("2d");
 		a.clearRect(0, 0, n, r), a.drawImage(this.canvas, 0, 0);
 	}
@@ -239,122 +241,154 @@ var E, D = () => {
 function A(e, t, n = {}, r = document.createElement("canvas")) {
 	let [i, a] = k(e), { renderer: o = "gpu", ...s } = n, c = s.lutSize ?? 17, l = T(C(t), s), u = o === "gpu" ? D() : null;
 	if (u) return u.setLut(l, c), u.render(e, r, i, a), r;
-	r.width = i, r.height = a;
+	r.width !== i && (r.width = i), r.height !== a && (r.height = a);
 	let d = r.getContext("2d", { willReadFrequently: !0 });
 	d.clearRect(0, 0, i, a), d.drawImage(e, 0, 0);
 	let f = d.getImageData(0, 0, i, a);
 	return b(f.data, l, c), d.putImageData(f, 0, 0), r;
 }
-function j(e, t, n = {}) {
-	let { selector: r = "img[data-huet-recolor]", hoverOriginal: i = !1, ...a } = n, o = C(t), s = a, c = !1, l = /* @__PURE__ */ new Map(), u = /* @__PURE__ */ new Map(), d = /* @__PURE__ */ new Set(), f = (e, t) => {
-		let n = `${t} ${e}`, r = u.get(n);
+var j = [
+	"class",
+	"title",
+	"alt"
+];
+function M(e, t, n = {}) {
+	let { selector: r = "img[data-huet-recolor]", hoverOriginal: i = !1, ...a } = n, o = C(t), s = a, c = 0, l, u = !1, d = /* @__PURE__ */ new Map(), f = /* @__PURE__ */ new Map(), p = /* @__PURE__ */ new Map(), m = /* @__PURE__ */ new Set(), h = (e, t) => {
+		let n = `${t} ${e}`, r = p.get(n);
 		if (!r) {
 			let i = new Image();
-			i.crossOrigin = t, i.src = e, u.set(n, r = i.decode().then(() => i)), r.catch(() => u.delete(n));
+			i.crossOrigin = t, i.src = e, p.set(n, r = i.decode().then(() => i)), r.catch(() => p.delete(n));
 		}
 		return r;
-	}, p = (e, t, n) => {
-		t.written = n, e.getAttribute("src") !== n && e.setAttribute("src", n);
-	}, m = (e, t) => {
-		if (t.hidden) return;
-		let { style: n } = e;
-		t.hidden = [n.getPropertyValue("visibility"), n.getPropertyPriority("visibility")], n.setProperty("visibility", "hidden", "important");
-	}, h = (e, t) => {
-		if (!t.hidden) return;
-		let [n, r] = t.hidden;
-		n ? e.style.setProperty("visibility", n, r) : e.style.removeProperty("visibility"), t.hidden = void 0;
-	}, g = (e, t) => {
-		e.setAttribute("data-huet-recolored", "original"), h(e, t);
-	}, _ = (e) => {
-		e.recolored && URL.revokeObjectURL(e.recolored), e.recolored = void 0;
+	}, g = (e, t, n, r) => {
+		let i = t.saved.get(n);
+		if (r === void 0) {
+			if (!i) return;
+			t.saved.delete(n), i[0] ? e.style.setProperty(n, i[0], i[1]) : e.style.removeProperty(n);
+		} else i || t.saved.set(n, [e.style.getPropertyValue(n), e.style.getPropertyPriority(n)]), e.style.setProperty(n, r, "important");
+	}, _ = (e, t, n) => {
+		let r = e.getAttribute(n);
+		n === "alt" ? (r ? t.setAttribute("aria-label", r) : t.removeAttribute("aria-label"), r === "" ? t.setAttribute("aria-hidden", "true") : t.removeAttribute("aria-hidden")) : r === null ? t.removeAttribute(n) : t.setAttribute(n, r);
 	}, v = (e, t) => {
-		t.leave?.(), h(e, t);
-		for (let [n, r] of Object.entries(t.original)) r === null ? e.removeAttribute(n) : e.setAttribute(n, r);
-		_(t), e.removeAttribute("data-huet-recolored"), l.delete(e);
-	}, y = async (e, t) => {
-		let n = ++t.generation, r = t.source;
-		if (!r) return g(e, t);
-		try {
-			let a = await f(r, e.crossOrigin);
-			if (c || n !== t.generation || !l.has(e)) return;
-			let u = A(a, o, s), d = await new Promise((e) => u.toBlob(e));
-			if (c || n !== t.generation || !l.has(e)) return;
-			if (!d) throw Error("Could not encode the recolored image");
-			if (_(t), t.recolored = URL.createObjectURL(d), e.removeAttribute("srcset"), e.removeAttribute("sizes"), i && e.matches(":hover") || p(e, t, t.recolored), e.setAttribute("data-huet-recolored", ""), !t.hidden) return;
-			await e.decode().catch(() => {}), n === t.generation && l.has(e) && h(e, t);
-		} catch {
-			n === t.generation && l.has(e) && g(e, t);
-		}
-	}, b = (e) => {
-		d.add(e), e.finally(() => d.delete(e));
-	}, x = (e) => {
-		let t = {
-			original: {
-				src: e.getAttribute("src"),
-				srcset: e.getAttribute("srcset"),
-				sizes: e.getAttribute("sizes")
-			},
-			generation: 0
-		};
-		if (l.set(e, t), i) {
-			let n = () => t.source && p(e, t, t.source), r = () => t.recolored && p(e, t, t.recolored);
-			e.addEventListener("pointerenter", n), e.addEventListener("pointerleave", r), t.leave = () => {
-				e.removeEventListener("pointerenter", n), e.removeEventListener("pointerleave", r);
+		let n = document.createElement("canvas");
+		n.setAttribute("role", "img");
+		for (let t of j) _(e, n, t);
+		n.style.cssText = e.style.cssText;
+		for (let [e, [r, i]] of t.saved) r ? n.style.setProperty(e, r, i) : n.style.removeProperty(e);
+		if (i) {
+			let r = () => {
+				t.hovering = !0, b(e, t);
+			}, i = () => {
+				t.hovering = !1, b(e, t);
 			};
+			n.addEventListener("pointerenter", r), e.addEventListener("pointerleave", i), t.leave = () => e.removeEventListener("pointerleave", i);
 		}
-		S(e, t);
+		return f.set(n, e), O.observe(n), n;
+	}, y = (e) => e.ready && !e.failed && !e.hovering, b = (e, t) => {
+		let { canvas: n } = t;
+		n && y(t) ? (e.nextSibling !== n && e.after(n), g(e, t, "display", "none")) : (n?.remove(), g(e, t, "display")), t.ready || t.failed ? g(e, t, "visibility") : g(e, t, "visibility", "hidden"), t.failed ? e.setAttribute("data-huet-recolored", "original") : t.ready ? e.setAttribute("data-huet-recolored", "") : e.removeAttribute("data-huet-recolored");
+	}, x = (e, t) => {
+		t.failed = !0, t.ready = !1, b(e, t);
 	}, S = (e, t) => {
-		m(e, t);
-		let n = async () => {
-			l.has(e) && (t.source = (e.srcset ? e.currentSrc : "") || e.src || void 0, await y(e, t));
+		t.leave?.(), t.canvas && (t.canvas.remove(), f.delete(t.canvas), O.unobserve(t.canvas)), O.unobserve(e);
+		for (let n of [...t.saved.keys()]) g(e, t, n);
+		e.removeAttribute("data-huet-recolored"), d.delete(e);
+	}, w = (e, t) => {
+		try {
+			let n = t.canvas ??= v(e, t);
+			A(t.image, o, s, n), t.drawn = c, t.ready = !0, b(e, t);
+		} catch {
+			x(e, t);
+		}
+	}, T = (e) => e.image && !e.failed && e.drawn !== c, E = (e = !1) => {
+		l = void 0;
+		for (let [t, n] of d) T(n) && (e || n.near.img || n.near.canvas) && w(t, n);
+	}, D = () => {
+		u || l !== void 0 || (l = requestAnimationFrame(() => E()));
+	}, O = new IntersectionObserver((e) => {
+		for (let { target: t, isIntersecting: n } of e) {
+			let e = t instanceof HTMLCanvasElement, r = e ? f.get(t) : t, i = r && d.get(r);
+			i && (i.near[e ? "canvas" : "img"] = n, n && T(i) && D());
+		}
+	}, { rootMargin: "100% 0px" }), k = (e) => {
+		m.add(e), e.finally(() => m.delete(e));
+	}, M = (e) => {
+		let t = {
+			ready: !1,
+			drawn: -1,
+			failed: !1,
+			hovering: !1,
+			near: {
+				img: !1,
+				canvas: !1
+			},
+			generation: 0,
+			saved: /* @__PURE__ */ new Map()
 		};
-		b(e.complete ? n() : new Promise((r) => {
-			e.addEventListener("load", () => r(n()), { once: !0 }), e.addEventListener("error", () => r(l.get(e) === t ? g(e, t) : void 0), { once: !0 });
+		d.set(e, t), O.observe(e), N(e, t);
+	}, N = (e, t) => {
+		let n = ++t.generation;
+		t.image = void 0, t.ready = t.failed = t.hovering = !1, b(e, t);
+		let r = async () => {
+			if (d.get(e) !== t || n !== t.generation) return;
+			let r = (e.srcset ? e.currentSrc : "") || e.src;
+			if (!r) return x(e, t);
+			try {
+				let i = await h(r, e.crossOrigin);
+				if (d.get(e) !== t || n !== t.generation) return;
+				t.image = i, t.drawn = -1, D();
+			} catch {
+				d.get(e) === t && n === t.generation && x(e, t);
+			}
+		};
+		k(e.complete ? r() : new Promise((i) => {
+			e.addEventListener("load", () => i(r()), { once: !0 }), e.addEventListener("error", () => i(d.get(e) === t && n === t.generation ? x(e, t) : void 0), { once: !0 });
 		}));
-	}, w = () => {
-		if (c) return;
+	}, P = () => {
+		if (u) return;
 		let t = /* @__PURE__ */ new Set();
 		e instanceof HTMLImageElement && e.matches(r) && t.add(e);
-		for (let n of e.querySelectorAll(r)) t.add(n);
-		for (let [e, n] of l) t.has(e) || v(e, n);
-		for (let e of t) l.has(e) || x(e);
-	}, T = new MutationObserver((e) => {
+		for (let n of e.querySelectorAll(r)) n instanceof HTMLImageElement && t.add(n);
+		for (let [e, n] of d) t.has(e) ? y(n) && e.nextSibling !== n.canvas && b(e, n) : S(e, n);
+		for (let e of t) d.has(e) || M(e);
+	}, F = new MutationObserver((e) => {
 		for (let { type: t, target: n, attributeName: r } of e) {
 			if (t !== "attributes" || !(n instanceof HTMLImageElement)) continue;
-			let e = l.get(n);
-			if (!e || r === "data-huet-recolor") continue;
-			let i = n.getAttribute(r);
-			(r === "src" ? i === e.written : i === null) || (r === "src" ? e.original.src = i : e.original.srcset = i, e.source = e.written = void 0, e.generation++, S(n, e));
+			let e = d.get(n);
+			e && (j.includes(r) ? e.canvas && _(n, e.canvas, r) : r !== "data-huet-recolor" && N(n, e));
 		}
-		w();
+		P();
 	});
-	return w(), T.observe(e, {
+	return P(), F.observe(e, {
 		subtree: !0,
 		childList: !0,
 		attributes: !0,
 		attributeFilter: [
 			"src",
 			"srcset",
-			"data-huet-recolor"
+			"sizes",
+			"data-huet-recolor",
+			...j
 		]
 	}), {
 		update(e, t) {
-			if (c) throw Error("Cannot update a destroyed Huet image mount");
-			o = C(e), t && (s = t);
-			for (let [e, t] of l) b(y(e, t));
+			if (u) throw Error("Cannot update a destroyed Huet image mount");
+			o = C(e), t && (s = t), c++, D();
 		},
 		async ready() {
-			for (; d.size;) await Promise.all(d);
+			do
+				await Promise.all(m), u || E(!0);
+			while (m.size);
 		},
 		destroy() {
-			if (!c) {
-				c = !0, T.disconnect();
-				for (let [e, t] of l) v(e, t);
-				d = /* @__PURE__ */ new Set();
+			if (!u) {
+				u = !0, l !== void 0 && cancelAnimationFrame(l), F.disconnect(), O.disconnect();
+				for (let [e, t] of d) S(e, t);
+				m = /* @__PURE__ */ new Set();
 			}
 		}
 	};
 }
-export { c as GpuRecolor, b as applyLut, x as applyTransform, y as buildLut, g as coordinatesOf, O as hasGpu, j as mountImages, C as paletteOf, v as rampColor, A as recolorImage, _ as recolorer, S as toCube };
+export { c as GpuRecolor, b as applyLut, x as applyTransform, y as buildLut, g as coordinatesOf, O as hasGpu, M as mountImages, C as paletteOf, v as rampColor, A as recolorImage, _ as recolorer, S as toCube };
 
 //# sourceMappingURL=images.js.map

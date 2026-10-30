@@ -32,13 +32,19 @@ export interface MountImagesOptions extends ImageOptions {
 /**
  * Recolor matching `<img>` elements under `root` into a theme, and keep them
  * recolored as images are added, change `src`, or the theme is updated.
- * Each image's `src` is replaced with a recolored copy; `destroy` restores it.
+ * Each image is drawn into a `<canvas>` inserted after it, which takes the
+ * image's class and inline style; the `<img>` itself is hidden but left as is.
  * New originals stay hidden until their recolored copy is ready to paint.
+ * Theme updates redraw once per frame, and images far outside the viewport
+ * are redrawn when they scroll near it. `destroy` removes the canvases.
  */
 export declare function mountImages(root: ParentNode & Node, theme: HuetTheme | Palette, options?: MountImagesOptions): {
     /** Recolor every image into a new theme, optionally with new options. */
     update(next: HuetTheme | Palette, nextOptions?: ImageOptions): void;
-    /** Resolves once every image queued so far has been recolored. */
+    /**
+     * Resolves once every image queued so far has been recolored, including
+     * images outside the viewport, which this draws right away.
+     */
     ready(): Promise<void>;
     destroy(): void;
 };
