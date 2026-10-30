@@ -25,7 +25,8 @@ test("images follow the configurator's theme", async ({ page }) => {
   expect(errors).toEqual([]);
 });
 
-test("emoji are drawn into images and recolored", async ({ page }) => {
+// The emoji section is commented out on the Images page.
+test.skip("emoji are drawn into images and recolored", async ({ page }) => {
   await page.goto("/images");
   const emoji = page.locator("img[data-emoji]");
   await expect(emoji).toHaveCount(60);
