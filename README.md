@@ -2,19 +2,16 @@
 
 Relative UI colors for utility apps. Choose a theme, then specify a ramp and contrast amount in class names. Layout stays with your framework or Tailwind. The framework-independent entry point is `huet/core`; the original React API remains at `huet`.
 
-## Install this unreleased branch
+## Install before the npm release
 
-These changes have not been published to npm.
+These changes have not been published to npm yet. Every push to `master` builds the package and commits it to the [`dist`](https://github.com/markmiro/huet/tree/dist) branch, so you can install it from GitHub without building anything:
 
 ```sh
-# In this repo
-npm ci
-npm run build:lib
-npm pack
-
-# In your app, using the actual path to the generated archive
-npm install /path/to/huet/huet-1.0.0-beta.3.tgz
+npm install github:markmiro/huet#dist
+# or: pnpm add github:markmiro/huet#dist, bun add github:markmiro/huet#dist
 ```
+
+Your lockfile pins the exact `dist` commit; each commit message names the `master` commit it was built from. Run `npm update huet` (or your package manager's equivalent) to pick up newer builds.
 
 The core bundles its color calculations and does not require React. React peers are optional and only needed for the original entry point.
 
