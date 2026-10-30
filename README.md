@@ -16,6 +16,16 @@ pnpm add huet               # theming, any framework
 pnpm add huet-react         # optional: the React theme configurator
 ```
 
+Until they are on npm, every push to `master` builds both packages and commits them to the [`dist`](https://github.com/markmiro/huet/tree/dist) and [`dist-react`](https://github.com/markmiro/huet/tree/dist-react) branches, so you can install them from GitHub without building anything:
+
+```sh
+pnpm add github:markmiro/huet#dist
+pnpm add github:markmiro/huet#dist-react    # optional
+# or: npm install …, bun add …
+```
+
+Your lockfile pins the exact commit; each commit message names the `master` commit it was built from. Run `pnpm update huet huet-react` (or your package manager's equivalent) to pick up newer builds.
+
 ```ts
 import { createTheme, mountTheme } from "huet";
 import { mountImages } from "huet/images";

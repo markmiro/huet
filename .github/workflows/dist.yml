@@ -1,0 +1,37 @@
+name: Publish dist branch
+
+# Keeps prebuilt copies of the packages on the `dist` (huet) and `dist-react`
+# (huet-react) branches until they are on npm, so apps can depend on
+# "github:markmiro/huet#dist" without a build step.
+on:
+  push:
+    branches: [master]
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+concurrency:
+  group: dist
+  cancel-in-progress: false
+
+jobs:
+  dist:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: pnpm/action-setup@v4
+        with:
+          version: 12
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 24
+          cache: pnpm
+      - run: pnpm install --frozen-lockfile
+      - run: pnpm test
+      - run: |
+          remote="https://x-access-token:${GITHUB_TOKEN}@github.com/${GITHUB_REPOSITORY}.git"
+          scripts/push-dist.sh packages/huet dist "$remote"
+          scripts/push-dist.sh packages/huet-react dist-react "$remote"
+        env:
+          GITHUB_TOKEN: ${{ github.token }}
