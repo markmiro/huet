@@ -1,0 +1,49 @@
+{
+  "name": "huet-react",
+  "version": "1.0.0-alpha.1",
+  "description": "A floating theme editor for Huet themes in React apps",
+  "license": "MIT",
+  "author": "Mark Miro",
+  "homepage": "https://markmiro.github.io/huet/",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/markmiro/huet.git",
+    "directory": "packages/huet-react"
+  },
+  "bugs": {
+    "url": "https://github.com/markmiro/huet/issues"
+  },
+  "keywords": [
+    "huet",
+    "react",
+    "theme",
+    "theme editor",
+    "color"
+  ],
+  "type": "module",
+  "sideEffects": false,
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "import": "./dist/index.js",
+      "require": "./dist/index.cjs"
+    },
+    "./package.json": "./package.json"
+  },
+  "files": [
+    "dist"
+  ],
+  "peerDependencies": {
+    "huet": "^1.0.0-alpha.1",
+    "react": ">=18.0.0",
+    "react-dom": ">=18.0.0"
+  },
+  "dependencies": {
+    "chroma-js": "^2.6.0",
+    "file-saver": "^2.0.5",
+    "lodash-es": "^4.18.1"
+  },
+  "main": "./dist/index.cjs",
+  "module": "./dist/index.js",
+  "types": "./dist/index.d.ts"
+}
