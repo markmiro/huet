@@ -90,6 +90,16 @@ Reference state follows nested `contrast()`, `direct()`, and `base()` calls, eve
 
 Regression coverage sweeps nested colors through all 101 slider values and drives the rendered form slider in both directions. Quantized RGB values are allowed small rounding differences. Validation: 38 unit/integration tests, nine Chromium browser tests, TypeScript, and library build.
 
+## Preset roles on narrow ramps and colored surfaces
+
+`theme.tokens()` (and the `--huet-foreground`, `--huet-muted` and `--huet-border` variables `mountTheme` writes on each surface) aimed for 7, 4.5 and 3:1, each capped at the background's available contrast. Orange Boost's ramp (`#474b56` to `#ff7c49`) offers at most 3.4:1, so all three clamped to the endpoint or close to it. A slider's track (border) and its filled part (text) became the same orange. On colored surfaces, the roles were sampled from the neutral ramp and came out gray, such as `#787878` borders on Base's light blue `huet-bg-blue-25`.
+
+The roles now step from the actual background toward the endpoint the text uses. Neutral backgrounds on the ramp follow the ramp, as `huet-surface-N` does. Colored backgrounds use a straight OKLab mix, as nested preset surfaces and non-root neutral overlays already do, so borders and muted text keep the surface's hue. Explicit-amount classes are unchanged: `huet-text-60` on a blue surface still samples the gray ramp.
+
+Where a background reaches 4.5:1, the WCAG targets stay as they were. Below 4:1, each role takes the same share of the foreground's log-contrast that it has at 7:1 (`available ** (ln 4.5 / ln 7)` for muted, `ln 3 / ln 7` for border), as the matching-ramp solver above does for strengths. Between 4 and 4.5:1 the two blend, so dragging the configurator doesn't make the roles jump. Muted text and borders also stay on the text's side of the background; previously a mid-gray surface could get white text with a near-black muted color. A border can still cross to the other side when that's the only way to reach its target against both the surface and its parent, so it keeps outlining the surface.
+
+Unit tests cover the Orange Boost ramp and its blue surface, polarity on three ramps, the outline fallback, smoothness through the blend, and tinting on blue surfaces in Base, Base Inverted and Orange Boost.
+
 ## PR comparison: ramp squares
 
 Matched Color Contrast matrix captures use the Base theme, full global contrast, 20-point steps, and a 2000×1100 Chromium viewport. The crop includes the background-ramp picker and all matrix rows, excluding forms and the theme sidebar. Gray and blue selections are captured independently.

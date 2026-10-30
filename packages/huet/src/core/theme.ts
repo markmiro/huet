@@ -84,6 +84,18 @@ function select(
   }
   return nearest || best;
 }
+/**
+ * The contrast a preset role aims for on a background that can reach `available`.
+ * Where the background can carry readable text, roles keep their WCAG ratios
+ * (7, 4.5 and 3:1). Below that, each role keeps its share of the foreground's
+ * contrast, so foreground, muted and border stay distinct instead of all
+ * clamping to the endpoint. A short band between 4:1 and 4.5:1 blends the two.
+ */
+function roleTarget(ratio: number, available: number): number {
+  const proportional = Math.min(7, available) ** (Math.log(ratio) / Math.log(7));
+  const weight = Math.max(0, Math.min(1, Math.log(available / 4) / Math.log(4.5 / 4)));
+  return Math.min(available, proportional ** (1 - weight) * ratio ** weight);
+}
 /** Validate a theme's neutral ramp and return a sampler for it. */
 export function neutralRampOf(options: Pick<ThemeOptions, "dark" | "light" | "neutral">) {
   const custom = options.neutral !== undefined;
@@ -134,7 +146,14 @@ export function createTheme(options: ThemeOptions = {}) {
   // Colored parents fall back to a straight OKLab mix toward the endpoint.
   const path = (parent: string, end: string) => {
     const from = custom ? positionOf(parent) : undefined;
-    if (from === undefined) return (amount: number) => mix(parent, end, amount);
+    if (from === undefined) {
+      // Same as mix(parent, end, amount), converting the endpoints once.
+      const x = toOklab(parent),
+        y = toOklab(end);
+      return (amount: number) =>
+        amount === 0 ? parent : amount === 1 ? end
+          : fromOklab(x.map((v, i) => v + (y[i] - v) * amount) as unknown as typeof x);
+    }
     const to = end === dark ? 0 : 1;
     return (amount: number) =>
       amount === 0 ? parent : ramp(from + (to - from) * amount);
@@ -172,17 +191,33 @@ export function createTheme(options: ThemeOptions = {}) {
     const key = bg + adjacent;
     const cached = cache.get(key);
     if (cached) return cached;
-    const available = Math.max(
-      contrastRatio(bg, dark),
-      contrastRatio(bg, light),
-    );
+    // Neutral roles step from the background toward the endpoint with more contrast,
+    // so they share the text's polarity. On a colored surface the steps keep its hue.
+    const end =
+      contrastRatio(bg, light) > contrastRatio(bg, dark) ? light : dark;
+    const available = contrastRatio(bg, end);
+    const stepsTo = (endpoint: string) => {
+      const toward = path(bg, endpoint);
+      return Array.from({ length: 257 }, (_, i) => candidate(toward(i / 256)));
+    };
+    const steps = stepsTo(end);
+    // A border also outlines the surface against its parent. When the text's side
+    // can't reach the target against both, the other side may.
+    const borderTarget = roleTarget(3, available);
+    const outline = (color: string) =>
+      Math.min(contrastRatio(bg, color), contrastRatio(adjacent, color));
+    let border = select(bg, steps, borderTarget, adjacent);
+    if (outline(border) < borderTarget) {
+      const other = select(bg, stepsTo(end === light ? dark : light), borderTarget, adjacent);
+      if (outline(other) > outline(border)) border = other;
+    }
     // Narrow ramps deliberately lower the contrast budget, including signal colors.
     const budget = Math.min(1, (contrastRatio(dark, light) - 1) / 6);
     const result = Object.freeze({
       background: bg,
-      foreground: select(bg, neutral, Math.min(7, available)),
-      muted: select(bg, neutral, Math.min(4.5, available)),
-      border: select(bg, neutral, 3, adjacent),
+      foreground: select(bg, steps, roleTarget(7, available)),
+      muted: select(bg, steps, roleTarget(4.5, available)),
+      border,
       ...Object.fromEntries(
         hues.map((hue) => [hue, select(bg, semanticCandidates(bg, hue), 1 + 3.5 * budget)]),
       ),
