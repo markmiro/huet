@@ -33,6 +33,7 @@
     "./config": "./src/config.ts",
     "./styles.css": "./src/core/styles.css",
     "./tailwind.css": "./src/core/tailwind.css",
+    "./forms.css": "./src/core/forms.css",
     "./package.json": "./package.json"
   },
   "publishConfig": {
@@ -62,6 +63,7 @@
       },
       "./styles.css": "./dist/styles.css",
       "./tailwind.css": "./dist/tailwind.css",
+      "./forms.css": "./dist/forms.css",
       "./package.json": "./package.json"
     },
     "bin": {

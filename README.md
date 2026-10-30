@@ -6,7 +6,7 @@ Relative UI colors and themed images from one theme. Choose a theme, then give e
 
 | Package | What it is |
 | --- | --- |
-| [`huet`](packages/huet) | The theming library, for any framework: `createTheme`, `mountTheme`, Huet classes, Tailwind v4 bridge, and themed images (`huet/images`) |
+| [`huet`](packages/huet) | The theming library, for any framework: `createTheme`, `mountTheme`, Huet classes, Tailwind v4 bridge, themed images (`huet/images`) and form controls (`huet/forms.css`) |
 | [`huet-react`](packages/huet-react) | `<ThemeConfigurator>`, a floating React panel for picking and editing themes |
 
 ## Quick start
