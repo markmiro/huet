@@ -115,7 +115,7 @@
       color: inherit;
     }
     [data-huet-forms] :where(select:not([multiple], [size])) :where(option:is(:hover, :focus-visible)) {
-      background-color: color-mix(in oklab, currentColor 12%, transparent);
+      background-color: color-mix(in srgb, currentColor 12%, transparent);
       outline: none;
     }
     [data-huet-forms] :where(select:not([multiple], [size])) :where(option:disabled) {
@@ -294,7 +294,7 @@
   /* Progress bars and meters: the track is a softer version of the line color,
      since the whole bar is filled */
   [data-huet-forms] :where(progress, meter) {
-    --_track: color-mix(in oklab, var(--_line) 25%, var(--huet-background));
+    --_track: color-mix(in srgb, var(--_line) 25%, var(--huet-background));
     appearance: none;
     box-sizing: border-box;
     height: 0.5em;
@@ -417,7 +417,7 @@
   }
   [data-huet-forms] :where(button, input[type="button"], input[type="submit"], input[type="reset"]):where(:hover:not(:disabled)),
   [data-huet-forms] :where(input[type="file"]:hover:not(:disabled))::file-selector-button {
-    background-color: color-mix(in oklab, currentColor 8%, transparent);
+    background-color: color-mix(in srgb, currentColor 8%, transparent);
   }
   /* The submit button is the primary action, filled with the text color.
      Its label is painted with text-fill-color so currentColor stays the text color. */
@@ -427,7 +427,7 @@
     -webkit-text-fill-color: var(--huet-background);
   }
   [data-huet-forms] :where(button[type="submit"], input[type="submit"]):where(:hover:not(:disabled)) {
-    background-color: color-mix(in oklab, currentColor 85%, var(--huet-background));
+    background-color: color-mix(in srgb, currentColor 85%, var(--huet-background));
   }
 
   /* Fieldsets */
@@ -446,10 +446,20 @@
   [data-huet-forms] :where(input, textarea, select):where(:user-invalid, [aria-invalid="true"]) {
     --_line: var(--huet-red);
   }
-  /* Disabled controls are drawn at about a third of their usual contrast.
-     In the color property, currentColor is the inherited text color. */
-  [data-huet-forms] :where(input, textarea, select, button, fieldset):disabled {
-    color: color-mix(in oklab, currentColor 35%, var(--huet-background));
+  /* Disabled controls, and the labels and fieldsets around them, are drawn at
+     about a third of their usual contrast. In the color property, currentColor
+     is the inherited text color, so a control inside a faded label or fieldset
+     is skipped to avoid fading it twice. Mixing in sRGB fades light and dark
+     themes by a similar contrast ratio. */
+  [data-huet-forms]
+    :where(
+      label:has(:disabled),
+      fieldset:disabled,
+      :is(input, textarea, select, button):disabled:not(label:has(:disabled) *, fieldset:disabled *)
+    ) {
+    color: color-mix(in srgb, currentColor 35%, var(--huet-background));
+  }
+  [data-huet-forms] :where(input, textarea, select, button):disabled {
     cursor: not-allowed;
   }
   /* Disabled controls lose their outline and get a flat fill instead */
@@ -463,7 +473,7 @@
   [data-huet-forms] :where(input[type="checkbox"], input[type="radio"]):disabled:not(:checked, :indeterminate),
   [data-huet-forms] :where(input[type="file"]:disabled)::file-selector-button {
     border-color: transparent;
-    background-color: color-mix(in oklab, var(--_line) 20%, var(--huet-background));
+    background-color: color-mix(in srgb, var(--_line) 20%, var(--huet-background));
     cursor: not-allowed;
   }
   /* Icons inside disabled fields fade with their text */

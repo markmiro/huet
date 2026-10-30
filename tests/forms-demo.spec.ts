@@ -50,6 +50,20 @@ test("controls take their colors from the theme and the surface they're on", asy
   await expect(inverted.getByLabel("Starred")).toHaveCSS("background-color", "rgb(0, 0, 0)");
 });
 
+test("disabled controls fade along with their labels, once", async ({ page }) => {
+  const toggle = await open(page);
+  await toggle.click();
+  const color = (text: string) => page.locator("label", { hasText: text }).evaluate((el) => getComputedStyle(el).color);
+  const drone = page.getByLabel("Drone (disabled)");
+  // Black text mixed 35% over white
+  const faded = "color(srgb 0.65 0.65 0.65)";
+  expect(await color("Express")).toBe("rgb(0, 0, 0)");
+  expect(await color("Drone (disabled)")).toBe(faded);
+  // The radio inherits the faded color rather than fading it again
+  await expect(drone).toHaveCSS("color", faded);
+  await expect(page.locator("form button[type=button][disabled]")).toHaveCSS("color", faded);
+});
+
 function hexToRgb(hex: string) {
   const [r, g, b] = [1, 3, 5].map((i) => parseInt(hex.trim().slice(i, i + 2), 16));
   return `rgb(${r}, ${g}, ${b})`;
