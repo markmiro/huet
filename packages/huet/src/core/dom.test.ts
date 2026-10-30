@@ -45,6 +45,39 @@ describe("framework-independent surfaces", () => {
     expect(() => mount.update(theme)).toThrow();
     root.remove();
   });
+  it("rejects variant-only classes at mount and leaves no changes", () => {
+    const root = document.createElement("div");
+    root.innerHTML = '<p class="huet-bg-10"></p><p class="hover:huet-bg-25"></p>';
+    expect(() => mountTheme(root, createTheme())).toThrow("don't support Tailwind variants yet: hover:huet-bg-25");
+    expect(background(root.querySelector("p")!)).toBe("");
+    expect(root.hasAttribute("data-huet-root")).toBe(false);
+    expect(root.hasAttribute("data-huet-error")).toBe(false);
+  });
+  it("checks every class before writing, and records errors on the root", () => {
+    const root = document.createElement("div");
+    root.innerHTML = '<p class="huet-bg-10"></p><p class="huet-bg-10"></p>';
+    const [first, second] = root.querySelectorAll("p");
+    const mount = mountTheme(root, createTheme());
+    const light = background(first);
+    const rootBackground = background(root);
+    first.className = "huet-bg-50";
+    second.className = "huet-bg-10 hover:huet-bg-25";
+    // The bad class comes after valid changes, which must not be written either.
+    expect(() => mount.update(createTheme({ background: 0 }))).toThrow("hover:huet-bg-25");
+    expect(background(root)).toBe(rootBackground);
+    expect(background(first)).toBe(light);
+    expect(background(second)).toBe(light);
+    expect(root.getAttribute("data-huet-error")).toContain("hover:huet-bg-25");
+    second.className = "huet-bg-10";
+    const dark = createTheme({ background: 0 });
+    mount.update(dark);
+    expect(background(first)).toBe(dark.relative.contrast(50).hex);
+    expect(root.hasAttribute("data-huet-error")).toBe(false);
+    first.className = "hover:huet-text-60";
+    expect(() => mount.update(dark)).toThrow();
+    mount.destroy();
+    expect(root.hasAttribute("data-huet-error")).toBe(false);
+  });
   it("restores pre-existing values and rejects overlapping roots", () => {
     const root = document.createElement("div");
     const child = document.createElement("div");
