@@ -1,3 +1,10 @@
+<p align="center">
+  <picture>
+    <source media="(prefers-color-scheme: dark)" srcset="docs/logo/huet-logo-dark.svg" />
+    <img src="docs/logo/huet-logo.svg" alt="Huet logo" width="96" height="96" />
+  </picture>
+</p>
+
 # Huet
 
 Relative UI colors and themed images from one theme. Choose a theme, then give each element a ramp and a contrast amount in its class name, such as `huet-bg-blue-25`. Huet works out the actual colors from the element's parent background, and recolors images to match.

@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from "react";
 
 import cx from "./cx";
+import HuetLogo from "./HuetLogo";
 import usePersistentState, { asBoolean, useIsSaving } from "./persistentState";
 
 function BrowserStateActivity() {
@@ -32,7 +33,8 @@ function TitleBar({
       title={isExpanded ? "Collapse" : "Expand"}
       className="huet-bg-100 hc:w-full hc:flex hc:justify-between hc:shrink-0 hc:select-none"
     >
-      <span className="hc:py-2 hc:px-2 hc:font-bold">
+      <span className="hc:py-2 hc:px-2 hc:font-bold hc:flex hc:items-center hc:gap-1.5">
+        <HuetLogo className="hc:size-[1.25em] hc:shrink-0" />
         Huet Theme Configurator {isExpanded && <BrowserStateActivity />}
       </span>
       {/* Docked at the bottom: collapse down into the corner, expand up out of it */}
