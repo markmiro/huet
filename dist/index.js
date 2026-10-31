@@ -163,7 +163,7 @@ function I(e, t) {
 		(!e || window.confirm(e === !0 ? "Are you sure?" : e)) && t?.(n);
 	};
 }
-function L({ as: e = "button", colors: t = "huet-bg-12", className: n, children: r, verify: i, onClick: a, ...o }) {
+function L({ as: e = "button", colors: t = "huet-bg-10", className: n, children: r, verify: i, onClick: a, ...o }) {
 	return /* @__PURE__ */ v(e, {
 		onClick: I(i, a),
 		...o,
@@ -338,7 +338,7 @@ function ke({ color: e, onChange: t }) {
 				c.current = void 0, i(void 0), a.current.onChange(a.current.picked);
 			});
 		},
-		className: "huet-border-12 hc:w-full hc:h-4 hc:p-0 hc:border hc:rounded-xs hc:overflow-hidden",
+		className: "huet-border-10 hc:w-full hc:h-4 hc:p-0 hc:border hc:rounded-xs hc:overflow-hidden",
 		style: { backgroundColor: (n ?? e) || "transparent" }
 	});
 }
@@ -405,7 +405,7 @@ function z({ label: e, min: t = 0, max: n = 100, decimals: i = 0, value: o, onCh
 			children: [!u && /* @__PURE__ */ v("input", {
 				"aria-hidden": !0,
 				type: "number",
-				className: T(g ? "huet-border-red-100 huet-bg-red-12 huet-bg/text-red-100" : "huet-border-20", "hc:py-[.3em] hc:px-[.5em] hc:border hc:max-w-[30em] hc:rounded-xs", "hc:w-[5em] hc:mr-2 hc:cursor-auto"),
+				className: T(g ? "huet-border-red-100 huet-bg-red-10 huet-bg/text-red-100" : "huet-border-20", "hc:py-[.3em] hc:px-[.5em] hc:border hc:max-w-[30em] hc:rounded-xs", "hc:w-[5em] hc:mr-2 hc:cursor-auto"),
 				value: m,
 				step: d,
 				onFocus: () => p(!0),
@@ -642,7 +642,7 @@ function We({ className: e }) {
 function Ge() {
 	let e = Be();
 	return /* @__PURE__ */ v("span", {
-		className: T("huet-bg-green-25 huet-bg/text-green-100 hc:inline hc:rounded-lg hc:px-2 hc:font-normal", "hc:transition-opacity hc:duration-400 hc:ease-[ease]", e ? "hc:opacity-0" : "hc:opacity-100"),
+		className: T("huet-bg-green-20 huet-bg/text-green-100 hc:inline hc:rounded-lg hc:px-2 hc:font-normal", "hc:transition-opacity hc:duration-400 hc:ease-[ease]", e ? "hc:opacity-0" : "hc:opacity-100"),
 		children: "Saved"
 	});
 }
@@ -660,12 +660,12 @@ function Ke({ isExpanded: e, onClick: t }) {
 				e && /* @__PURE__ */ v(Ge, {})
 			]
 		}), /* @__PURE__ */ v("span", {
-			className: "huet-bg-25 hc:flex hc:justify-center hc:items-center hc:px-4 hc:font-bold",
+			className: "huet-bg-20 hc:flex hc:justify-center hc:items-center hc:px-4 hc:font-bold",
 			children: e ? "↓" : "↑"
 		})]
 	});
 }
-var qe = T("huet-outline-25 hc:fixed hc:right-[1em] hc:bottom-[1em] hc:z-[999]", "hc:font-ui hc:text-[.75rem] hc:outline", "hc:transition-[opacity,translate,height] hc:duration-200 hc:ease-[ease-out]"), Je = {
+var qe = T("huet-outline-20 hc:fixed hc:right-[1em] hc:bottom-[1em] hc:z-[999]", "hc:font-ui hc:text-[.75rem] hc:outline", "hc:transition-[opacity,translate,height] hc:duration-200 hc:ease-[ease-out]"), Je = {
 	expanded: "hc:shadow-[0_5px_30px_color-mix(in_srgb,var(--huet-foreground)_calc(12.5%*var(--huet-configurator-contrast,1)),transparent)]",
 	collapsed: "hc:shadow-[0_5px_30px_color-mix(in_srgb,var(--huet-relative-text)_calc(12.5%*var(--huet-configurator-contrast,1)),transparent)]"
 };
@@ -919,7 +919,7 @@ function ft() {
 					onThemeConfigChange: t
 				}) : /* @__PURE__ */ v(lt, {}) }),
 				/* @__PURE__ */ v("div", {
-					className: "huet-bg-12",
+					className: "huet-bg-10",
 					children: /* @__PURE__ */ v(D, {
 						className: "hc:p-4",
 						children: /* @__PURE__ */ v(ge, {
