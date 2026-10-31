@@ -234,46 +234,16 @@ function ModifiedThemePreview({
 }
 
 function ThemePreview({
-  configs,
   config,
-  onSelectConfig,
-  onConfigsChange,
+  themes,
 }: {
-  configs: ThemeConfig[];
   config: ThemeConfig;
-  onSelectConfig: (config: ThemeConfig) => void;
-  onConfigsChange: (configs: ThemeConfig[]) => void;
+  themes: SavedThemes;
 }) {
-  const [theme] = useThemeConfigurator();
-  const selectedConfig = theme.config;
-  const isSelected = config.id === selectedConfig.id;
-  // Deep comparison rather than comparing JSON strings, which would report a
-  // false "modified" whenever two equivalent configs serialize their keys in a
-  // different order.
-  const isSelectedAndModified =
-    isSelected && !isEqual(config, selectedConfig);
-
-  const onSelect = () => onSelectConfig(config);
-
-  const onRemove = () => {
-    const i = configs.indexOf(config);
-    const newConfigs = configs.filter((c) => c.id !== config.id);
-    onConfigsChange(newConfigs);
-    onSelectConfig(newConfigs[Math.min(i, newConfigs.length - 1)]);
-  };
-
-  const onCreate = () => {
-    const newConfig = {
-      ...selectedConfig,
-      id: Math.random(),
-      name:
-        config.name === selectedConfig.name
-          ? `${config.name} Copy`
-          : selectedConfig.name
-    };
-    onConfigsChange([newConfig, ...configs]);
-    onSelectConfig(newConfig);
-  };
+  const { selected, isModified, select, remove, saveAsNew } = themes;
+  const isSelected = config.id === selected.id;
+  const isSelectedAndModified = isSelected && isModified;
+  const onSelect = () => select(config);
 
   const ref = useRef<HTMLDivElement>(null);
   useLayoutEffect(
@@ -291,16 +261,16 @@ function ThemePreview({
     <div ref={ref}>
       {isSelectedAndModified ? (
         <ModifiedThemePreview
-          config={selectedConfig}
+          config={selected}
           onReset={onSelect}
-          onCreate={onCreate}
+          onCreate={saveAsNew}
         />
       ) : (
         <UnmodifiedThemePreview
           config={config}
           isSelected={isSelected}
           onClick={onSelect}
-          onRemove={onRemove}
+          onRemove={() => remove(config)}
         />
       )}
     </div>
@@ -316,36 +286,73 @@ export const parseConfigs: Parse<ThemeConfig[]> = (stored) => {
   return configs.length > 0 ? configs : undefined;
 };
 
-export default function Themes() {
+export type SavedThemes = ReturnType<typeof useSavedThemes>;
+
+/**
+ * The saved themes and the theme being edited, with the actions both theme
+ * lists offer. The edited theme is "modified" when it differs from its saved
+ * copy.
+ */
+export function useSavedThemes() {
   const [configs, setConfigs] = usePersistentState(
     "themes",
     defaultThemeConfigs,
     parseConfigs
   );
-  const [, setSelectedConfig] = useThemeConfigurator();
+  const [theme, select] = useThemeConfigurator();
+  const selected = theme.config;
+  const saved = configs.find((config) => config.id === selected.id);
+  // Deep comparison rather than comparing JSON strings, which would report a
+  // false "modified" whenever two equivalent configs serialize their keys in a
+  // different order.
+  const isModified = saved !== undefined && !isEqual(saved, selected);
+
+  function add(config: ThemeConfig) {
+    // Imports finish reading asynchronously, so a second one may start
+    // before the first has re-rendered
+    setConfigs((current) => [config, ...current]);
+    select(config);
+  }
+
+  return {
+    configs,
+    selected,
+    saved,
+    isModified,
+    select,
+    /** Discards edits to the selected theme */
+    reset: () => saved && select(saved),
+    remove(config: ThemeConfig) {
+      const i = configs.indexOf(config);
+      const remaining = configs.filter((c) => c.id !== config.id);
+      setConfigs(remaining);
+      select(remaining[Math.min(i, remaining.length - 1)]);
+    },
+    /** Saves the edited theme as a new theme, leaving its original as it was */
+    saveAsNew() {
+      add({
+        ...selected,
+        id: Math.random(),
+        name: saved?.name === selected.name ? `${selected.name} Copy` : selected.name,
+      });
+    },
+    importTheme(uploaded: ThemeConfig) {
+      // A fresh id, so importing the same file twice (or a file whose id
+      // matches an existing theme, or that has no id) doesn't produce two
+      // themes that are both treated as selected.
+      add({ ...uploaded, id: Math.random() });
+    },
+  };
+}
+
+export default function Themes() {
+  const themes = useSavedThemes();
 
   return (
     <VSpace size={3} className="hc:p-4">
-      <JsonUploadButton
-        onUpload={uploadedConfig => {
-          // A fresh id, so importing the same file twice (or a file whose id
-          // matches an existing theme, or that has no id) doesn't produce two
-          // themes that are both treated as selected.
-          const themeConfig = { ...uploadedConfig, id: Math.random() };
-          setConfigs([themeConfig, ...configs]);
-          setSelectedConfig(themeConfig);
-        }}
-      >
-        Import Theme
-      </JsonUploadButton>
-      {configs.map(config => (
-        <ThemePreview
-          key={config.id}
-          configs={configs}
-          config={config}
-          onSelectConfig={setSelectedConfig}
-          onConfigsChange={setConfigs}
-        />
+      <JsonUploadButton onUpload={themes.importTheme}>Import Theme</JsonUploadButton>
+      {themes.configs.map((config) => (
+        <ThemePreview key={config.id} config={config} themes={themes} />
       ))}
     </VSpace>
   );

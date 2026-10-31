@@ -1,4 +1,5 @@
 import { test, expect, type Page } from "@playwright/test";
+import { configurator, openConfigurator } from "./helpers/configurator";
 
 import baseThemeConfig from "../packages/huet/src/private/baseThemeConfig";
 
@@ -10,9 +11,9 @@ const themeFile = {
   buffer: Buffer.from(JSON.stringify(theme)),
 };
 
-// Theme list entries; the page header repeats the selected theme's name
+// Theme list entries. (The header's theme button is named "Theme: Import Test".)
 const listed = (page: Page) =>
-  page.getByRole("heading", { level: 3, name: "Import Test" });
+  configurator(page).getByRole("button", { name: "Import Test", exact: true });
 
 async function openThemes(page: Page) {
   const alerts: string[] = [];
@@ -27,7 +28,7 @@ async function openThemes(page: Page) {
   await page.goto("/");
   await page.evaluate(() => localStorage.clear());
   await page.reload();
-  await expect(page.getByText("Import Theme")).toBeVisible();
+  await openConfigurator(page);
   return { alerts, errors, input: page.locator('input[type="file"]') };
 }
 
@@ -61,11 +62,8 @@ test("importing the same file twice adds two separately selectable themes", asyn
   await input.setInputFiles(themeFile);
 
   await expect(listed(page)).toHaveCount(2);
-  // Only the latest import is selected; the other is still a button. (The
-  // header's theme button is named "Theme: Import Test".)
-  await expect(
-    page.getByRole("button", { name: /^Import Test/ }),
-  ).toHaveCount(1);
+  // Only the latest import is selected
+  await expect(listed(page).and(page.locator("[aria-pressed=true]"))).toHaveCount(1);
   expect(errors.filter((e) => e.includes("key"))).toEqual([]);
   expect(alerts).toEqual([]);
 });

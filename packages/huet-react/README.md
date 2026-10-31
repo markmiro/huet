@@ -2,7 +2,7 @@
 
 A floating theme editor for [Huet](https://www.npmjs.com/package/huet) themes, for React apps. Pick from preset themes, edit the palette, ramps, and background, and import or export themes as JSON. The theme is applied to your page through Huet classes as you edit.
 
-[Try it in the demo](https://markmiro.github.io/huet/) (bottom-right corner).
+[Try it in the demo](https://markmiro.github.io/huet/) (the theme button in the header).
 
 ## Install
 
@@ -74,9 +74,12 @@ export function ThemeEditor() {
 
 `ThemeConfig` is the format the configurator edits and exports. `themeFromConfig` from `huet/config` turns it into a theme for `mountTheme` and `mountImages`.
 
-## Embedded theme picker
+## Embedded theme configurator
 
-`EmbeddedThemeConfigurator` is a compact theme picker you place anywhere in your layout, such as a toolbar. Its button shows a mini map of the current theme: the theme's colors as dots, from highest to lowest contrast, over a pill of its gray ramp. Clicking it opens a popover of saved themes.
+`EmbeddedThemeConfigurator` is the configurator behind a compact button you place anywhere in your layout, such as a toolbar. The button shows a mini map of the current theme: the theme's colors as dots, from highest to lowest contrast, over a pill of its gray ramp. Clicking it opens the configurator in a popover with two tabs:
+
+- **Themes**: the saved themes as a simple list, each on its own background. Import a theme, save edits as a new theme, reset them, or remove the selected theme.
+- **Edit Theme**: the same editor as `ThemeConfigurator`.
 
 ```tsx
 import { EmbeddedThemeConfigurator } from "huet-react";
