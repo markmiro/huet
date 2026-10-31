@@ -2,6 +2,7 @@ import {
   fromLightness, lightnessOf as lightness, lightnessToe as toe,
   oklabFromRgb, rgbFromOklab, toOklab, type Triple,
 } from "./color";
+import { colorFilter } from "./filters";
 import { checkTheme, defaultColors, hues, neutralRampOf, rampOptionsOf, type Hue, type Theme } from "./theme";
 
 /*
@@ -38,6 +39,13 @@ export interface RecolorOptions {
    * theme, since inverted photos read as negatives.
    */
   invert?: boolean;
+  /**
+   * A CSS `filter` the image is shown with, such as `grayscale(1)`. Its color
+   * functions run before recoloring, so the result can be shown without the
+   * filter, which would otherwise wash out the theme. Other functions, like
+   * `blur()`, are ignored.
+   */
+  filter?: string;
 }
 // How strongly, and with how much of the neutral ramp's tint, come from the
 // target theme's `images` (or `svgs`). At tint 1 (the default), chroma is added on top of
@@ -203,8 +211,10 @@ export function recolorer(target: Theme, options: RecolorOptions = {}, media: "i
     throw new RangeError("strength must be between 0 and 1");
   if (!(tint >= 0 && tint <= 1)) throw new RangeError("tint must be between 0 and 1");
   const decompose = decomposer(frame(options.source ?? defaultSource));
+  const filtered = options.filter ? colorFilter(options.filter).apply : null;
   const { low, high } = to;
   return (r: number, g: number, b: number): Triple => {
+    if (filtered) [r, g, b] = filtered(r, g, b);
     const lab = oklabFromRgb(r, g, b);
     const { t: position, i0, i1, w0, w1 } = decompose(lab);
     const t = options.invert ? 1 - position : position;

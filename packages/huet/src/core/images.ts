@@ -1,3 +1,4 @@
+import { dropFilter, filtersOver, liftFilter, reportStuck } from "./filters";
 import { GpuRecolor } from "./gpu";
 import { applyLut, buildLut, recolorer, type RecolorOptions } from "./recolor";
 import type { Theme } from "./theme";
@@ -93,7 +94,10 @@ export function recolorImage(
 }
 
 export interface MountImagesOptions extends ImageOptions {
-  /** Which images to recolor. Defaults to `img[data-huet-recolor]`. */
+  /**
+   * Which images to recolor. Defaults to `img[data-huet-recolor], [data-huet-recolor] img`:
+   * marked images, and every image inside a marked element.
+   */
   selector?: string;
   /** Show the original image while the pointer is over it. */
   hoverOriginal?: boolean;
@@ -115,6 +119,8 @@ interface Entry {
   generation: number;
   /** The inline styles this mount overrode on the `<img>`, to put back. */
   saved: Map<string, [string, string]>;
+  /** Color filters folded into the canvas, with the element that sets each one; lifted while the canvas shows. */
+  filters: { el: Element; filter: string }[];
   leave?: () => void;
 }
 
@@ -129,13 +135,19 @@ const mirrored = ["class", "title", "alt"];
  * New originals stay hidden until their recolored copy is ready to paint.
  * Theme updates redraw once per frame, and images far outside the viewport
  * are redrawn when they scroll near it. `destroy` removes the canvases.
+ *
+ * Color functions of a CSS `filter` on the image, such as `grayscale(1)`, are
+ * applied before recoloring and lifted from the canvas, since they would
+ * otherwise wash out the theme. So are filters on ancestors that wrap only
+ * recolored images. A color filter on an ancestor that also shows other
+ * content can't be lifted, so it's reported as an error, once per image.
  */
 export function mountImages(
   root: ParentNode & Node,
   theme: Theme,
   options: MountImagesOptions = {},
 ) {
-  const { selector = "img[data-huet-recolor]", hoverOriginal = false, ...recolor } = options;
+  const { selector = "img[data-huet-recolor], [data-huet-recolor] img", hoverOriginal = false, ...recolor } = options;
   let target = theme,
     settings: ImageOptions = recolor,
     version = 0,
@@ -144,6 +156,9 @@ export function mountImages(
   const entries = new Map<HTMLImageElement, Entry>();
   const canvases = new Map<HTMLCanvasElement, HTMLImageElement>();
   const sources = new Map<string, Promise<HTMLImageElement>>();
+  const reported = new WeakMap<Element, Set<Element>>();
+  const isMedia = (el: Element) =>
+    entries.has(el as HTMLImageElement) || canvases.has(el as HTMLCanvasElement);
   let pending = new Set<Promise<void>>();
 
   const load = (src: string, crossOrigin: string | null) => {
@@ -212,11 +227,22 @@ export function mountImages(
   };
 
   const showsCanvas = (entry: Entry) => entry.ready && !entry.failed && !entry.hovering;
+  /** Lift the filters folded into the canvas, or put them back. The image's own filter is on the canvas too. */
+  const lift = (img: HTMLImageElement, entry: Entry, on: boolean) => {
+    for (const { el, filter } of entry.filters) {
+      const target = el === img ? entry.canvas : el;
+      if (!target) continue;
+      if (on) liftFilter(target, entry, filter);
+      else dropFilter(target, entry);
+    }
+  };
   /** Show the canvas, the original, or neither, from the entry's state. */
   const present = (img: HTMLImageElement, entry: Entry) => {
     const { canvas } = entry;
-    if (canvas && showsCanvas(entry)) {
-      if (img.nextSibling !== canvas) img.after(canvas);
+    const shown = !!canvas && showsCanvas(entry);
+    lift(img, entry, shown);
+    if (shown) {
+      if (img.nextSibling !== canvas) img.after(canvas!);
       style(img, entry, "display", "none");
     } else {
       canvas?.remove();
@@ -237,6 +263,7 @@ export function mountImages(
   };
   const restore = (img: HTMLImageElement, entry: Entry) => {
     entry.leave?.();
+    lift(img, entry, false);
     if (entry.canvas) {
       entry.canvas.remove();
       canvases.delete(entry.canvas);
@@ -251,7 +278,11 @@ export function mountImages(
   const draw = (img: HTMLImageElement, entry: Entry) => {
     try {
       const canvas = (entry.canvas ??= createCanvas(img, entry));
-      recolorImage(entry.image!, target, settings, canvas);
+      const { folded, stuck, key } = filtersOver(img, isMedia);
+      reportStuck(reported, img, stuck);
+      lift(img, entry, false);
+      entry.filters = folded;
+      recolorImage(entry.image!, target, key ? { ...settings, filter: key } : settings, canvas);
       entry.drawn = version;
       entry.ready = true;
       present(img, entry);
@@ -300,6 +331,7 @@ export function mountImages(
       near: { img: false, canvas: false },
       generation: 0,
       saved: new Map(),
+      filters: [],
     };
     entries.set(img, entry);
     visibility.observe(img);

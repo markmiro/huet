@@ -309,7 +309,7 @@ How strongly images take on the theme, and how much of its tint, are part of the
 
 | Option | Default | Effect |
 | --- | --- | --- |
-| `selector` | `img[data-huet-recolor]` | Which images to recolor |
+| `selector` | `img[data-huet-recolor], [data-huet-recolor] img` | Which images to recolor: marked images, and every image inside a marked element |
 | `invert` | `false` | Flip lightness, for UI screenshots shown in an opposite-polarity theme |
 | `source` | Black to white with Huet's hues | The theme the images are assumed to be in |
 | `hoverOriginal` | `false` | Show the original while the pointer is over the image |
@@ -324,6 +324,12 @@ img[data-huet-recolor]:not([data-huet-recolored]) { visibility: hidden; }
 
 Rendering runs on the GPU (WebGL2) and falls back to the CPU. The browser must be able to read the pixels, so cross-origin images need CORS headers and a `crossorigin` attribute. Images it can't read are shown as they are, without a canvas. `<picture>` sources are not recolored.
 
+#### CSS filters
+
+A CSS `filter` paints after Huet, so `grayscale(1)` on an image, or on its wrapper, would turn the theme's tinted ramp back into plain gray. Both `mountImages` and `mountSvgs` therefore run the filter's color functions (`grayscale()`, `sepia()`, `saturate()`, `hue-rotate()`, `invert()`, `brightness()`, and `contrast()`) on each color before recoloring, then lift them from the element while it's recolored. A grayscale logo lands on the theme's neutral ramp, and with strength 0 it looks as it did with the filter. `blur()`, `drop-shadow()`, `opacity()`, and `url()` filters stay where they are.
+
+That covers filters on the image or SVG itself, and on ancestors whose only content is recolored images or SVGs, like an avatar's frame. A color filter on an ancestor that also shows other content, such as a card with a caption, can't be lifted without changing that content too, so Huet raises an error (through `reportError`, once per image) and recolors the image under it anyway. Move the filter onto the image, or onto a wrapper around only it. Filters are read whenever an image is drawn or an SVG is mapped, which includes every theme update.
+
 ### Inline SVGs
 
 `mountSvgs` recolors inline SVGs with the same mapping, and keeps them as vectors:
@@ -335,7 +341,9 @@ const svgs = mountSvgs(document.body, sunset); // recolors <svg data-huet-recolo
 svgs.update(paper);
 ```
 
-Solid fills, strokes, and gradient stops are mapped, including the black that SVG paints by default. Their alpha is kept, as are `none`, paint servers (`url(#gradient)`), and `opacity`, `fill-opacity`, and `stop-opacity`. Paints that use `currentColor` or a CSS variable, whether declared on the element or inherited, are left alone, since the page's CSS already themes them. Mapped colors are written where the original came from: as presentation attributes (`fill="…"`) for attribute and default paints, so the page's CSS rules, `:hover` included, still outrank them, and as inline styles for paints set in CSS. They go on the SVG, on elements that declare their own paint, and on gradient stops; children that inherit a paint follow their parent. Each update maps the original paints, so switching themes never compounds. SVGs added later, or whose paints change, are recolored at the next frame, and removed or opted-out SVGs get their own styles back, as does every SVG on `destroy()`. `await svgs.ready()` applies pending changes right away. Options are `selector` (default `svg[data-huet-recolor]`), `invert`, and `source`, as for images. Strength and tint come from the theme's `images`, as for images.
+Solid fills, strokes, and gradient stops are mapped, including the black that SVG paints by default. Their alpha is kept, as are `none`, paint servers (`url(#gradient)`), and `opacity`, `fill-opacity`, and `stop-opacity`. Paints that use `currentColor` or a CSS variable, whether declared on the element or inherited, are left alone, since the page's CSS already themes them. Mapped colors are written where the original came from: as presentation attributes (`fill="…"`) for attribute and default paints, so the page's CSS rules, `:hover` included, still outrank them, and as inline styles for paints set in CSS. They go on the SVG, on elements that declare their own paint, and on gradient stops; children that inherit a paint follow their parent. Each update maps the original paints, so switching themes never compounds. SVGs added later, or whose paints change, are recolored at the next frame, and removed or opted-out SVGs get their own styles back, as does every SVG on `destroy()`. `await svgs.ready()` applies pending changes right away. Options are `selector` (default `svg[data-huet-recolor], [data-huet-recolor] svg`), `invert`, and `source`, as for images. Strength and tint come from the theme's `svgs`.
+
+When the markup can't carry the attribute, as with SVGs from a CMS or `dangerouslySetInnerHTML`, mark a wrapper instead: `<div data-huet-recolor>` recolors every SVG inside it. Raster `<image>` elements inside a recolored SVG are recolored like images, with the theme's `svgs` settings: each one's `href` points to a recolored copy while it's mounted, and it stays hidden until the first copy is ready. On later updates it keeps the last copy until the new one is ready, so it doesn't flash. Rasters that can't be read (cross-origin without CORS) keep their colors, and Huet raises an error for each. See [CSS filters](#css-filters) for SVGs shown under a `filter`.
 
 To find CSS-driven paints, `mountSvgs` reads the page's stylesheets, matching rules in document order with `!important` ones first; it doesn't compare specificity or cascade layers, and it can't read cross-origin stylesheets, whose paints count as solid colors. A change to an ancestor's `class` rescans the SVGs, but changes to ancestors' inline styles or to stylesheets are picked up at the next update.
 

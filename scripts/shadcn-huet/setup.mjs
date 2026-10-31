@@ -29,7 +29,8 @@ if (!existsSync(resolve(shadcn, "package.json"))) {
 }
 
 // The submodule stays pinned to upstream, so replay the vendor edits
-// (surfaces, charts, the QR code's SVG opt-in) unless they're already there.
+// (surfaces, charts, the SVG opt-ins for the QR code and directory logos)
+// unless they're already there.
 const integration = resolve(here, "integration.patch")
 const git = (...args) => spawnSync("git", args, { cwd: shadcn, encoding: "utf8" })
 if (git("apply", "--reverse", "--check", integration).status !== 0) {
