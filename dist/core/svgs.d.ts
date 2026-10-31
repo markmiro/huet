@@ -6,7 +6,8 @@ export interface MountSvgsOptions extends RecolorOptions {
 }
 /**
  * Recolor matching inline SVGs under `root` into a theme, keeping them as
- * vectors. Solid fills, strokes, and gradient stops are mapped like image
+ * vectors, with the theme's `svgs` settings. At strength 0 they keep their
+ * own paints. Solid fills, strokes, and gradient stops are mapped like image
  * pixels, including SVG's implicit black fill; their alpha, `none`, paint
  * servers (`url(#…)`), and opacity are kept. Paints that use `currentColor`
  * or a CSS variable are left alone, since the page's CSS already themes them.

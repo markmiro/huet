@@ -266,7 +266,8 @@ var M = [
 	"colors",
 	"contrast",
 	"signalLightness",
-	"images"
+	"images",
+	"svgs"
 ], F = [
 	"pallet",
 	"ramps",
@@ -291,12 +292,15 @@ function L(e) {
 		for (let [e, n] of Object.entries(s)) M.includes(e) || t(`colors.${e} isn't a hue. Hues are ${M.join(", ")}.`), I(n) || t(`colors.${e} is ${JSON.stringify(n)}, which isn't a color`);
 	}
 	c !== void 0 && !(typeof c == "number" && c >= 0 && c <= 2) && t(`contrast must be a number from 0 to 2, got ${JSON.stringify(c)}`);
-	let l = (e) => typeof e == "number" && e >= 0 && e <= 1, { signalLightness: u, images: d } = n;
+	let l = (e) => typeof e == "number" && e >= 0 && e <= 1, { signalLightness: u } = n;
 	if (u !== void 0) {
 		let e = Object.keys(u ?? {});
 		typeof u == "object" && u && e.sort().join() === "onDark,onLight" && l(u.onLight) && l(u.onDark) || t(`signalLightness must be { onLight, onDark }, each from 0 to 1, got ${JSON.stringify(u)}`);
 	}
-	d !== void 0 && (typeof d != "object" || !d || Object.keys(d).some((e) => e !== "strength" && e !== "tint") || d.strength !== void 0 && !l(d.strength) || d.tint !== void 0 && !l(d.tint)) && t(`images must be { strength, tint }, each from 0 to 1, got ${JSON.stringify(d)}`);
+	for (let e of ["images", "svgs"]) {
+		let r = n[e];
+		r !== void 0 && (typeof r != "object" || !r || Object.keys(r).some((e) => e !== "strength" && e !== "tint") || r.strength !== void 0 && !l(r.strength) || r.tint !== void 0 && !l(r.tint)) && t(`${e} must be { strength, tint }, each from 0 to 1, got ${JSON.stringify(r)}`);
+	}
 }
 function R({ neutral: e, colorModel: t = "oklab" }) {
 	return e.length === 2 && t === "oklab" ? {
@@ -510,4 +514,4 @@ function ee(e) {
 }
 export { Q as a, ee as c, o as d, g as f, _ as h, M as i, c as l, h as m, N as n, R as o, b as p, B as r, z as s, L as t, s as u };
 
-//# sourceMappingURL=theme-CqYEW978.js.map
+//# sourceMappingURL=theme-DneS7YmB.js.map

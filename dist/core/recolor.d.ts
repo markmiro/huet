@@ -18,8 +18,11 @@ export interface RecolorOptions {
 }
 /** Coordinates of a color in a theme's ramps (useful for inspecting a pixel). */
 export declare function coordinatesOf([r, g, b]: Triple, source?: Theme): Coordinates;
-/** Map gamma-encoded sRGB channels (0–1) from the source theme into the target theme. */
-export declare function recolorer(target: Theme, options?: RecolorOptions): (r: number, g: number, b: number) => Triple;
+/**
+ * Map gamma-encoded sRGB channels (0–1) from the source theme into the target
+ * theme, with the target's `images` settings, or its `svgs` settings for SVGs.
+ */
+export declare function recolorer(target: Theme, options?: RecolorOptions, media?: "images" | "svgs"): (r: number, g: number, b: number) => Triple;
 /** A color on a theme's neutral ramp, or on a hue ramp at anchor chroma. */
 export declare function rampColor(theme: Theme, t: number, hue?: Hue): Triple;
 export type Transform = (r: number, g: number, b: number) => Triple;

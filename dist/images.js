@@ -1,4 +1,4 @@
-import { a as e, d as t, f as n, h as r, i, l as a, o, p as s, r as c, t as l, u } from "./theme-CqYEW978.js";
+import { a as e, d as t, f as n, h as r, i, l as a, o, p as s, r as c, t as l, u } from "./theme-DneS7YmB.js";
 // src/core/gpu.ts
 var d = "#version 300 es\nin vec2 position;\nout vec2 uv;\nvoid main() {\n  uv = position * 0.5 + 0.5;\n  gl_Position = vec4(position, 0.0, 1.0);\n}", f = "#version 300 es\nprecision highp float;\nprecision highp sampler3D;\nuniform sampler2D image;\nuniform sampler3D lut;\nuniform float size;\nin vec2 uv;\nout vec4 color;\nvoid main() {\n  vec4 c = texture(image, vec2(uv.x, 1.0 - uv.y));\n  // Sample lattice centers so 0 and 1 hit the first and last LUT entries.\n  vec3 p = (c.rgb * (size - 1.0) + 0.5) / size;\n  color = vec4(texture(lut, p).rgb, c.a);\n}", p = class {
 	constructor() {
@@ -149,18 +149,18 @@ function y([e, t, r], a = m) {
 		weights: d
 	};
 }
-function b(e, t = {}) {
-	let r = _(e), i = e.images?.strength ?? 1, o = e.images?.tint ?? 1;
-	if (!(i >= 0 && i <= 1)) throw RangeError("strength must be between 0 and 1");
-	if (!(o >= 0 && o <= 1)) throw RangeError("tint must be between 0 and 1");
-	let c = v(_(t.source ?? m)), { low: l, high: u } = r;
-	return (e, d, f) => {
-		let p = n(e, d, f), { t: m, i0: g, i1: _, w0: v, w1: y } = c(p), b = t.invert ? 1 - m : m, x = o + (1 - o) * Math.max(0, 1 - v - y), S = a(l + b * (u - l)), C = 1 / Math.max(h(S), 1e-6), [w, T] = r.neutralAt(b), E = [
+function b(e, t = {}, r = "images") {
+	let i = _(e), o = e[r]?.strength ?? 1, c = e[r]?.tint ?? 1;
+	if (!(o >= 0 && o <= 1)) throw RangeError("strength must be between 0 and 1");
+	if (!(c >= 0 && c <= 1)) throw RangeError("tint must be between 0 and 1");
+	let l = v(_(t.source ?? m)), { low: u, high: d } = i;
+	return (e, r, f) => {
+		let p = n(e, r, f), { t: m, i0: g, i1: _, w0: v, w1: y } = l(p), b = t.invert ? 1 - m : m, x = c + (1 - c) * Math.max(0, 1 - v - y), S = a(u + b * (d - u)), C = 1 / Math.max(h(S), 1e-6), [w, T] = i.neutralAt(b), E = [
 			S,
-			x * w + C * (v * r.a[g] + y * r.a[_]),
-			x * T + C * (v * r.b[g] + y * r.b[_])
+			x * w + C * (v * i.a[g] + y * i.a[_]),
+			x * T + C * (v * i.b[g] + y * i.b[_])
 		];
-		return s(i === 1 ? E : p.map((e, t) => e + (E[t] - e) * i));
+		return s(o === 1 ? E : p.map((e, t) => e + (E[t] - e) * o));
 	};
 }
 function x(e, t, n) {
@@ -277,24 +277,28 @@ function N(e) {
 	];
 }
 function P(e, t, n = {}) {
-	let { selector: r = "svg[data-huet-recolor]", ...i } = n, a = i, o = b(t, a), s = /* @__PURE__ */ new Map(), c, l = !1, u = /* @__PURE__ */ new Map(), d = /* @__PURE__ */ new Set(), f = (e, { hadStyle: t, paints: n }) => {
+	let { selector: r = "svg[data-huet-recolor]", ...i } = n, a = i, o = b(t, a, "svgs"), s = t.svgs?.strength === 0, c = /* @__PURE__ */ new Map(), l, u = !1, d = /* @__PURE__ */ new Map(), f = /* @__PURE__ */ new Set(), p = (e, { hadStyle: t, paints: n }) => {
 		for (let [t, { via: r, value: i, priority: a, written: o }] of n) if (r === "attribute") {
 			if (e.getAttribute(t) !== o) continue;
 			i === null ? e.removeAttribute(t) : e.setAttribute(t, i);
 		} else e.style.getPropertyValue(t) === o && (i ? e.style.setProperty(t, i, a) : e.style.removeProperty(t));
 		!t && e.getAttribute("style") === "" && e.removeAttribute("style");
-	}, p = ([e, t, n, r]) => {
-		let i = `${e} ${t} ${n} ${r}`, a = s.get(i);
+	}, m = ([e, t, n, r]) => {
+		let i = `${e} ${t} ${n} ${r}`, a = c.get(i);
 		if (!a) {
-			let c = o(e / 255, t / 255, n / 255).map((e) => Math.round(Math.min(1, Math.max(0, e)) * 255));
-			a = r === 1 ? `rgb(${c.join(", ")})` : `rgba(${c.join(", ")}, ${r})`, s.set(i, a);
+			let s = o(e / 255, t / 255, n / 255).map((e) => Math.round(Math.min(1, Math.max(0, e)) * 255));
+			a = r === 1 ? `rgb(${s.join(", ")})` : `rgba(${s.join(", ")}, ${r})`, c.set(i, a);
 		}
 		return a;
-	}, m = () => {
-		if (c !== void 0 && cancelAnimationFrame(c), c = void 0, l) return;
-		for (let [e, t] of u) f(e, t);
-		u.clear(), d = /* @__PURE__ */ new Set(), e instanceof SVGElement && e.matches(r) && d.add(e);
-		for (let t of e.querySelectorAll(r)) t instanceof SVGElement && d.add(t);
+	}, h = () => {
+		if (l !== void 0 && cancelAnimationFrame(l), l = void 0, u) return;
+		for (let [e, t] of d) p(e, t);
+		if (d.clear(), f = /* @__PURE__ */ new Set(), s) {
+			v.takeRecords();
+			return;
+		}
+		e instanceof SVGElement && e.matches(r) && f.add(e);
+		for (let t of e.querySelectorAll(r)) t instanceof SVGElement && f.add(t);
 		let t = e.getRootNode(), n = [...t.styleSheets, ...t.adoptedStyleSheets].flatMap(A).filter((e) => e.media.every((e) => e.matches)), i = (e, t, n) => {
 			let r = e.style, i = r?.getPropertyValue(t) ?? "";
 			if (i && r.getPropertyPriority(t) === "important") return [
@@ -336,34 +340,34 @@ function P(e, t, n = {}) {
 			if (l !== void 0) return l;
 			let [u] = i(e, t, r.contains(e) ? s : n);
 			return l = u && !D.test(u) ? E.test(u) : t === "stop-color" && !u ? !1 : e.parentElement ? o(e.parentElement, t, r, s) : !1, c.set(e, l), l;
-		}, s = [], m = /* @__PURE__ */ new Set();
-		for (let e of d) {
+		}, c = [], h = /* @__PURE__ */ new Set();
+		for (let e of f) {
 			let t = n.filter(({ selector: t }) => j(e, t) || e.querySelector(t) !== null);
 			for (let n of [e, ...e.querySelectorAll("*")]) {
-				if (!(n instanceof SVGElement) || m.has(n)) continue;
-				m.add(n);
+				if (!(n instanceof SVGElement) || h.has(n)) continue;
+				h.add(n);
 				let r = n instanceof SVGStopElement ? ["stop-color"] : ["fill", "stroke"];
 				for (let a of r) {
-					let [r, c, l] = i(n, a, t);
-					if ((!r || D.test(r)) && a !== "stop-color" && !d.has(n) || o(n, a, e, t)) continue;
+					let [r, s, l] = i(n, a, t);
+					if ((!r || D.test(r)) && a !== "stop-color" && !f.has(n) || o(n, a, e, t)) continue;
 					let u = N(getComputedStyle(n).getPropertyValue(a));
-					u && u[3] > 0 && s.push([
+					u && u[3] > 0 && c.push([
 						n,
 						a,
 						u,
-						c,
+						s,
 						l
 					]);
 				}
 			}
 		}
-		for (let [e, t, n, r, i] of s) {
-			let a = u.get(e);
-			a || u.set(e, a = {
+		for (let [e, t, n, r, i] of c) {
+			let a = d.get(e);
+			a || d.set(e, a = {
 				hadStyle: e.hasAttribute("style"),
 				paints: /* @__PURE__ */ new Map()
 			});
-			let o = p(n);
+			let o = m(n);
 			if (r === "attribute" || r === "") a.paints.set(t, {
 				via: "attribute",
 				value: e.getAttribute(t),
@@ -380,36 +384,36 @@ function P(e, t, n = {}) {
 				});
 			}
 		}
-		_.takeRecords();
-	}, h = () => {
-		!l && c === void 0 && (c = requestAnimationFrame(m));
-	}, g = ({ type: e, target: t, attributeName: n, addedNodes: i, removedNodes: a }) => {
+		v.takeRecords();
+	}, g = () => {
+		!u && l === void 0 && (l = requestAnimationFrame(h));
+	}, _ = ({ type: e, target: t, attributeName: n, addedNodes: i, removedNodes: a }) => {
 		if (!(t instanceof Element)) return !1;
 		let o = t.closest(r) !== null;
-		if (e === "attributes") return d.has(t) || t.matches(r) ? !0 : o ? O.has(n) : n === "class" && t.querySelector(r) !== null;
+		if (e === "attributes") return f.has(t) || t.matches(r) ? !0 : o ? O.has(n) : n === "class" && t.querySelector(r) !== null;
 		if (o) return !0;
 		for (let e of [...i, ...a]) if (e instanceof Element && (e.matches(r) || e.querySelector(r) !== null)) return !0;
 		return !1;
-	}, _ = new MutationObserver((e) => {
-		e.some(g) && h();
+	}, v = new MutationObserver((e) => {
+		e.some(_) && g();
 	});
-	return _.observe(e, {
+	return v.observe(e, {
 		subtree: !0,
 		childList: !0,
 		attributes: !0
-	}), m(), {
+	}), h(), {
 		update(e, t) {
-			if (l) throw Error("Cannot update a destroyed Huet SVG mount");
-			t && (a = t), o = b(e, a), s = /* @__PURE__ */ new Map(), h();
+			if (u) throw Error("Cannot update a destroyed Huet SVG mount");
+			t && (a = t), o = b(e, a, "svgs"), s = e.svgs?.strength === 0, c = /* @__PURE__ */ new Map(), g();
 		},
 		async ready() {
-			l || (c !== void 0 || _.takeRecords().some(g)) && m();
+			u || (l !== void 0 || v.takeRecords().some(_)) && h();
 		},
 		destroy() {
-			if (!l) {
-				l = !0, c !== void 0 && cancelAnimationFrame(c), _.disconnect();
-				for (let [e, t] of u) f(e, t);
-				u.clear(), d.clear();
+			if (!u) {
+				u = !0, l !== void 0 && cancelAnimationFrame(l), v.disconnect();
+				for (let [e, t] of d) p(e, t);
+				d.clear(), f.clear();
 			}
 		}
 	};

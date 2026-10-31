@@ -43,14 +43,18 @@ export interface Theme {
         onDark: number;
     };
     /**
-     * How images and SVGs take on the theme. `strength` 0 keeps the originals
-     * and 1 (the default) fully adopts the theme. `tint` (0–1, default 1) is how
-     * much a tinted neutral ramp also tints saturated colors.
+     * How images take on the theme. `strength` 0 keeps the originals and 1 (the
+     * default) fully adopts the theme. `tint` (0–1, default 1) is how much a
+     * tinted neutral ramp also tints saturated colors.
      */
-    images?: {
-        strength?: number;
-        tint?: number;
-    };
+    images?: RecolorSettings;
+    /** How inline SVGs take on the theme, set apart from `images`. Strength 0 leaves them as they are. */
+    svgs?: RecolorSettings;
+}
+/** How strongly images or SVGs take on a theme, each from 0 to 1. Both default to 1. */
+export interface RecolorSettings {
+    strength?: number;
+    tint?: number;
 }
 /** Throws a descriptive error unless `value` is a valid Huet theme. */
 export declare function checkTheme(value: unknown): asserts value is Theme;
