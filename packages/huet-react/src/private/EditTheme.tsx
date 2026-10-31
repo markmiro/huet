@@ -1,7 +1,7 @@
 import chroma from "chroma-js";
 import saveAs from "file-saver";
 import React, { useCallback } from "react";
-import { colorModels, hues, themes as presets, type ColorModel, type Theme } from "huet";
+import { colorModels, hues, themes as presets, type ColorModel, type RecolorSettings, type Theme } from "huet";
 
 import { useThemeConfigurator } from "../context";
 import { HSpace, VSpace } from "./AllExceptFirst";
@@ -68,12 +68,48 @@ function Percent({ label, value, onChange }: { label: string; value: number; onC
   );
 }
 
+/**
+ * A switch for theming images or SVGs, with their tint and strength. Off is
+ * strength 0, so they keep their own colors.
+ */
+function Recoloring({
+  label,
+  noun,
+  value,
+  onChange,
+}: {
+  label: string;
+  noun: string;
+  value: RecolorSettings | undefined;
+  onChange: (settings: RecolorSettings) => void;
+}) {
+  const settings = { strength: 1, tint: 1, ...value };
+  return (
+    <>
+      <Checkbox
+        label={label}
+        value={settings.strength > 0}
+        onChange={(on) => onChange({ ...settings, strength: on ? 1 : 0 })}
+      />
+      {settings.strength > 0 && (
+        <>
+          <Percent label={`${noun} tint`} value={settings.tint} onChange={(tint) => onChange({ ...settings, tint })} />
+          <Percent
+            label={`${noun} strength`}
+            value={settings.strength}
+            onChange={(strength) => onChange({ ...settings, strength })}
+          />
+        </>
+      )}
+    </>
+  );
+}
+
 /** Edits every part of the theme, and the page's background when the page allows it. */
 export default function EditTheme() {
   const { theme, setTheme, name, editedFrom, reset, background, setBackground, list } = useThemeConfigurator();
   const edit = (changes: Partial<Theme>) => setTheme({ ...theme, ...changes });
   const signal = theme.signalLightness ?? defaultSignalLightness;
-  const images = { strength: 1, tint: 1, ...theme.images };
 
   const exportTheme = useCallback(() => {
     const blob = new Blob([JSON.stringify(theme, null, 2)], {
@@ -169,22 +205,8 @@ export default function EditTheme() {
         value={signal.onDark}
         onChange={(onDark) => edit({ signalLightness: { ...signal, onDark } })}
       />
-      {/* Off is strength 0: images keep their own colors */}
-      <Checkbox
-        label="Theme images"
-        value={images.strength > 0}
-        onChange={(on) => edit({ images: { ...images, strength: on ? 1 : 0 } })}
-      />
-      {images.strength > 0 && (
-        <>
-          <Percent label="Image tint" value={images.tint} onChange={(tint) => edit({ images: { ...images, tint } })} />
-          <Percent
-            label="Image strength"
-            value={images.strength}
-            onChange={(strength) => edit({ images: { ...images, strength } })}
-          />
-        </>
-      )}
+      <Recoloring label="Theme images" noun="Image" value={theme.images} onChange={(images) => edit({ images })} />
+      <Recoloring label="Theme SVGs" noun="SVG" value={theme.svgs} onChange={(svgs) => edit({ svgs })} />
     </VSpace>
   );
 }

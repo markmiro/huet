@@ -141,6 +141,37 @@ test("maps the original paints on every update, and keeps the page's later edits
   expect(result.b).toBe('<rect id="b" fill="white" style="fill: black;"></rect>');
 });
 
+test("uses the theme's SVG settings, and keeps the page's paints at strength 0", async ({ page }) => {
+  await setup(page, `<svg data-huet-recolor><rect id="a" fill="white" /><rect id="b" style="fill: white;" /></svg>`);
+  const result = await page.evaluate(async (theme) => {
+    const w = window as any;
+    const original = w.root.innerHTML;
+    // Image settings don't reach SVGs.
+    const mount = w.svgs.mountSvgs(w.root, { ...theme, images: { strength: 0 } });
+    const themed = [w.paint("a"), w.paint("b")];
+    mount.update({ ...theme, svgs: { strength: 0 } });
+    await mount.ready();
+    const off = w.root.innerHTML;
+    // Paints the page changes while SVG theming is off stay its own.
+    w.root.querySelector("#a").setAttribute("fill", "black");
+    await mount.ready();
+    const edited = w.root.querySelector("#a").getAttribute("fill");
+    mount.update({ ...theme, svgs: { strength: 1 } });
+    await mount.ready();
+    const on = [w.paint("a"), w.paint("b")];
+    mount.destroy();
+    const offAtStart = w.svgs.mountSvgs(w.root, { ...theme, svgs: { strength: 0 } });
+    const untouched = w.root.querySelector("#a").outerHTML;
+    offAtStart.destroy();
+    return { original, themed, off, edited, on, untouched };
+  }, theme);
+  expect(result.themed).toEqual([light, light]);
+  expect(result.off).toBe(result.original);
+  expect(result.edited).toBe("black");
+  expect(result.on).toEqual([dark, light]);
+  expect(result.untouched).toBe('<rect id="a" fill="black"></rect>');
+});
+
 test("follows added, removed, and opted-out SVGs, and restores the markup", async ({ page }) => {
   await setup(page, "");
   const result = await page.evaluate(async (theme) => {

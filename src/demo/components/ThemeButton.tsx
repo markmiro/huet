@@ -1,6 +1,6 @@
 import { useLayoutEffect, useRef, useState } from "react";
 import { mountTheme } from "huet";
-import { mountImages } from "huet/images";
+import { mountImages, mountSvgs } from "huet/images";
 import {
   EmbeddedThemeConfigurator,
   type EmbeddedThemeConfiguratorMode,
@@ -19,13 +19,15 @@ function savedMode(): EmbeddedThemeConfiguratorMode {
 const selectClass = "huet-bg-0 huet-border-30 rounded border px-1 py-0.5";
 
 /**
- * Themes `#page` and recolors its `img[data-huet-recolor]` with the demo's
- * theme. Image strength 0 means image theming is off, so the originals show.
+ * Themes `#page` and recolors its `img[data-huet-recolor]` and
+ * `svg[data-huet-recolor]` with the demo's theme. Image strength 0 means image
+ * theming is off, so the originals show; `mountSvgs` handles SVG strength 0.
  */
 function usePageTheme() {
   const { theme, background, themes } = useDemoTheme();
   const colors = useRef<ReturnType<typeof mountTheme>>(undefined);
   const images = useRef<ReturnType<typeof mountImages>>(undefined);
+  const svgs = useRef<ReturnType<typeof mountSvgs>>(undefined);
   useLayoutEffect(() => {
     const page = document.getElementById("page")!;
     if (colors.current) colors.current.update(theme, { background });
@@ -35,6 +37,8 @@ function usePageTheme() {
       images.current = undefined;
     } else if (images.current) images.current.update(theme);
     else images.current = mountImages(page, theme, { hoverOriginal: true });
+    if (svgs.current) svgs.current.update(theme);
+    else svgs.current = mountSvgs(page, theme);
     for (const el of document.querySelectorAll("[data-theme-name]")) el.textContent = themeName(theme);
     themeApplied({ theme, background });
     // The theme's name can change with the list, as when it's saved or renamed

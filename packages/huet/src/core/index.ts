@@ -1,5 +1,5 @@
 export { hues, colorModels, checkTheme } from "./theme";
-export type { Theme, Hue, ColorModel, BackgroundOptions } from "./theme";
+export type { Theme, Hue, ColorModel, BackgroundOptions, RecolorSettings } from "./theme";
 export { themes } from "./themes";
 export { themeCss } from "./css";
 export type { ThemeCssOptions } from "./css";

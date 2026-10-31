@@ -53,14 +53,22 @@ export interface Theme {
    */
   signalLightness?: { onLight: number; onDark: number };
   /**
-   * How images and SVGs take on the theme. `strength` 0 keeps the originals
-   * and 1 (the default) fully adopts the theme. `tint` (0–1, default 1) is how
-   * much a tinted neutral ramp also tints saturated colors.
+   * How images take on the theme. `strength` 0 keeps the originals and 1 (the
+   * default) fully adopts the theme. `tint` (0–1, default 1) is how much a
+   * tinted neutral ramp also tints saturated colors.
    */
-  images?: { strength?: number; tint?: number };
+  images?: RecolorSettings;
+  /** How inline SVGs take on the theme, set apart from `images`. Strength 0 leaves them as they are. */
+  svgs?: RecolorSettings;
 }
 
-const themeKeys: readonly string[] = ["neutral", "colorModel", "colors", "contrast", "signalLightness", "images"];
+/** How strongly images or SVGs take on a theme, each from 0 to 1. Both default to 1. */
+export interface RecolorSettings {
+  strength?: number;
+  tint?: number;
+}
+
+const themeKeys: readonly string[] = ["neutral", "colorModel", "colors", "contrast", "signalLightness", "images", "svgs"];
 const legacyKeys = ["pallet", "ramps", "bgRamp", "bgRampValue", "contrastMultiplier"];
 const isColor = (value: unknown) => typeof value === "string" && chroma.valid(value);
 
@@ -99,17 +107,19 @@ export function checkTheme(value: unknown): asserts value is Theme {
   if (contrast !== undefined && !(typeof contrast === "number" && contrast >= 0 && contrast <= 2))
     fail(`contrast must be a number from 0 to 2, got ${JSON.stringify(contrast)}`);
   const fraction = (value: unknown) => typeof value === "number" && value >= 0 && value <= 1;
-  const { signalLightness, images } = theme as Record<string, Record<string, unknown> | undefined>;
+  const { signalLightness } = theme as Record<string, Record<string, unknown> | undefined>;
   if (signalLightness !== undefined) {
     const keys = Object.keys(signalLightness ?? {});
     if (typeof signalLightness !== "object" || signalLightness === null || keys.sort().join() !== "onDark,onLight"
       || !fraction(signalLightness.onLight) || !fraction(signalLightness.onDark))
       fail(`signalLightness must be { onLight, onDark }, each from 0 to 1, got ${JSON.stringify(signalLightness)}`);
   }
-  if (images !== undefined) {
-    if (typeof images !== "object" || images === null || Object.keys(images).some((key) => key !== "strength" && key !== "tint")
-      || (images.strength !== undefined && !fraction(images.strength)) || (images.tint !== undefined && !fraction(images.tint)))
-      fail(`images must be { strength, tint }, each from 0 to 1, got ${JSON.stringify(images)}`);
+  for (const field of ["images", "svgs"]) {
+    const settings = theme[field] as Record<string, unknown> | null | undefined;
+    if (settings === undefined) continue;
+    if (typeof settings !== "object" || settings === null || Object.keys(settings).some((key) => key !== "strength" && key !== "tint")
+      || (settings.strength !== undefined && !fraction(settings.strength)) || (settings.tint !== undefined && !fraction(settings.tint)))
+      fail(`${field} must be { strength, tint }, each from 0 to 1, got ${JSON.stringify(settings)}`);
   }
 }
 
