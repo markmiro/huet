@@ -1,73 +1,212 @@
-import { test, expect } from "@playwright/test";
+import { test, expect, type Page } from "@playwright/test";
 
-test("SVG paints retain originals, CSS connections, alpha and vector structure", async ({ page }) => {
+const theme = { dark: "#123456", light: "#abcdef" };
+const dark = "rgb(18, 52, 86)";
+const light = "rgb(171, 205, 239)";
+
+// Vite serves the library source, so the page imports it like an app would.
+async function setup(page: Page, html: string) {
   await page.goto("/lab.html");
-  const result = await page.evaluate(async () => {
-    const { mountSvgs } = await import("/packages/huet/src/core/images.ts");
-    const root = document.createElement("div");
-    root.innerHTML = `<style>.live { fill: var(--ink, red) }</style><svg data-huet-recolor><rect id="implicit"/><rect id="white" fill="white" opacity=".4"/><path id="none" fill="none" stroke="rgba(255, 0, 0, 0.5)"/><path id="css" fill="currentColor"/><path id="var" class="live"/><path id="server" fill="url(#g)"/><linearGradient id="g"><stop stop-color="red" stop-opacity=".3"/></linearGradient></svg><svg id="untouched"><rect/></svg>`;
-    document.body.append(root);
-    const original = root.innerHTML;
-    const mount = mountSvgs(root, { dark: "#123456", light: "#abcdef" });
-    const first = root.querySelector("#implicit")!.getAttribute("style");
-    const properties = {
-      implicit: getComputedStyle(root.querySelector("#implicit")!).fill,
-      white: getComputedStyle(root.querySelector("#white")!).fill,
-      none: getComputedStyle(root.querySelector("#none")!).fill,
-      stroke: getComputedStyle(root.querySelector("#none")!).stroke,
-      css: (root.querySelector("#css") as SVGElement).style.fill,
-      variable: (root.querySelector("#var") as SVGElement).style.fill,
-      server: getComputedStyle(root.querySelector("#server")!).fill,
-      opacity: root.querySelector("#white")!.getAttribute("opacity"),
-      stopOpacity: root.querySelector("stop")!.getAttribute("stop-opacity"),
-      untouched: root.querySelector("#untouched rect")!.getAttribute("style"),
+  await page.evaluate(async (html) => {
+    const w = window as any;
+    w.svgs = await import("/packages/huet/src/core/svgs.ts");
+    w.root = document.createElement("div");
+    w.root.innerHTML = html;
+    document.body.append(w.root);
+    w.frames = () => new Promise((resolve) => requestAnimationFrame(() => requestAnimationFrame(resolve)));
+    w.paint = (id: string, property = "fill") =>
+      getComputedStyle(w.root.querySelector(`#${id}`)).getPropertyValue(property);
+  }, html);
+}
+
+test("maps solid paints and leaves CSS-driven ones connected", async ({ page }) => {
+  await setup(
+    page,
+    `<style>
+      .ink { fill: var(--ink, red) }
+      .fill-current { fill: currentColor }
+      .paper { fill: white }
+    </style>
+    <div style="color: rgb(0, 128, 0)">
+      <svg data-huet-recolor>
+        <rect id="implicit" />
+        <rect id="white" fill="white" opacity=".4" />
+        <rect id="modern" fill="oklch(1 0 0)" />
+        <rect id="ruled" class="paper" fill="black" />
+        <rect id="clear" fill="transparent" />
+        <path id="outline" fill="none" stroke="rgba(255, 255, 255, 0.5)" />
+        <path id="current" fill="currentColor" />
+        <path id="variable" class="ink" />
+        <g fill="currentColor"><rect id="inheritsCurrent" /><rect id="ownInLive" fill="white" /></g>
+        <rect id="server" fill="url(#gradient)" />
+        <linearGradient id="gradient">
+          <stop id="stop" stop-color="white" stop-opacity=".3" />
+          <stop id="implicitStop" offset="1" />
+          <stop id="liveStop" style="stop-color: currentColor" />
+        </linearGradient>
+      </svg>
+      <div class="fill-current"><svg id="connected" data-huet-recolor><rect /></svg></div>
+      <svg id="untouched"><rect fill="white" /></svg>
+    </div>`,
+  );
+  const result = await page.evaluate((theme) => {
+    const w = window as any;
+    w.svgs.mountSvgs(w.root, theme);
+    const style = (selector: string) => w.root.querySelector(selector).getAttribute("style");
+    return {
+      implicit: w.paint("implicit"),
+      white: w.paint("white"),
+      modern: w.paint("modern"),
+      ruled: w.paint("ruled"),
+      clear: w.paint("clear"),
+      outlineFill: w.paint("outline"),
+      outlineStroke: w.paint("outline", "stroke"),
+      current: w.paint("current"),
+      variable: w.paint("variable"),
+      inheritsCurrent: w.paint("inheritsCurrent"),
+      ownInLive: w.paint("ownInLive"),
+      server: w.paint("server"),
+      stop: w.paint("stop", "stop-color"),
+      implicitStop: w.paint("implicitStop", "stop-color"),
+      liveStop: w.paint("liveStop", "stop-color"),
+      opacity: w.root.querySelector("#white").getAttribute("opacity"),
+      stopOpacity: w.root.querySelector("#stop").getAttribute("stop-opacity"),
+      // Attribute paints stay attributes, and children that inherit a paint get nothing of their own.
+      whiteStyle: style("#white"),
+      implicitStyle: style("#implicit"),
+      implicitFill: w.root.querySelector("#implicit").getAttribute("fill"),
+      // A stylesheet rule outranks attributes, so its mapped paint goes inline.
+      ruledStyle: style("#ruled"),
+      connected: style("#connected"),
+      untouched: style("#untouched rect"),
+      vector: w.root.querySelector("canvas") === null,
     };
-    mount.update({ dark: "#000000", light: "#ffffff" }); await mount.ready();
-    mount.update({ dark: "#123456", light: "#abcdef" }); await mount.ready();
-    const stable = first === root.querySelector("#implicit")!.getAttribute("style");
-    root.querySelector("svg")!.insertAdjacentHTML("beforeend", '<circle id="added"/>');
-    await new Promise(resolve => requestAnimationFrame(() => requestAnimationFrame(resolve)));
-    const added = (root.querySelector("#added") as SVGElement).style.fill;
-    root.querySelector("#added")!.remove();
-    mount.destroy(); mount.destroy();
-    return { ...properties, stable, added, restored: root.innerHTML === original, vector: !root.querySelector("canvas") };
+  }, theme);
+  expect(result).toEqual({
+    implicit: dark,
+    white: light,
+    modern: light,
+    ruled: light,
+    clear: "rgba(0, 0, 0, 0)",
+    outlineFill: "none",
+    outlineStroke: "rgba(171, 205, 239, 0.5)",
+    current: "rgb(0, 128, 0)",
+    variable: "rgb(255, 0, 0)",
+    inheritsCurrent: "rgb(0, 128, 0)",
+    ownInLive: light,
+    server: 'url("#gradient")',
+    stop: light,
+    implicitStop: dark,
+    liveStop: "rgb(0, 128, 0)",
+    opacity: ".4",
+    stopOpacity: ".3",
+    whiteStyle: null,
+    implicitStyle: null,
+    implicitFill: null,
+    ruledStyle: `fill: ${light};`,
+    connected: null,
+    untouched: null,
+    vector: true,
   });
-  expect(result.implicit).toBe("rgb(18, 52, 86)");
-  expect(result.white).toBe("rgb(171, 205, 239)");
-  expect(result.none).toBe("none");
-  expect(result.stroke).toContain("0.5");
-  expect(result.css).toBe(""); expect(result.variable).toBe("");
-  expect(result.server).toContain("url(");
-  expect(result.opacity).toBe(".4"); expect(result.stopOpacity).toBe(".3");
-  expect(result.untouched).toBeNull();
-  expect(result.stable).toBe(true); expect(result.added).not.toBe("");
-  expect(result.restored).toBe(true); expect(result.vector).toBe(true);
 });
 
-test("root opt-in, removal, reinsertion and destroy restore authored styles", async ({ page }) => {
-  await page.goto("/lab.html");
-  expect(await page.evaluate(async () => {
-    const { mountSvgs } = await import("/packages/huet/src/core/images.ts");
-    const root = document.createElementNS("http://www.w3.org/2000/svg", "svg");
-    root.setAttribute("data-huet-recolor", "");
-    root.innerHTML = '<g fill="white"><rect style="opacity: 0.2"/></g><stop stop-color="black"/>';
-    document.body.append(root);
-    const original = root.innerHTML;
-    const mount = mountSvgs(root, { dark: "#123456", light: "#abcdef" });
-    const inherited = getComputedStyle(root.querySelector("rect")!).fill === "rgb(171, 205, 239)";
-    const stop = getComputedStyle(root.querySelector("stop")!).stopColor === "rgb(18, 52, 86)";
-    root.removeAttribute("data-huet-recolor");
+test("maps the original paints on every update, and keeps the page's later edits", async ({ page }) => {
+  await setup(page, `<svg data-huet-recolor><rect id="a" fill="white" style="opacity: 0.5" /><rect id="b" fill="white" /></svg>`);
+  const result = await page.evaluate(async (theme) => {
+    const w = window as any;
+    const mount = w.svgs.mountSvgs(w.root, theme);
+    const a = w.root.querySelector("#a");
+    const b = w.root.querySelector("#b");
+    const first = a.getAttribute("fill");
+    mount.update({ dark: "#000000", light: "#808080" });
     await mount.ready();
-    const restored = original === root.innerHTML;
-    root.setAttribute("data-huet-recolor", ""); await mount.ready();
-    const rect = root.querySelector("rect")!;
-    rect.remove(); await mount.ready();
-    const removed = rect.getAttribute("style") === "opacity: 0.2";
-    root.append(rect); await mount.ready();
-    mount.update({ dark: "#222222", light: "#eeeeee" });
+    const gray = w.paint("a");
+    mount.update(theme);
+    await mount.ready();
+    const back = a.getAttribute("fill");
+    // The page edits the paints of recolored elements.
+    a.setAttribute("fill", "black");
+    b.style.setProperty("fill", "black");
+    await mount.ready();
+    const edited = [w.paint("a"), w.paint("b")];
+    mount.destroy();
+    return { first, gray, back, edited, a: a.outerHTML, b: b.outerHTML };
+  }, theme);
+  expect(result.gray).toBe("rgb(128, 128, 128)");
+  expect(result.back).toBe(result.first);
+  expect(result.edited).toEqual([dark, dark]);
+  expect(result.back).toBe(light);
+  // Destroy keeps the page's later edits.
+  expect(result.a).toBe('<rect id="a" fill="black" style="opacity: 0.5"></rect>');
+  expect(result.b).toBe('<rect id="b" fill="white" style="fill: black;"></rect>');
+});
+
+test("follows added, removed, and opted-out SVGs, and restores the markup", async ({ page }) => {
+  await setup(page, "");
+  const result = await page.evaluate(async (theme) => {
+    const w = window as any;
+    const mount = w.svgs.mountSvgs(w.root, theme);
+    w.root.innerHTML = `<svg id="svg" data-huet-recolor><circle id="circle" fill="white" /></svg>`;
+    const original = w.root.innerHTML;
+    const svg = w.root.querySelector("svg");
+    await w.frames();
+    const added = [w.paint("svg"), w.paint("circle")];
+    svg.insertAdjacentHTML("beforeend", `<rect id="later" stroke="white" />`);
+    await w.frames();
+    const later = w.paint("later", "stroke");
+    const rect = w.root.querySelector("#later");
+    rect.remove();
+    await w.frames();
+    const removed = rect.getAttribute("stroke");
+    svg.removeAttribute("data-huet-recolor");
+    await w.frames();
+    const optedOut = w.root.innerHTML;
+    svg.setAttribute("data-huet-recolor", "");
+    await mount.ready();
+    const optedIn = w.paint("circle");
+    mount.destroy();
     mount.destroy();
     let throws = false;
-    try { mount.update({}); } catch { throws = true; }
-    return inherited && stop && restored && removed && throws && rect.getAttribute("style") === "opacity: 0.2";
-  })).toBe(true);
+    try {
+      mount.update(theme);
+    } catch {
+      throws = true;
+    }
+    return { original, added, later, removed, optedOut, optedIn, destroyed: w.root.innerHTML, throws };
+  }, theme);
+  expect(result.added).toEqual([dark, light]);
+  expect(result.later).toBe(light);
+  expect(result.removed).toBe("white");
+  expect(result.optedOut).toBe(result.original.replace(' data-huet-recolor=""', ""));
+  expect(result.optedIn).toBe(light);
+  expect(result.destroyed).toBe(result.original);
+  expect(result.throws).toBe(true);
+});
+
+test("recolors a root that is itself an SVG", async ({ page }) => {
+  await setup(page, `<svg id="svg" data-huet-recolor><g fill="white"><rect id="rect" /></g></svg>`);
+  const result = await page.evaluate((theme) => {
+    const w = window as any;
+    const svg = w.root.querySelector("svg");
+    const mount = w.svgs.mountSvgs(svg, theme);
+    const painted = [w.paint("svg"), w.paint("rect")];
+    mount.destroy();
+    return { painted, markup: svg.outerHTML };
+  }, theme);
+  expect(result).toEqual({
+    painted: [dark, light],
+    markup: '<svg id="svg" data-huet-recolor=""><g fill="white"><rect id="rect"></rect></g></svg>',
+  });
+});
+
+test("the page's state rules still outrank recolored attribute paints", async ({ page }) => {
+  await setup(
+    page,
+    `<style>.hot:hover { fill: rgb(0, 128, 0) }</style>
+    <svg data-huet-recolor width="100" height="100"><rect id="hot" class="hot" width="100" height="100" fill="white" /></svg>`,
+  );
+  await page.evaluate((theme) => (window as any).svgs.mountSvgs((window as any).root, theme), theme);
+  expect(await page.evaluate(() => (window as any).paint("hot"))).toBe(light);
+  await page.hover("#hot");
+  expect(await page.evaluate(() => (window as any).paint("hot"))).toBe("rgb(0, 128, 0)");
 });

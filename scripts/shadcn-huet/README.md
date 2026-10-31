@@ -1,10 +1,21 @@
-The shadcn demo uses the upstream revision pinned in `vendor/shadcn-ui`.
-Run `git submodule update --init vendor/shadcn-ui`, then `pnpm shadcn:setup`
-and `pnpm shadcn:dev`.
+The shadcn demo runs Huet in the upstream app pinned at `vendor/shadcn-ui`.
 
-Setup applies `integration.patch`, copies the canonical `huet-configurator.tsx`
-into the vendor app, builds and packs the local Huet packages, installs them,
-and generates the shadcn registry. The patch includes the baseline Huet surface
-and chart integration plus the home-page QR SVG opt-in. It is safe to rerun on
-an already patched checkout. Local vendor edits are not stored in the gitlink;
-update the patch or canonical configurator to preserve integration changes.
+```sh
+git submodule update --init vendor/shadcn-ui
+pnpm shadcn:setup
+pnpm shadcn:dev
+```
+
+`shadcn:setup` can be rerun. It:
+
+- applies `integration.patch` to the submodule, unless it's already applied: surface and chart fixes, and the `data-huet-recolor` opt-in on the home page's QR code SVG
+- copies `huet-configurator.tsx` into `apps/v4/components/huet/` and mounts it in the root layout
+- builds and packs the local `huet` and `huet-react` packages, installs them in the app, and builds the registry
+
+The gitlink only pins the upstream commit, so edits made inside `vendor/shadcn-ui` aren't saved with this repo. Edit `huet-configurator.tsx` here, and regenerate the patch after changing other vendor files:
+
+```sh
+git -C vendor/shadcn-ui diff -- apps/v4/app/globals.css 'apps/v4/app/(app)/(root)/cards/qr-connect.tsx' … > scripts/shadcn-huet/integration.patch
+```
+
+Leave `layout.tsx` and `theme-provider.tsx` out of it, since `setup.mjs` edits those itself.

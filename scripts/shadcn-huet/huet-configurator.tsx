@@ -112,6 +112,7 @@ function applyHuet(config: ThemeConfig) {
   paintCharts(chartSteps)
   paintTopNav(background)
   paintImages(theme)
+  paintSvgs(theme)
   const dark = luminance(background) < 0.4
   root.classList.toggle("dark", dark)
   root.style.colorScheme = dark ? "dark" : "light"
@@ -428,7 +429,6 @@ function luminance(hex: string) {
   return 0.2126 * r + 0.7152 * g + 0.0722 * b
 }
 
-let svgMount: ReturnType<typeof mountSvgs> | null = null
 let imageMount: ReturnType<typeof mountImages> | null = null
 let imageWatch: MutationObserver | null = null
 
@@ -485,12 +485,22 @@ function paintImages(theme: ReturnType<typeof themeFromConfig>) {
     imageWatch.observe(document.body, { subtree: true, childList: true })
   }
   prepareTree(document.body)
-  if (!svgMount) svgMount = mountSvgs(document.body, theme)
-  else svgMount.update(theme)
   if (!imageMount) {
     imageMount = mountImages(document.body, theme)
     void imageMount.ready()
   } else imageMount.update(theme)
+}
+
+let svgMount: ReturnType<typeof mountSvgs> | null = null
+
+/**
+ * Recolor inline SVGs marked `data-huet-recolor`, such as the home page's QR
+ * code, as vectors. Paints that use currentColor or a CSS variable already
+ * follow the theme tokens and are left alone.
+ */
+function paintSvgs(theme: ReturnType<typeof themeFromConfig>) {
+  if (!svgMount) svgMount = mountSvgs(document.body, theme)
+  else svgMount.update(theme)
 }
 
 /** Floating Huet editor. Edits repaint every shadcn color token. */

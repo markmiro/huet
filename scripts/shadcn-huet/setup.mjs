@@ -28,12 +28,22 @@ if (!existsSync(resolve(shadcn, "package.json"))) {
   process.exit(1)
 }
 
-// Keep the upstream submodule pinned; replay the integration in fresh checkouts.
-const integrationPatch = resolve(here, "integration.patch")
-const applied = spawnSync("git", ["apply", "--reverse", "--check", integrationPatch], {
-  cwd: shadcn, stdio: "ignore",
-}).status === 0
-if (!applied) run("git", ["apply", integrationPatch], shadcn)
+// The submodule stays pinned to upstream, so replay the vendor edits
+// (surfaces, charts, the QR code's SVG opt-in) unless they're already there.
+const integration = resolve(here, "integration.patch")
+const git = (...args) => spawnSync("git", args, { cwd: shadcn, encoding: "utf8" })
+if (git("apply", "--reverse", "--check", integration).status !== 0) {
+  const check = git("apply", "--check", integration)
+  if (check.status !== 0) {
+    console.error(check.stderr.trim())
+    console.error(
+      "vendor/shadcn-ui has edits that conflict with scripts/shadcn-huet/integration.patch.\n" +
+        "Commit or discard them in vendor/shadcn-ui (git -C vendor/shadcn-ui status), then rerun.",
+    )
+    process.exit(1)
+  }
+  run("git", ["apply", integration], shadcn)
+}
 
 const shadcnPackagePath = resolve(shadcn, "package.json")
 const shadcnPackage = JSON.parse(readFileSync(shadcnPackagePath, "utf8"))
@@ -64,10 +74,6 @@ patch("components/theme-provider.tsx", 'attribute="data-theme"', (source) =>
   source.replace('attribute="class"', 'attribute="data-theme"'),
 )
 
-patch("app/(app)/(root)/cards/qr-connect.tsx", "data-huet-recolor", (source) =>
-  source.replace("<svg", '<svg data-huet-recolor=""'),
-)
-
 if (!existsSync(resolve(root, "node_modules"))) run("pnpm", ["install"], root)
 run("pnpm", ["build:packages"], root)
 
@@ -83,6 +89,7 @@ const tarballs = ["huet", "huet-react"].map((name) => {
 const pnpm = ["--config.package-manager-strict=false"]
 if (!existsSync(resolve(shadcn, "node_modules"))) run("pnpm", [...pnpm, "install"], shadcn)
 else if (missingBuilds.length) run("pnpm", [...pnpm, "rebuild", ...missingBuilds], shadcn)
+// The configurator imports chroma-js itself, and pnpm doesn't expose Huet's copy to the app.
 run("pnpm", [...pnpm, "--filter=v4", "add", "chroma-js", ...tarballs], shadcn)
 
 if (!existsSync(resolve(v4, "styles/base-nova/ui"))) {

@@ -2,7 +2,7 @@ import {
   fromLightness, lightnessOf as lightness, lightnessToe as toe,
   oklabFromRgb, rgbFromOklab, toOklab, type Triple,
 } from "./color";
-import { defaultColors, hues, neutralRampOf, type Hue, type NeutralRamp } from "./theme";
+import { defaultColors, hues, neutralRampOf, type Hue, type HuetTheme, type NeutralRamp } from "./theme";
 
 /*
   A theme's ramps form a coordinate system for colors:
@@ -26,6 +26,16 @@ export interface Palette {
   /** A multi-stop or hue-shifting neutral ramp, as in `createTheme`. Use instead of dark/light. */
   neutral?: NeutralRamp;
   colors?: Partial<Record<Hue, string>>;
+}
+
+/** The ramps of a theme from `createTheme`, in the shape the recolorer reads. */
+export function paletteOf(theme: HuetTheme | Palette): Palette {
+  if (!("tokens" in theme)) return theme;
+  const { neutral, colors } = theme;
+  // A two-stop OKLab ramp is the plain dark → light mix.
+  return neutral.colors.length === 2 && neutral.colorModel === "oklab"
+    ? { dark: theme.dark, light: theme.light, colors }
+    : { neutral, colors };
 }
 
 export interface Coordinates {

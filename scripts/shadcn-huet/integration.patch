@@ -68,27 +68,6 @@ index 00c2223..d6a3760 100644
 +    opacity: 1;
 +  }
 +}
-diff --git a/apps/v4/app/layout.tsx b/apps/v4/app/layout.tsx
-index ade2f14..54c3b69 100644
---- a/apps/v4/app/layout.tsx
-+++ b/apps/v4/app/layout.tsx
-@@ -14,6 +14,8 @@ import { Toaster } from "@/registry/bases/radix/ui/sonner"
- import { TooltipProvider as RadixTooltipProvider } from "@/registry/bases/radix/ui/tooltip"
- import { Toaster as BaseToaster } from "@/styles/base-nova/ui/toast"
- 
-+import { HuetConfigurator } from "@/components/huet/huet-configurator"
-+
- import "@/app/globals.css"
- import "@/app/(app)/(typeset)/typeset.css"
- 
-@@ -118,6 +120,7 @@ export default function RootLayout({
-               </BaseTooltipProvider>
-             </NuqsAdapter>
-             <TailwindIndicator />
-+            <HuetConfigurator />
-             <Analytics />
-           </ActiveThemeProvider>
-         </ThemeProvider>
 diff --git a/apps/v4/components/site-header.tsx b/apps/v4/components/site-header.tsx
 index 7897e95..215c54b 100644
 --- a/apps/v4/components/site-header.tsx
@@ -102,19 +81,6 @@ index 7897e95..215c54b 100644
        <div className="container-wrapper px-6 group-has-data-[slot=designer]/layout:max-w-none 3xl:fixed:px-0">
          <div className="flex h-(--header-height) items-center **:data-[slot=separator]:h-4! group-has-data-[slot=designer]/layout:fixed:max-w-none 3xl:fixed:container">
            <MobileNav
-diff --git a/apps/v4/components/theme-provider.tsx b/apps/v4/components/theme-provider.tsx
-index ea24e06..0493bfc 100644
---- a/apps/v4/components/theme-provider.tsx
-+++ b/apps/v4/components/theme-provider.tsx
-@@ -41,7 +41,7 @@ export function ThemeProvider({
- }: React.ComponentProps<typeof NextThemesProvider>) {
-   return (
-     <NextThemesProvider
--      attribute="class"
-+      attribute="data-theme"
-       defaultTheme="system"
-       enableSystem
-       disableTransitionOnChange
 diff --git a/apps/v4/registry/new-york-v4/charts/chart-line-dots-custom.tsx b/apps/v4/registry/new-york-v4/charts/chart-line-dots-custom.tsx
 index 355f23a..61c10e1 100644
 --- a/apps/v4/registry/new-york-v4/charts/chart-line-dots-custom.tsx

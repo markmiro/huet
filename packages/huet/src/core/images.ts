@@ -1,5 +1,5 @@
 import { GpuRecolor } from "./gpu";
-import { applyLut, buildLut, recolorer, type Palette, type RecolorOptions } from "./recolor";
+import { applyLut, buildLut, paletteOf, recolorer, type Palette, type RecolorOptions } from "./recolor";
 import type { HuetTheme } from "./theme";
 
 export {
@@ -7,12 +7,14 @@ export {
   applyTransform,
   buildLut,
   coordinatesOf,
+  paletteOf,
   rampColor,
   recolorer,
   toCube,
 } from "./recolor";
 export type { Coordinates, Palette, RecolorOptions, Transform } from "./recolor";
 export { GpuRecolor } from "./gpu";
+export { mountSvgs, type MountSvgsOptions } from "./svgs";
 
 export interface ImageOptions extends RecolorOptions {
   /** Lattice size of the lookup table each theme is baked into. Defaults to 17. */
@@ -22,16 +24,6 @@ export interface ImageOptions extends RecolorOptions {
    * WebGL2 isn't available. `"cpu"` always renders on the CPU.
    */
   renderer?: "gpu" | "cpu";
-}
-
-/** The ramps of a theme from `createTheme`, in the shape the recolorer reads. */
-export function paletteOf(theme: HuetTheme | Palette): Palette {
-  if (!("tokens" in theme)) return theme;
-  const { neutral, colors } = theme;
-  // A two-stop OKLab ramp is the plain dark → light mix.
-  return neutral.colors.length === 2 && neutral.colorModel === "oklab"
-    ? { dark: theme.dark, light: theme.light, colors }
-    : { neutral, colors };
 }
 
 // LUTs are small (17³ × 3 floats ≈ 59 KB), so keep recent ones for reuse.
@@ -419,5 +411,3 @@ export function mountImages(
     },
   };
 }
-
-export { mountSvgs, type MountSvgsOptions } from "./svgs";
