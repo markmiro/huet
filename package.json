@@ -22,7 +22,9 @@
     "test:watch": "vitest",
     "typecheck": "tsc --noEmit",
     "lint": "tsc --noEmit",
-    "test:browser": "playwright test"
+    "test:browser": "playwright test",
+    "shadcn:setup": "node scripts/shadcn-huet/setup.mjs",
+    "shadcn:dev": "pnpm --dir vendor/shadcn-ui --config.package-manager-strict=false v4:dev"
   },
   "devDependencies": {
     "@astrojs/react": "^7.1.2",

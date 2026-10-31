@@ -419,3 +419,5 @@ export function mountImages(
     },
   };
 }
+
+export { mountSvgs, type MountSvgsOptions } from "./svgs";

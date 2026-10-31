@@ -2,7 +2,7 @@
 
 import chroma from "chroma-js"
 import { themeFromConfig, type ThemeConfig } from "huet/config"
-import { mountImages } from "huet/images"
+import { mountImages, mountSvgs } from "huet/images"
 import { ThemeConfigurator } from "huet-react"
 
 /**
@@ -428,6 +428,7 @@ function luminance(hex: string) {
   return 0.2126 * r + 0.7152 * g + 0.0722 * b
 }
 
+let svgMount: ReturnType<typeof mountSvgs> | null = null
 let imageMount: ReturnType<typeof mountImages> | null = null
 let imageWatch: MutationObserver | null = null
 
@@ -484,6 +485,8 @@ function paintImages(theme: ReturnType<typeof themeFromConfig>) {
     imageWatch.observe(document.body, { subtree: true, childList: true })
   }
   prepareTree(document.body)
+  if (!svgMount) svgMount = mountSvgs(document.body, theme)
+  else svgMount.update(theme)
   if (!imageMount) {
     imageMount = mountImages(document.body, theme)
     void imageMount.ready()
