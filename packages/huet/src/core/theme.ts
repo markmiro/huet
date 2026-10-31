@@ -1,6 +1,8 @@
 import chroma from "chroma-js";
 import { relativeRoot } from "./relative";
 import {
+  apcaFromY,
+  apcaY,
   contrast,
   fromOklab,
   luminance,
@@ -53,11 +55,17 @@ export const defaultColors: Readonly<Record<Hue, string>> = {
   blue: "#0082dc",
   purple: "#a359b9",
 };
-type Candidate = { color: string; luminance: number };
+/** A color with its APCA luminance, for Lc. */
+type Step = { color: string; y: number };
+/** A step with its WCAG luminance too, for polarity. */
+type Candidate = Step & { luminance: number };
+const step = (color: string): Step => ({ color, y: apcaY(color) });
 const candidate = (color: string): Candidate => ({
-  color,
+  ...step(color),
   luminance: luminance(color),
 });
+/** Unsigned Lc of a color on a background with APCA luminance `bgY`. */
+const lc = (bgY: number, { y }: Step) => Math.abs(apcaFromY(y, bgY));
 /**
  * APCA lightness contrast (Lc) the preset roles aim for. Signal hues aim for the
  * muted level, and colored fills for the border level against their parent.
@@ -69,29 +77,57 @@ function select(
   candidates: readonly Candidate[],
   target: number,
 ): string {
+  const bgY = apcaY(background);
   let best = candidates[0].color,
     bestLc = -1,
     nearest = "",
     nearestLc = Infinity;
-  for (const { color } of candidates) {
-    const lc = contrast(background, color);
-    if (lc > bestLc) {
-      best = color;
-      bestLc = lc;
+  for (const x of candidates) {
+    const value = lc(bgY, x);
+    if (value > bestLc) {
+      best = x.color;
+      bestLc = value;
     }
-    if (lc >= target && lc < nearestLc) {
-      nearest = color;
-      nearestLc = lc;
+    if (value >= target && value < nearestLc) {
+      nearest = x.color;
+      nearestLc = value;
     }
   }
   return nearest || best;
 }
+/** Samples a path at 257 evenly spaced steps, on demand. */
+type Steps = (i: number) => Step;
+const pathSteps = 257;
 /** The first step along a path that reaches the target. */
-const first = (steps: readonly string[], measure: (color: string) => number, target: number) =>
-  steps.find((color) => measure(color) >= target - 1e-9);
-/** The step that measures highest. */
-const strongest = (steps: readonly string[], measure: (color: string) => number) =>
-  steps.reduce((a, b) => (measure(b) > measure(a) ? b : a));
+function first(steps: Steps, measure: (step: Step) => number, target: number) {
+  for (let i = 0; i < pathSteps; i++)
+    if (measure(steps(i)) >= target - 1e-9) return steps(i).color;
+}
+/** The step along any of the paths that measures highest. */
+function strongest(paths: readonly Steps[], measure: (step: Step) => number) {
+  let best = paths[0](0),
+    bestValue = measure(best);
+  for (const steps of paths)
+    for (let i = 0; i < pathSteps; i++) {
+      const value = measure(steps(i));
+      if (value > bestValue) [best, bestValue] = [steps(i), value];
+    }
+  return best.color;
+}
+/**
+ * Work that depends only on a few strings, shared between themes. Dragging one
+ * color rebuilds the theme many times a second, and most of it stays the same:
+ * a new hue leaves the neutral ramp and the other hues alone.
+ */
+const samples = new Map<string, unknown>(),
+  roleTokens = new Map<string, unknown>();
+function shared<T>(key: string, build: () => T, cache = samples, size = 64): T {
+  if (cache.has(key)) return cache.get(key) as T;
+  const value = build();
+  if (cache.size >= size) cache.clear();
+  cache.set(key, value);
+  return value;
+}
 /** Validate a theme's neutral ramp and return a sampler for it. */
 export function neutralRampOf(options: Pick<ThemeOptions, "dark" | "light" | "neutral">) {
   const custom = options.neutral !== undefined;
@@ -111,32 +147,44 @@ export function neutralRampOf(options: Pick<ThemeOptions, "dark" | "light" | "ne
     throw new TypeError(`Unknown color model: ${colorModel}`);
   // Without a neutral ramp, keep the original two-point OKLab path exactly.
   const scale = chroma.scale([...stops]).mode(colorModel);
+  // chroma-js caches a scale's colors by t to four decimals, so their hex
+  // codes can be cached the same way. It's the same color, without the
+  // conversion chroma-js repeats on every call.
+  const hexes: string[] = [];
   const ramp = (t: number): string => {
     if (!Number.isFinite(t) || t < 0 || t > 1)
       throw new RangeError("Mix amount must be between 0 and 1");
-    return custom ? scale(t).hex() : mix(dark, light, t);
+    return custom ? (hexes[Math.floor(t * 10000)] ??= scale(t).hex()) : mix(dark, light, t);
   };
   return { custom, stops, dark, light, colorModel, ramp };
 }
 export function createTheme(options: ThemeOptions = {}) {
-  const { custom, stops, dark, light, colorModel, ramp } = neutralRampOf(options);
+  const neutralOf = neutralRampOf(options);
+  const { custom, stops, dark, light, colorModel } = neutralOf;
+  // Everything about the neutral ramp follows from these
+  const neutralKey = `${colorModel}:${custom}:${stops}`;
+  const { ramp } = shared(`ramp:${neutralKey}`, () => neutralOf);
   const background = ramp(options.background ?? 1);
   const colors = Object.freeze({ ...defaultColors, ...options.colors });
   for (const color of Object.values(colors)) rgb(color);
-  const neutral = Array.from({ length: 257 }, (_, i) =>
-    candidate(ramp(i / 256)),
+  const hueKeys = Object.fromEntries(
+    hues.map((hue) => [hue, `${neutralKey}:${colors[hue]}`]),
+  ) as Record<Hue, string>;
+  const neutralLab = shared(`neutral:${neutralKey}`, () =>
+    Array.from({ length: 257 }, (_, i) => toOklab(ramp(i / 256))),
   );
-  const neutralLab = neutral.map((x) => toOklab(x.color));
   /** Ramp position of a color that lies on the neutral ramp, if any. */
   const positionOf = (color: string): number | undefined => {
     const [L, a, b] = toOklab(color);
+    // Compares squared distances: the same nearest sample, without Math.hypot.
     let best = -1,
       distance = Infinity;
-    neutralLab.forEach(([x, y, z], i) => {
-      const d = Math.hypot(L - x, a - y, b - z);
+    for (let i = 0; i < neutralLab.length; i++) {
+      const [x, y, z] = neutralLab[i];
+      const d = (L - x) ** 2 + (a - y) ** 2 + (b - z) ** 2;
       if (d < distance) [best, distance] = [i, d];
-    });
-    return distance < 0.01 ? best / 256 : undefined;
+    }
+    return distance < 0.01 ** 2 ? best / 256 : undefined;
   };
   /** The neutral ramp in OKLab at any position, between the precomputed samples. */
   const rampLab = (t: number): Triple => {
@@ -178,8 +226,10 @@ export function createTheme(options: ThemeOptions = {}) {
       // Keep signal identity independent of the primary endpoint hue.
       return [
         hue,
-        Array.from({ length: 257 }, (_, i) =>
-          candidate(fromOklab([low + ((high - low) * i) / 256, a, b])),
+        shared(`hue:${hueKeys[hue]}`, () =>
+          Array.from({ length: 257 }, (_, i) =>
+            candidate(fromOklab([low + ((high - low) * i) / 256, a, b])),
+          ),
         ),
       ];
     }),
@@ -200,6 +250,21 @@ export function createTheme(options: ThemeOptions = {}) {
   // deliberately lower the signal hues' targets along with it.
   const range = Math.min(contrast(dark, light), contrast(light, dark));
   const budget = Math.min(1, range / roles.foreground);
+  // Steps are computed as far as they're read, and shared by surfaces on the
+  // same background.
+  const paths = new Map<string, Steps>();
+  const stepsTo = (bg: string, endpoint: string): Steps => {
+    const key = bg + endpoint;
+    let steps = paths.get(key);
+    if (!steps) {
+      const toward = path(bg, endpoint);
+      const computed: Step[] = [];
+      steps = (i) => (computed[i] ??= step(toward(i / (pathSteps - 1))));
+      if (paths.size >= 512) paths.clear();
+      paths.set(key, steps);
+    }
+    return steps;
+  };
   const cache = new Map<string, Readonly<Tokens>>();
   const tokens = (bg = background, adjacent = bg): Readonly<Tokens> => {
     rgb(bg);
@@ -207,34 +272,18 @@ export function createTheme(options: ThemeOptions = {}) {
     const key = bg + adjacent;
     const cached = cache.get(key);
     if (cached) return cached;
-    // Roles step from the background toward the endpoint text reads best against
-    // (by APCA), so they share the text's side. On a colored surface they keep its hue.
-    const end = textEnd(bg, dark, light);
-    const stepsTo = (endpoint: string) => {
-      const toward = path(bg, endpoint);
-      return Array.from({ length: 257 }, (_, i) => toward(i / 256));
-    };
-    const steps = stepsTo(end);
-    const onBg = (color: string) => contrast(bg, color);
-    // Where the background can't reach Lc 90, the roles keep their proportions of
-    // what it can reach, so they stay distinct and ordered on narrow ramps.
-    const fg = Math.min(onBg(end), roles.foreground);
-    const share = (role: number) => (fg * role) / roles.foreground;
-    // A border also outlines the surface against its parent. When the text's side
-    // can't reach the target against both, the other side may.
-    const outline = (color: string) => Math.min(onBg(color), contrast(adjacent, color));
-    let border = first(steps, outline, share(roles.border));
-    if (border === undefined) {
-      const other = stepsTo(end === light ? dark : light);
-      border = first(other, outline, share(roles.border)) ?? strongest([...steps, ...other], outline);
-    }
     const result = Object.freeze({
-      background: bg,
-      foreground: first(steps, onBg, fg) ?? end,
-      muted: first(steps, onBg, share(roles.muted)) ?? end,
-      border,
+      ...shared(`${neutralKey}|${bg}|${adjacent}`, () => neutralRoles(bg, adjacent), roleTokens, 4096),
       ...Object.fromEntries(
-        hues.map((hue) => [hue, select(bg, semanticCandidates(bg, hue), roles.muted * budget)]),
+        hues.map((hue) => [
+          hue,
+          shared(
+            `${hueKeys[hue]}|${bg}`,
+            () => select(bg, semanticCandidates(bg, hue), roles.muted * budget),
+            roleTokens,
+            4096,
+          ),
+        ]),
       ),
     }) as Readonly<Tokens>;
     // Bound caches for continuously changing backgrounds.
@@ -242,6 +291,34 @@ export function createTheme(options: ThemeOptions = {}) {
     cache.set(key, result);
     return result;
   };
+  /** The neutral roles on `bg`, which don't depend on the signal hues. */
+  function neutralRoles(bg: string, adjacent: string) {
+    // Roles step from the background toward the endpoint text reads best against
+    // (by APCA), so they share the text's side. On a colored surface they keep its hue.
+    const end = textEnd(bg, dark, light);
+    const steps = stepsTo(bg, end);
+    const bgY = apcaY(bg),
+      adjacentY = apcaY(adjacent);
+    const onBg = (step: Step) => lc(bgY, step);
+    // Where the background can't reach Lc 90, the roles keep their proportions of
+    // what it can reach, so they stay distinct and ordered on narrow ramps.
+    const fg = Math.min(contrast(bg, end), roles.foreground);
+    const share = (role: number) => (fg * role) / roles.foreground;
+    // A border also outlines the surface against its parent. When the text's side
+    // can't reach the target against both, the other side may.
+    const outline = (step: Step) => Math.min(onBg(step), lc(adjacentY, step));
+    let border = first(steps, outline, share(roles.border));
+    if (border === undefined) {
+      const other = stepsTo(bg, end === light ? dark : light);
+      border = first(other, outline, share(roles.border)) ?? strongest([steps, other], outline);
+    }
+    return {
+      background: bg,
+      foreground: first(steps, onBg, fg) ?? end,
+      muted: first(steps, onBg, share(roles.muted)) ?? end,
+      border,
+    };
+  }
   const surfaceCache = new Map<string, string>();
   // A fill is readable when muted-level text fits on it on one side or the other.
   const fullTextRange = range >= roles.muted;
