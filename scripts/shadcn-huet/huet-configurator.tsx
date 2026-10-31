@@ -25,11 +25,10 @@ function applyHuet(config: ThemeConfig) {
   const isDark = luminance(tokens.background) < 0.4
   // shadcn's dark page is near-black; its light page is the ramp endpoint.
   const background = isDark ? theme.surface(tokens.background, 2.75) : tokens.background
-  const fill = (amount: number) => theme.surface(background, amount)
-  // Explicit contrast keeps Base light text and primary buttons at true black.
-  // Role tokens target APCA Lc 90, which stops at dark gray on white.
-  const foreground = fill(isDark ? 98 : 100)
-  const mutedForeground = fill(isDark ? 65 : 51.5)
+  const fill = (amount: Parameters<typeof theme.surface>[1]) => theme.surface(background, amount)
+  // Match the configurator: primary and foreground use the full contrast range.
+  const foreground = theme.relative.contrast(100).hex
+  const mutedForeground = theme.relative.contrast(isDark ? 66 : 51.5).hex
   const ink = (surface: string) => theme.surface(surface, 100)
   stealPalette()
 
@@ -52,7 +51,7 @@ function applyHuet(config: ThemeConfig) {
     "--popover": card,
     "--popover-foreground": foreground,
     // Primary is the max-contrast invert of the background, not the theme blue.
-    "--primary": isDark ? fill(90.7) : foreground,
+    "--primary": foreground,
     "--primary-foreground": background,
     "--secondary": secondary,
     "--secondary-foreground": ink(secondary),
