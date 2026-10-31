@@ -5,6 +5,7 @@ import type { Theme, ThemeConfig } from "huet/config";
 import { VSpace } from "./AllExceptFirst";
 import BgColors from "./BgColors";
 import Button from "./Button";
+import Checkbox from "./Checkbox";
 import ColorRamps from "./ColorRamps";
 import Input from "./Input";
 import Labeled from "./Labeled";
@@ -99,6 +100,19 @@ export default function EditTheme({
           max={1}
           decimals={2}
         />
+        <Checkbox
+          label="Theme images"
+          value={themeConfig.images?.enabled ?? false}
+          onChange={enabled => modify("images")({
+            tint: 0, strength: 1, ...themeConfig.images, enabled,
+          })}
+        />
+        {themeConfig.images?.enabled && <>
+          <Range label="Image tint" value={themeConfig.images.tint * 100}
+            onChange={tint => modify("images")({ ...themeConfig.images!, tint: Math.max(0, Math.min(100, tint)) / 100 })} />
+          <Range label="Image strength" value={themeConfig.images.strength * 100}
+            onChange={strength => modify("images")({ ...themeConfig.images!, strength: Math.max(0, Math.min(100, strength)) / 100 })} />
+        </>}
       </VSpace>
     </>
   );

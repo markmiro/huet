@@ -1,5 +1,6 @@
 import React, { useCallback, useLayoutEffect, useMemo, useRef } from "react";
 import { mountTheme } from "huet";
+import { mountImages } from "huet/images";
 import {
   baseThemeConfig,
   parseThemeConfig,
@@ -60,6 +61,20 @@ function useThemeTarget(target: Target | undefined, config: ThemeConfig) {
     };
   }, [target]);
   useLayoutEffect(() => mount.current?.update(theme), [theme]);
+  const images = useRef<ReturnType<typeof mountImages>>(undefined);
+  useLayoutEffect(() => {
+    if (!target || !config.images?.enabled) return;
+    images.current = mountImages(resolve(target), latest.current, {
+      ...config.images, hoverOriginal: true,
+    });
+    return () => {
+      images.current?.destroy();
+      images.current = undefined;
+    };
+  }, [target, config.images?.enabled]);
+  useLayoutEffect(() => {
+    images.current?.update(theme, config.images);
+  }, [theme, config.images]);
 }
 
 type WithChildren = { children?: React.ReactNode };
