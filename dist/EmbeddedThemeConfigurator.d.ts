@@ -18,7 +18,8 @@ export interface EmbeddedThemeConfiguratorProps extends ThemeConfiguratorProps {
 /**
  * A compact theme picker to place anywhere on the page. It shows a mini map of
  * the current theme: its colors from highest to lowest contrast, over its gray
- * ramp. Clicking it opens a popover of saved themes. It shares saved themes
- * with ThemeConfigurator, so the two stay in sync on one page.
+ * ramp. Clicking it opens the configurator in a popover: a Themes tab with the
+ * saved themes, and an Edit Theme tab. It shares saved themes with
+ * ThemeConfigurator, so the two stay in sync on one page.
  */
 export default function EmbeddedThemeConfigurator({ mode, side, align, style, ...props }: EmbeddedThemeConfiguratorProps): React.JSX.Element;
