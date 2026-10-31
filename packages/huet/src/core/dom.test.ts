@@ -174,7 +174,7 @@ describe("explicit contrast classes", () => {
   });
   it("gives colored surfaces tinted muted and border tokens", () => {
     const root = document.createElement("div");
-    root.innerHTML = '<fieldset class="huet-bg-blue-25"></fieldset>';
+    root.innerHTML = '<fieldset class="huet-bg-blue-20"></fieldset>';
     const theme = createTheme();
     const mount = mountTheme(root, theme);
     const fieldset = root.querySelector("fieldset")!;

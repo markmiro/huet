@@ -334,7 +334,7 @@ The [image recolor demo](https://markmiro.github.io/huet/recolor.html) compares 
 
 ## Code blocks
 
-`huetShikiTheme()` is a [Shiki](https://shiki.style) theme whose token colors are Huet variables instead of hex values, e.g. `var(--huet-code-keyword, var(--huet-red))`. Highlight once, at build time or on the server, and the mounted theme colors every block. `update()` re-themes them without re-highlighting. `huetShikiTransformer()` puts a Huet background class on each `<pre>` (`huet-bg-5` by default), so tokens are solved for readable contrast against the block itself. Use `huet-bg-0` to `huet-bg-25` for a block on the page's side of the ramp, or `huet-bg-75` to `huet-bg-100` for the opposite side, such as dark code on a light page.
+`huetShikiTheme()` is a [Shiki](https://shiki.style) theme whose token colors are Huet variables instead of hex values, e.g. `var(--huet-code-keyword, var(--huet-red))`. Highlight once, at build time or on the server, and the mounted theme colors every block. `update()` re-themes them without re-highlighting. `huetShikiTransformer()` puts a Huet background class on each `<pre>` (`huet-bg-5` by default), so tokens are solved for readable contrast against the block itself. Use `huet-bg-0` to `huet-bg-20` for a block on the page's side of the ramp, or `huet-bg-80` to `huet-bg-100` for the opposite side, such as dark code on a light page.
 
 ```js
 // astro.config.mjs: Markdown and MDX code blocks
