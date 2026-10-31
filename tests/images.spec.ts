@@ -68,7 +68,7 @@ for (const webgl of [true, false]) {
       const img = root.querySelector<HTMLImageElement>("img[data-huet-recolor]")!;
       const original = await pixels(fixture);
 
-      const sunset = core.createTheme({ neutral: { colors: ["#242744", "#ffe173"], colorModel: "hcl" } });
+      const sunset = { neutral: ["#242744", "#ffe173"], colorModel: "hcl" };
       const mount = images.mountImages(root, sunset, { hoverOriginal: true });
       await mount.ready();
       const canvas = img.nextElementSibling as HTMLCanvasElement;
@@ -83,7 +83,7 @@ for (const webgl of [true, false]) {
       };
       const sunsetDiff = difference(original, canvasPixels(canvas));
 
-      mount.update(core.createTheme());
+      mount.update({ neutral: ["#000000", "#ffffff"] });
       await mount.ready();
       const identityDiff = difference(original, canvasPixels(canvas));
 
@@ -159,7 +159,7 @@ test("mountImages leaves srcset alone and unreadable images as they are", async 
     root.innerHTML = `<img data-huet-recolor src="${fixture}" srcset="${fixture} 1x" alt=""><img data-huet-recolor id="broken" src="/missing.png" alt="">`;
     document.body.append(root);
     const [img, broken] = root.querySelectorAll("img");
-    const mount = images.mountImages(root, core.createTheme({ dark: "#302723", light: "#f1e4cd" }));
+    const mount = images.mountImages(root, { neutral: ["#302723", "#f1e4cd"] });
     await mount.ready();
     const during = {
       srcset: img.getAttribute("srcset") === `${fixture} 1x`,
@@ -186,7 +186,7 @@ test("mountImages never paints the original", async ({ page }) => {
     const { images, core, fixture } = window as any;
     const root = document.createElement("div");
     document.body.prepend(root);
-    const sunset = core.createTheme({ neutral: { colors: ["#242744", "#ffe173"], colorModel: "hcl" } });
+    const sunset = { neutral: ["#242744", "#ffe173"], colorModel: "hcl" };
     const mount = images.mountImages(root, sunset);
     const frames: string[] = [];
     let sampling = true;
@@ -213,7 +213,7 @@ test("mountImages never paints the original", async ({ page }) => {
     add();
     await new Promise((r) => setTimeout(r, 50));
     await mount.ready();
-    mount.update(core.createTheme({ dark: "#302723", light: "#f1e4cd" }));
+    mount.update({ neutral: ["#302723", "#f1e4cd"] });
     await mount.ready();
     for (let i = 0; i < 3; i++) await new Promise((r) => requestAnimationFrame(r));
     sampling = false;
@@ -239,12 +239,12 @@ test("mountImages redraws once per frame, and only near the viewport", async ({ 
     document.body.prepend(root);
     window.scrollTo(0, 0);
     const [near, far] = root.querySelectorAll("img");
-    const mount = images.mountImages(root, core.createTheme({ dark: "#302723" }));
+    const mount = images.mountImages(root, { neutral: ["#302723", "#ffffff"] });
     await frames(5);
     const initially = { near: !!near.nextElementSibling?.matches("canvas"), far: far.nextElementSibling !== null };
 
     draws = 0;
-    for (const dark of ["#111111", "#222222", "#333333", "#444444"]) mount.update(core.createTheme({ dark }));
+    for (const dark of ["#111111", "#222222", "#333333", "#444444"]) mount.update({ neutral: [dark, "#ffffff"] });
     await frames(3);
     const burst = draws;
 
@@ -270,7 +270,7 @@ test("recolorImage matches on the GPU and CPU", async ({ browser }) => {
       const image = new Image();
       image.src = fixture;
       await image.decode();
-      const canvas = images.recolorImage(image, core.createTheme({ dark: "#233b91" }), { strength: 0.8 });
+      const canvas = images.recolorImage(image, { neutral: ["#233b91", "#ffffff"] }, { strength: 0.8 });
       return Array.from(canvas.getContext("2d").getImageData(0, 0, canvas.width, canvas.height).data) as number[];
     });
     await page.close();

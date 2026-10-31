@@ -3,9 +3,6 @@ import React, { act } from "react";
 import { createRoot } from "react-dom/client";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
-import { themeConfigs as defaultThemeConfigs } from "huet/config";
-import { baseThemeConfig } from "huet/config";
-import { isThemeConfig, parseThemeConfig } from "huet/config";
 import usePersistentState, {
   asBoolean,
   asNumber,
@@ -127,7 +124,7 @@ describe("usePersistentState", () => {
   });
 
   it("keeps hooks with the same key in sync", () => {
-    // Parsing copies the value, like parseThemeConfig does
+    // Parsing copies the value, as real parsers do
     const asCopy = (stored: unknown) =>
       typeof stored === "object" && stored !== null
         ? { ...(stored as { n: number }) }
@@ -220,51 +217,5 @@ describe("usePersistentState", () => {
     flushStored();
     expect(localStorage.getItem("huet:flag")).toBe("true");
     unmount();
-  });
-});
-
-describe("isThemeConfig", () => {
-  it("accepts the built-in themes", () => {
-    expect(isThemeConfig(baseThemeConfig)).toBe(true);
-    for (const config of defaultThemeConfigs) {
-      expect(isThemeConfig(config)).toBe(true);
-    }
-  });
-
-  it("rejects configs that can't build a theme", () => {
-    expect(isThemeConfig(null)).toBe(false);
-    expect(isThemeConfig([])).toBe(false);
-    expect(isThemeConfig({ ...baseThemeConfig, bgRampValue: "1" })).toBe(false);
-    expect(isThemeConfig({ ...baseThemeConfig, bgRamp: "nope" })).toBe(false);
-    expect(isThemeConfig({ ...baseThemeConfig, unknownKey: 1 })).toBe(false);
-    expect(
-      isThemeConfig({
-        ...baseThemeConfig,
-        ramps: { ...baseThemeConfig.ramps, gray: { colors: ["missing"] } },
-      })
-    ).toBe(false);
-  });
-});
-
-describe("parseThemeConfig", () => {
-  // Saved by versions that had the "Rescale signal saturation" setting
-  const legacyConfig = { ...baseThemeConfig, rescaleSaturationToGrayRange: true };
-
-  it("drops removed settings from older saved themes and imports", () => {
-    expect(isThemeConfig(legacyConfig)).toBe(false);
-    expect(parseThemeConfig(legacyConfig)).toEqual(baseThemeConfig);
-  });
-
-  it("loads a saved theme that still has a removed setting", () => {
-    localStorage.setItem("huet:theme", JSON.stringify(legacyConfig));
-    expect(readStored("theme", undefined, parseThemeConfig)).toEqual(
-      baseThemeConfig
-    );
-    expect(console.warn).not.toHaveBeenCalled();
-  });
-
-  it("still rejects configs that are invalid for other reasons", () => {
-    expect(parseThemeConfig(null)).toBeUndefined();
-    expect(parseThemeConfig({ ...legacyConfig, unknownKey: 1 })).toBeUndefined();
   });
 });

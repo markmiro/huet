@@ -38,31 +38,35 @@ for (const viewport of [
 test("edits show in the theme list until saved or reset", async ({ page }) => {
   page.on("dialog", (dialog) => void dialog.accept());
   const dialog = await open(page);
-  await expect(dialog.getByRole("button", { name: "Remove" })).toHaveCount(0);
+  const edit = async (contrast: string) => {
+    await openConfigurator(page, "Edit Theme");
+    await dialog.getByRole("slider", { name: "Contrast" }).fill(contrast);
+    await openConfigurator(page, "Themes");
+  };
 
-  await openConfigurator(page, "Edit Theme");
-  await page.getByLabel("Theme Name").fill("Renamed");
-  await openConfigurator(page, "Themes");
-  const edited = dialog.getByRole("button", { name: "Renamed Edited" });
-  await expect(edited).toHaveAttribute("aria-pressed", "true");
-
+  // An edit stands in for the theme it came from, marked as edited
+  await edit("0.5");
+  await expect(dialog.getByRole("button", { name: "Base Edited" })).toHaveAttribute("aria-pressed", "true");
   await dialog.getByRole("button", { name: "Reset" }).click();
-  await expect(dialog.getByRole("button", { name: "Base", exact: true })).toHaveAttribute(
-    "aria-pressed",
-    "true",
-  );
+  await expect(dialog.getByRole("button", { name: "Base", exact: true })).toHaveAttribute("aria-pressed", "true");
 
-  await openConfigurator(page, "Edit Theme");
-  await page.getByLabel("Theme Name").fill("Mine");
-  await openConfigurator(page, "Themes");
+  // Saved as a new theme, then renamed
+  await edit("0.7");
   await dialog.getByRole("button", { name: "Save as New" }).click();
+  await expect(dialog.getByRole("button", { name: "Base Copy", exact: true })).toHaveAttribute("aria-pressed", "true");
+  await expect(dialog.getByRole("button", { name: "Base", exact: true })).toHaveCount(1);
+  await openConfigurator(page, "Edit Theme");
+  await dialog.getByLabel("Theme Name").fill("Mine");
+  await dialog.getByLabel("Theme Name").press("Enter");
+  await openConfigurator(page, "Themes");
   const saved = dialog.getByRole("button", { name: "Mine", exact: true });
   await expect(saved).toHaveAttribute("aria-pressed", "true");
-  // The original is untouched
-  await expect(dialog.getByRole("button", { name: "Base", exact: true })).toHaveCount(1);
+  await expect(page.locator("[data-theme-name]")).toHaveText("Mine");
 
   await dialog.getByRole("button", { name: "Remove" }).click();
   await expect(saved).toHaveCount(0);
+  // Removing the picked theme picks the first one left
+  await expect(dialog.getByRole("button", { name: "Base", exact: true })).toHaveAttribute("aria-pressed", "true");
 });
 
 test("host page CSS doesn't leak into the configurator", async ({ page }) => {
@@ -92,7 +96,7 @@ test("host page CSS doesn't leak into the configurator", async ({ page }) => {
     size: await size(page),
     activeTab: await styles("Themes"),
     inactiveTab: await styles("Edit Theme"),
-    theme: await styles("Base Inverted"),
+    theme: await styles("Blueprint"),
     importButton: await dialog
       .getByText("Import", { exact: true })
       .evaluate((el) => getComputedStyle(el).backgroundColor),

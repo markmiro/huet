@@ -4,12 +4,12 @@ test("an invalid class added after mount is reported without half-updating the t
   await page.goto("/lab.html");
   const result = await page.evaluate(async () => {
     const modulePath = "/packages/huet/src/core/index.ts";
-    const { createTheme, mountTheme } = await import(modulePath);
+    const { mountTheme } = await import(modulePath);
     const root = document.createElement("div");
     root.innerHTML = '<p class="huet-bg-10"></p><p class="huet-bg-10"></p>';
     document.body.append(root);
     const [first, second] = root.querySelectorAll("p");
-    const mount = mountTheme(root, createTheme());
+    const mount = mountTheme(root, { neutral: ["#000000", "#ffffff"] });
     const background = (el: HTMLElement) => el.style.getPropertyValue("--huet-background");
     const frame = () => new Promise((resolve) => requestAnimationFrame(resolve));
     const reported: string[] = [];

@@ -1,9 +1,5 @@
-import {
-  createTheme,
-  mountTheme,
-  type ColorModel,
-  type ThemeOptions,
-} from "huet";
+import { mountTheme, themes, type ColorModel, type Theme } from "huet";
+import { resolveTheme } from "huet/internal";
 import { apca, toOklab } from "../../packages/huet/src/core/color";
 import "huet/styles.css";
 import "./lab.css";
@@ -26,79 +22,71 @@ const light = document.querySelector<HTMLInputElement>("#light")!;
 const useMiddle = document.querySelector<HTMLInputElement>("#use-middle")!;
 const middle = document.querySelector<HTMLInputElement>("#middle")!;
 const model = document.querySelector<HTMLSelectElement>("#model")!;
-const presets: Record<string, ThemeOptions> = {
-  gray49: { background: toOklab("#747474")[0] },
-  gray51: { background: toOklab("#797979")[0] },
-  light: { background: 1 },
-  dark: { background: 0 },
-  blue: { dark: "#233b91", light: "#ffffff", background: 1 },
-  paper: { dark: "#302723", light: "#f1e4cd", background: 1 },
-  soft: { dark: "#777479", light: "#b6b0ae", background: 0.7 },
-  // The original React demo's multi-hue themes, ported to huet/core.
-  sunset: {
-    neutral: { colors: ["#242744", "#ffe173"], colorModel: "hcl" },
-    background: 0,
-    colors: { red: "#f20031", yellow: "#c16000", green: "#008d29", blue: "#12889d", purple: "#b555c8" },
-  },
-  astro: {
-    neutral: { colors: ["#040816", "#ffb980", "#ffffff"], colorModel: "hcl" },
-    background: 0,
-    colors: { red: "#cb1c00", yellow: "#bd8f5a", green: "#02b984", blue: "#4f81a7", purple: "#b982d5" },
-  },
+const gray: Theme = { neutral: ["#000000", "#ffffff"] };
+const presets: Record<string, { theme: Theme; background: number }> = {
+  gray49: { theme: gray, background: toOklab("#747474")[0] },
+  gray51: { theme: gray, background: toOklab("#797979")[0] },
+  light: { theme: gray, background: 1 },
+  dark: { theme: gray, background: 0 },
+  blue: { theme: { neutral: ["#233b91", "#ffffff"] }, background: 1 },
+  paper: { theme: { neutral: ["#302723", "#f1e4cd"] }, background: 1 },
+  soft: { theme: { neutral: ["#777479", "#b6b0ae"] }, background: 0.7 },
+  // The original React demo's multi-hue themes.
+  sunset: { theme: themes.Sunset, background: 0 },
+  astro: { theme: themes.Astro, background: 0 },
 };
-let options: ThemeOptions = presets.gray49;
-let theme = createTheme(options);
-const controller = mountTheme(root, theme);
+let { theme, background } = presets.gray49;
+const controller = mountTheme(root, theme, { background });
 function report(elapsed: number) {
-  const t = theme.tokens();
+  // The solver behind the mount, for the readouts below
+  const resolved = resolveTheme(theme, { background });
+  const t = resolved.tokens();
   const lc = (color: string) => Math.abs(apca(color, t.background)).toFixed(0);
   document.querySelector("#metrics")!.textContent =
     `Root text Lc ${lc(t.foreground)} · secondary Lc ${lc(t.muted)} · border Lc ${lc(t.border)} · theme update ${elapsed.toFixed(1)} ms`;
   document.querySelector("#position-value")!.textContent =
-    `${Math.round((options.background ?? 1) * 100)}% ${theme.neutral.colorModel}`;
+    `${Math.round(background * 100)}% ${resolved.neutral.colorModel}`;
   document.querySelector("#ramp-label")!.textContent =
-    `${theme.neutral.colors.join(" → ")} in ${theme.neutral.colorModel}`;
+    `${resolved.neutral.colors.join(" → ")} in ${resolved.neutral.colorModel}`;
   document.querySelector<HTMLElement>("#ramp-path")!.style.background =
-    `linear-gradient(to right, ${Array.from({ length: 33 }, (_, i) => theme.ramp(i / 32)).join(", ")})`;
+    `linear-gradient(to right, ${Array.from({ length: 33 }, (_, i) => resolved.ramp(i / 32)).join(", ")})`;
 }
 function update() {
   const start = performance.now();
-  theme = createTheme(options);
-  controller.update(theme);
+  controller.update(theme, { background });
   report(performance.now() - start);
 }
 function syncControls() {
-  position.value = String((options.background ?? 1) * 100);
-  const stops = options.neutral?.colors ?? [options.dark ?? "#000000", options.light ?? "#ffffff"];
+  position.value = String(background * 100);
+  const stops = theme.neutral;
   dark.value = stops[0];
   light.value = stops[stops.length - 1];
   useMiddle.checked = stops.length > 2;
   if (stops.length > 2) middle.value = stops[1];
-  model.value = options.neutral?.colorModel ?? "";
+  model.value = theme.colorModel ?? "";
 }
-/** Endpoints only and no model → dark/light; otherwise a full neutral ramp. */
-function fromControls(): ThemeOptions {
-  const { dark: _dark, light: _light, neutral: _neutral, ...rest } = options;
+function fromControls(): Theme {
   const stops = [dark.value, ...(useMiddle.checked ? [middle.value] : []), light.value];
-  return model.value || stops.length > 2
-    ? { ...rest, neutral: { colors: stops, colorModel: (model.value || undefined) as ColorModel | undefined } }
-    : { ...rest, dark: dark.value, light: light.value };
+  const next: Theme = { ...theme, neutral: stops };
+  if (model.value) next.colorModel = model.value as ColorModel;
+  else delete next.colorModel;
+  return next;
 }
 preset.addEventListener("change", () => {
-  options = { ...presets[preset.value] };
+  ({ theme, background } = presets[preset.value]);
   syncControls();
   update();
 });
 position.addEventListener("input", () => {
-  options = { ...options, background: Number(position.value) / 100 };
+  background = Number(position.value) / 100;
   update();
 });
 for (const input of [dark, light, useMiddle, middle, model])
   input.addEventListener("input", () => {
     const next = fromControls();
     try {
-      createTheme(next);
-      options = next;
+      resolveTheme(next, { background });
+      theme = next;
       input.setCustomValidity("");
       update();
     } catch {

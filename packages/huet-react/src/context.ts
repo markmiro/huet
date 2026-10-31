@@ -1,10 +1,37 @@
 import React, { useContext } from "react";
-import type { Theme, ThemeConfig } from "huet/config";
+import type { Theme } from "huet";
+import type { ResolvedTheme } from "huet/internal";
 
-/** The theme the configurator's panels edit, and its setter. */
-export const ThemeConfiguratorContext = React.createContext<
-  [Theme, React.Dispatch<React.SetStateAction<ThemeConfig>>] | null
->(null);
+export interface ConfiguratorState {
+  /** The theme being edited. */
+  theme: Theme;
+  /** `theme` on the page's background, for previews. */
+  resolved: ResolvedTheme;
+  setTheme: (theme: Theme) => void;
+  /** The themes to pick from, by name. */
+  themes: Readonly<Record<string, Theme>>;
+  /** Where the page's background sits on the neutral ramp. */
+  background: number;
+  /** Moves the page's background, when the page lets the configurator. */
+  setBackground?: (background: number) => void;
+  /** The listed theme `theme` matches, if any. */
+  name?: string;
+  /** For an edited theme: the listed theme it was edited from, to reset to. */
+  editedFrom?: string;
+  /** Picks `editedFrom` again, discarding the edits. */
+  reset: () => void;
+  /** List changes, when the page lets the configurator edit its list. */
+  list?: {
+    /** Adds the edited theme to the list under a new name, and picks it. */
+    saveAsNew: () => void;
+    remove: (name: string) => void;
+    rename: (name: string, next: string) => void;
+    /** Adds an imported theme to the list, and picks it. */
+    add: (name: string, theme: Theme) => void;
+  };
+}
+
+export const ThemeConfiguratorContext = React.createContext<ConfiguratorState | null>(null);
 
 export function useThemeConfigurator() {
   const value = useContext(ThemeConfiguratorContext);

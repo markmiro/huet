@@ -1,10 +1,9 @@
 import React from "react";
 
-import type { ThemeConfig } from "huet/config";
+import { checkTheme, type Theme } from "huet";
 import cx from "./cx";
 import displayError from "./displayError";
 import { inputClass } from "./inputClass";
-import { parseThemeConfig } from "huet/config";
 
 export function JsonUploadButton({
   children,
@@ -13,7 +12,8 @@ export function JsonUploadButton({
 }: {
   children?: React.ReactNode;
   className?: string;
-  onUpload: (themeConfig: ThemeConfig) => void;
+  /** Called with the theme and a name from the file's name: `Sunset Huet Theme.json` is `Sunset`. */
+  onUpload: (theme: Theme, name: string) => void;
 }) {
   return (
     <Button
@@ -28,25 +28,22 @@ export function JsonUploadButton({
         onChange={(event) => {
           const reader = new FileReader();
           const eventListener = () => {
-            if (typeof reader.result === "string") {
-              let parsed: unknown;
-              try {
-                parsed = JSON.parse(reader.result);
-              } catch {
-                // Reported below
-              }
-              const themeConfig = parseThemeConfig(parsed);
-              if (themeConfig) {
-                onUpload(themeConfig);
-              } else {
-                displayError("That file isn't a valid Huet theme.");
-              }
-            }
             reader.removeEventListener("load", eventListener);
+            if (typeof reader.result !== "string") return;
+            let parsed: unknown;
+            try {
+              parsed = JSON.parse(reader.result);
+              checkTheme(parsed);
+            } catch (error) {
+              displayError(`That file isn't a valid Huet theme. ${(error as Error).message}`);
+              return;
+            }
+            onUpload(parsed, name);
           };
           reader.addEventListener("load", eventListener);
 
           const file = event.target.files?.[0];
+          const name = (file?.name ?? "").replace(/\.json$/i, "").replace(/ Huet Theme$/, "").trim() || "Imported";
           // Clear the selection so picking the same file again (say, after
           // fixing it) still fires `onChange`.
           event.target.value = "";

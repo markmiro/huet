@@ -1,5 +1,5 @@
 import chroma from "chroma-js";
-import { relativeRoot } from "./relative";
+import { stepper, type Surface } from "./steps";
 import {
   apcaFromY,
   apcaY,
@@ -24,9 +24,129 @@ export interface NeutralRamp {
   /** How the ramp interpolates between its stops. Defaults to OKLab. */
   colorModel?: ColorModel;
 }
-export interface ThemeOptions {
-  /** Global contrast multiplier for explicit relative-color classes: 0–1. */
+/**
+ * A Huet theme: its colors, and how strongly explicit contrast amounts apply.
+ * It's plain JSON, so presets, saved themes and the configurator all use this
+ * one shape. Where the page background sits (light, dark, or in between) isn't
+ * part of a theme: pass `background` when you render it.
+ */
+export interface Theme {
+  /** The neutral ramp: two or more colors, darkest first. */
+  neutral: readonly string[];
+  /** How the neutral ramp blends between its colors. Defaults to `"oklab"`. */
+  colorModel?: ColorModel;
+  /** Anchors for the signal hues. Missing hues use Huet's defaults. */
+  colors?: Partial<Record<Hue, string>>;
+  /**
+   * From 0 to 2, defaulting to 1. Below 1, every color fades toward the page
+   * background, role colors (`huet-text`, `huet-muted`, …) included, for
+   * dimmed or disabled UI. Above 1, explicit amounts such as `huet-text-60`
+   * reach full contrast sooner: at 2, at half the amount.
+   */
   contrast?: number;
+  /**
+   * Where explicit hue classes such as `huet-text-red-100` aim at full
+   * strength, as a position on each hue's dark → hue → light ramp, from 0 to
+   * 1: `onLight` on light backgrounds and `onDark` on dark ones. Both default
+   * to 0.49. Role colors such as `huet-text-red` are chosen for readability
+   * instead.
+   */
+  signalLightness?: { onLight: number; onDark: number };
+  /**
+   * How images and SVGs take on the theme. `strength` 0 keeps the originals
+   * and 1 (the default) fully adopts the theme. `tint` (0–1, default 1) is how
+   * much a tinted neutral ramp also tints saturated colors.
+   */
+  images?: { strength?: number; tint?: number };
+}
+
+const themeKeys: readonly string[] = ["neutral", "colorModel", "colors", "contrast", "signalLightness", "images"];
+const legacyKeys = ["pallet", "ramps", "bgRamp", "bgRampValue", "contrastMultiplier"];
+const isColor = (value: unknown) => typeof value === "string" && chroma.valid(value);
+
+/** Throws a descriptive error unless `value` is a valid Huet theme. */
+export function checkTheme(value: unknown): asserts value is Theme {
+  const fail = (message: string): never => {
+    throw new TypeError(`Invalid Huet theme: ${message}`);
+  };
+  if (typeof value !== "object" || value === null || Array.isArray(value))
+    fail(`expected an object like { neutral: ["#000000", "#ffffff"] }, got ${JSON.stringify(value)}`);
+  const theme = value as Record<string, unknown>;
+  const keys = Object.keys(theme);
+  if (keys.some((key) => legacyKeys.includes(key)))
+    fail(
+      "this is the old ThemeConfig format (pallet, ramps, bgRampValue, ...). " +
+        "Themes are now { neutral, colorModel, colors, contrast }, and the background is passed when rendering.",
+    );
+  const unknown = keys.filter((key) => !themeKeys.includes(key));
+  if (unknown.length)
+    fail(`unknown field${unknown.length > 1 ? "s" : ""} ${unknown.join(", ")}. Themes have ${themeKeys.join(", ")}.`);
+  const { neutral, colorModel, colors, contrast } = theme;
+  if (!Array.isArray(neutral) || neutral.length < 2)
+    fail(`neutral must be an array of two or more colors, darkest first, got ${JSON.stringify(neutral)}`);
+  for (const color of neutral as unknown[])
+    if (!isColor(color)) fail(`neutral has ${JSON.stringify(color)}, which isn't a color`);
+  if (colorModel !== undefined && !colorModels.includes(colorModel as ColorModel))
+    fail(`colorModel must be one of ${colorModels.join(", ")}, got ${JSON.stringify(colorModel)}`);
+  if (colors !== undefined) {
+    if (typeof colors !== "object" || colors === null || Array.isArray(colors))
+      fail(`colors must be an object like { red: "#d14457" }, got ${JSON.stringify(colors)}`);
+    for (const [hue, color] of Object.entries(colors as object)) {
+      if (!hues.includes(hue as Hue)) fail(`colors.${hue} isn't a hue. Hues are ${hues.join(", ")}.`);
+      if (!isColor(color)) fail(`colors.${hue} is ${JSON.stringify(color)}, which isn't a color`);
+    }
+  }
+  if (contrast !== undefined && !(typeof contrast === "number" && contrast >= 0 && contrast <= 2))
+    fail(`contrast must be a number from 0 to 2, got ${JSON.stringify(contrast)}`);
+  const fraction = (value: unknown) => typeof value === "number" && value >= 0 && value <= 1;
+  const { signalLightness, images } = theme as Record<string, Record<string, unknown> | undefined>;
+  if (signalLightness !== undefined) {
+    const keys = Object.keys(signalLightness ?? {});
+    if (typeof signalLightness !== "object" || signalLightness === null || keys.sort().join() !== "onDark,onLight"
+      || !fraction(signalLightness.onLight) || !fraction(signalLightness.onDark))
+      fail(`signalLightness must be { onLight, onDark }, each from 0 to 1, got ${JSON.stringify(signalLightness)}`);
+  }
+  if (images !== undefined) {
+    if (typeof images !== "object" || images === null || Object.keys(images).some((key) => key !== "strength" && key !== "tint")
+      || (images.strength !== undefined && !fraction(images.strength)) || (images.tint !== undefined && !fraction(images.tint)))
+      fail(`images must be { strength, tint }, each from 0 to 1, got ${JSON.stringify(images)}`);
+  }
+}
+
+/** The ramp options for the engine. Two-stop OKLab ramps use the exact plain mix. */
+export function rampOptionsOf({ neutral, colorModel = "oklab" }: Theme) {
+  return neutral.length === 2 && colorModel === "oklab"
+    ? { dark: neutral[0], light: neutral[1] }
+    : { neutral: { colors: neutral, colorModel } };
+}
+
+/** Where the page background sits on a theme's neutral ramp. */
+export interface BackgroundOptions {
+  /** 0 is the dark end of the neutral ramp and 1 the light end. Defaults to 1. */
+  background?: number;
+}
+
+/** A theme resolved against a background: the solver Huet renders with. */
+export function resolveTheme(theme: Theme, { background = 1 }: BackgroundOptions = {}) {
+  checkTheme(theme);
+  if (typeof background !== "number" || !(background >= 0 && background <= 1))
+    throw new RangeError(
+      `Huet: background must be a number from 0 (dark) to 1 (light), got ${JSON.stringify(background)}`,
+    );
+  return createTheme({
+    ...rampOptionsOf(theme),
+    colors: theme.colors,
+    contrast: theme.contrast,
+    signalLightness: theme.signalLightness,
+    background,
+  });
+}
+
+export interface ThemeOptions {
+  /** Global contrast multiplier for explicit relative-color classes: 0–2. */
+  contrast?: number;
+  /** Where explicit hue classes aim. See `Theme`. */
+  signalLightness?: { onLight: number; onDark: number };
   /** Ramp endpoints. These also bound neutral foreground colors. */
   dark?: string;
   light?: string;
@@ -158,6 +278,7 @@ export function neutralRampOf(options: Pick<ThemeOptions, "dark" | "light" | "ne
   };
   return { custom, stops, dark, light, colorModel, ramp };
 }
+/** The solver behind `resolveTheme`. Internal: tests exercise it directly. */
 export function createTheme(options: ThemeOptions = {}) {
   const neutralOf = neutralRampOf(options);
   const { custom, stops, dark, light, colorModel } = neutralOf;
@@ -364,13 +485,34 @@ export function createTheme(options: ThemeOptions = {}) {
     return color;
   };
   const neutralRamp: Readonly<Required<NeutralRamp>> = Object.freeze({ colors: stops, colorModel });
-  const relative = relativeRoot(background, colors, neutralRamp, options.contrast, custom);
+  // Explicit amounts. Plain OKLab ramps keep the original solver's CIELAB ramp.
+  const steps = stepper({
+    neutral: stops,
+    colorModel: custom ? colorModel : "lab",
+    colors,
+    contrast: options.contrast,
+    signalLightness: options.signalLightness,
+  });
+  const root = steps.surfaceOf(background);
+  /**
+   * Role colors on `bg` (beside `parent`), as shown. They're chosen for
+   * readability at full contrast, then fade with the theme's contrast below 1
+   * like every other color, so a low-contrast theme dims evenly.
+   */
+  const tokensOn = (bg: Surface, parent: Surface = bg): Readonly<Tokens> => {
+    const full = tokens(bg.full.hex, parent.full.hex);
+    if ((options.contrast ?? 1) >= 1) return full;
+    return Object.freeze(Object.fromEntries(
+      Object.entries(full).map(([key, value]) => [key, key === "background" ? bg.hex : steps.shown(bg, value)]),
+    )) as Readonly<Tokens>;
+  };
   return Object.freeze({
-    background, dark, light, neutral: neutralRamp, colors, ramp, tokens, surface, relative,
+    background, dark, light, neutral: neutralRamp, colors, ramp, tokens, tokensOn, surface,
+    root, step: steps.step, surfaceOf: steps.surfaceOf, derive: steps.derive,
   });
 }
-export type HuetTheme = ReturnType<typeof createTheme>;
-/** The same properties can be serialized into SSR markup or used by any framework. */
+export type ResolvedTheme = ReturnType<typeof createTheme>;
+/** Role tokens as `--huet-*` custom properties. */
 export function themeVariables(
   tokens: Readonly<Tokens>,
 ): Record<string, string> {

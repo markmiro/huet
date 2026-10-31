@@ -1,7 +1,7 @@
 import React from "react";
+import { themes as presets } from "huet";
 
 import { useThemeConfigurator } from "./context";
-import { Theme } from "huet/config";
 import { VSpace } from "./private/AllExceptFirst";
 import Checkbox from "./private/Checkbox";
 import ConfiguratorPortal from "./private/ConfiguratorPortal";
@@ -9,10 +9,7 @@ import EditTheme from "./private/EditTheme";
 import Tabs, { asTab, tabEnum, type Tab } from "./private/Tabs";
 import ThemerShell from "./private/ThemerShell";
 import Themes from "./private/Themes";
-import { baseThemeConfig } from "huet/config";
 import usePersistentState, { asBoolean } from "./private/persistentState";
-
-const baseTheme = new Theme(baseThemeConfig);
 
 function ScrollPanel({ children }: { children?: React.ReactNode }) {
   return (
@@ -23,7 +20,7 @@ function ScrollPanel({ children }: { children?: React.ReactNode }) {
 }
 
 export default function Themer() {
-  const [theme, setThemeConfig] = useThemeConfigurator();
+  const { theme, background } = useThemeConfigurator();
   const [shouldThemeSelf, setShouldThemeSelf] = usePersistentState(
     "themer:shouldThemeSelf",
     true,
@@ -35,23 +32,13 @@ export default function Themer() {
     asTab
   );
 
-  const themerTheme = shouldThemeSelf ? theme : baseTheme;
-
   return (
-    <ConfiguratorPortal themeConfig={themerTheme.config}>
+    <ConfiguratorPortal theme={shouldThemeSelf ? theme : presets.Base} background={background}>
       <ThemerShell>
         <div className="hc:flex hc:flex-col hc:flex-auto hc:min-w-0 hc:min-h-0 hc:overflow-hidden">
           <Tabs currentTab={currentTab} onTabChange={setCurrentTab} />
           <ScrollPanel>
-            {currentTab === tabEnum.EDIT_THEME ? (
-              <EditTheme
-                theme={theme}
-                themerTheme={themerTheme}
-                onThemeConfigChange={setThemeConfig}
-              />
-            ) : (
-              <Themes />
-            )}
+            {currentTab === tabEnum.EDIT_THEME ? <EditTheme /> : <Themes />}
           </ScrollPanel>
           <div className="huet-bg-10">
             <VSpace className="hc:p-4">

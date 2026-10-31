@@ -1,14 +1,14 @@
 # Framework integration
 
-Import `huet/styles.css` once globally (or `huet/tailwind.css` in your Tailwind entry). All examples use `createTheme` and `mountTheme` from `huet/core`. Keep `createTheme()` outside render functions when possible. Theme changes call the returned controller's `update(nextTheme)`.
+Import `huet/styles.css` once globally (or `huet/tailwind.css` in your Tailwind entry). All examples mount a `Theme` with `mountTheme` from `huet`. Theme changes call the returned controller's `update(nextTheme, { background })`.
 
 ## React
 
 ```tsx
 import { useEffect, useRef } from "react";
-import { createTheme, mountTheme } from "huet/core";
+import { mountTheme, type Theme } from "huet";
 import "huet/styles.css";
-const theme = createTheme({ dark: "#233b91" });
+const theme: Theme = { neutral: ["#233b91", "#ffffff"] };
 
 export function App() {
   const root = useRef<HTMLDivElement>(null);
@@ -24,19 +24,19 @@ export function App() {
 }
 ```
 
-Cleanup makes React Strict Mode's mount/cleanup/remount safe. The adapter never replaces nodes or controls input values. Use `useLayoutEffect` in client-only code if colors must be installed before paint; for SSR, pre-render token variables.
+Cleanup makes React Strict Mode's mount/cleanup/remount safe. The adapter never replaces nodes or controls input values. Use `useLayoutEffect` in client-only code if colors must be installed before paint; for SSR, pre-render the root's variables with `themeCss` (see Astro below).
 
 ## Vue
 
 ```vue
 <script setup lang="ts">
 import { ref, onMounted, onBeforeUnmount } from "vue";
-import { createTheme, mountTheme } from "huet/core";
+import { mountTheme, themes } from "huet";
 import "huet/styles.css";
 const root = ref<HTMLElement>();
 let colors: ReturnType<typeof mountTheme> | undefined;
 onMounted(() => {
-  colors = mountTheme(root.value!, createTheme());
+  colors = mountTheme(root.value!, themes.Base);
 });
 onBeforeUnmount(() => colors?.destroy());
 </script>
@@ -51,10 +51,10 @@ onBeforeUnmount(() => colors?.destroy());
 
 ```svelte
 <script lang="ts">
-import { createTheme, mountTheme, type HuetTheme } from 'huet/core';
+import { mountTheme, themes, type Theme } from 'huet';
 import 'huet/styles.css';
-const theme = createTheme();
-function huet(node: HTMLElement, theme: HuetTheme) {
+const theme = themes.Base;
+function huet(node: HTMLElement, theme: Theme) {
   return mountTheme(node, theme); // Svelte action: update() and destroy()
 }
 </script>
@@ -67,22 +67,24 @@ function huet(node: HTMLElement, theme: HuetTheme) {
 
 ```astro
 ---
-import { createTheme, themeVariables } from 'huet/core';
+import { themeCss, themes } from 'huet';
 import 'huet/styles.css';
-const theme = createTheme();
-const rootStyle = Object.entries(themeVariables(theme.tokens()))
-  .map(([key, value]) => `${key}:${value}`).join(';');
+// Light, and dark when the page has the `dark` class
+const css = themeCss(themes.Base, { selector: '#themed-app' }) +
+  themeCss(themes.Base, { background: 0, selector: '.dark #themed-app' });
 ---
-<div id="themed-app" data-huet-root style={rootStyle}>
+<style is:inline set:html={css}></style>
+<div id="themed-app" data-huet-root>
   <input class="huet-bg-5 huet-bg/border-60" aria-label="Name">
 </div>
 <script>
-  import { createTheme, mountTheme } from 'huet/core';
+  import { mountTheme, themes } from 'huet';
   let colors: ReturnType<typeof mountTheme> | undefined;
   function mount() {
     colors?.destroy();
     const root = document.querySelector<HTMLElement>('#themed-app');
-    colors = root ? mountTheme(root, createTheme()) : undefined;
+    const background = document.documentElement.classList.contains('dark') ? 0 : 1;
+    colors = root ? mountTheme(root, themes.Base, { background }) : undefined;
   }
   mount();
   // Support ClientRouter navigation as well as ordinary full-page loads.
@@ -91,4 +93,4 @@ const rootStyle = Object.entries(themeVariables(theme.tokens()))
 </script>
 ```
 
-This pre-renders root variables from the compatibility token API. To avoid a first-paint color change for nested surfaces, also compute their tokens server-side using `theme.relative.contrast(amount)` and `the resulting Color and its contrast(100) foreground`. Use the same theme configuration on server and client. Portals / islands outside the mounted DOM tree need their own independent mount.
+`themeCss` pre-renders the root's colors, so the page paints in its theme before the script runs. Nested `huet-bg-*` surfaces get their colors when `mountTheme` runs. Use the same theme and background on the server and the client. Portals / islands outside the mounted DOM tree need their own independent mount.

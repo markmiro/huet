@@ -1,12 +1,11 @@
 import { fileURLToPath } from "node:url";
 import { describe, it, expect } from "vitest";
-import { createTheme, hues, themeVariables, colorModels } from "./theme";
+import { createTheme, hues, themeVariables, colorModels, resolveTheme } from "./theme";
 import { apca, contrast, lightness, textEnd, toOklab, fromOklab, mix, luminance } from "./color";
 import { classes, validateClasses, isHuetClass, parseColorClass, stateKey, classVariable } from "./classes";
 import { readFileSync } from "node:fs";
 import { compile } from "@tailwindcss/node";
-import { themeFromConfig } from "./fromConfig";
-import themes from "../themeConfigs";
+import { themes } from "./themes";
 
 describe("color math", () => {
   it("matches the APCA-W3 reference, measures L* and round trips saturated colors", () => {
@@ -290,17 +289,17 @@ describe("multi-hue neutral ramps", () => {
     expect(after.light).toBe("#ffe173");
     expect(chroma(after.ramp(0.5))).toBeGreaterThan(2 * chroma(before.ramp(0.5)));
     // Explicit classes (huet-bg-50, huet-text-60, ...) use the same ramp.
-    const mid = after.relative.contrast(50).hex;
-    expect(chroma(mid)).toBeGreaterThan(2 * chroma(before.relative.contrast(50).hex));
-    expect(after.relative.contrast(0).hex).toBe("#242744");
-    expect(after.relative.contrast(100).hex).toBe("#ffe173");
+    const mid = after.step(after.root, 50).hex;
+    expect(chroma(mid)).toBeGreaterThan(2 * chroma(before.step(before.root, 50).hex));
+    expect(after.step(after.root, 0).hex).toBe("#242744");
+    expect(after.step(after.root, 100).hex).toBe("#ffe173");
   });
   it("passes through middle stops on backgrounds, relative classes and surfaces", () => {
     const theme = createTheme(astro);
     expect(theme.ramp(0.5)).toBe("#ffb980");
     expect(createTheme({ ...astro, background: 0.5 }).background).toBe("#ffb980");
     expect(theme.surface(theme.background, 50)).toBe("#ffb980");
-    const samples = Array.from({ length: 101 }, (_, i) => theme.relative.contrast(i).hex);
+    const samples = Array.from({ length: 101 }, (_, i) => theme.step(theme.root, i).hex);
     expect(samples.some((hex) => chroma(hex) > 0.1)).toBe(true);
   });
   it("progresses monotonically from either end of a multi-hue ramp", () => {
@@ -309,7 +308,7 @@ describe("multi-hue neutral ramps", () => {
         const theme = createTheme({ ...options, background });
         let previous = 0;
         for (let amount = 0; amount <= 100; amount++) {
-          const distance = Math.abs(lightness(theme.relative.contrast(amount).hex) - lightness(theme.background));
+          const distance = Math.abs(lightness(theme.step(theme.root, amount).hex) - lightness(theme.background));
           expect(distance, `${background} ${amount}`).toBeGreaterThanOrEqual(previous - 1e-9);
           previous = distance;
         }
@@ -327,16 +326,16 @@ describe("multi-hue neutral ramps", () => {
   });
 });
 describe("preset roles", () => {
-  const orangeBoost = themeFromConfig(themes.find((x) => x.name === "Orange Boost")!);
-  const base = themeFromConfig(themes.find((x) => x.name === "Base")!);
+  const orangeBoost = resolveTheme(themes["Orange Boost"], { background: 0 });
+  const base = resolveTheme(themes.Base);
   const chroma = (hex: string) => Math.hypot(toOklab(hex)[1], toOklab(hex)[2]);
   const hue = (hex: string) => Math.atan2(toOklab(hex)[2], toOklab(hex)[1]);
   const side = (bg: string, color: string) => Math.sign(luminance(color) - luminance(bg));
 
   it("keeps foreground, muted and border apart when a ramp can't reach Lc 90", () => {
-    const { relative } = orangeBoost;
-    const blue = relative.contrast(25, relative.theme.ramps.blue).hex;
-    for (const bg of [orangeBoost.background, blue, ...[10, 25, 50, 75, 100].map((n) => relative.contrast(n).hex)]) {
+    const { root, step } = orangeBoost;
+    const blue = step(root, 25, "blue").hex;
+    for (const bg of [orangeBoost.background, blue, ...[10, 25, 50, 75, 100].map((n) => step(root, n).hex)]) {
       const t = orangeBoost.tokens(bg);
       const [fg, muted, border] = [t.foreground, t.muted, t.border].map((x) => contrast(bg, x));
       if (fg < 15) continue;
@@ -360,17 +359,16 @@ describe("preset roles", () => {
       }
   });
   it("puts the solver's colors and the preset roles on the same side of every background", () => {
-    const sunset = themeFromConfig(themes.find((x) => x.name === "Sunset")!);
+    const sunset = resolveTheme(themes.Sunset, { background: 0 });
     for (const theme of [base, orangeBoost, sunset, createTheme({ dark: "#233b91" })]) {
-      const { relative } = theme;
-      const { ramps } = relative.theme;
+      const { root, step } = theme;
       for (let n = 0; n <= 100; n += 5)
-        for (const bg of [relative.contrast(n), relative.contrast(n, ramps.blue)]) {
+        for (const bg of [step(root, n), step(root, n, "blue")]) {
           // Text on a huet-bg-* surface is the solver's strength 100.
-          const text = side(bg.hex, bg.contrast(100).hex);
+          const text = side(bg.hex, step(bg, 100).hex);
           if (text === 0) continue;
           const t = theme.tokens(bg.hex, theme.background);
-          for (const color of [t.foreground, t.muted, bg.contrast(30).hex, bg.contrast(100, ramps.red).hex])
+          for (const color of [t.foreground, t.muted, step(bg, 30).hex, step(bg, 100, "red").hex])
             expect([0, text], `${n} ${bg.hex} ${color}`).toContain(side(bg.hex, color));
         }
     }
@@ -408,11 +406,11 @@ describe("preset roles", () => {
       const d = Math.abs(hue(a) - hue(b));
       return Math.min(d, 2 * Math.PI - d);
     };
-    for (const name of ["Sunset", "A Box of Macaroni"]) {
-      const theme = themeFromConfig(themes.find((x) => x.name === name)!);
+    for (const [name, background] of [["Sunset", 0], ["A Box of Macaroni", 1]] as const) {
+      const theme = resolveTheme(themes[name], { background });
       const samples = Array.from({ length: 257 }, (_, i) => theme.ramp(i / 256));
-      for (const ramp of ["blue", "red", "green"]) {
-        const bg = theme.relative.contrast(25, theme.relative.theme.ramps[ramp]).hex;
+      for (const ramp of ["blue", "red", "green"] as const) {
+        const bg = theme.step(theme.root, 25, ramp).hex;
         const end = textEnd(bg, theme.dark, theme.light);
         const straight = Array.from({ length: 257 }, (_, i) => mix(bg, end, i / 256));
         const t = theme.tokens(bg, theme.background);
@@ -427,9 +425,8 @@ describe("preset roles", () => {
     }
   });
   it("tints muted and border with a colored surface's hue", () => {
-    for (const theme of [base, themeFromConfig(themes.find((x) => x.name === "Base Inverted")!), orangeBoost]) {
-      const { relative } = theme;
-      const bg = relative.contrast(25, relative.theme.ramps.blue).hex;
+    for (const theme of [base, resolveTheme(themes.Base, { background: 0 }), orangeBoost]) {
+      const bg = theme.step(theme.root, 25, "blue").hex;
       const t = theme.tokens(bg, theme.background);
       for (const color of [t.muted, t.border]) {
         expect(chroma(color), `${bg} ${color}`).toBeGreaterThan(0.02);
@@ -440,7 +437,7 @@ describe("preset roles", () => {
       }
     }
     // Neutral surfaces keep neutral roles.
-    const t = base.tokens(base.relative.contrast(6).hex);
+    const t = base.tokens(base.step(base.root, 6).hex);
     for (const color of [t.foreground, t.muted, t.border]) expect(chroma(color)).toBeLessThan(0.005);
   });
 });

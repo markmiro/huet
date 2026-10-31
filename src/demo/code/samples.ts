@@ -36,12 +36,12 @@ const second = (a, bla) => {
 export const languages = [
   {
     lang: "ts",
-    code: `import { createTheme, mountTheme } from "huet/core";
+    code: `import { mountTheme, type Theme } from "huet";
 
 // Relative colors: 25% contrast against the parent background.
-const theme = createTheme({ dark: "#233b91", background: 1 });
+const theme: Theme = { neutral: ["#233b91", "#ffffff"] };
 const colors = mountTheme(document.querySelector<HTMLElement>("#app")!, theme);
-colors.update(createTheme({ dark: "#233b91", background: 0 }));`,
+colors.update(theme, { background: 0 });`,
   },
   {
     lang: "css",

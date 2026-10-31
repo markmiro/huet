@@ -1,10 +1,8 @@
-import React, { useLayoutEffect, useMemo, useRef, useState } from "react";
+import React, { useLayoutEffect, useRef, useState } from "react";
 import { createPortal } from "react-dom";
 
-import type { ThemeConfig } from "huet/config";
 import css from "../configurator.css?inline";
-import { mountTheme } from "huet";
-import themeFor from "./themeFor";
+import { mountTheme, type Theme } from "huet";
 
 /** One shared stylesheet, so consumers don't import any CSS. */
 export function injectStyles() {
@@ -20,13 +18,15 @@ export function injectStyles() {
  * document.body. The scoped styles in configurator.css only apply there, and
  * the host's transforms or overflow can't break the panel's `position: fixed`.
  * The container is a Huet root, so `huet-*` classes inside it resolve against
- * `themeConfig`.
+ * `theme` on `background`.
  */
 export default function ConfiguratorPortal({
-  themeConfig,
+  theme,
+  background,
   children,
 }: {
-  themeConfig: ThemeConfig;
+  theme: Theme;
+  background: number;
   children?: React.ReactNode;
 }) {
   // Created in an effect rather than during render, so StrictMode's double
@@ -42,36 +42,24 @@ export default function ConfiguratorPortal({
     return () => el.remove();
   }, []);
 
-  const theme = useMemo(() => themeFor(themeConfig), [themeConfig]);
-  const latest = useRef(theme);
-  latest.current = theme;
-  const mount = useRef<{ theme: typeof theme; update(next: typeof theme): void }>(
-    undefined,
-  );
+  const latest = useRef({ theme, background });
+  latest.current = { theme, background };
+  const mount = useRef<ReturnType<typeof mountTheme>>(undefined);
   useLayoutEffect(() => {
     if (!container) return;
-    const current = mountTheme(container, latest.current);
-    mount.current = { theme: latest.current, update: current.update };
+    const current = mountTheme(container, latest.current.theme, latest.current);
+    mount.current = current;
     return () => {
       current.destroy();
       mount.current = undefined;
     };
   }, [container]);
-  useLayoutEffect(() => {
-    const current = mount.current;
-    if (!current || current.theme === theme) return;
-    current.theme = theme;
-    current.update(theme);
-  }, [theme]);
+  useLayoutEffect(() => mount.current?.update(theme, { background }), [theme, background]);
 
-  // Legacy `Color.alpha()` scales alpha by the theme's contrast multiplier.
-  // Shadows read this so they match.
+  // Shadows scale their opacity by the theme's contrast, as the previews do.
   useLayoutEffect(() => {
-    container?.style.setProperty(
-      "--huet-configurator-contrast",
-      String(themeConfig.contrastMultiplier),
-    );
-  }, [container, themeConfig.contrastMultiplier]);
+    container?.style.setProperty("--huet-configurator-contrast", String(theme.contrast ?? 1));
+  }, [container, theme.contrast]);
 
   return container ? createPortal(children, container) : null;
 }

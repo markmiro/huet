@@ -29,8 +29,8 @@ async function setup(page: Page) {
   await page.goto("/lab.html");
   await page.setContent(`<!doctype html><html><head><style>${css}</style></head><body>${html}</body></html>`);
   await page.evaluate(async () => {
-    const { createTheme, mountTheme } = await import("/packages/huet/src/core/index.ts" as string);
-    (window as { mount?: unknown }).mount = mountTheme(document.getElementById("root")!, createTheme());
+    const { mountTheme } = await import("/packages/huet/src/core/index.ts" as string);
+    (window as { mount?: unknown }).mount = mountTheme(document.getElementById("root")!, { neutral: ["#000000", "#ffffff"] });
   });
   return errors;
 }
@@ -38,8 +38,10 @@ async function setup(page: Page) {
 /** Computed colors next to what the solver gives for the same chain of backgrounds. */
 function measure(page: Page, options = {}) {
   return page.evaluate(async (options) => {
-    const { createTheme } = await import("/packages/huet/src/core/index.ts" as string);
-    const theme = createTheme(options);
+    const { resolveTheme } = await import("/packages/huet/src/internal.ts" as string);
+    // `options` describes a theme the old way: dark, light, background, contrast
+    const { dark = "#000000", light = "#ffffff", background = 1, contrast } = options as Record<string, never>;
+    const theme = resolveTheme({ neutral: [dark, light], ...(contrast === undefined ? {} : { contrast }) }, { background });
     const hex = (value: string) => {
       const srgb = /^color\(srgb ([\d.e-]+) ([\d.e-]+) ([\d.e-]+)/.exec(value);
       const channels = srgb ? srgb.slice(1).map((x) => Number(x) * 255) : value.match(/[\d.]+/g)!.slice(0, 3).map(Number);
@@ -48,29 +50,29 @@ function measure(page: Page, options = {}) {
     const style = (id: string) => getComputedStyle(document.getElementById(id)!);
     const matches = (id: string, selector: string) => document.getElementById(id)!.matches(selector);
     const md = matchMedia("(width >= 48rem)").matches;
-    const root = theme.relative, blue = root.theme.ramps.blue, red = root.theme.ramps.red;
-    const card = root.contrast(matches("card", ":hover") ? 20 : 10);
-    const inner = matches("card", ":hover") ? card.contrast(40, blue) : card;
-    const own = inner.contrast(5);
-    const responsive = root.contrast(!md ? 10 : matches("responsive", ":hover") ? 70 : 50);
+    const { root, step } = theme;
+    const card = step(root, matches("card", ":hover") ? 20 : 10);
+    const inner = matches("card", ":hover") ? step(card, 40, "blue") : card;
+    const own = step(inner, 5);
+    const responsive = step(root, !md ? 10 : matches("responsive", ":hover") ? 70 : 50);
     const pressed = document.getElementById("aria")!.getAttribute("aria-pressed") === "true";
-    const arbitrary = root.contrast(20);
+    const arbitrary = step(root, 20);
     const pairs: Record<string, [string, string]> = {
       "card background": [hex(style("card").backgroundColor), card.hex],
-      "card text": [hex(style("card").color), card.contrast(100).hex],
-      "nested amount": [hex(style("nested").color), card.contrast(80).hex],
+      "card text": [hex(style("card").color), step(card, 100).hex],
+      "nested amount": [hex(style("nested").color), step(card, 80).hex],
       "inner background": [hex(style("inner").backgroundColor), matches("card", ":hover") ? inner.hex : card.hex],
-      "inner token": [hex(style("token").color), theme.tokens(card.hex, root.hex).blue],
+      "inner token": [hex(style("token").color), theme.tokensOn(card, root).blue],
       "two levels down background": [hex(style("own").backgroundColor), own.hex],
-      "two levels down own text": [hex(style("own").color), own.contrast(70).hex],
-      "outline color": [hex(style("button").outlineColor), root.contrast(matches("button", ":focus-visible") ? 90 : 80,
-        matches("button", ":focus-visible") ? red : blue).hex],
+      "two levels down own text": [hex(style("own").color), step(own, 70).hex],
+      "outline color": [hex(style("button").outlineColor), step(root, matches("button", ":focus-visible") ? 90 : 80,
+        matches("button", ":focus-visible") ? "red" : "blue").hex],
       "outline": [style("button").outlineStyle + " " + style("button").outlineWidth,
         matches("button", ":focus-visible") ? "solid 2px" : "none 3px"],
-      "link": [hex(style("link").color), root.contrast(matches("link", ":hover") ? 100 : 60).hex],
+      "link": [hex(style("link").color), step(root, matches("link", ":hover") ? 100 : 60).hex],
       "responsive": [hex(style("responsive").backgroundColor), responsive.hex],
-      "aria": [hex(style("aria").backgroundColor), root.contrast(pressed ? 60 : 10).hex],
-      "arbitrary": [hex(style("icon").color), arbitrary.contrast(90, red).hex],
+      "aria": [hex(style("aria").backgroundColor), step(root, pressed ? 60 : 10).hex],
+      "arbitrary": [hex(style("icon").color), step(arbitrary, 90, "red").hex],
     };
     return pairs;
   }, options);
@@ -126,8 +128,11 @@ test("colors follow theme updates while a variant is active", async ({ page }) =
   await page.hover("#nested");
   for (const options of [{ background: 0 }, { contrast: 0.4 }, { dark: "#233b91", background: 0.3 }]) {
     await page.evaluate(async (options) => {
-      const { createTheme } = await import("/packages/huet/src/core/index.ts" as string);
-      (window as unknown as { mount: { update(theme: unknown): void } }).mount.update(createTheme(options));
+      const { dark = "#000000", light = "#ffffff", background = 1, contrast } = options as Record<string, never>;
+      (window as unknown as { mount: { update(theme: unknown, options: unknown): void } }).mount.update(
+        { neutral: [dark, light], ...(contrast === undefined ? {} : { contrast }) },
+        { background },
+      );
     }, options);
     await check(page, JSON.stringify(options), options);
   }

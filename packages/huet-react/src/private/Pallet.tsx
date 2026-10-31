@@ -1,12 +1,13 @@
-import { map } from "lodash-es";
+import chroma from "chroma-js";
 import { useEffect, useRef, useState } from "react";
 
-import { HSpace } from "./AllExceptFirst";
-
-function ColorPicker({
+/** A color input. Its swatch is the picked color itself, not a theme color. */
+export function ColorPicker({
+  label,
   color,
   onChange,
 }: {
+  label: string;
   color: string;
   onChange: (color: string) => void;
 }) {
@@ -18,11 +19,15 @@ function ColorPicker({
   latest.current.onChange = onChange;
   const frame = useRef<number>(undefined);
   useEffect(() => () => cancelAnimationFrame(frame.current ?? 0), []);
+  const shown = picked ?? color;
 
   return (
     <input
       type="color"
-      value={picked ?? color}
+      aria-label={label}
+      title={label}
+      // Color inputs only take #rrggbb
+      value={chroma(shown).hex("rgb")}
       onChange={(event) => {
         latest.current.picked = event.target.value;
         setPicked(event.target.value);
@@ -33,28 +38,7 @@ function ColorPicker({
         });
       }}
       className="huet-border-10 hc:w-full hc:h-4 hc:p-0 hc:border hc:rounded-xs hc:overflow-hidden"
-      // The picked color itself, not a theme color
-      style={{ backgroundColor: (picked ?? color) || "transparent" }}
+      style={{ backgroundColor: shown }}
     />
-  );
-}
-
-export default function Pallet({
-  colors,
-  onColorsChange,
-}: {
-  colors: Record<string, string>;
-  onColorsChange: (colors: Record<string, string>) => void;
-}) {
-  return (
-    <HSpace growEach>
-      {map(colors, (color, key) => (
-        <ColorPicker
-          key={key}
-          color={color}
-          onChange={(next) => onColorsChange({ ...colors, [key]: next })}
-        />
-      ))}
-    </HSpace>
   );
 }

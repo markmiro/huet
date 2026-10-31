@@ -1,5 +1,5 @@
 import { test, expect } from "@playwright/test";
-import baseThemeConfig from "../packages/huet/src/private/baseThemeConfig";
+import { themes } from "../packages/huet/src/core/themes";
 import { contrast } from "../packages/huet/src/core/color";
 /** Unsigned APCA Lc of a computed CSS color on another. */
 const lc = (background: string, color: string) => {
@@ -109,12 +109,8 @@ test("original React form and alerts after the color fixes", async ({ page }) =>
   ).toBeVisible();
   for (const value of [0.49, 0.51]) {
     await page.evaluate(
-      (config) => localStorage.setItem("huet:theme", JSON.stringify(config)),
-      {
-        ...baseThemeConfig,
-        bgRampValue: value,
-        name: `Gray ${Math.round(value * 100)}%`,
-      },
+      (saved) => localStorage.setItem("huet-demo:theme", JSON.stringify(saved)),
+      { theme: themes.Base, background: value },
     );
     await page.reload();
     await page
@@ -149,7 +145,7 @@ test("large trees update surface variables without replacing content", async ({
   await page.goto("/lab.html");
   const result = await page.evaluate(async () => {
     const modulePath = "/packages/huet/src/core/index.ts";
-    const { createTheme, mountTheme } = await import(modulePath);
+    const { mountTheme } = await import(modulePath);
     const root = document.createElement("div");
     for (let i = 0; i < 1000; i++) {
       const surface = document.createElement("div");
@@ -160,9 +156,10 @@ test("large trees update surface variables without replacing content", async ({
     }
     document.body.append(root);
     const first = root.firstElementChild;
-    const mount = mountTheme(root, createTheme());
+    const theme = { neutral: ["#000000", "#ffffff"] };
+    const mount = mountTheme(root, theme);
     const start = performance.now();
-    mount.update(createTheme({ background: 0 }));
+    mount.update(theme, { background: 0 });
     const elapsed = performance.now() - start;
     const unchanged =
       first === root.firstElementChild &&
