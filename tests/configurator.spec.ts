@@ -1,13 +1,18 @@
 import { test, expect, type Page } from "@playwright/test";
 
-// The panel renders into its own container on <body>
-const panel = (page: Page) => page.locator("body > [data-huet-configurator] > *");
+import { configurator, openConfigurator } from "./helpers/configurator";
 
-async function panelBox(page: Page) {
-  await expect(panel(page)).toHaveCSS("position", "fixed");
-  const box = await panel(page).boundingBox();
-  if (!box) throw new Error("Configurator panel not found");
-  return box;
+async function size(page: Page) {
+  const box = await configurator(page).boundingBox();
+  if (!box) throw new Error("Configurator popover not found");
+  return { width: box.width, height: box.height };
+}
+
+async function open(page: Page) {
+  await page.goto("/");
+  await page.evaluate(() => localStorage.clear());
+  await page.reload();
+  return openConfigurator(page);
 }
 
 for (const viewport of [
@@ -18,36 +23,56 @@ for (const viewport of [
     page,
   }) => {
     await page.setViewportSize(viewport);
-    await page.goto("/");
-    await page.evaluate(() => localStorage.clear());
-    await page.reload();
+    const dialog = await open(page);
+    const themes = await size(page);
+    await dialog.getByRole("button", { name: "Edit Theme" }).click();
+    expect(await size(page)).toEqual(themes);
 
-    await page.getByRole("button", { name: "Themes", exact: true }).click();
-    // Wait out the mount transition
-    await page.waitForTimeout(400);
-    const themes = await panelBox(page);
-    await page.getByRole("button", { name: "Edit Theme" }).click();
-    const editTheme = await panelBox(page);
-
-    expect(editTheme).toEqual(themes);
-    // Docked to the bottom-right corner and inside the viewport
-    expect(themes.y).toBeGreaterThan(0);
-    expect(viewport.width - (themes.x + themes.width)).toBeCloseTo(12, 0);
-    expect(viewport.height - (themes.y + themes.height)).toBeCloseTo(12, 0);
+    // Inside the viewport
+    const box = (await dialog.boundingBox())!;
+    expect(box.y).toBeGreaterThan(0);
+    expect(box.y + box.height).toBeLessThanOrEqual(viewport.height);
   });
 }
 
+test("edits show in the theme list until saved or reset", async ({ page }) => {
+  page.on("dialog", (dialog) => void dialog.accept());
+  const dialog = await open(page);
+  await expect(dialog.getByRole("button", { name: "Remove" })).toHaveCount(0);
+
+  await openConfigurator(page, "Edit Theme");
+  await page.getByLabel("Theme Name").fill("Renamed");
+  await openConfigurator(page, "Themes");
+  const edited = dialog.getByRole("button", { name: "Renamed Edited" });
+  await expect(edited).toHaveAttribute("aria-pressed", "true");
+
+  await dialog.getByRole("button", { name: "Reset" }).click();
+  await expect(dialog.getByRole("button", { name: "Base", exact: true })).toHaveAttribute(
+    "aria-pressed",
+    "true",
+  );
+
+  await openConfigurator(page, "Edit Theme");
+  await page.getByLabel("Theme Name").fill("Mine");
+  await openConfigurator(page, "Themes");
+  await dialog.getByRole("button", { name: "Save as New" }).click();
+  const saved = dialog.getByRole("button", { name: "Mine", exact: true });
+  await expect(saved).toHaveAttribute("aria-pressed", "true");
+  // The original is untouched
+  await expect(dialog.getByRole("button", { name: "Base", exact: true })).toHaveCount(1);
+
+  await dialog.getByRole("button", { name: "Remove" }).click();
+  await expect(saved).toHaveCount(0);
+});
+
 test("host page CSS doesn't leak into the configurator", async ({ page }) => {
-  await page.setViewportSize({ width: 1280, height: 900 });
-  await page.goto("/");
-  await page.evaluate(() => localStorage.clear());
-  await page.reload();
-  await page.getByRole("button", { name: "Themes", exact: true }).click();
-  // Wait out the mount transition
-  await page.waitForTimeout(400);
+  // Tall enough that the popover keeps its full height below the host's
+  // padded header
+  await page.setViewportSize({ width: 1280, height: 1400 });
+  const dialog = await open(page);
 
   const styles = (name: string) =>
-    page.getByRole("button", { name, exact: true }).evaluate((el) => {
+    dialog.getByRole("button", { name, exact: true }).evaluate((el) => {
       const s = getComputedStyle(el);
       const { width, height } = el.getBoundingClientRect();
       return {
@@ -63,15 +88,14 @@ test("host page CSS doesn't leak into the configurator", async ({ page }) => {
       };
     });
   const measure = async () => ({
-    panel: await panelBox(page),
+    // The popover follows its trigger, which the host's CSS may move
+    size: await size(page),
     activeTab: await styles("Themes"),
     inactiveTab: await styles("Edit Theme"),
-    importButton: await page
-      .getByText("Import Theme")
+    theme: await styles("Base Inverted"),
+    importButton: await dialog
+      .getByText("Import", { exact: true })
       .evaluate((el) => getComputedStyle(el).backgroundColor),
-    title: await page
-      .getByRole("heading", { level: 3, name: "Base", exact: true })
-      .evaluate((el) => getComputedStyle(el).font),
   });
   const before = await measure();
   // Sanity: the active tab is a filled Huet surface
@@ -83,7 +107,6 @@ test("host page CSS doesn't leak into the configurator", async ({ page }) => {
         padding: 20px; margin: 7px; font: 30px serif; background: red;
         border: 5px solid green; line-height: 3; color: blue;
       }
-      /* Would trap a position: fixed panel rendered in place */
       #page, astro-island { transform: translateX(13px); overflow: hidden; }
     `,
   });

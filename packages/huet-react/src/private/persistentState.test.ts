@@ -162,6 +162,53 @@ describe("usePersistentState", () => {
     unmount();
   });
 
+  it("doesn't take back its own unsaved value when another key changes", () => {
+    // Like the configurator: the theme (parent) and the theme list (child)
+    // change together, while the previous theme edit is still unsaved
+    let setTheme: (value: number) => void = () => {};
+    let setList: (value: number) => void = () => {};
+    function List() {
+      const [list, set] = usePersistentState("list", 0, asNumber);
+      setList = set;
+      return React.createElement("span", null, list);
+    }
+    function Theme() {
+      const [theme, set] = usePersistentState("theme", 0, asNumber);
+      setTheme = set;
+      return React.createElement("span", null, theme, React.createElement(List));
+    }
+    const { container, unmount } = render(React.createElement(Theme));
+
+    act(() => setTheme(1));
+    act(() => {
+      setList(1);
+      setTheme(2);
+    });
+    expect(container.textContent).toBe("21");
+
+    // A primitive value we wrote earlier still syncs once another hook wrote over it
+    const toggles: ((value: boolean) => void)[] = [];
+    function Toggle({ index }: { index: number }) {
+      const [on, set] = usePersistentState("toggle", false, asBoolean);
+      toggles[index] = set;
+      return React.createElement("span", null, String(on));
+    }
+    const pair = render(
+      React.createElement(
+        React.Fragment,
+        null,
+        React.createElement(Toggle, { index: 0 }),
+        React.createElement(Toggle, { index: 1 })
+      )
+    );
+    act(() => toggles[0](true));
+    act(() => toggles[1](false));
+    act(() => toggles[1](true));
+    expect(pair.container.textContent).toBe("truetrue");
+    pair.unmount();
+    unmount();
+  });
+
   it("saves a value that was changed back to what was loaded", () => {
     localStorage.setItem("huet:flag", "true");
     const { unmount } = render(

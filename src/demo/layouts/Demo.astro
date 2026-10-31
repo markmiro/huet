@@ -1,6 +1,5 @@
 ---
 import "../styles/demo.css";
-import Configurator from "../components/Configurator";
 import ThemeButton from "../components/ThemeButton";
 import Logo from "../components/Logo.astro";
 
@@ -55,6 +54,5 @@ const isCurrent = (href: string) => (href.replace(/\/$/, "") || "/") === current
         <slot />
       </main>
     </div>
-    <Configurator client:only="react" />
   </body>
 </html>

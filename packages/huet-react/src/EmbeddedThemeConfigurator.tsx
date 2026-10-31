@@ -1,18 +1,17 @@
 import * as Popover from "@radix-ui/react-popover";
 import { IconCheck, IconChevronDown } from "@tabler/icons-react";
 import React, { useLayoutEffect, useState } from "react";
-import {
-  Color,
-  Theme,
-  themeConfigs as defaultThemeConfigs,
-  type ThemeConfig,
-} from "huet/config";
+import { baseThemeConfig, Color, Theme, type ThemeConfig } from "huet/config";
 
 import { useThemeConfigurator } from "./context";
 import { ConfiguratorRoot, type ThemeConfiguratorProps } from "./ThemeConfigurator";
+import { HSpace } from "./private/AllExceptFirst";
+import Button, { JsonUploadButton } from "./private/Button";
 import ConfiguratorPortal, { injectStyles } from "./private/ConfiguratorPortal";
+import EditTheme from "./private/EditTheme";
+import Tabs, { asTab, tabEnum, type Tab } from "./private/Tabs";
 import ThemeMiniMap from "./private/ThemeMiniMap";
-import { parseConfigs } from "./private/Themes";
+import { useSavedThemes } from "./private/Themes";
 import cx from "./private/cx";
 import usePersistentState from "./private/persistentState";
 
@@ -44,10 +43,12 @@ const keyboardFocusOnly = "hc:not-focus-visible:shadow-none!";
 function ThemeOption({
   config,
   isSelected,
+  isModified,
   onSelect,
 }: {
   config: ThemeConfig;
   isSelected: boolean;
+  isModified: boolean;
   onSelect: () => void;
 }) {
   const bg = Color.fromTheme(new Theme(config));
@@ -78,6 +79,7 @@ function ThemeOption({
     >
       <ThemeMiniMap bg={bg} />
       <span className="hc:grow">{config.name}</span>
+      {isModified && <span className="hc:opacity-70">Edited</span>}
       <IconCheck
         size="1em"
         stroke={2.5}
@@ -89,24 +91,76 @@ function ThemeOption({
 
 // Mounts each time the popover opens, so themes saved elsewhere show up
 function ThemeList() {
-  const [theme, setConfig] = useThemeConfigurator();
-  const [configs] = usePersistentState("themes", defaultThemeConfigs, parseConfigs);
+  const themes = useSavedThemes();
+  const { selected, saved, isModified } = themes;
+  const isRemovable = saved !== undefined && saved.id !== baseThemeConfig.id;
   return (
-    <div className="hc:flex hc:flex-col hc:gap-[.375em] hc:px-2 hc:pb-2 hc:pt-1 hc:overflow-y-auto hc:overscroll-contain">
-      {configs.map((config) => {
-        const isSelected = config.id === theme.config.id;
-        return (
-          <ThemeOption
-            key={config.id}
-            // Show unsaved edits to the current theme
-            config={isSelected ? theme.config : config}
-            isSelected={isSelected}
-            // Reselecting would discard those edits
-            onSelect={() => !isSelected && setConfig(config)}
-          />
-        );
-      })}
-    </div>
+    <>
+      <div className="hc:flex hc:flex-col hc:gap-[.375em] hc:p-2 hc:flex-auto hc:min-h-0 hc:overflow-y-auto hc:overscroll-contain">
+        {themes.configs.map((config) => {
+          const isSelected = config.id === selected.id;
+          return (
+            <ThemeOption
+              key={config.id}
+              // Show unsaved edits to the current theme
+              config={isSelected ? selected : config}
+              isSelected={isSelected}
+              isModified={isSelected && isModified}
+              // Reselecting would discard those edits
+              onSelect={() => !isSelected && themes.select(config)}
+            />
+          );
+        })}
+      </div>
+      {/* HSpace gives every child a slot, so hidden actions are left out rather than `false` */}
+      <HSpace growEach className="hc:p-2 hc:border-t">
+        {[
+          <JsonUploadButton key="import" onUpload={themes.importTheme}>
+            Import
+          </JsonUploadButton>,
+          (isModified || !saved) && (
+            <Button key="save" onClick={themes.saveAsNew}>
+              Save as New
+            </Button>
+          ),
+          isModified && (
+            <Button key="reset" verify onClick={themes.reset}>
+              Reset
+            </Button>
+          ),
+          !isModified && isRemovable && (
+            <Button key="remove" verify onClick={() => themes.remove(saved)}>
+              Remove
+            </Button>
+          ),
+        ].filter(Boolean)}
+      </HSpace>
+    </>
+  );
+}
+
+function Configurator() {
+  const [theme, setConfig] = useThemeConfigurator();
+  const [currentTab, setCurrentTab] = usePersistentState<Tab>(
+    "embedded:currentTab",
+    tabEnum.THEMES,
+    asTab,
+  );
+  return (
+    <>
+      <Tabs
+        currentTab={currentTab}
+        onTabChange={setCurrentTab}
+        buttonClassName={keyboardFocusOnly}
+      />
+      {currentTab === tabEnum.EDIT_THEME ? (
+        <div className="hc:flex-auto hc:min-h-0 hc:overflow-y-auto hc:overscroll-contain">
+          <EditTheme theme={theme} themerTheme={theme} onThemeConfigChange={setConfig} />
+        </div>
+      ) : (
+        <ThemeList />
+      )}
+    </>
   );
 }
 
@@ -173,17 +227,17 @@ function Picker({
           align={align}
           sideOffset={6}
           collisionPadding={8}
-          aria-label="Themes"
+          aria-label="Theme Configurator"
           className={cx(
-            "huet-bg-0 huet-border-100 hc:border hc:rounded-lg hc:z-[1000]",
-            "hc:font-ui hc:text-[.8125rem] hc:flex hc:flex-col hc:w-[18em]",
-            "hc:max-h-[min(28em,var(--radix-popover-content-available-height))]",
+            "huet-bg-0 huet-border-100 hc:border hc:rounded-lg hc:z-[1000] hc:overflow-hidden",
+            "hc:font-ui hc:text-[.8125rem] hc:flex hc:flex-col hc:w-[28em]",
+            // The same size on both tabs, so switching doesn't move the edges
+            "hc:h-[min(40em,var(--radix-popover-content-available-height))]",
             // As the panel's: 16% of the foreground, scaled by the theme's contrast
             "hc:shadow-[0_6px_24px_color-mix(in_srgb,var(--huet-foreground)_calc(16%*var(--huet-configurator-contrast,1)),transparent)]",
           )}
         >
-          <div className="hc:px-3 hc:pt-2.5 hc:pb-1.5 hc:font-semibold">Themes</div>
-          <ThemeList />
+          <Configurator />
         </Popover.Content>
       </ConfiguratorPortal>
     </Popover.Root>
@@ -193,8 +247,9 @@ function Picker({
 /**
  * A compact theme picker to place anywhere on the page. It shows a mini map of
  * the current theme: its colors from highest to lowest contrast, over its gray
- * ramp. Clicking it opens a popover of saved themes. It shares saved themes
- * with ThemeConfigurator, so the two stay in sync on one page.
+ * ramp. Clicking it opens the configurator in a popover: a Themes tab with the
+ * saved themes, and an Edit Theme tab. It shares saved themes with
+ * ThemeConfigurator, so the two stay in sync on one page.
  */
 export default function EmbeddedThemeConfigurator({
   mode,

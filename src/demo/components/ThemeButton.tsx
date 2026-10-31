@@ -3,6 +3,8 @@ import {
   EmbeddedThemeConfigurator,
   type EmbeddedThemeConfiguratorMode,
 } from "huet-react";
+import type { ThemeConfig } from "huet/config";
+import { publishTheme } from "./themeStore";
 
 const modes: EmbeddedThemeConfiguratorMode[] = ["contrast", "outlined", "blended"];
 const storageKey = "huet-demo:themeButton";
@@ -12,9 +14,15 @@ function savedMode(): EmbeddedThemeConfiguratorMode {
   return modes.find((mode) => mode === saved) ?? "contrast";
 }
 
+function onChange(config: ThemeConfig) {
+  for (const el of document.querySelectorAll("[data-theme-name]"))
+    el.textContent = config.name ?? "Untitled";
+  publishTheme(config);
+}
+
 /**
- * The embedded theme picker, with a switch for its button style. It shares
- * the saved theme with the floating configurator, which themes the page.
+ * The embedded theme configurator, with a switch for its button style. It
+ * themes the page's `#page` root.
  */
 export default function ThemeButton() {
   const [mode, setMode] = useState(savedMode);
@@ -38,7 +46,7 @@ export default function ThemeButton() {
           ))}
         </select>
       </label>
-      <EmbeddedThemeConfigurator mode={mode} />
+      <EmbeddedThemeConfigurator mode={mode} target="#page" onChange={onChange} />
     </div>
   );
 }

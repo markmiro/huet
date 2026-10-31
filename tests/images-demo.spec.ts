@@ -1,4 +1,5 @@
 import { expect, test, type Page } from "@playwright/test";
+import { pickTheme } from "./helpers/configurator";
 
 // A coarse fingerprint of the first recolored canvases, to tell when they're redrawn.
 const firstCanvases = (page: Page) =>
@@ -21,7 +22,7 @@ test("images follow the configurator's theme", async ({ page }) => {
   await expect.poll(async () => isRecolored(await firstCanvases(page)), { timeout: 30_000 }).toBe(true);
   const before = await firstCanvases(page);
 
-  await page.getByRole("button", { name: /^Sunset/ }).first().click();
+  await pickTheme(page, "Sunset");
   await expect(page.getByRole("heading", { level: 1 })).toHaveText("Sunset");
   // Every image is redrawn for the new theme.
   await expect

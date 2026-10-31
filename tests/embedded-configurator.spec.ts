@@ -1,5 +1,7 @@
 import { test, expect, type Page } from "@playwright/test";
 
+import { configurator } from "./helpers/configurator";
+
 async function open(page: Page) {
   await page.goto("/");
   await page.evaluate(() => localStorage.clear());
@@ -7,11 +9,11 @@ async function open(page: Page) {
   return page.getByRole("button", { name: /^Theme:/ });
 }
 
-test("embedded configurator picks themes from a popover", async ({ page }) => {
+test("embedded configurator picks themes from its Themes tab", async ({ page }) => {
   const trigger = await open(page);
   await expect(trigger).toHaveAccessibleName("Theme: Base");
   await trigger.click();
-  const popover = page.getByRole("dialog", { name: "Themes" });
+  const popover = configurator(page);
   await expect(popover).toBeVisible();
   await expect(popover).toHaveCSS("border-color", "rgb(0, 0, 0)");
 
@@ -26,22 +28,21 @@ test("embedded configurator picks themes from a popover", async ({ page }) => {
   await expect(inverted).toHaveAttribute("aria-pressed", "true");
   await expect(inverted).toHaveCSS("border-color", "rgb(255, 255, 255)");
   await expect(trigger).toHaveAccessibleName("Theme: Base Inverted");
-  // The floating configurator follows along and themes the page
+  // The page follows along
   await expect(page.locator("#page")).toHaveCSS("background-color", "rgb(0, 0, 0)");
 
   await page.keyboard.press("Escape");
   await expect(popover).toHaveCount(0);
 });
 
-test("themes picked in the panel show up in the popover", async ({ page }) => {
+test("the Edit Theme tab edits the current theme", async ({ page }) => {
   const trigger = await open(page);
-  await page.getByRole("button", { name: "Themes", exact: true }).click();
-  await page.getByRole("button", { name: "Blueprint" }).click();
-  await expect(trigger).toHaveAccessibleName("Theme: Blueprint");
   await trigger.click();
-  await expect(
-    page.getByRole("dialog").getByRole("button", { name: "Blueprint" })
-  ).toHaveAttribute("aria-pressed", "true");
+  await configurator(page).getByRole("button", { name: "Edit Theme" }).click();
+  await configurator(page).getByText("0%", { exact: true }).click();
+  await expect(page.locator("#page")).toHaveCSS("background-color", "rgb(0, 0, 0)");
+  await page.getByLabel("Theme Name").fill("Night");
+  await expect(trigger).toHaveAccessibleName("Theme: Night");
 });
 
 test("contrast button inverts the page colors", async ({ page }) => {

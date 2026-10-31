@@ -1,4 +1,5 @@
 import { test, expect, type Page } from "@playwright/test";
+import { openConfigurator } from "./helpers/configurator";
 import { toOklab, contrast, lightness, luminance } from "../packages/huet/src/core/color";
 /** Distance in CIE L* (0–1) between two colors. */
 const distance = (a: string, b: string) => Math.abs(lightness(a) - lightness(b));
@@ -49,7 +50,7 @@ test("Color Contrast forms retain hue and scale low-strength fills", async ({ pa
 
 test("both existing signal-lightness sliders affect the rendered form", async ({ page }) => {
   await page.goto("/color-contrast");
-  await page.getByText("Edit Theme", { exact: true }).click();
+  await openConfigurator(page, "Edit Theme");
   const form = page.locator("[data-form-example]");
   for (const [label, index] of [["Signal Lightness on 'White'", 0], ["Signal Lightness on 'Black'", 3]] as const) {
     const red = form.locator(":scope > div").nth(index).locator("input").nth(1);
@@ -128,7 +129,7 @@ test("matching gray and blue ramps keep distinct evenly spaced steps in middle r
 
 test("contrast slider fades nested form colors without polarity flips", async ({ page }) => {
   await page.goto("/color-contrast");
-  await page.getByText("Edit Theme", { exact: true }).click();
+  await openConfigurator(page, "Edit Theme");
   const slider = page.getByRole("slider", { name: "Contrast", exact: true });
   const form = page.locator("[data-form-example]");
   const set = async (amount: number) => {

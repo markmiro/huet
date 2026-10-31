@@ -190,10 +190,18 @@ export default function usePersistentState<T>(
   // The last value taken from another hook. It isn't written back, which
   // would bounce it between the two forever.
   const received = useRef<{ raw: unknown; value: T }>(undefined);
+  // Our last write, while it's still the newest. A write to another key
+  // notifies every hook before this one's next write lands, so without this
+  // the hook would take its own older value for another hook's.
+  const written = useRef<{ raw: unknown }>(undefined);
 
   useEffect(() => {
-    if (hasChanged.current && value !== received.current?.value)
+    if (hasChanged.current && value !== received.current?.value) {
+      written.current = { raw: value };
+      // Changed here since, so setting it back to that value is a new write
+      received.current = undefined;
       writeStored(key, value);
+    }
   }, [key, value]);
 
   useEffect(
@@ -202,9 +210,15 @@ export default function usePersistentState<T>(
         if (!pending.has(key)) return;
         const raw = pending.get(key);
         // Our own write, or one we already took
-        if (raw === latest.current || raw === received.current?.raw) return;
+        if (
+          raw === latest.current ||
+          raw === written.current?.raw ||
+          raw === received.current?.raw
+        )
+          return;
         const next = parse(raw);
         if (next === undefined) return;
+        written.current = undefined;
         received.current = { raw, value: next };
         setValue(next);
       }),

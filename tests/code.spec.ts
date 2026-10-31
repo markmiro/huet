@@ -1,4 +1,5 @@
 import { test, expect, type Page } from "@playwright/test";
+import { pickTheme } from "./helpers/configurator";
 
 /** APCA Lc of each token role against the first block, as the page reports it. */
 const contrasts = (page: Page) =>
@@ -28,7 +29,7 @@ test("re-themes build-time Shiki code blocks through variables, with readable to
   const before = { color: await keyword.evaluate((el) => getComputedStyle(el).color), html: await code.innerHTML() };
 
   // The configurator's theme reaches the blocks without re-rendering them.
-  await page.locator("button", { hasText: /^Paperback$/ }).click();
+  await pickTheme(page, "Paperback");
   await expect(page.locator("h1")).toHaveText("Paperback");
   await expect.poll(() => keyword.evaluate((el) => getComputedStyle(el).color)).not.toBe(before.color);
   expect(await code.innerHTML()).toBe(before.html);
@@ -105,7 +106,7 @@ test("highlighted rows are nested surfaces with readable tokens and markers", as
   const floors = { Terminal: 55, Paperback: 42 };
   const readout = example.locator("[data-row-contrast]");
   for (const [theme, minimum] of Object.entries(floors)) {
-    await page.locator("button", { hasText: new RegExp(`^${theme}$`) }).click();
+    await pickTheme(page, theme);
     await expect(page.locator("h1")).toHaveText(theme);
     await expect.poll(async () => {
       const values = [...(await readout.textContent())!.matchAll(/Lc (\d+)/g)].map((m) => Number(m[1]));
