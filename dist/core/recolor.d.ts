@@ -1,5 +1,5 @@
 import { Triple } from './color';
-import { Hue, NeutralRamp } from './theme';
+import { Hue, HuetTheme, NeutralRamp } from './theme';
 /** The parts of a theme that define its color coordinates. */
 export interface Palette {
     dark?: string;
@@ -8,6 +8,8 @@ export interface Palette {
     neutral?: NeutralRamp;
     colors?: Partial<Record<Hue, string>>;
 }
+/** The ramps of a theme from `createTheme`, in the shape the recolorer reads. */
+export declare function paletteOf(theme: HuetTheme | Palette): Palette;
 export interface Coordinates {
     /** Position on the dark → light ramp: 0 is dark, 1 is light. */
     t: number;

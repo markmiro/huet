@@ -1,8 +1,9 @@
 import { Palette, RecolorOptions } from './recolor';
 import { HuetTheme } from './theme';
-export { applyLut, applyTransform, buildLut, coordinatesOf, rampColor, recolorer, toCube, } from './recolor';
+export { applyLut, applyTransform, buildLut, coordinatesOf, paletteOf, rampColor, recolorer, toCube, } from './recolor';
 export type { Coordinates, Palette, RecolorOptions, Transform } from './recolor';
 export { GpuRecolor } from './gpu';
+export { mountSvgs, type MountSvgsOptions } from './svgs';
 export interface ImageOptions extends RecolorOptions {
     /** Lattice size of the lookup table each theme is baked into. Defaults to 17. */
     lutSize?: number;
@@ -12,8 +13,6 @@ export interface ImageOptions extends RecolorOptions {
      */
     renderer?: "gpu" | "cpu";
 }
-/** The ramps of a theme from `createTheme`, in the shape the recolorer reads. */
-export declare function paletteOf(theme: HuetTheme | Palette): Palette;
 /** True when the `"gpu"` renderer can use WebGL2 in this browser. */
 export declare const hasGpu: () => boolean;
 type Source = HTMLImageElement | HTMLCanvasElement | ImageBitmap;
