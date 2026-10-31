@@ -83,17 +83,24 @@ function ThemeFrame({
   );
 }
 
+// Hard stops paint equal-width swatches without an element for every color.
+function swatchGradient(colors: string[]) {
+  if (!colors.length) return "none";
+  return `linear-gradient(to right, ${colors
+    .map(
+      (color, i) =>
+        `${color} ${(i / colors.length) * 100}% ${((i + 1) / colors.length) * 100}%`,
+    )
+    .join(", ")})`;
+}
+
 function Pallet({ theme }: { theme: Theme }) {
   return (
-    <div className="hc:flex hc:h-[.5em]">
-      {Object.keys(theme.pallet).map((palletKey) => (
-        <div
-          key={palletKey}
-          className="hc:w-full hc:h-full"
-          style={{ backgroundColor: theme.pallet[palletKey] }}
-        />
-      ))}
-    </div>
+    <div
+      aria-hidden="true"
+      className="hc:h-[.5em]"
+      style={{ background: swatchGradient(Object.values(theme.pallet)) }}
+    />
   );
 }
 
@@ -123,15 +130,16 @@ function ColorMatrix({ theme, bg }: { theme: Theme; bg: Color }) {
     .map((rampKey) => {
       const base = bg.base(theme.ramps[rampKey]);
       return (
-        <div key={rampKey} className="hc:flex">
-          {[100, 75, 50, 25].map((contrastInner) => (
-            <div
-              key={contrastInner}
-              className={cx("hc:w-full hc:mt-px", rampKey === "gray" ? "hc:h-6" : "hc:h-2")}
-              style={{ backgroundColor: base.contrast(contrastInner).hex }}
-            />
-          ))}
-        </div>
+        <div
+          key={rampKey}
+          aria-hidden="true"
+          className={cx("hc:mt-px", rampKey === "gray" ? "hc:h-6" : "hc:h-2")}
+          style={{
+            background: swatchGradient(
+              [100, 75, 50, 25].map((amount) => base.contrast(amount).hex),
+            ),
+          }}
+        />
       );
     });
 }
