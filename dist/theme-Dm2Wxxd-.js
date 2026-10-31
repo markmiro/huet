@@ -148,6 +148,7 @@ var w = {
 	contrastMultiplier: 1,
 	rescaleContrastToGrayRange: !0
 }, N = /* @__PURE__ */ new WeakMap(), P = [
+	"images",
 	"id",
 	"name",
 	"pallet",
@@ -711,4 +712,4 @@ function ve(e) {
 }
 export { g as _, ge as a, G as c, M as d, w as f, a as g, o as h, q as i, K as l, s as m, _e as n, ve as o, c as p, le as r, W as s, J as t, I as u, b as v, _ as y };
 
-//# sourceMappingURL=theme-CZ1vtqrm.js.map
+//# sourceMappingURL=theme-Dm2Wxxd-.js.map

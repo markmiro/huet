@@ -1,4 +1,4 @@
-import { _ as e, a as t, h as n, i as r, m as i, p as a, r as o, v as s, y as c } from "./theme-CZ1vtqrm.js";
+import { _ as e, a as t, h as n, i as r, m as i, p as a, r as o, v as s, y as c } from "./theme-Dm2Wxxd-.js";
 // src/core/gpu.ts
 var l = "#version 300 es\nin vec2 position;\nout vec2 uv;\nvoid main() {\n  uv = position * 0.5 + 0.5;\n  gl_Position = vec4(position, 0.0, 1.0);\n}", u = "#version 300 es\nprecision highp float;\nprecision highp sampler3D;\nuniform sampler2D image;\nuniform sampler3D lut;\nuniform float size;\nin vec2 uv;\nout vec4 color;\nvoid main() {\n  vec4 c = texture(image, vec2(uv.x, 1.0 - uv.y));\n  // Sample lattice centers so 0 and 1 hit the first and last LUT entries.\n  vec3 p = (c.rgb * (size - 1.0) + 0.5) / size;\n  color = vec4(texture(lut, p).rgb, c.a);\n}", d = class {
 	constructor() {

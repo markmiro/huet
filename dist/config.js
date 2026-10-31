@@ -1,5 +1,5 @@
-import { c as e, d as t, f as n, l as r, s as i, u as a } from "./theme-CZ1vtqrm.js";
-import { t as o } from "./fromConfig-DAwnsiqs.js";
+import { c as e, d as t, f as n, l as r, s as i, u as a } from "./theme-Dm2Wxxd-.js";
+import { t as o } from "./fromConfig-Dtq3XaE5.js";
 // src/private/isThemeConfig.ts
 function s(e) {
 	return typeof e == "object" && !!e && !Array.isArray(e);
@@ -9,6 +9,10 @@ function u(e) {
 	if (!s(e)) return !1;
 	let { id: t, name: n, pallet: r, ramps: i, bgRamp: o } = e;
 	if (!((t === void 0 || l(t)) && (n === void 0 || typeof n == "string") && s(r) && Object.values(r).every((e) => typeof e == "string") && s(i) && Object.values(i).every(s) && typeof o == "string" && o in i && l(e.bgRampValue) && l(e.startSignalLightness) && l(e.endSignalLightness) && l(e.contrastMultiplier) && typeof e.rescaleContrastToGrayRange == "boolean")) return !1;
+	if (e.images !== void 0) {
+		let t = e.images;
+		if (!s(t) || typeof t.enabled != "boolean" || !l(t.tint) || t.tint < 0 || t.tint > 1 || !l(t.strength) || t.strength < 0 || t.strength > 1) return !1;
+	}
 	try {
 		return new a(e), !0;
 	} catch {

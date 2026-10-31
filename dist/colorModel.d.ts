@@ -43,4 +43,10 @@ export interface ThemeConfig {
     endSignalLightness: number;
     contrastMultiplier: number;
     rescaleContrastToGrayRange: boolean;
+    /** Recolor opted-in images under the configurator target. */
+    images?: {
+        enabled: boolean;
+        tint: number;
+        strength: number;
+    };
 }
