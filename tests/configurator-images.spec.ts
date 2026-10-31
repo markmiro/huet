@@ -5,7 +5,8 @@ test("image controls recolor, persist and restore originals", async ({ page }) =
   await page.goto("/images.html");
   const dialog = await openConfigurator(page, "Edit Theme");
   const toggle = dialog.getByRole("checkbox", { name: "Theme images", exact: true });
-  await toggle.check();
+  // Themes without image settings recolor images.
+  await expect(toggle).toBeChecked();
   const tint = dialog.getByRole("slider", { name: "Image tint", exact: true });
   const strength = dialog.getByRole("slider", { name: "Image strength", exact: true });
   await tint.fill("65");

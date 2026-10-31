@@ -11,8 +11,9 @@ import Input from "./Input";
 import Labeled from "./Labeled";
 import Pallet from "./Pallet";
 import Range from "./Range";
+import imageSettings from "./imageSettings";
 
-/** Edits the theme's name, background, contrast, palette and signal lightness. */
+/** Edits the theme's name, background, contrast, palette, signal lightness and image theming. */
 export default function EditTheme({
   theme,
   themerTheme,
@@ -24,6 +25,7 @@ export default function EditTheme({
   onThemeConfigChange: (config: ThemeConfig) => void;
 }) {
   const themeConfig = theme.config;
+  const images = imageSettings(themeConfig);
 
   function modify<K extends keyof ThemeConfig>(key: K) {
     return (newValue: ThemeConfig[K]) => {
@@ -102,16 +104,14 @@ export default function EditTheme({
         />
         <Checkbox
           label="Theme images"
-          value={themeConfig.images?.enabled ?? false}
-          onChange={enabled => modify("images")({
-            tint: 0, strength: 1, ...themeConfig.images, enabled,
-          })}
+          value={images.enabled}
+          onChange={enabled => modify("images")({ ...images, enabled })}
         />
-        {themeConfig.images?.enabled && <>
-          <Range label="Image tint" value={themeConfig.images.tint * 100}
-            onChange={tint => modify("images")({ ...themeConfig.images!, tint: Math.max(0, Math.min(100, tint)) / 100 })} />
-          <Range label="Image strength" value={themeConfig.images.strength * 100}
-            onChange={strength => modify("images")({ ...themeConfig.images!, strength: Math.max(0, Math.min(100, strength)) / 100 })} />
+        {images.enabled && <>
+          <Range label="Image tint" value={images.tint * 100}
+            onChange={tint => modify("images")({ ...images, tint: Math.max(0, Math.min(100, tint)) / 100 })} />
+          <Range label="Image strength" value={images.strength * 100}
+            onChange={strength => modify("images")({ ...images, strength: Math.max(0, Math.min(100, strength)) / 100 })} />
         </>}
       </VSpace>
     </>

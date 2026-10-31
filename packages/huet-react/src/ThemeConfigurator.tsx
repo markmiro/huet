@@ -12,6 +12,7 @@ import { ThemeConfiguratorContext } from "./context";
 import Themer from "./Themer";
 import ErrorBoundary from "./private/ErrorBoundary";
 import usePersistentState from "./private/persistentState";
+import imageSettings from "./private/imageSettings";
 import themeFor from "./private/themeFor";
 
 type Target = string | HTMLElement;
@@ -61,20 +62,23 @@ function useThemeTarget(target: Target | undefined, config: ThemeConfig) {
     };
   }, [target]);
   useLayoutEffect(() => mount.current?.update(theme), [theme]);
+  const settings = imageSettings(config);
+  const latestSettings = useRef(settings);
+  latestSettings.current = settings;
   const images = useRef<ReturnType<typeof mountImages>>(undefined);
   useLayoutEffect(() => {
-    if (!target || !config.images?.enabled) return;
+    if (!target || !settings.enabled) return;
     images.current = mountImages(resolve(target), latest.current, {
-      ...config.images, hoverOriginal: true,
+      ...latestSettings.current, hoverOriginal: true,
     });
     return () => {
       images.current?.destroy();
       images.current = undefined;
     };
-  }, [target, config.images?.enabled]);
+  }, [target, settings.enabled]);
   useLayoutEffect(() => {
-    images.current?.update(theme, config.images);
-  }, [theme, config.images]);
+    images.current?.update(theme, latestSettings.current);
+  }, [theme, settings.tint, settings.strength]);
 }
 
 type WithChildren = { children?: React.ReactNode };
