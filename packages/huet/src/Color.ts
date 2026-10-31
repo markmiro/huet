@@ -4,23 +4,34 @@ import { fromOklab, toOklab, luminance, lightness, textEnd } from "./core/color"
 import type { Lab, Ramp } from "./colorModel";
 import Theme from "./Theme";
 import Cache from "./private/cache";
+import { rampKeys } from "./private/rampKeys";
 import { mixSignal } from "./private/mixSignal";
 import { fadeColor } from "./private/fadeColor";
 
 const cache = new Cache();
 const enabledThemes = new WeakMap<Theme, Theme>();
 const enabledColors = new WeakMap<Color, { color: Color; origin: string }>();
-const rampSamples = new WeakMap<Ramp, { lab: Lab; hex: string; lightness: number }[]>();
+type Samples = { lab: Lab; hex: string; lightness: number }[];
+const rampSamples = new WeakMap<Ramp, Samples>();
+// By ramp key, so each edit's new theme reuses the samples of unchanged ramps
+const sharedSamples = new Map<string, Samples>();
 function samplesFor(ramp: Ramp) {
   let samples = rampSamples.get(ramp);
+  if (samples) return samples;
+  const key = rampKeys.get(ramp);
+  samples = key === undefined ? undefined : sharedSamples.get(key);
   if (!samples) {
     samples = Array.from({ length: 257 }, (_, i) => {
       const lab = ramp(i / 256);
       const hex = chroma.lab(...lab).hex();
       return { lab, hex, lightness: lightness(hex) };
     });
-    rampSamples.set(ramp, samples);
+    if (key !== undefined) {
+      if (sharedSamples.size >= 64) sharedSamples.clear();
+      sharedSamples.set(key, samples);
+    }
   }
+  rampSamples.set(ramp, samples);
   return samples;
 }
 

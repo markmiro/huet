@@ -4,7 +4,7 @@ import { createPortal } from "react-dom";
 import type { ThemeConfig } from "huet/config";
 import css from "../configurator.css?inline";
 import { mountTheme } from "huet";
-import { themeFromConfig } from "huet/config";
+import themeFor from "./themeFor";
 
 /** One shared stylesheet, so consumers don't import any CSS. */
 export function injectStyles() {
@@ -42,7 +42,7 @@ export default function ConfiguratorPortal({
     return () => el.remove();
   }, []);
 
-  const theme = useMemo(() => themeFromConfig(themeConfig), [themeConfig]);
+  const theme = useMemo(() => themeFor(themeConfig), [themeConfig]);
   const latest = useRef(theme);
   latest.current = theme;
   const mount = useRef<{ theme: typeof theme; update(next: typeof theme): void }>(

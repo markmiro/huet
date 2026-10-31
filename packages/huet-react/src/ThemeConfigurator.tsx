@@ -4,7 +4,6 @@ import {
   baseThemeConfig,
   parseThemeConfig,
   Theme,
-  themeFromConfig,
   type ThemeConfig,
 } from "huet/config";
 
@@ -12,6 +11,7 @@ import { ThemeConfiguratorContext } from "./context";
 import Themer from "./Themer";
 import ErrorBoundary from "./private/ErrorBoundary";
 import usePersistentState from "./private/persistentState";
+import themeFor from "./private/themeFor";
 
 type Target = string | HTMLElement;
 
@@ -45,7 +45,7 @@ function resolve(target: Target) {
 
 /** Applies the configured theme to `target` with Huet's class-based styles. */
 function useThemeTarget(target: Target | undefined, config: ThemeConfig) {
-  const theme = useMemo(() => themeFromConfig(config), [config]);
+  const theme = useMemo(() => themeFor(config), [config]);
   const latest = useRef(theme);
   latest.current = theme;
   const mount = useRef<ReturnType<typeof mountTheme>>(undefined);

@@ -4,6 +4,7 @@ import type { Lab, Ramp, RampConfig, RampInput, ThemeConfig } from "./colorModel
 import { rampModes } from "./colorModel";
 import { getLightness } from "./Color";
 import baseConfig from "./private/baseThemeConfig";
+import { rampKeys } from "./private/rampKeys";
 
 export { rampModes };
 export type { RampMode } from "./colorModel";
@@ -85,40 +86,46 @@ function createRamp(themeConfig: ThemeConfig, rampConfig: RampInput): Ramp {
     throw new Error(`Couldn't find color "${colorName}" in themeConfig.pallet`);
   });
 
-  const scale = chroma.scale(hexColors);
-  if (config.colorModel) scale.mode(config.colorModel);
-  if (config.classes) scale.classes(config.classes);
-
-  let ramp: Ramp;
-  switch (config.mode) {
-    case rampModes.DIRECT:
-      ramp = createDirectRampWithScale(scale);
-      break;
-    case rampModes.SIGNAL:
-    default:
-      if (config.correctLightness) scale.correctLightness();
-      ramp = createRampWithScale(scale);
-      break;
+  const key = JSON.stringify([hexColors, config]);
+  let sampler = samplers.get(key);
+  if (!sampler) {
+    if (samplers.size >= 256) samplers.clear();
+    samplers.set(key, (sampler = createSampler(hexColors, config)));
   }
+  const { sample, startL, endL } = sampler;
+  // Don't want to expose the underlying chroma-js stuff to the user.
+  const ramp = ((amount: number) => [...sample(amount)] as Lab) as Ramp;
+  if (config.mode !== rampModes.DIRECT) Object.assign(ramp, { startL, endL });
   ramp.config = config;
+  rampKeys.set(ramp, key);
   return ramp;
 }
 
-// Don't want to expose the underlying chroma-js stuff to the user.
-// The chroma-js scale is a function but also allows chaining and has fields.
-function wrapScaleFunc(scale: chroma.Scale): (amount: number) => Lab {
-  return (amount) => scale(amount).lab();
-}
+type Sampler = { sample: (amount: number) => Lab; startL?: number; endL?: number };
+/**
+ * Editing a theme rebuilds every ramp, though usually only one color changed.
+ * Ramps with the same colors and settings share a sampler, which remembers
+ * the chroma-js scale's samples.
+ */
+const samplers = new Map<string, Sampler>();
 
-function createRampWithScale(scale: chroma.Scale): Ramp {
-  const scaleFunc = wrapScaleFunc(scale) as Ramp;
-  scaleFunc.startL = getLightness(scale(0));
-  scaleFunc.endL = getLightness(scale(1));
-  return scaleFunc;
-}
-
-function createDirectRampWithScale(scale: chroma.Scale): Ramp {
-  return wrapScaleFunc(scale) as Ramp;
+function createSampler(hexColors: string[], config: RampConfig): Sampler {
+  const scale = chroma.scale(hexColors);
+  if (config.colorModel) scale.mode(config.colorModel);
+  if (config.classes) scale.classes(config.classes);
+  if (config.mode !== rampModes.DIRECT && config.correctLightness)
+    scale.correctLightness();
+  const samples = new Map<number, Lab>();
+  const sample = (amount: number) => {
+    let lab = samples.get(amount);
+    if (!lab) {
+      if (samples.size >= 4096) samples.clear();
+      samples.set(amount, (lab = scale(amount).lab()));
+    }
+    return lab;
+  };
+  if (config.mode === rampModes.DIRECT) return { sample };
+  return { sample, startL: getLightness(scale(0)), endL: getLightness(scale(1)) };
 }
 
 /*

@@ -4,17 +4,10 @@ const clamp = (x: number) => Math.max(0, Math.min(1, x));
 export function rgb(hex: string): Triple {
   if (!/^#(?:[\da-f]{3}|[\da-f]{6})$/i.test(hex))
     throw new TypeError(`Expected an opaque hex color, got ${hex}`);
-  const h =
-    hex.length === 4
-      ? hex
-          .slice(1)
-          .split("")
-          .map((c) => c + c)
-          .join("")
-      : hex.slice(1);
-  return [0, 2, 4].map(
-    (i) => parseInt(h.slice(i, i + 2), 16) / 255,
-  ) as unknown as Triple;
+  const n = parseInt(hex.slice(1), 16);
+  if (hex.length === 4)
+    return [((n >> 8) & 15) / 15, ((n >> 4) & 15) / 15, (n & 15) / 15];
+  return [((n >> 16) & 255) / 255, ((n >> 8) & 255) / 255, (n & 255) / 255];
 }
 const linear = (v: number) =>
   v <= 0.04045 ? v / 12.92 : ((v + 0.055) / 1.055) ** 2.4;
@@ -39,11 +32,18 @@ export const fromLightness = (v: number) =>
 export function lightness(hex: string): number {
   return lightnessOf(toOklab(hex)[0]);
 }
+// Themes measure the same few thousand colors over and over, so keep them.
+const apcaYs = new Map<string, number>();
 /** APCA's screen luminance, with its soft clamp near black. */
-function apcaY(hex: string): number {
+export function apcaY(hex: string): number {
+  let y = apcaYs.get(hex);
+  if (y !== undefined) return y;
   const [r, g, b] = rgb(hex);
-  const y = 0.2126729 * r ** 2.4 + 0.7151522 * g ** 2.4 + 0.072175 * b ** 2.4;
-  return y < 0.022 ? y + (0.022 - y) ** 1.414 : y;
+  y = 0.2126729 * r ** 2.4 + 0.7151522 * g ** 2.4 + 0.072175 * b ** 2.4;
+  if (y < 0.022) y += (0.022 - y) ** 1.414;
+  if (apcaYs.size >= 8192) apcaYs.clear();
+  apcaYs.set(hex, y);
+  return y;
 }
 /**
  * APCA lightness contrast (Lc) of `text` on `background`, using the APCA-W3
@@ -55,8 +55,10 @@ function apcaY(hex: string): number {
  * reachable.
  */
 export function apca(text: string, background: string): number {
-  const t = apcaY(text),
-    b = apcaY(background);
+  return apcaFromY(apcaY(text), apcaY(background));
+}
+/** `apca` from the `apcaY` of the text (`t`) and the background (`b`). */
+export function apcaFromY(t: number, b: number): number {
   if (Math.abs(b - t) < 0.0005) return 0;
   const sapc = b > t
     ? (b ** 0.56 - t ** 0.57) * 1.14
@@ -104,10 +106,11 @@ function fromLab([L, a, b]: Triple): number[] {
  * Map into gamma-encoded sRGB channels (0–1) by reducing chroma, preserving
  * OKLCH hue and lightness.
  */
+const fits = ([r, g, b]: number[]) =>
+  r >= -1e-7 && r <= 1 + 1e-7 && g >= -1e-7 && g <= 1 + 1e-7 && b >= -1e-7 && b <= 1 + 1e-7;
 export function rgbFromOklab([L, a, b]: Triple): Triple {
   L = clamp(L);
   let channels = fromLab([L, a, b]);
-  const fits = (xs: number[]) => xs.every((x) => x >= -1e-7 && x <= 1 + 1e-7);
   if (!fits(channels)) {
     let low = 0,
       high = 1;
@@ -118,19 +121,12 @@ export function rgbFromOklab([L, a, b]: Triple): Triple {
     }
     channels = fromLab([L, a * low, b * low]);
   }
-  return channels.map((v) => clamp(gamma(v))) as unknown as Triple;
+  return [clamp(gamma(channels[0])), clamp(gamma(channels[1])), clamp(gamma(channels[2]))];
 }
+const hexBytes = Array.from({ length: 256 }, (_, i) => i.toString(16).padStart(2, "0"));
 export function fromOklab(lab: Triple): string {
-  return (
-    "#" +
-    rgbFromOklab(lab)
-      .map((v) =>
-        Math.round(v * 255)
-          .toString(16)
-          .padStart(2, "0"),
-      )
-      .join("")
-  );
+  const [r, g, b] = rgbFromOklab(lab);
+  return "#" + hexBytes[Math.round(r * 255)] + hexBytes[Math.round(g * 255)] + hexBytes[Math.round(b * 255)];
 }
 export function mix(a: string, b: string, amount: number): string {
   if (!Number.isFinite(amount) || amount < 0 || amount > 1)
