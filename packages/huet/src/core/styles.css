@@ -94,7 +94,7 @@
   :where([data-huet-color-outline]) {
     outline-color: var(--huet-relative-outline);
   }
-  /* Elements with Tailwind variants on their background (hover:huet-bg-25) start at rest.
+  /* Elements with Tailwind variants on their background (hover:huet-bg-20) start at rest.
      The utilities in tailwind-utilities.css set the active state. */
   :where([data-huet-state]) {
     --huet-state: -1;

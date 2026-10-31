@@ -49,7 +49,7 @@ describe("framework-independent surfaces", () => {
   it("rejects invalid variants at mount and leaves no changes", () => {
     const root = document.createElement("div");
     root.innerHTML = '<p class="huet-bg-10"></p><p class="hover:huet-surface-25"></p>';
-    expect(() => mountTheme(root, createTheme())).toThrow('Tailwind variants work on huet-bg-AMOUNT classes, not huet-surface-*: hover:huet-surface-25. Use an amount, e.g. "hover:huet-bg-25".');
+    expect(() => mountTheme(root, createTheme())).toThrow('Tailwind variants work on huet-bg-AMOUNT classes, not huet-surface-*: hover:huet-surface-25. Use an amount, e.g. "hover:huet-bg-20".');
     expect(background(root.querySelector("p")!)).toBe("");
     expect(root.hasAttribute("data-huet-root")).toBe(false);
     expect(root.hasAttribute("data-huet-error")).toBe(false);
@@ -62,14 +62,14 @@ describe("framework-independent surfaces", () => {
     const light = background(first);
     const rootBackground = background(root);
     first.className = "huet-bg-50";
-    second.className = "huet-bg-10 huet-bg-25/50";
+    second.className = "huet-bg-10 huet-bg-20/50";
     // The bad class comes after valid changes, which must not be written either.
-    expect(() => mount.update(createTheme({ background: 0 }))).toThrow("huet-bg-25/50");
+    expect(() => mount.update(createTheme({ background: 0 }))).toThrow("huet-bg-20/50");
     expect(background(root)).toBe(rootBackground);
     expect(background(first)).toBe(light);
     expect(background(second)).toBe(light);
     expect(root.getAttribute("data-huet-error")).toContain("opacity modifiers");
-    second.className = "huet-bg-10 hover:huet-bg-25";
+    second.className = "huet-bg-10 hover:huet-bg-20";
     const dark = createTheme({ background: 0 });
     mount.update(dark);
     expect(background(first)).toBe(dark.relative.contrast(50).hex);
@@ -125,16 +125,16 @@ describe("explicit contrast classes", () => {
   it("matches original calculations, including parent versus own-background references", () => {
     const root = document.createElement("div");
     root.innerHTML = `<section class="huet-bg-gray-40"><div>
-      <button class="huet-bg-blue-25 huet-text-100 huet-border-red-60">Save</button>
-      <input class="huet-bg-10 huet-bg/text-80 huet-bg/border-red-60 huet-outline-blue-35">
-      <article class="huet-bg-purple-49"></article>
+      <button class="huet-bg-blue-20 huet-text-100 huet-border-red-60">Save</button>
+      <input class="huet-bg-10 huet-bg/text-80 huet-bg/border-red-60 huet-outline-blue-30">
+      <article class="huet-bg-purple-40"></article>
     </div></section>`;
     const theme = createTheme();
     const mount = mountTheme(root, theme);
     const parent = theme.relative.contrast(40, theme.relative.theme.ramps.gray);
     const button = root.querySelector("button")!;
     const input = root.querySelector("input")!;
-    const buttonBg = parent.contrast(25, parent.theme.ramps.blue);
+    const buttonBg = parent.contrast(20, parent.theme.ramps.blue);
     const inputBg = parent.contrast(10);
     expect(background(button)).toBe(buttonBg.hex);
     expect(button.style.getPropertyValue("--huet-foreground")).toBe(buttonBg.contrast(100).hex);
@@ -142,13 +142,13 @@ describe("explicit contrast classes", () => {
     expect(button.style.getPropertyValue("--huet-relative-border")).toBe(parent.contrast(60, parent.theme.ramps.red).hex);
     expect(input.style.getPropertyValue("--huet-relative-text")).toBe(inputBg.contrast(80).hex);
     expect(input.style.getPropertyValue("--huet-relative-border")).toBe(inputBg.contrast(60, parent.theme.ramps.red).hex);
-    expect(input.style.getPropertyValue("--huet-relative-outline")).toBe(parent.contrast(35, parent.theme.ramps.blue).hex);
-    expect(background(root.querySelector("article")!)).toBe(parent.contrast(49, parent.theme.ramps.purple).hex);
+    expect(input.style.getPropertyValue("--huet-relative-outline")).toBe(parent.contrast(30, parent.theme.ramps.blue).hex);
+    expect(background(root.querySelector("article")!)).toBe(parent.contrast(40, parent.theme.ramps.purple).hex);
     mount.destroy();
   });
   it("updates classes, reparenting, global contrast and cleanup without replacing nodes", async () => {
     const root = document.createElement("div");
-    root.innerHTML = '<section class="huet-bg-60"><input class="huet-bg-blue-25 huet-bg/text-100"></section>';
+    root.innerHTML = '<section class="huet-bg-60"><input class="huet-bg-blue-20 huet-bg/text-100"></section>';
     const theme = createTheme();
     const input = root.querySelector("input")!;
     input.style.setProperty("--huet-relative-text", "pink");
@@ -156,12 +156,12 @@ describe("explicit contrast classes", () => {
     input.value = "unsaved";
     const faded = createTheme({ contrast: .3 });
     mount.update(faded);
-    const bg = faded.relative.contrast(60).contrast(25, faded.relative.theme.ramps.blue);
+    const bg = faded.relative.contrast(60).contrast(20, faded.relative.theme.ramps.blue);
     expect(background(input)).toBe(bg.hex);
     expect(input.style.getPropertyValue("--huet-relative-text")).toBe(bg.contrast(100).hex);
     root.append(input);
     await tick();
-    expect(background(input)).toBe(faded.relative.contrast(25, faded.relative.theme.ramps.blue).hex);
+    expect(background(input)).toBe(faded.relative.contrast(20, faded.relative.theme.ramps.blue).hex);
     input.className = "huet-text-red-70";
     await tick();
     expect(background(input)).toBe("");
@@ -224,7 +224,7 @@ function computed(el: HTMLElement, name: string, states: Map<Element, number>): 
 describe("Tailwind variants", () => {
   it("computes every color for every combination of nested background states", () => {
     const root = document.createElement("div");
-    root.innerHTML = `<section class="huet-bg-10 hover:huet-bg-25 focus-within:huet-bg-blue-50">
+    root.innerHTML = `<section class="huet-bg-10 hover:huet-bg-20 focus-within:huet-bg-blue-50">
       <p class="huet-text-80 hover:huet-text-red-100"></p>
       <div><article class="group-hover:huet-bg-40 huet-bg/text-70 huet-bg/border-green-60">
         <aside class="huet-bg-5"><span class="huet-outline-30 focus:huet-bg/outline-90"></span></aside>
@@ -238,7 +238,7 @@ describe("Tailwind variants", () => {
     const rel = theme.relative, ramps = rel.theme.ramps;
     // Rest may be unset (-1) or the resting class's key.
     const blue = stateKey({ property: "bg", ownBackground: false, ramp: "blue", amount: 50 });
-    for (const [sectionKey, sectionBg] of [[-1, 10], [10, 10], [25, 25], [blue, "blue"]] as const)
+    for (const [sectionKey, sectionBg] of [[-1, 10], [10, 10], [20, 20], [blue, "blue"]] as const)
       for (const articleKey of [-1, 40]) {
         const states = new Map<Element, number>([[section, sectionKey], [article, articleKey]]);
         const outer = sectionBg === "blue" ? rel.contrast(50, ramps.blue) : rel.contrast(sectionBg);

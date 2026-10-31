@@ -15,7 +15,7 @@ const items = [
 ];
 const input = "block w-[20em] rounded border bg-transparent p-2";
 const focus = "focus-visible:outline-2 focus-visible:-outline-offset-2";
-const stepButton = `huet-bg-6 huet-outline-100 w-8 ${focus}`;
+const stepButton = `huet-bg-5 huet-outline-100 w-8 ${focus}`;
 const button =
   "mt-3 flex w-full max-w-[20em] items-center justify-center rounded p-2 text-center";
 ---
@@ -42,7 +42,7 @@ const button =
             readonly
             value="Search"
             aria-label="Search"
-            class="huet-bg-25 huet-bg/border-25 huet-bg/text-50 mr-4 w-[15em] rounded border p-2 shadow-[inset_0_2px_10px_rgb(0_0_0/0.2)]"
+            class="huet-bg-20 huet-bg/border-20 huet-bg/text-50 mr-4 w-[15em] rounded border p-2 shadow-[inset_0_2px_10px_rgb(0_0_0/0.2)]"
           />
           <div class="relative">
             <Icon icon={ic_notifications} size={24} />
@@ -59,7 +59,7 @@ const button =
             Background contrast <span class="huet-text-50">(0-100)</span>
           </span>
           <span class="flex items-center gap-3">
-            <span class="huet-border-25 flex overflow-hidden rounded-xs border">
+            <span class="huet-border-20 flex overflow-hidden rounded-xs border">
               <button type="button" data-contrast-step="-1" aria-label="Decrease background contrast" class={stepButton}>−</button>
               <input
                 data-contrast-number
@@ -68,7 +68,7 @@ const button =
                 max="100"
                 value="100"
                 aria-label="Background contrast"
-                class={`stepper-input huet-border-25 huet-outline-100 w-12 border-x bg-transparent py-1 text-center ${focus}`}
+                class={`stepper-input huet-border-20 huet-outline-100 w-12 border-x bg-transparent py-1 text-center ${focus}`}
               />
               <button type="button" data-contrast-step="1" aria-label="Increase background contrast" class={stepButton}>+</button>
             </span>
@@ -79,7 +79,7 @@ const button =
               max="100"
               value="100"
               aria-label="Background contrast slider"
-              class="slider huet-border-25 huet-outline-100 flex-auto rounded-xs focus-visible:outline-2 focus-visible:outline-offset-4"
+              class="slider huet-border-20 huet-outline-100 flex-auto rounded-xs focus-visible:outline-2 focus-visible:outline-offset-4"
             />
           </span>
         </label>
@@ -105,7 +105,7 @@ const button =
 
     <Section title="Form">
       <label class="mt-2 mb-1 block" for="username">Username</label>
-      <input id="username" readonly value="foobar" class={`huet-border-25 ${input}`} />
+      <input id="username" readonly value="foobar" class={`huet-border-20 ${input}`} />
       <div class="huet-text-green-100 mt-1 text-xs">✓ Username is available</div>
       <label class="mt-4 mb-1 block" for="email">Email</label>
       <input id="email" readonly value="foo@bar" class={`huet-border-red-100 ${input}`} />
@@ -119,22 +119,22 @@ const button =
 
     <Section title="Alert">
       {hues.map((hue) => (
-        <div class={`huet-bg-${hue}-12 huet-border-${hue}-25 huet-bg/text-${hue}-100 mt-4 flex items-center justify-between rounded border p-4`}>
+        <div class={`huet-bg-${hue}-10 huet-border-${hue}-20 huet-bg/text-${hue}-100 mt-4 flex items-center justify-between rounded border p-4`}>
           <div class="leading-[1.4]">
             Hold up! We need to notify you about something.
             <br />
             Click <a href="#" class="huet-text-blue-100 underline">this link</a> to find out more.
           </div>
-          <div class={`huet-bg-${hue}-12 huet-bg/text-${hue}-100 flex size-8 items-center justify-center rounded-full`}>✕</div>
+          <div class={`huet-bg-${hue}-10 huet-bg/text-${hue}-100 flex size-8 items-center justify-center rounded-full`}>✕</div>
         </div>
       ))}
     </Section>
 
     <Section title="Code">
-      <pre class="huet-bg-6 my-4 p-4 text-base"><span class="huet-text-red-100">function</span> <span class="huet-text-purple-100">Purple</span>({"{ children }) {"}
+      <pre class="huet-bg-5 my-4 p-4 text-base"><span class="huet-text-red-100">function</span> <span class="huet-text-purple-100">Purple</span>({"{ children }) {"}
   <span class="huet-text-red-100">return</span> (
-<span class="huet-bg-red-25"><span class="huet-text-red-100">-</span>   {"<"}<span class="huet-text-blue-100">Block</span> <span class="huet-text-purple-100">contrast</span><span class="huet-text-red-100">=</span><span class="huet-text-yellow-100">"fg=100-purple"</span>{">"}</span>
-<span class="huet-bg-green-35"><span class="huet-text-green-100">+</span>   {"<"}<span class="huet-text-blue-100">Block</span> <span class="huet-text-purple-100">as</span><span class="huet-text-red-100">=</span><span class="huet-text-yellow-100">"span"</span> <span class="huet-text-purple-100">contrast</span><span class="huet-text-red-100">=</span><span class="huet-text-yellow-100">"fg=100-purple"</span>{">"}</span>
+<span class="huet-bg-red-20"><span class="huet-text-red-100">-</span>   {"<"}<span class="huet-text-blue-100">Block</span> <span class="huet-text-purple-100">contrast</span><span class="huet-text-red-100">=</span><span class="huet-text-yellow-100">"fg=100-purple"</span>{">"}</span>
+<span class="huet-bg-green-30"><span class="huet-text-green-100">+</span>   {"<"}<span class="huet-text-blue-100">Block</span> <span class="huet-text-purple-100">as</span><span class="huet-text-red-100">=</span><span class="huet-text-yellow-100">"span"</span> <span class="huet-text-purple-100">contrast</span><span class="huet-text-red-100">=</span><span class="huet-text-yellow-100">"fg=100-purple"</span>{">"}</span>
       {"{children}"}
     {"</"}<span class="huet-text-blue-100">Block</span>{">"}
   );
@@ -157,6 +157,8 @@ const button =
 </Demo>
 
 <script>
+  import { amounts } from "huet";
+
   // Saved under the same keys the React demo used.
   const read = (key: string, fallback: unknown) => {
     try {
@@ -179,7 +181,10 @@ const button =
   const range = root.querySelector<HTMLInputElement>("[data-contrast-range]")!;
   const items = [...root.querySelectorAll<HTMLButtonElement>("[data-item]")];
   const saved = Number(read("bgContrast", 100));
-  let contrast = Number.isInteger(saved) && saved >= 0 && saved <= 100 ? saved : 100;
+  // Classes take 13 amounts, so the controls snap to the closest one.
+  const nearest = (value: number) =>
+    amounts.reduce((a, b) => (Math.abs(b - value) < Math.abs(a - value) ? b : a));
+  let contrast: number = Number.isFinite(saved) ? nearest(saved) : 100;
 
   // Selected items move onto the blue ramp, like <Block base="blue">.
   const render = () => {
@@ -194,16 +199,20 @@ const button =
     }
   };
   const setContrast = (value: string) => {
-    const next = Math.round(Number(value));
+    const next = Number(value);
     if (!Number.isFinite(next)) return;
-    contrast = Math.min(100, Math.max(0, next));
+    contrast = nearest(next);
     write("bgContrast", contrast);
     render();
   };
-  number.addEventListener("input", () => setContrast(number.value));
+  // Snap typed numbers once they're committed, so "30" isn't snapped at "3".
+  number.addEventListener("change", () => setContrast(number.value));
   range.addEventListener("input", () => setContrast(range.value));
   for (const button of root.querySelectorAll<HTMLButtonElement>("[data-contrast-step]"))
-    button.addEventListener("click", () => setContrast(String(contrast + Number(button.dataset.contrastStep))));
+    button.addEventListener("click", () => {
+      const index = amounts.indexOf(contrast as (typeof amounts)[number]) + Number(button.dataset.contrastStep);
+      setContrast(String(amounts[Math.min(amounts.length - 1, Math.max(0, index))]));
+    });
   for (const item of items)
     item.addEventListener("click", () => {
       const key = `isSelected:${item.dataset.item}`;

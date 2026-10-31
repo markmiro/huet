@@ -100,7 +100,7 @@ type ButtonProps = {
 
 export default function Button({
   as: As = "button",
-  colors = "huet-bg-12",
+  colors = "huet-bg-10",
   className,
   children,
   verify,

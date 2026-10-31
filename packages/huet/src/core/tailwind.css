@@ -1,7 +1,7 @@
 /* Import after tailwindcss. Opt in to replacing its default color palette. */
 @import "./styles.css";
 /* Every explicit-amount class as a utility, so Tailwind variants work on it:
-   hover:huet-bg-25, focus-visible:huet-outline-blue-80, md:huet-text-60, [&>svg]:huet-text-80.
+   hover:huet-bg-20, focus-visible:huet-outline-blue-80, md:huet-text-60, [&>svg]:huet-text-80.
    Tailwind emits only the ones a project uses. */
 @import "./tailwind-utilities.css";
 @theme {

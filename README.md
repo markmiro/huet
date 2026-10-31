@@ -7,7 +7,7 @@
 
 # Huet
 
-Relative UI colors and themed images from one theme. Choose a theme, then give each element a ramp and a contrast amount in its class name, such as `huet-bg-blue-25`. Huet works out the actual colors from the element's parent background, and recolors images to match.
+Relative UI colors and themed images from one theme. Choose a theme, then give each element a ramp and a contrast amount in its class name, such as `huet-bg-blue-20`. Huet works out the actual colors from the element's parent background, and recolors images to match.
 
 [Demo](https://markmiro.github.io/huet/)
 
@@ -53,7 +53,7 @@ images.update(paper);
 <div id="app">
   <section class="huet-bg-20">
     <p class="huet-text-60">Manage your profile.</p>
-    <button class="huet-bg-blue-25">Save changes</button>
+    <button class="huet-bg-blue-20">Save changes</button>
     <img data-huet-recolor src="/photo.jpg" alt="" />
   </section>
 </div>

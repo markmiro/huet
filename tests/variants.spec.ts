@@ -4,7 +4,7 @@ import { fileURLToPath } from "node:url";
 
 // Real Tailwind v4 output for the classes below, from huet/tailwind.css.
 const html = `<div id="root" style="padding: 8px">
-  <div id="card" class="group huet-bg-10 hover:huet-bg-25 p-4">
+  <div id="card" class="group huet-bg-10 hover:huet-bg-20 p-4">
     <p id="nested" class="huet-text-80">Nested amount</p>
     <p id="token" class="text-huet-blue">Token</p>
     <div id="inner" class="group-hover:huet-bg-blue-40 p-2">
@@ -13,7 +13,7 @@ const html = `<div id="root" style="padding: 8px">
   </div>
   <button id="button" class="huet-outline-blue-80 focus-visible:outline-2 focus-visible:huet-outline-red-90">Focus</button>
   <a id="link" href="#" class="huet-text-60 hover:huet-text-100">Link</a>
-  <div id="responsive" class="huet-bg-10 md:huet-bg-50 md:hover:huet-bg-75 p-4">Responsive</div>
+  <div id="responsive" class="huet-bg-10 md:huet-bg-50 md:hover:huet-bg-70 p-4">Responsive</div>
   <div id="aria" aria-pressed="false" class="huet-bg-10 aria-pressed:huet-bg-60 p-4">Pressed</div>
   <div id="arbitrary" class="huet-bg-20 [&>svg]:huet-bg/text-red-90 p-4"><svg id="icon" width="10" height="10"></svg></div>
 </div>`;
@@ -49,10 +49,10 @@ function measure(page: Page, options = {}) {
     const matches = (id: string, selector: string) => document.getElementById(id)!.matches(selector);
     const md = matchMedia("(width >= 48rem)").matches;
     const root = theme.relative, blue = root.theme.ramps.blue, red = root.theme.ramps.red;
-    const card = root.contrast(matches("card", ":hover") ? 25 : 10);
+    const card = root.contrast(matches("card", ":hover") ? 20 : 10);
     const inner = matches("card", ":hover") ? card.contrast(40, blue) : card;
     const own = inner.contrast(5);
-    const responsive = root.contrast(!md ? 10 : matches("responsive", ":hover") ? 75 : 50);
+    const responsive = root.contrast(!md ? 10 : matches("responsive", ":hover") ? 70 : 50);
     const pressed = document.getElementById("aria")!.getAttribute("aria-pressed") === "true";
     const arbitrary = root.contrast(20);
     const pairs: Record<string, [string, string]> = {

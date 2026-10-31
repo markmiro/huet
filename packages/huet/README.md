@@ -1,6 +1,6 @@
 # huet
 
-Relative UI colors and themed images from one theme, for any framework. Choose a theme, then give each element a ramp and a contrast amount in its class name, such as `huet-bg-blue-25`. Huet works out the actual colors from the element's parent background, and recolors images to match. Layout stays with your framework or Tailwind.
+Relative UI colors and themed images from one theme, for any framework. Choose a theme, then give each element a ramp and a contrast amount in its class name, such as `huet-bg-blue-20`. Huet works out the actual colors from the element's parent background, and recolors images to match. Layout stays with your framework or Tailwind.
 
 For a React theme editor that drives these themes, see [`huet-react`](https://www.npmjs.com/package/huet-react).
 
@@ -47,7 +47,7 @@ colors.update(createTheme({ dark: "#233b91", background: 0 }));
     <p class="huet-text-60">Manage your profile.</p>
     <input class="huet-bg-10 huet-bg/border-60" aria-label="Email" />
     <p class="huet-text-red-100">Invalid email address</p>
-    <button class="huet-bg-blue-25">Save changes</button>
+    <button class="huet-bg-blue-20">Save changes</button>
   </section>
 </div>
 ```
@@ -62,11 +62,11 @@ Huet supplies colors. Add padding, border widths/styles, focus behavior, radii, 
 | --- | --- |
 | Property | `bg`, `text`, `border`, `outline` |
 | Ramp (optional) | `gray`, `red`, `yellow`, `green`, `blue`, `purple`, `white` |
-| Amount | Every whole number from `0` through `100` |
+| Amount | `0`, `5`, `10`, `20`, `30`, `40`, `50`, `60`, `70`, `80`, `90`, `95`, `100` |
 
-Examples: `huet-bg-blue-25`, `huet-text-100`, `huet-border-red-60`, `huet-outline-blue-80`.
+Examples: `huet-bg-blue-20`, `huet-text-100`, `huet-border-red-60`, `huet-outline-blue-80`.
 
-Amounts use the original 0–100 relative contrast scale, not Tailwind shades, opacity, or contrast ratios. Zero matches the reference background; 100 requests the full available ramp strength. Equal steps in amount are equal steps in CIE L* lightness, toward whichever end of the ramp text reads better against (measured with [APCA](https://github.com/Myndex/apca-w3)). Omitting the ramp uses the inherited base ramp (gray for `createTheme`). Choosing a blue background does not automatically switch that base ramp to blue. The `white` ramp preserves the original direct-ramp behavior: it chooses a discrete color from the background, ignoring the local amount.
+Amounts use the original 0–100 relative contrast scale, not Tailwind shades, opacity, or contrast ratios. The 13 amounts are Tailwind's 11 steps (50, 100, 200 … 900, 950 become 5, 10, 20 … 90, 95) plus both ends, but they measure distance from the parent's background, not a fixed lightness: on a dark parent, `huet-bg-10` is lighter than the parent. Zero matches the reference background; 100 requests the full available ramp strength. Equal steps in amount are equal steps in CIE L* lightness, toward whichever end of the ramp text reads better against (measured with [APCA](https://github.com/Myndex/apca-w3)). Omitting the ramp uses the inherited base ramp (gray for `createTheme`). Choosing a blue background does not automatically switch that base ramp to blue. The `white` ramp preserves the original direct-ramp behavior: it chooses a discrete color from the background, ignoring the local amount.
 
 The classes use the same `Color.contrast()` solver as Huet's original React API, including the neutral/semantic ramp corrections and stable global contrast fade.
 
@@ -76,39 +76,42 @@ By default, every explicit property is relative to the nearest parent background
 
 ```html
 <!-- Text and border explicitly reference the parent background. -->
-<button class="huet-bg-blue-25 huet-text-100 huet-border-red-60">Save</button>
+<button class="huet-bg-blue-20 huet-text-100 huet-border-red-60">Save</button>
 
 <!-- Text and border explicitly reference this button's own background. -->
-<button class="huet-bg-blue-25 huet-bg/text-100 huet-bg/border-red-60">Save</button>
+<button class="huet-bg-blue-20 huet-bg/text-100 huet-bg/border-red-60">Save</button>
 ```
 
 `bg/text`, `bg/border`, and `bg/outline` preserve the original `bg/fg`, `bg/b`, and `bg/o` reference semantics. Class ordering does not matter: the background is resolved first. Without an explicit background, the own-background and parent references are equivalent. Use one class per color property. Referencing other properties as a source is not supported in this first class API.
 
 ### Static checking
 
-Use literal class names. All integer amounts and built-in ramps are statically recognized, with or without [Tailwind variants](#tailwind-variants):
+Use literal class names. Every amount and built-in ramp is statically recognized, with or without [Tailwind variants](#tailwind-variants):
 
 ```ts
 import { validateClasses, type HuetClass } from "huet";
-const background = "huet-bg-blue-25" satisfies HuetClass;
-const hover = "hover:huet-bg-blue-35" satisfies HuetClass;
+const background = "huet-bg-blue-20" satisfies HuetClass;
+const hover = "hover:huet-bg-blue-30" satisfies HuetClass;
 validateClasses("p-4 huet-text-blu-100"); // Unknown Huet class
 validateClasses("huet-text-60 huet-bg/text-100"); // Conflicting text classes
-validateClasses("huet-bg-10 hover:huet-bg-25"); // Fine: one background per variant
-validateClasses("hover:huet-bg-25/50"); // Opacity modifiers aren't supported; says what to use instead
+validateClasses("huet-bg-10 hover:huet-bg-20"); // Fine: one background per variant
+validateClasses("huet-bg-25"); // Not an amount; suggests huet-bg-20 or huet-bg-30
+validateClasses("hover:huet-bg-20/50"); // Opacity modifiers aren't supported; says what to use instead
+validateClasses("bg-huet-blue"); // A background Huet can't track; suggests huet-bg-blue-20
 ```
 
 ```sh
 npx huet check src/App.vue src/Card.svelte src/Page.tsx
 ```
 
-The CLI checks literal tokens, including comments/strings, and exits nonzero for unknown classes. It is a lexical checker, not a framework parser. Pass explicit files or shell-expanded globs. `validateClasses()` also detects conflicting properties: one class per property for each variant chain, so `hover:huet-text-60 hover:huet-bg/text-80` conflict but `huet-text-60 hover:huet-text-100` don't. Decimal amounts, dynamically constructed names, and arbitrary ramp names are not supported yet.
+The CLI checks literal tokens, including comments/strings, and exits nonzero for unknown classes. It is a lexical checker, not a framework parser. Pass explicit files or shell-expanded globs. `validateClasses()` also detects conflicting properties: one class per property for each variant chain, so `hover:huet-text-60 hover:huet-bg/text-80` conflict but `huet-text-60 hover:huet-text-100` don't. Dynamically constructed names and arbitrary ramp names are not supported yet. To compute a color for any other amount, use `theme.relative.contrast()` (see [Shared colors](#shared-colors-and-theme-updates)).
 
 These are errors, and each message says what to write instead:
 
-- Opacity modifiers, such as `huet-bg-25/50`. A see-through color no longer has the contrast Huet chose for it; use a lower amount.
+- Amounts other than the 13 above, such as `huet-bg-25`. The message names the two closest amounts.
+- Opacity modifiers, such as `huet-bg-20/50`. A see-through color no longer has the contrast Huet chose for it; use a lower amount.
 - Background variants that style another element or a pseudo-element, such as `*:huet-bg-10`, `[&>li]:huet-bg-10` or `before:huet-bg-10`. Put the class on that element instead.
-- Variants on the first-pass classes (`huet-surface-*`, `huet-text`, `huet-muted`, `huet-border`, `huet-focus`, `huet-text-HUE`). Use an explicit amount (`hover:huet-bg-25`) or a [token utility](#tailwind-v4) (`hover:text-huet-muted`).
+- Variants on the first-pass classes (`huet-surface-*`, `huet-text`, `huet-muted`, `huet-border`, `huet-focus`, `huet-text-HUE`). Use an explicit amount (`hover:huet-bg-20`) or a [token utility](#tailwind-v4) (`hover:text-huet-muted`).
 
 `mountTheme()` checks every class in the tree before writing any colors. An invalid class at mount throws and leaves the tree unchanged. An invalid class added later is reported as an uncaught error, colors stay as they were, and the root gets a `data-huet-error` attribute with the messages until the class is fixed.
 
@@ -125,11 +128,11 @@ Use this CSS entry instead of importing `huet/styles.css` separately:
 <section class="huet-bg-20 rounded-lg p-6">
   <p class="huet-text-60 mb-4">Manage your profile.</p>
   <input class="huet-bg-10 huet-bg/border-60 border rounded px-3 py-2" />
-  <button class="huet-bg-blue-25 rounded px-4 py-2">Save</button>
+  <button class="huet-bg-blue-20 rounded px-4 py-2">Save</button>
 </section>
 ```
 
-This bridge clears Tailwind's color namespace and keeps layout/spacing utilities. Huet's CSS lives in the `components` layer, and every explicit-amount class is also a Tailwind utility. To retain Tailwind's default colors, import `huet/styles.css` instead; you then can't use variants on Huet classes. Backgrounds must be managed by Huet for its relative calculations to track them. Tailwind opacity modifiers on the token utilities (`text-huet-blue/50`) and arbitrary CSS backgrounds are not tracked.
+This bridge clears Tailwind's color namespace and keeps layout/spacing utilities. Huet's CSS lives in the `components` layer, and every explicit-amount class is also a Tailwind utility. To retain Tailwind's default colors, import `huet/styles.css` instead; you then can't use variants on Huet classes. Backgrounds must be managed by Huet for its relative calculations to track them. Tailwind background utilities that paint a Huet color (`bg-huet-blue`, `bg-(--huet-background)`, `bg-[var(--huet-muted)]`) are errors in `validateClasses()`, `huet check` and `mountTheme()`, because colors nested inside would be solved against the wrong background. Use `huet-bg-*` instead. Other color utilities may use the tokens, with opacity too: `text-huet-blue/50` works, but the translucent color no longer has the contrast Huet chose for it. Arbitrary CSS backgrounds are not tracked.
 
 ### Tailwind variants
 
@@ -137,10 +140,10 @@ Explicit-amount classes take any Tailwind variant, including stacked, custom and
 
 ```html
 <a class="huet-text-60 hover:huet-text-100">Docs</a>
-<button class="huet-bg-blue-25 hover:huet-bg-blue-35 aria-pressed:huet-bg-blue-50 huet-outline-blue-80 focus-visible:outline-2">
+<button class="huet-bg-blue-20 hover:huet-bg-blue-30 aria-pressed:huet-bg-blue-50 huet-outline-blue-80 focus-visible:outline-2">
   Save
 </button>
-<div class="group huet-bg-10 hover:huet-bg-25">
+<div class="group huet-bg-10 hover:huet-bg-20">
   <p class="huet-text-60">Recomputed for the card's hover background</p>
   <span class="group-hover:huet-bg-blue-40 [&>svg]:huet-bg/text-80"><svg>…</svg></span>
 </div>
@@ -148,7 +151,7 @@ Explicit-amount classes take any Tailwind variant, including stacked, custom and
 
 - A background variant changes everything the background affects. When the card above is hovered, its text color, the tokens inside it (`text-huet-muted`, `border-huet-border`, …) and every Huet class nested inside it switch to the colors for the hover background. `mountTheme()` computes each color for each background state in advance, and CSS picks the active one, so hovering runs no JavaScript.
 - A variant changes when and where a class applies, not what it is relative to. A class resolves against the background of the element it's written on: the parent's background, or the element's own with `bg/`. For a child or pseudo-element drawn over the element's own background, use the `bg/` form: `[&>svg]:huet-bg/text-80`, `placeholder:huet-bg/text-50`.
-- Important works in either position: `huet-bg-25!` or `!huet-bg-25`.
+- Important works in either position: `huet-bg-20!` or `!huet-bg-20`.
 - Each color is computed for every combination of background states above it. More than 256 combinations for one element is an error. Variant backgrounds nested several deep multiply quickly.
 - Variants need `huet/tailwind.css`. Tailwind emits only the utilities a project uses. Without Tailwind, use classes without variants.
 
@@ -199,9 +202,9 @@ const theme = createTheme({
   colors: { red: "#d14457" },
 });
 
-// Same calculations as huet-bg-blue-25 and its automatic text:
+// Same calculations as huet-bg-blue-20 and its automatic text:
 const root = theme.relative;
-const button = root.contrast(25, root.theme.ramps.blue);
+const button = root.contrast(20, root.theme.ramps.blue);
 const buttonBackground = button.hex;
 const buttonText = button.contrast(100).hex;
 

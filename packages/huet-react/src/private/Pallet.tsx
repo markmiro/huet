@@ -32,7 +32,7 @@ function ColorPicker({
           latest.current.onChange(latest.current.picked);
         });
       }}
-      className="huet-border-12 hc:w-full hc:h-4 hc:p-0 hc:border hc:rounded-xs hc:overflow-hidden"
+      className="huet-border-10 hc:w-full hc:h-4 hc:p-0 hc:border hc:rounded-xs hc:overflow-hidden"
       // The picked color itself, not a theme color
       style={{ backgroundColor: (picked ?? color) || "transparent" }}
     />

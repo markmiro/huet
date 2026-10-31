@@ -53,7 +53,7 @@ export default function Themer() {
               <Themes />
             )}
           </ScrollPanel>
-          <div className="huet-bg-12">
+          <div className="huet-bg-10">
             <VSpace className="hc:p-4">
               <Checkbox
                 label="Theme the themer"

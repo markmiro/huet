@@ -33,11 +33,12 @@ test("Color Contrast forms retain hue and scale low-strength fills", async ({ pa
       for (let i = 1; i < column.borders.length; i++) {
         const [, a, b] = toOklab(column.borders[i]);
         expect(Math.hypot(a, b), JSON.stringify(column)).toBeGreaterThan(.035);
-        // A 12-strength fill travels 12% of the L* distance to the 100-strength border.
+        // The fills are huet-bg-RAMP-10, so each travels 10% of the L*
+        // distance to the 100-strength border.
         const fraction = distance(column.background, column.fills[i]) /
           distance(column.background, column.borders[i]);
-        expect(fraction).toBeGreaterThan(.10);
-        expect(fraction).toBeLessThan(.14);
+        expect(fraction).toBeGreaterThan(.08);
+        expect(fraction).toBeLessThan(.12);
       }
     }
     results.push({ position, columns: colors.map(c => ({

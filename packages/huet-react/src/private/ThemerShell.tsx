@@ -9,7 +9,7 @@ function BrowserStateActivity() {
   return (
     <span
       className={cx(
-        "huet-bg-green-25 huet-bg/text-green-100 hc:inline hc:rounded-lg hc:px-2 hc:font-normal",
+        "huet-bg-green-20 huet-bg/text-green-100 hc:inline hc:rounded-lg hc:px-2 hc:font-normal",
         "hc:transition-opacity hc:duration-400 hc:ease-[ease]",
         isSaving ? "hc:opacity-0" : "hc:opacity-100",
       )}
@@ -38,7 +38,7 @@ function TitleBar({
         Huet Theme Configurator {isExpanded && <BrowserStateActivity />}
       </span>
       {/* Docked at the bottom: collapse down into the corner, expand up out of it */}
-      <span className="huet-bg-25 hc:flex hc:justify-center hc:items-center hc:px-4 hc:font-bold">
+      <span className="huet-bg-20 hc:flex hc:justify-center hc:items-center hc:px-4 hc:font-bold">
         {isExpanded ? "↓" : "↑"}
       </span>
     </button>
@@ -49,7 +49,7 @@ function TitleBar({
 // is the parent's 25% contrast. The shadow is 12.5% of the foreground, scaled
 // by the theme's contrast like the old `Color.alpha()`.
 const panelClass = cx(
-  "huet-outline-25 hc:fixed hc:right-[1em] hc:bottom-[1em] hc:z-[999]",
+  "huet-outline-20 hc:fixed hc:right-[1em] hc:bottom-[1em] hc:z-[999]",
   "hc:font-ui hc:text-[.75rem] hc:outline",
   "hc:transition-[opacity,translate,height] hc:duration-200 hc:ease-[ease-out]",
 );

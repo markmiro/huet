@@ -25,7 +25,7 @@ export function App() {
     <>
       <main id="app" className="huet-bg-5">
         <p className="huet-text-60">Secondary text</p>
-        <button className="huet-bg-blue-25">Save</button>
+        <button className="huet-bg-blue-20">Save</button>
       </main>
       <ThemeConfigurator target="#app" />
     </>

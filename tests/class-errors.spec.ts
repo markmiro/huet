@@ -28,7 +28,7 @@ test("an invalid class added after mount is reported without half-updating the t
       first: background(first),
       error: root.getAttribute("data-huet-error"),
     };
-    second.className = "huet-bg-10 hover:huet-bg-25";
+    second.className = "huet-bg-10 hover:huet-bg-20";
     await frame();
     const fixed = { first: background(first), error: root.getAttribute("data-huet-error") };
     window.removeEventListener("error", onError);
@@ -39,7 +39,7 @@ test("an invalid class added after mount is reported without half-updating the t
   expect(result.reported).toHaveLength(1);
   expect(result.reported[0]).toContain("Tailwind variants work on huet-bg-AMOUNT classes, not huet-surface-*: hover:huet-surface-25");
   expect(result.broken.first).toBe(result.before);
-  expect(result.broken.error).toContain('"hover:huet-bg-25"');
+  expect(result.broken.error).toContain('"hover:huet-bg-20"');
   expect(result.fixed.first).not.toBe(result.before);
   expect(result.fixed.error).toBeNull();
 });

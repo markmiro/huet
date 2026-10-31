@@ -43,8 +43,8 @@ const stepSizes = {
 type StepKey = keyof typeof stepSizes;
 const asStepKey = asOneOf(Object.keys(stepSizes) as StepKey[]);
 
-// Classes take integer amounts. Fractional steps (6.25, 12.5, ...) are rounded
-// for the class; their labels keep the exact value.
+// Class names need integers, so fractional steps (6.25, 12.5, ...) are rounded;
+// their labels keep the exact value. Amounts classes don't take are colored inline.
 const amount = (value: number) => Math.round(value);
 
 // Tachyons' font sizes didn't set a line height, so text kept normalize's 1.15.
@@ -236,7 +236,7 @@ export default function ColorContrast() {
     <ThemeScope theme={theme} base={theme.bgRamp} inline={false}>
       <div className="leading-[1.15]">
         <div className="p-2">
-          <Painted as="h1" className="huet-border-25 mb-2 border-b pb-2 text-4xl/[1.15] font-bold">
+          <Painted as="h1" className="huet-border-20 mb-2 border-b pb-2 text-4xl/[1.15] font-bold">
             {theme.name}
           </Painted>
           <label htmlFor={`${id}-steps`} className="mb-1 block">
@@ -407,7 +407,7 @@ function FormExample({ theme, base }: { theme: Theme; base: string }) {
                 key={rampKey}
                 as="button"
                 type="button"
-                className={`huet-bg-${rampKey}-12 huet-text-${rampKey}-100 huet-border-${rampKey}-100 mt-2 block w-full max-w-[20em] rounded border p-2 text-center`}
+                className={`huet-bg-${rampKey}-10 huet-text-${rampKey}-100 huet-border-${rampKey}-100 mt-2 block w-full max-w-[20em] rounded border p-2 text-center`}
               >
                 Submit
               </Painted>

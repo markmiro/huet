@@ -6,6 +6,8 @@
 import { writeFile } from "node:fs/promises";
 import { fileURLToPath } from "node:url";
 const ramps = [undefined, "gray", "red", "yellow", "green", "blue", "purple", "white"];
+// Same as amounts in src/core/classes.ts.
+const amounts = [0, 5, 10, 20, 30, 40, 50, 60, 70, 80, 90, 95, 100];
 const properties = { text: "color", border: "border-color", outline: "outline-color" };
 export function utilitiesCss() {
   const lines = [
@@ -15,7 +17,7 @@ export function utilitiesCss() {
   ];
   for (const property of ["bg", "text", "border", "outline", "bg/text", "bg/border", "bg/outline"])
     ramps.forEach((ramp, i) => {
-      for (let amount = 0; amount <= 100; amount++) {
+      for (const amount of amounts) {
         const name = `huet-${property}-${ramp ? ramp + "-" : ""}${amount}`;
         const body = property === "bg"
           ? `--huet-state: ${i * 101 + amount};`
