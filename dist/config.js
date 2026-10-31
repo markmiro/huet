@@ -1,5 +1,5 @@
-import { c as e, d as t, f as n, l as r, s as i, u as a } from "./theme-MTtaYU1H.js";
-import { t as o } from "./fromConfig-B720i2e4.js";
+import { c as e, d as t, f as n, l as r, s as i, u as a } from "./theme-CZ1vtqrm.js";
+import { t as o } from "./fromConfig-DAwnsiqs.js";
 // src/private/isThemeConfig.ts
 function s(e) {
 	return typeof e == "object" && !!e && !Array.isArray(e);

@@ -1,4 +1,4 @@
-import { c as e, g as t, i as n, n as r, u as i } from "./theme-MTtaYU1H.js";
+import { c as e, g as t, i as n, n as r, u as i } from "./theme-CZ1vtqrm.js";
 import a from "chroma-js";
 // src/core/fromConfig.ts
 function o(o) {
@@ -18,4 +18,4 @@ function o(o) {
 }
 export { o as t };
 
-//# sourceMappingURL=fromConfig-B720i2e4.js.map
+//# sourceMappingURL=fromConfig-DAwnsiqs.js.map

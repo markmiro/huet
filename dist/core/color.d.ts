@@ -7,6 +7,8 @@ export declare const lightnessOf: (L: number) => number;
 export declare const fromLightness: (v: number) => number;
 /** CIE lightness L* of a color, from 0 (black) to 1 (white). */
 export declare function lightness(hex: string): number;
+/** APCA's screen luminance, with its soft clamp near black. */
+export declare function apcaY(hex: string): number;
 /**
  * APCA lightness contrast (Lc) of `text` on `background`, using the APCA-W3
  * 0.0.98G-4g constants. Positive for dark text on a lighter background,
@@ -17,6 +19,8 @@ export declare function lightness(hex: string): number;
  * reachable.
  */
 export declare function apca(text: string, background: string): number;
+/** `apca` from the `apcaY` of the text (`t`) and the background (`b`). */
+export declare function apcaFromY(t: number, b: number): number;
 /** How readable `color` is on `background`, as an unsigned Lc. */
 export declare const contrast: (background: string, color: string) => number;
 /**
@@ -28,10 +32,6 @@ export declare function textEnd(background: string, dark: string, light: string)
 /** Gamma-encoded sRGB channels (0–1) to OKLab. */
 export declare function oklabFromRgb(r: number, g: number, b: number): Triple;
 export declare function toOklab(hex: string): Triple;
-/**
- * Map into gamma-encoded sRGB channels (0–1) by reducing chroma, preserving
- * OKLCH hue and lightness.
- */
 export declare function rgbFromOklab([L, a, b]: Triple): Triple;
 export declare function fromOklab(lab: Triple): string;
 export declare function mix(a: string, b: string, amount: number): string;
