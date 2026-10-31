@@ -47,7 +47,7 @@ describe("huetShikiTheme", () => {
       "line highlighted",
       "line",
     ]);
-    expect(rows(await render({ surface: "huet-bg-90", lines: { highlighted: "huet-bg-25" } }))[2]).toBe("line highlighted huet-bg-25");
+    expect(rows(await render({ surface: "huet-bg-90", lines: { highlighted: "huet-bg-30" } }))[2]).toBe("line highlighted huet-bg-30");
     expect(rows(await render({ lines: false }))).toEqual(["line diff remove", "line diff add", "line highlighted", "line"]);
     // @ts-expect-error: a text class
     expect(() => huetShikiTransformer({ lines: { add: "huet-text-50" } })).toThrow(/lines\.add/);

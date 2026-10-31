@@ -22,13 +22,13 @@ test("an invalid class added after mount is reported without half-updating the t
     // The observer has no caller to throw to: the error is reported, the root records it,
     // and the valid change before the invalid class isn't written either.
     first.className = "huet-bg-50";
-    second.className = "huet-bg-10 focus-visible:huet-outline-blue-80";
+    second.className = "huet-bg-10 hover:huet-surface-25";
     await frame();
     const broken = {
       first: background(first),
       error: root.getAttribute("data-huet-error"),
     };
-    second.className = "huet-bg-10 huet-outline-blue-80 focus-visible:outline-2";
+    second.className = "huet-bg-10 hover:huet-bg-20";
     await frame();
     const fixed = { first: background(first), error: root.getAttribute("data-huet-error") };
     window.removeEventListener("error", onError);
@@ -37,9 +37,9 @@ test("an invalid class added after mount is reported without half-updating the t
     return { before, broken, fixed, reported };
   });
   expect(result.reported).toHaveLength(1);
-  expect(result.reported[0]).toContain("don't support Tailwind variants yet: focus-visible:huet-outline-blue-80");
+  expect(result.reported[0]).toContain("Tailwind variants work on huet-bg-AMOUNT classes, not huet-surface-*: hover:huet-surface-25");
   expect(result.broken.first).toBe(result.before);
-  expect(result.broken.error).toContain('"huet-outline-blue-80 focus-visible:outline-2"');
+  expect(result.broken.error).toContain('"hover:huet-bg-20"');
   expect(result.fixed.first).not.toBe(result.before);
   expect(result.fixed.error).toBeNull();
 });

@@ -12,7 +12,7 @@ import Demo from "../layouts/Demo.astro";
 const comments = Array.from({ length: 7 });
 // The first preview sits above a divider; the other six follow it.
 const previews = Array.from({ length: 7 });
-const avatar = "huet-bg-60 size-8 rounded-full";
+const avatar = "huet-bg-50 size-8 rounded-full";
 ---
 <Demo title="YouTube">
   <!-- The legacy demo inherited line-height 1.15 from Tachyons. Font-size
@@ -95,9 +95,9 @@ const avatar = "huet-bg-60 size-8 rounded-full";
         <input
           placeholder="Search"
           aria-label="Search"
-          class="huet-bg-5 huet-border-15 huet-bg/text-20 text-huet-fg placeholder:text-(--huet-relative-text) flex-auto border px-1 shadow-[inset_0_2px_6px_rgb(0_0_0/0.1)]"
+          class="huet-bg-5 huet-border-20 huet-bg/text-20 text-huet-fg placeholder:text-(--huet-relative-text) flex-auto border px-1 shadow-[inset_0_2px_6px_rgb(0_0_0/0.1)]"
         />
-        <button aria-label="Search" class="huet-bg-6 huet-border-15 flex border-y border-r px-4 py-px">
+        <button aria-label="Search" class="huet-bg-5 huet-border-20 flex border-y border-r px-4 py-px">
           <div class="huet-text-50"><Icon icon={ic_search} size="1.2em" /></div>
         </button>
       </div>
@@ -145,7 +145,7 @@ const avatar = "huet-bg-60 size-8 rounded-full";
           <b>Up next</b>
           <b class="flex items-center">
             <div class="huet-text-40 mr-1 text-xs/[1.15]">AUTOPLAY</div>
-            <div class="huet-bg-15 relative h-[1em] w-[2.4em] rounded-full">
+            <div class="huet-bg-20 relative h-[1em] w-[2.4em] rounded-full">
               <div class="huet-bg-blue-100 absolute top-1/2 size-[1.3em] translate-x-[85%] -translate-y-1/2 rounded-full shadow-[0px_2px_4px_rgb(0_0_0/0.3)]"></div>
             </div>
           </b>

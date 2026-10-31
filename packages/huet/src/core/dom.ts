@@ -1,12 +1,34 @@
 import Color from "../Color";
 import chroma from "chroma-js";
-import { classes, parseColorClass, validateClasses, type Surface } from "./classes";
+import { classVariable, parseClassToken, parseColorClass, stateKey, validateClasses, type ColorClass, type Surface } from "./classes";
 import { themeVariables, type HuetTheme } from "./theme";
-const surfaceClasses = classes.filter((x) => x.startsWith("huet-surface-"));
 const selector = '[class*="huet-"]';
 const mounted = new WeakSet<HTMLElement>();
 const owners = new WeakMap<HTMLElement, () => void>();
-/** Mount once per independent tree. Only background surfaces receive inline variables. */
+const markerNames = ["data-huet-color-bg", "data-huet-color-text", "data-huet-color-border", "data-huet-color-outline", "data-huet-state"];
+interface Pending { values: Record<string, string>; markers: Set<string> }
+/** An element whose background changes with Tailwind variants. State 0 is its resting background. */
+interface Dim { el: HTMLElement; keys: number[] }
+/** Colors for every combination of the states of `dims`. The last dim varies fastest. */
+interface Context { dims: Dim[]; bg: Color[]; tokens: Readonly<Record<string, string>>[] }
+/** Each element's colors are computed for every combination of its ancestors' states. */
+const maxCombinations = 256;
+const resolve = (base: Color, spec: ColorClass) =>
+  base.contrast(spec.amount, spec.ramp ? base.theme.ramps[spec.ramp] : undefined);
+const weight = (key: number) =>
+  `max(0%, (1 - max(var(--huet-state) - ${key}, ${key} - var(--huet-state))) * 100%)`;
+/**
+ * Choose one entry per state in CSS. The active background utility sets --huet-state
+ * to its key; exactly one weight is then 100%. No match leaves the resting entry.
+ */
+function select(dim: Dim, entries: string[]) {
+  let value = entries[0];
+  for (let i = 1; i < entries.length; i++)
+    if (entries[i] !== entries[0])
+      value = `color-mix(in srgb, ${entries[i]} ${weight(dim.keys[i])}, ${value})`;
+  return value;
+}
+/** Mount once per independent tree. Elements with Huet classes receive inline variables. */
 export function mountTheme(root: HTMLElement, initialTheme: HuetTheme) {
   if (
     mounted.has(root) ||
@@ -24,13 +46,7 @@ export function mountTheme(root: HTMLElement, initialTheme: HuetTheme) {
     disposed = false;
   const originals = new Map<HTMLElement, Map<string, [string, string]>>();
   const originalAttributes = new Map<HTMLElement, Map<string, string | null>>();
-  const markers = {
-    "--huet-background": "data-huet-color-bg",
-    "--huet-relative-text": "data-huet-color-text",
-    "--huet-relative-border": "data-huet-color-border",
-    "--huet-relative-outline": "data-huet-color-outline",
-  };
-  const writeValues = (el: HTMLElement, values: Record<string, string>) => {
+  const writeValues = (el: HTMLElement, { values, markers }: Pending) => {
     let original = originals.get(el);
     if (!original) {
       // A surface may move between independent roots before either observer runs.
@@ -48,8 +64,8 @@ export function mountTheme(root: HTMLElement, initialTheme: HuetTheme) {
     }
     let attributes = originalAttributes.get(el);
     if (!attributes) originalAttributes.set(el, attributes = new Map());
-    for (const [key, name] of Object.entries(markers)) {
-      if (key in values) {
+    for (const name of markerNames) {
+      if (markers.has(name)) {
         if (!attributes.has(name)) attributes.set(name, el.getAttribute(name));
         el.setAttribute(name, "");
       } else if (attributes.has(name)) {
@@ -83,60 +99,108 @@ export function mountTheme(root: HTMLElement, initialTheme: HuetTheme) {
     originals.delete(el);
     owners.delete(el);
   };
-  const surface = (el: HTMLElement, parent: string) => {
-    const name = surfaceClasses.find((x) => el.classList.contains(x));
-    if (!name) return parent;
-    const suffix = name.slice("huet-surface-".length);
-    return theme.surface(
-      parent,
-      (/^\d+$/.test(suffix) ? Number(suffix) : suffix) as Surface,
-    );
+  const surface = (parent: Color, base: string) => {
+    const spec = parseColorClass(base);
+    const suffix = base.slice("huet-surface-".length);
+    const bg = spec ? resolve(parent, spec) : new Color({
+      theme: parent.theme, bgColor: parent,
+      lab: chroma(theme.surface(parent.hex, (/^\d+$/.test(suffix) ? Number(suffix) : suffix) as Surface)).lab(),
+    });
+    const values = themeVariables(theme.tokens(bg.hex, parent.hex));
+    return { bg, tokens: spec ? { ...values, "--huet-foreground": bg.contrast(100).hex } : values };
+  };
+  const fail = (message: string): never => {
+    root.setAttribute("data-huet-error", message);
+    throw new Error(message);
   };
   const refresh = () => {
     if (disposed) return;
-    const active = new Set<HTMLElement>();
-    const backgrounds = new Map<HTMLElement, Color>();
     const elements = [root, ...root.querySelectorAll<HTMLElement>(selector)];
     // Check every element before writing, so an invalid class can't leave the tree
     // half-updated. Errors after mount have no caller, so the root records them too.
     // SVG elements expose className as an SVGAnimatedString.
     const errors = [...new Set(elements.flatMap((el) => validateClasses(el.getAttribute("class") ?? "")))];
-    if (errors.length) {
-      root.setAttribute("data-huet-error", errors.join("\n"));
-      throw new Error(errors.join("\n"));
+    if (errors.length) fail(errors.join("\n"));
+    const pending = new Map<HTMLElement, Pending>();
+    const target = (el: HTMLElement) => {
+      let entry = pending.get(el);
+      if (!entry) pending.set(el, entry = { values: {}, markers: new Set() });
+      return entry;
+    };
+    let count = 0;
+    /**
+     * CSS for one value per combination of the states of `dims`, used on `el`.
+     * Each state is chosen on its own element: there --huet-state is that element's,
+     * and descendants inherit the result with the choice already made.
+     */
+    const fold = (dims: Dim[], values: string[], el: HTMLElement) => {
+      dims.forEach((dim, i) => {
+        const n = dim.keys.length, size = values.length / n;
+        values = Array.from({ length: size }, (_, rest) => {
+          const entries = Array.from({ length: n }, (_, state) => values[state * size + rest]);
+          const value = select(dim, entries);
+          if (value === entries[0] || (dim.el === el && i === dims.length - 1)) return value;
+          const name = `--huet-s${count++}`;
+          target(dim.el).values[name] = value;
+          return `var(${name})`;
+        });
+      });
+      return values[0];
+    };
+    const rootColor = theme.relative;
+    const top: Context = { dims: [], bg: [rootColor], tokens: [themeVariables(theme.tokens(rootColor.hex, rootColor.hex))] };
+    const contexts = new Map<HTMLElement, Context>();
+    for (const el of elements) {
+      const names = [...el.classList].map(parseClassToken);
+      const backgrounds = names.filter((x) => x.base.startsWith("huet-surface-") || parseColorClass(x.base)?.property === "bg");
+      const colors = names.flatMap((x) => {
+        const spec = parseColorClass(x.base);
+        return spec && spec.property !== "bg" ? [{ ...x, spec }] : [];
+      });
+      if (el !== root && !backgrounds.length && !colors.length) continue;
+      let ancestor = el.parentElement;
+      while (ancestor && !contexts.has(ancestor)) ancestor = ancestor.parentElement;
+      const parent = (el !== root && ancestor && contexts.get(ancestor)) || top;
+      let context = parent;
+      if (el === root || backgrounds.length) {
+        // The resting background, or none, then each background a variant can switch to.
+        const rest = backgrounds.find((x) => !x.variants)?.base;
+        const states = [rest, ...new Set(backgrounds.filter((x) => x.variants && x.base !== rest).map((x) => x.base))];
+        const dim = states.length > 1
+          ? { el, keys: [-1, ...states.slice(1).map((x) => stateKey(parseColorClass(x!)!))] }
+          : undefined;
+        const bg: Color[] = [], tokens: Context["tokens"] = [];
+        parent.bg.forEach((color, i) => {
+          for (const state of states) {
+            const result = state ? surface(color, state) : { bg: color, tokens: parent.tokens[i] };
+            bg.push(result.bg);
+            tokens.push(result.tokens);
+          }
+        });
+        if (bg.length > maxCombinations)
+          fail(`Too many background states above "${el.getAttribute("class")}": ${bg.length} combinations, at most ${maxCombinations}. Each enclosing element with Tailwind variants on its Huet background multiplies them. Remove variants from some of those backgrounds.`);
+        context = { dims: dim ? [...parent.dims, dim] : parent.dims, bg, tokens };
+        contexts.set(el, context);
+        const entry = target(el);
+        entry.markers.add("data-huet-color-bg");
+        if (dim) entry.markers.add("data-huet-state");
+        for (const name of Object.keys(tokens[0]))
+          entry.values[name] = fold(context.dims, tokens.map((x) => x[name]), el);
+      }
+      for (const { variants, base, spec } of colors) {
+        const entry = target(el);
+        const from = spec.ownBackground ? context : parent;
+        const value = entry.values[classVariable(base)] ??= fold(from.dims, from.bg.map((x) => resolve(x, spec).hex), el);
+        // Without Tailwind, styles.css reads the class without variants from a fixed name.
+        if (!variants) {
+          entry.values[`--huet-relative-${spec.property}`] = value;
+          entry.markers.add(`data-huet-color-${spec.property}`);
+        }
+      }
     }
     root.removeAttribute("data-huet-error");
-    for (const el of elements) {
-      const names = [...el.classList];
-      const specs = names.map(parseColorClass).filter(x => x !== undefined);
-      const legacySurface = names.some(x => surfaceClasses.includes(x as typeof surfaceClasses[number]));
-      if (el !== root && !specs.length && !legacySurface) continue;
-      let parent = el.parentElement;
-      while (parent && !backgrounds.has(parent)) parent = parent.parentElement;
-      const parentColor = backgrounds.get(parent!) ?? theme.relative;
-      const bgSpec = specs.find(x => x.property === "bg");
-      const resolve = (base: Color, spec: typeof specs[number]) => base.contrast(
-        spec.amount, spec.ramp ? base.theme.ramps[spec.ramp] : undefined);
-      let bg = bgSpec ? resolve(parentColor, bgSpec) : parentColor;
-      if (legacySurface) bg = new Color({
-        theme: parentColor.theme, bgColor: parentColor,
-        lab: chroma(surface(el, parentColor.hex)).lab(),
-      });
-      const values: Record<string, string> = {};
-      if (el === root || bgSpec || legacySurface) {
-        backgrounds.set(el, bg);
-        Object.assign(values, themeVariables(theme.tokens(bg.hex, parentColor.hex)));
-        if (bgSpec) values["--huet-foreground"] = bg.contrast(100).hex;
-      }
-      for (const spec of specs) {
-        if (spec.property === "bg") continue;
-        const color = resolve(spec.ownBackground ? bg : parentColor, spec);
-        values[`--huet-relative-${spec.property}`] = color.hex;
-      }
-      active.add(el);
-      writeValues(el, values);
-    }
-    for (const el of originals.keys()) if (!active.has(el)) restore(el);
+    for (const [el, entry] of pending) writeValues(el, entry);
+    for (const el of originals.keys()) if (!pending.has(el)) restore(el);
   };
   // Observe structure/classes only: our variable writes never trigger another pass.
   const Observer = root.ownerDocument.defaultView!.MutationObserver;

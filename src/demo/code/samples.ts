@@ -45,7 +45,7 @@ colors.update(createTheme({ dark: "#233b91", background: 0 }));`,
   },
   {
     lang: "css",
-    code: `.huet-bg-blue-25 {
+    code: `.huet-bg-blue-20 {
   /* Supplied by mountTheme for this surface */
   background-color: var(--huet-background);
   padding: 0.5rem 1rem;

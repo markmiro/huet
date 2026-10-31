@@ -75,6 +75,7 @@
   ],
   "scripts": {
     "build": "vite build && node scripts/copy-css.mjs",
+    "generate": "node scripts/tailwind-utilities.mjs",
     "prepack": "pnpm run build"
   },
   "dependencies": {

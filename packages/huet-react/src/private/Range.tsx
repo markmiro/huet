@@ -84,7 +84,7 @@ export default function Range({
             type="number"
             className={cx(
               isOutOfRange
-                ? "huet-border-red-100 huet-bg-red-12 huet-bg/text-red-100"
+                ? "huet-border-red-100 huet-bg-red-10 huet-bg/text-red-100"
                 : "huet-border-20",
               inputClass,
               "hc:w-[5em] hc:mr-2 hc:cursor-auto",

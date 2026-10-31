@@ -40,14 +40,14 @@ const selects = [
   { name: "renderer", label: "Renderer", value: "gpu", options: [["gpu", "GPU · WebGL2"], ["cpu", "CPU"]] },
   { name: "lutSize", label: "LUT size", value: "17", options: [["17", "17³"], ["33", "33³"], ["65", "65³"]] },
 ];
-const selectClass = "huet-border-25 block w-full rounded-xs border bg-transparent px-2 py-1";
+const selectClass = "huet-border-20 block w-full rounded-xs border bg-transparent px-2 py-1";
 ---
 <Demo title="Images">
   <div class="mx-auto max-w-[70em] p-8">
     <h1 data-theme-name class="my-[0.67em] border-b-[.125em] pb-1 text-5xl font-bold">&nbsp;</h1>
     <p class="huet-text-50 max-w-[40em]">
       Every image here is recolored into the theme you pick in the configurator, using
-      <code class="huet-bg-6 rounded-xs px-1 font-mono">huet/images</code>. Grays follow the
+      <code class="huet-bg-5 rounded-xs px-1 font-mono">huet/images</code>. Grays follow the
       theme's neutral ramp and colors follow its hues. Hover an image to see the original.
     </p>
     <div class="mt-6 grid max-w-[44em] grid-cols-2 gap-x-8 gap-y-4">

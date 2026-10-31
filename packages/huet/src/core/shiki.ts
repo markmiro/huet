@@ -153,7 +153,7 @@ const classesOf = (node: HastNode) => {
 };
 function checkSurface(option: string, value: string) {
   if (parseColorClass(value)?.property !== "bg")
-    throw new TypeError(`huetShikiTransformer: ${option} must be a plain Huet background class like "huet-bg-5" or "huet-bg-green-15", got "${value}"`);
+    throw new TypeError(`huetShikiTransformer: ${option} must be a plain Huet background class like "huet-bg-5" or "huet-bg-green-10", got "${value}"`);
 }
 
 /**

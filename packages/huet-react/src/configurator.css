@@ -9,7 +9,7 @@
   - No Preflight. The reset below is scoped to the panel instead.
   - Nothing is in a cascade layer, so the host's layered CSS (Tailwind's
     base/components/utilities) can't override the panel.
-  - Colors come from Huet classes (`huet-bg-12`), resolved by `mountTheme` on
+  - Colors come from Huet classes (`huet-bg-10`), resolved by `mountTheme` on
     the container. The color rules from core/styles.css are repeated here,
     scoped to the container, so the host doesn't need huet/styles.css.
 */
