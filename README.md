@@ -1,8 +1,8 @@
 # huet-react
 
-A floating theme editor for [Huet](https://www.npmjs.com/package/huet) themes, for React apps. Pick from preset themes, edit the palette, ramps, and background, and import or export themes as JSON. The theme is applied to your page through Huet classes as you edit.
+A floating theme editor for [Huet](https://www.npmjs.com/package/huet) themes, for React apps. Pick from preset themes, edit the neutral ramp, hues, contrast, signal lightness and image settings, and import or export themes as JSON.
 
-[Try it in the demo](https://markmiro.github.io/huet/) (the theme button in the header).
+[Try it in the demo](https://markmiro.github.io/huet/) (the theme button in the header, or the panel in the bottom-right corner).
 
 ## Install
 
@@ -14,80 +14,82 @@ pnpm add huet huet-react   # or: npm install huet huet-react
 
 ## Use
 
-Theme an element and let the configurator remember the theme in localStorage:
+The configurator edits a Huet `Theme` and hands each edit to `onChange`. Your page applies it, with the same functions it uses without the configurator, and stores it wherever it likes:
 
 ```tsx
+import { useLayoutEffect, useRef, useState } from "react";
+import { mountTheme, themes, type Theme } from "huet";
+import { mountImages } from "huet/images";
 import { ThemeConfigurator } from "huet-react";
 import "huet/styles.css"; // styles for the huet-* classes on your page
 
 export function App() {
+  const [theme, setTheme] = useState<Theme>(themes.Base);
+  const [dark, setDark] = useState(false);
+  const background = dark ? 0 : 1;
+
+  const page = useRef<HTMLElement>(null);
+  const mounts = useRef<{ colors: ReturnType<typeof mountTheme>; images: ReturnType<typeof mountImages> }>(undefined);
+  useLayoutEffect(() => {
+    if (!mounts.current) {
+      mounts.current = {
+        colors: mountTheme(page.current!, theme, { background }),
+        images: mountImages(page.current!, theme), // recolors <img data-huet-recolor>
+      };
+    } else {
+      mounts.current.colors.update(theme, { background });
+      mounts.current.images.update(theme);
+    }
+  }, [theme, background]);
+
   return (
     <>
-      <main id="app" className="huet-bg-5">
+      <main ref={page} className="huet-bg-5">
         <p className="huet-text-60">Secondary text</p>
-        <button className="huet-bg-blue-20">Save</button>
+        <button className="huet-bg-blue-20" onClick={() => setDark(!dark)}>
+          Dark mode
+        </button>
       </main>
-      <ThemeConfigurator target="#app" />
+      <ThemeConfigurator
+        value={theme}
+        onChange={setTheme}
+        background={background}
+        onBackgroundChange={(next) => setDark(next < 0.5)}
+      />
     </>
   );
 }
 ```
 
-Or control the theme yourself, for example to store it on the server or to theme images as well:
-
-```tsx
-import { useState } from "react";
-import { mountTheme } from "huet";
-import { mountImages } from "huet/images";
-import { baseThemeConfig, themeFromConfig, type ThemeConfig } from "huet/config";
-import { ThemeConfigurator } from "huet-react";
-
-const root = document.querySelector<HTMLElement>("#app")!;
-const initial = themeFromConfig(baseThemeConfig);
-const colors = mountTheme(root, initial);
-const images = mountImages(root, initial); // recolors <img data-huet-recolor>
-
-export function ThemeEditor() {
-  const [config, setConfig] = useState<ThemeConfig>(baseThemeConfig);
-  return (
-    <ThemeConfigurator
-      value={config}
-      onChange={(next) => {
-        setConfig(next);
-        const theme = themeFromConfig(next);
-        colors.update(theme);
-        images.update(theme);
-      }}
-    />
-  );
-}
-```
+To keep the theme across reloads, save it yourself and check it with `checkTheme` from `huet` when you load it.
 
 ## Props
 
 | Prop | Type | Effect |
 | --- | --- | --- |
-| `target` | `HTMLElement \| string` | An element or selector to theme through Huet classes. It can't be `body` or `html`, because the panel itself lives in `body`. Leave it out to apply the theme yourself in `onChange`. |
-| `value` | `ThemeConfig` | The theme, for a controlled configurator. Edits call `onChange` instead of being saved. |
-| `defaultValue` | `ThemeConfig` | The starting theme when uncontrolled. Defaults to Huet's base theme. Edits are saved in localStorage and restored on reload. |
-| `onChange` | `(config: ThemeConfig) => void` | Called with the edited theme. When uncontrolled, it is also called once on mount with the restored theme. |
+| `value` | `Theme` | The theme being edited. |
+| `onChange` | `(theme: Theme) => void` | Called with every edit, and when a theme is picked from `themes`. |
+| `themes` | `Record<string, Theme>` | The themes to pick from, by name. Defaults to Huet's presets (`themes` from `huet`). A `value` that matches none of them is listed first as "Custom". |
+| `onThemesChange` | `(themes: Record<string, Theme>) => void` | Called with a new list when someone saves an edited theme as new, renames, removes or imports one. Leave it out and the list is fixed: imports replace the current theme instead. |
+| `background` | `number` | Where your page's background sits on the theme's neutral ramp, from 0 (dark) to 1 (light, the default). The configurator previews themes on it. It isn't part of the theme, so your page's light/dark switch sets it. |
+| `onBackgroundChange` | `(background: number) => void` | Called when someone picks a background (0%, 25%, 75% or 100%) in the editor. Leave it out to hide the picker. |
 
-`ThemeConfig` is the format the configurator edits and exports. `themeFromConfig` from `huet/config` turns it into a theme for `mountTheme` and `mountImages`.
+The panel remembers only its own UI state (which tab is open, whether it's collapsed) in localStorage.
 
 ## Embedded theme configurator
 
 `EmbeddedThemeConfigurator` is the configurator behind a compact button you place anywhere in your layout, such as a toolbar. The button shows a mini map of the current theme: the theme's colors as dots, from highest to lowest contrast, over a pill of its gray ramp. Clicking it opens the configurator in a popover with two tabs:
 
-- **Themes**: the saved themes as a simple list, each on its own background. Import a theme, save edits as a new theme, reset them, or remove the selected theme.
+- **Themes**: `themes` as a simple list, each on your page's background. Import a theme, reset edits, and, with `onThemesChange`, save edits as a new theme or remove one.
 - **Edit Theme**: the same editor as `ThemeConfigurator`.
 
 ```tsx
 import { EmbeddedThemeConfigurator } from "huet-react";
 
-<EmbeddedThemeConfigurator target="#app" mode="contrast" />;
+<EmbeddedThemeConfigurator value={theme} onChange={setTheme} background={background} mode="contrast" />;
 ```
 
-It takes the same `target`, `value`, `defaultValue`, and `onChange` props as `ThemeConfigurator`, plus:
+It takes the same props as `ThemeConfigurator`, plus:
 
 | Prop | Type | Effect |
 | --- | --- | --- |
@@ -95,7 +97,7 @@ It takes the same `target`, `value`, `defaultValue`, and `onChange` props as `Th
 | `side`, `align` | Radix Popover placement | Where the popover opens. Defaults to below, aligned to the end. |
 | `style` | `CSSProperties` | Inline styles for the wrapper, such as margins. Use this rather than a class: the wrapper resets its styles (see [Styling](#styling)), which overrides layered utilities such as Tailwind's. |
 
-Uncontrolled pickers and configurators on one page share the saved theme, so they stay in sync. Give only one of them a `target`.
+Give a picker and a configurator the same `value` and `onChange`, and they stay in sync.
 
 ## Styling
 

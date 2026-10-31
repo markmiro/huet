@@ -1,9 +1,10 @@
 import { default as React } from 'react';
-import { ThemeConfig } from 'huet/config';
+import { Theme } from 'huet';
 export declare function JsonUploadButton({ children, className, onUpload, }: {
     children?: React.ReactNode;
     className?: string;
-    onUpload: (themeConfig: ThemeConfig) => void;
+    /** Called with the theme and a name from the file's name: `Sunset Huet Theme.json` is `Sunset`. */
+    onUpload: (theme: Theme, name: string) => void;
 }): React.JSX.Element;
 type ButtonProps = {
     as?: React.ElementType;

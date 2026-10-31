@@ -1,6 +1,10 @@
-import { Theme } from 'huet/config';
-export default function BgColors({ theme, bgRampValue, onRampValueChange, }: {
+import { Theme } from 'huet';
+/**
+ * Background positions to pick from, each previewed in the edited theme. Its
+ * colors come from that theme, not the panel's, so they're set inline.
+ */
+export default function BgColors({ theme, background, onChange, }: {
     theme: Theme;
-    bgRampValue: number;
-    onRampValueChange: (value: number) => void;
+    background: number;
+    onChange: (background: number) => void;
 }): import('react').JSX.Element;

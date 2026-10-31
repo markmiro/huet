@@ -1,35 +1,32 @@
 import { default as React } from 'react';
-import { ThemeConfig } from 'huet/config';
-type Target = string | HTMLElement;
+import { Theme } from 'huet';
 export interface ThemeConfiguratorProps {
+    /** The theme being edited. */
+    value: Theme;
     /**
-     * An element or selector to theme through Huet classes such as
-     * `huet-bg-10`. Leave it out to apply the theme yourself, for example with
-     * `mountTheme(root, themeFromConfig(config))` in `onChange`.
+     * Called with every edit, and when a theme is picked from `themes`. Apply
+     * the theme yourself, with `mountTheme`, `themeCss` or `recolorImage`.
      */
-    target?: Target;
-    /** The theme, for a controlled configurator. Edits call `onChange`. */
-    value?: ThemeConfig;
+    onChange: (theme: Theme) => void;
+    /** The themes to pick from, by name. Defaults to Huet's presets. */
+    themes?: Readonly<Record<string, Theme>>;
     /**
-     * The starting theme when uncontrolled. The configurator saves edits in
-     * localStorage and restores them on reload.
+     * Called with a new list when someone saves, renames, removes or imports a
+     * theme. Leave it out for a fixed list.
      */
-    defaultValue?: ThemeConfig;
+    onThemesChange?: (themes: Record<string, Theme>) => void;
     /**
-     * Called with the edited theme. When uncontrolled, it is also called once on
-     * mount with the restored theme.
+     * Where your page's background sits on the theme's neutral ramp, from 0
+     * (dark) to 1 (light). The configurator previews themes on it. It isn't
+     * part of the theme, so a light/dark switch on your page sets it. Defaults to 1.
      */
-    onChange?: (config: ThemeConfig) => void;
+    background?: number;
+    /** Called when someone picks a background in the configurator. Leave it out to hide the picker. */
+    onBackgroundChange?: (background: number) => void;
 }
-type WithChildren = {
+/** Shares the edited theme with `children` through ThemeConfiguratorContext. */
+export declare function ConfiguratorRoot({ value, onChange, themes, onThemesChange, background, onBackgroundChange, children, }: ThemeConfiguratorProps & {
     children?: React.ReactNode;
-};
-/**
- * Holds the edited theme, controlled or saved in localStorage, applies it to
- * `target`, and shares it with `children` through ThemeConfiguratorContext.
- */
-export declare function ConfiguratorRoot({ componentName, children, ...props }: ThemeConfiguratorProps & WithChildren & {
-    componentName: string;
 }): React.JSX.Element;
 /**
  * A floating theme editor, fixed to the bottom-right corner of the viewport.
@@ -37,4 +34,3 @@ export declare function ConfiguratorRoot({ componentName, children, ...props }: 
  * styles, so it needs no CSS import.
  */
 export default function ThemeConfigurator(props: ThemeConfiguratorProps): React.JSX.Element;
-export {};

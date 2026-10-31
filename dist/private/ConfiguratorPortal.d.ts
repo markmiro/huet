@@ -1,5 +1,5 @@
 import { default as React } from 'react';
-import { ThemeConfig } from 'huet/config';
+import { Theme } from 'huet';
 /** One shared stylesheet, so consumers don't import any CSS. */
 export declare function injectStyles(): void;
 /**
@@ -7,9 +7,10 @@ export declare function injectStyles(): void;
  * document.body. The scoped styles in configurator.css only apply there, and
  * the host's transforms or overflow can't break the panel's `position: fixed`.
  * The container is a Huet root, so `huet-*` classes inside it resolve against
- * `themeConfig`.
+ * `theme` on `background`.
  */
-export default function ConfiguratorPortal({ themeConfig, children, }: {
-    themeConfig: ThemeConfig;
+export default function ConfiguratorPortal({ theme, background, children, }: {
+    theme: Theme;
+    background: number;
     children?: React.ReactNode;
 }): React.ReactPortal | null;
