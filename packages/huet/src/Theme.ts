@@ -10,6 +10,7 @@ export { rampModes };
 export type { RampMode } from "./colorModel";
 
 const allowed = [
+  "images",
   "id",
   "name",
   "pallet",

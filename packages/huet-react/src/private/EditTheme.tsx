@@ -5,13 +5,15 @@ import type { Theme, ThemeConfig } from "huet/config";
 import { VSpace } from "./AllExceptFirst";
 import BgColors from "./BgColors";
 import Button from "./Button";
+import Checkbox from "./Checkbox";
 import ColorRamps from "./ColorRamps";
 import Input from "./Input";
 import Labeled from "./Labeled";
 import Pallet from "./Pallet";
 import Range from "./Range";
+import imageSettings from "./imageSettings";
 
-/** Edits the theme's name, background, contrast, palette and signal lightness. */
+/** Edits the theme's name, background, contrast, palette, signal lightness and image theming. */
 export default function EditTheme({
   theme,
   themerTheme,
@@ -23,6 +25,7 @@ export default function EditTheme({
   onThemeConfigChange: (config: ThemeConfig) => void;
 }) {
   const themeConfig = theme.config;
+  const images = imageSettings(themeConfig);
 
   function modify<K extends keyof ThemeConfig>(key: K) {
     return (newValue: ThemeConfig[K]) => {
@@ -99,6 +102,17 @@ export default function EditTheme({
           max={1}
           decimals={2}
         />
+        <Checkbox
+          label="Theme images"
+          value={images.enabled}
+          onChange={enabled => modify("images")({ ...images, enabled })}
+        />
+        {images.enabled && <>
+          <Range label="Image tint" value={images.tint * 100}
+            onChange={tint => modify("images")({ ...images, tint: Math.max(0, Math.min(100, tint)) / 100 })} />
+          <Range label="Image strength" value={images.strength * 100}
+            onChange={strength => modify("images")({ ...images, strength: Math.max(0, Math.min(100, strength)) / 100 })} />
+        </>}
       </VSpace>
     </>
   );

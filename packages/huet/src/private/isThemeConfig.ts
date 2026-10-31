@@ -9,7 +9,7 @@ function isRecord(value: unknown): value is Record<string, unknown> {
 // files that still have them keep working.
 const removedKeys = ["rescaleSaturationToGrayRange"];
 
-const isNumber = (value: unknown) =>
+const isNumber = (value: unknown): value is number =>
   typeof value === "number" && Number.isFinite(value);
 
 /**
@@ -35,6 +35,13 @@ export default function isThemeConfig(value: unknown): value is ThemeConfig {
     isNumber(value.contrastMultiplier) &&
     typeof value.rescaleContrastToGrayRange === "boolean";
   if (!isValidShape) return false;
+  if (value.images !== undefined) {
+    const images = value.images;
+    if (!isRecord(images) || typeof images.enabled !== "boolean" ||
+        !isNumber(images.tint) || images.tint < 0 || images.tint > 1 ||
+        !isNumber(images.strength) || images.strength < 0 || images.strength > 1)
+      return false;
+  }
 
   try {
     new Theme(value as unknown as ThemeConfig);
