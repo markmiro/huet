@@ -13,7 +13,7 @@ pnpm add huet   # or: npm install huet
 | Entry point | Contents |
 | --- | --- |
 | `huet` | `createTheme`, `mountTheme`, class validation |
-| `huet/images` | `mountImages`, `recolorImage`, and the lower-level recoloring functions |
+| `huet/images` | `mountImages`, `mountSvgs`, `recolorImage`, and the lower-level recoloring functions |
 | `huet/config` | The theme config format that `huet-react` and exported theme files use, and `themeFromConfig` |
 | `huet/styles.css` | Huet's class styles |
 | `huet/tailwind.css` | The same styles as a Tailwind v4 bridge |
@@ -320,6 +320,21 @@ img[data-huet-recolor]:not([data-huet-recolored]) { visibility: hidden; }
 ```
 
 Rendering runs on the GPU (WebGL2) and falls back to the CPU. The browser must be able to read the pixels, so cross-origin images need CORS headers and a `crossorigin` attribute. Images it can't read are shown as they are, without a canvas. `<picture>` sources are not recolored.
+
+### Inline SVGs
+
+`mountSvgs` recolors inline SVGs with the same mapping, and keeps them as vectors:
+
+```ts
+import { mountSvgs } from "huet/images";
+
+const svgs = mountSvgs(document.body, sunset); // recolors <svg data-huet-recolor>
+svgs.update(paper);
+```
+
+Solid fills, strokes, and gradient stops are mapped, including the black that SVG paints by default. Their alpha is kept, as are `none`, paint servers (`url(#gradient)`), and `opacity`, `fill-opacity`, and `stop-opacity`. Paints that use `currentColor` or a CSS variable, whether declared on the element or inherited, are left alone, since the page's CSS already themes them. Mapped colors are written where the original came from: as presentation attributes (`fill="…"`) for attribute and default paints, so the page's CSS rules, `:hover` included, still outrank them, and as inline styles for paints set in CSS. They go on the SVG, on elements that declare their own paint, and on gradient stops; children that inherit a paint follow their parent. Each update maps the original paints, so switching themes never compounds. SVGs added later, or whose paints change, are recolored at the next frame, and removed or opted-out SVGs get their own styles back, as does every SVG on `destroy()`. `await svgs.ready()` applies pending changes right away. Options are `selector` (default `svg[data-huet-recolor]`), `strength`, `tint`, `invert`, and `source`, as for images.
+
+To find CSS-driven paints, `mountSvgs` reads the page's stylesheets, matching rules in document order with `!important` ones first; it doesn't compare specificity or cascade layers, and it can't read cross-origin stylesheets, whose paints count as solid colors. A change to an ancestor's `class` rescans the SVGs, but changes to ancestors' inline styles or to stylesheets are picked up at the next update.
 
 For canvases, video frames, or your own pipeline, use the lower-level functions:
 

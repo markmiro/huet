@@ -1,0 +1,2 @@
+# Unified diff context includes a prefix space on otherwise blank lines.
+scripts/shadcn-huet/integration.patch -whitespace

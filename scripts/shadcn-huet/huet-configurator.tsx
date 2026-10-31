@@ -2,7 +2,7 @@
 
 import chroma from "chroma-js"
 import { themeFromConfig, type ThemeConfig } from "huet/config"
-import { mountImages } from "huet/images"
+import { mountImages, mountSvgs } from "huet/images"
 import { ThemeConfigurator } from "huet-react"
 
 /**
@@ -112,6 +112,7 @@ function applyHuet(config: ThemeConfig) {
   paintCharts(chartSteps)
   paintTopNav(background)
   paintImages(theme)
+  paintSvgs(theme)
   const dark = luminance(background) < 0.4
   root.classList.toggle("dark", dark)
   root.style.colorScheme = dark ? "dark" : "light"
@@ -488,6 +489,18 @@ function paintImages(theme: ReturnType<typeof themeFromConfig>) {
     imageMount = mountImages(document.body, theme)
     void imageMount.ready()
   } else imageMount.update(theme)
+}
+
+let svgMount: ReturnType<typeof mountSvgs> | null = null
+
+/**
+ * Recolor inline SVGs marked `data-huet-recolor`, such as the home page's QR
+ * code, as vectors. Paints that use currentColor or a CSS variable already
+ * follow the theme tokens and are left alone.
+ */
+function paintSvgs(theme: ReturnType<typeof themeFromConfig>) {
+  if (!svgMount) svgMount = mountSvgs(document.body, theme)
+  else svgMount.update(theme)
 }
 
 /** Floating Huet editor. Edits repaint every shadcn color token. */
