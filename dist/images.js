@@ -1,6 +1,175 @@
 import { a as e, d as t, f as n, h as r, i, l as a, o, p as s, r as c, t as l, u } from "./theme-DneS7YmB.js";
+// src/core/filters.ts
+var d = (e) => Math.min(1, Math.max(0, e)), f = (e) => (t) => {
+	let [n, r, i] = t;
+	t[0] = d(e[0] * n + e[1] * r + e[2] * i), t[1] = d(e[3] * n + e[4] * r + e[5] * i), t[2] = d(e[6] * n + e[7] * r + e[8] * i);
+}, p = (e, t) => (n) => {
+	for (let r = 0; r < 3; r++) n[r] = d(e * n[r] + t);
+}, m = (e) => [
+	.213 + .787 * e,
+	.715 - .715 * e,
+	.072 - .072 * e,
+	.213 - .213 * e,
+	.715 + .285 * e,
+	.072 - .072 * e,
+	.213 - .213 * e,
+	.715 - .715 * e,
+	.072 + .928 * e
+], h = {
+	grayscale: (e) => {
+		let t = 1 - Math.min(1, e);
+		return f([
+			.2126 + .7874 * t,
+			.7152 - .7152 * t,
+			.0722 - .0722 * t,
+			.2126 - .2126 * t,
+			.7152 + .2848 * t,
+			.0722 - .0722 * t,
+			.2126 - .2126 * t,
+			.7152 - .7152 * t,
+			.0722 + .9278 * t
+		]);
+	},
+	sepia: (e) => {
+		let t = 1 - Math.min(1, e);
+		return f([
+			.393 + .607 * t,
+			.769 - .769 * t,
+			.189 - .189 * t,
+			.349 - .349 * t,
+			.686 + .314 * t,
+			.168 - .168 * t,
+			.272 - .272 * t,
+			.534 - .534 * t,
+			.131 + .869 * t
+		]);
+	},
+	saturate: (e) => f(m(e)),
+	"hue-rotate": (e) => {
+		let t = Math.cos(e * Math.PI / 180), n = Math.sin(e * Math.PI / 180);
+		return f([
+			.213 + t * .787 - n * .213,
+			.715 - t * .715 - n * .715,
+			.072 - t * .072 + n * .928,
+			.213 - t * .213 + n * .143,
+			.715 + t * .285 + n * .14,
+			.072 - t * .072 - n * .283,
+			.213 - t * .213 - n * .787,
+			.715 - t * .715 + n * .715,
+			.072 + t * .928 + n * .072
+		]);
+	},
+	invert: (e) => p(1 - 2 * Math.min(1, e), Math.min(1, e)),
+	brightness: (e) => p(e, 0),
+	contrast: (e) => p(e, .5 - .5 * e)
+};
+function g(e) {
+	let t = [], n = /([a-z-]+)\(/gi, r;
+	for (; r = n.exec(e);) {
+		let i = 1, a = n.lastIndex;
+		for (; a < e.length && i; a++) e[a] === "(" ? i++ : e[a] === ")" && i--;
+		t.push({
+			name: r[1].toLowerCase(),
+			args: e.slice(n.lastIndex, a - 1).trim(),
+			text: e.slice(r.index, a)
+		}), n.lastIndex = a;
+	}
+	return t;
+}
+function _(e, t) {
+	let n = parseFloat(t);
+	return e === "hue-rotate" ? t ? t.endsWith("grad") ? n * .9 : t.endsWith("rad") ? n * 180 / Math.PI : t.endsWith("turn") ? n * 360 : n : 0 : t ? t.endsWith("%") ? n / 100 : n : 1;
+}
+var v = (e) => g(e).some(({ name: e }) => e in h);
+function y(e) {
+	let t = [], n = [];
+	for (let { name: r, args: i, text: a } of g(e)) {
+		let e = h[r];
+		e ? t.push(e(_(r, i))) : n.push(a);
+	}
+	return {
+		apply: t.length ? (e, n, r) => {
+			let i = [
+				e,
+				n,
+				r
+			];
+			for (let e of t) e(i);
+			return i;
+		} : null,
+		rest: n.join(" ") || "none"
+	};
+}
+function b(e) {
+	let t = C.get(e);
+	if (!t) return getComputedStyle(e).filter;
+	let { style: n } = e;
+	n.setProperty("filter", t.value, t.priority);
+	let r = getComputedStyle(e).filter;
+	return n.setProperty("filter", t.written, "important"), r;
+}
+function x(e, t) {
+	let n = [], r = [];
+	for (let i = e; i; i = i.parentElement) {
+		let a = b(i);
+		a !== "none" && v(a) && (i === e || t(i) || S(i, t) ? n : r).push({
+			el: i,
+			filter: a
+		});
+	}
+	return {
+		folded: n,
+		stuck: r,
+		key: n.map(({ filter: e }) => e).join(" ")
+	};
+}
+function S(e, t) {
+	let n = !1;
+	for (let r of e.childNodes) if (r.nodeType === Node.TEXT_NODE) {
+		if (r.textContent.trim()) return !1;
+	} else if (r instanceof Element) {
+		if (t(r)) n = !0;
+		else if (getComputedStyle(r).display === "none") continue;
+		else if (S(r, t)) n = !0;
+		else return !1;
+	}
+	return n;
+}
+var C = /* @__PURE__ */ new Map();
+function w(e, t, n) {
+	let r = y(n).rest, i = C.get(e);
+	if (!i) {
+		let t = e.style;
+		C.set(e, i = {
+			value: t.getPropertyValue("filter"),
+			priority: t.getPropertyPriority("filter"),
+			attribute: e.getAttribute("style"),
+			cssText: t.cssText,
+			written: r,
+			holders: /* @__PURE__ */ new Set()
+		});
+	}
+	i.holders.add(t), i.written = r, e.style.setProperty("filter", r, "important");
+}
+function T(e, t) {
+	let n = C.get(e);
+	if (!n || !n.holders.delete(t) || n.holders.size) return;
+	C.delete(e);
+	let r = e.style;
+	r.getPropertyValue("filter") === n.written && (n.value ? r.setProperty("filter", n.value, n.priority) : r.removeProperty("filter"), r.cssText === n.cssText && (n.attribute === null ? e.removeAttribute("style") : e.setAttribute("style", n.attribute)));
+}
+function E(e) {
+	let t = e.id ? `#${e.id}` : "", n = e.getAttribute("class")?.trim(), r = n ? `.${n.split(/\s+/).join(".")}` : "";
+	return `<${e.tagName.toLowerCase()}${t}${r}>`;
+}
+function D(e, t, n) {
+	for (let { el: r, filter: i } of n) {
+		let n = e.get(t);
+		n || e.set(t, n = /* @__PURE__ */ new Set()), !n.has(r) && (n.add(r), reportError(/* @__PURE__ */ Error(`Huet recolored ${E(t)}, but its ancestor ${E(r)} has \`filter: ${i}\`, which recolors it again after Huet. Huet can't lift that filter, since the ancestor also shows other content. Move the filter onto the image or SVG (or a wrapper around only it), or remove it.`)));
+	}
+}
 // src/core/gpu.ts
-var d = "#version 300 es\nin vec2 position;\nout vec2 uv;\nvoid main() {\n  uv = position * 0.5 + 0.5;\n  gl_Position = vec4(position, 0.0, 1.0);\n}", f = "#version 300 es\nprecision highp float;\nprecision highp sampler3D;\nuniform sampler2D image;\nuniform sampler3D lut;\nuniform float size;\nin vec2 uv;\nout vec4 color;\nvoid main() {\n  vec4 c = texture(image, vec2(uv.x, 1.0 - uv.y));\n  // Sample lattice centers so 0 and 1 hit the first and last LUT entries.\n  vec3 p = (c.rgb * (size - 1.0) + 0.5) / size;\n  color = vec4(texture(lut, p).rgb, c.a);\n}", p = class {
+var O = "#version 300 es\nin vec2 position;\nout vec2 uv;\nvoid main() {\n  uv = position * 0.5 + 0.5;\n  gl_Position = vec4(position, 0.0, 1.0);\n}", k = "#version 300 es\nprecision highp float;\nprecision highp sampler3D;\nuniform sampler2D image;\nuniform sampler3D lut;\nuniform float size;\nin vec2 uv;\nout vec4 color;\nvoid main() {\n  vec4 c = texture(image, vec2(uv.x, 1.0 - uv.y));\n  // Sample lattice centers so 0 and 1 hit the first and last LUT entries.\n  vec3 p = (c.rgb * (size - 1.0) + 0.5) / size;\n  color = vec4(texture(lut, p).rgb, c.a);\n}", A = class {
 	constructor() {
 		this.canvas = document.createElement("canvas"), this.textures = /* @__PURE__ */ new WeakMap(), this.scratch = null, this.currentLut = null;
 		let e = this.canvas.getContext("webgl2", {
@@ -10,7 +179,7 @@ var d = "#version 300 es\nin vec2 position;\nout vec2 uv;\nvoid main() {\n  uv =
 		if (!e) throw Error("WebGL2 is not available");
 		this.gl = e;
 		let t = e.createProgram();
-		for (let [n, r] of [[e.VERTEX_SHADER, d], [e.FRAGMENT_SHADER, f]]) {
+		for (let [n, r] of [[e.VERTEX_SHADER, O], [e.FRAGMENT_SHADER, k]]) {
 			let i = e.createShader(n);
 			if (e.shaderSource(i, r), e.compileShader(i), !e.getShaderParameter(i, e.COMPILE_STATUS)) throw Error(e.getShaderInfoLog(i) ?? "Shader error");
 			e.attachShader(t, i);
@@ -61,9 +230,9 @@ var d = "#version 300 es\nin vec2 position;\nout vec2 uv;\nvoid main() {\n  uv =
 		let e = /* @__PURE__ */ new Uint8Array(4);
 		this.gl.readPixels(0, 0, 1, 1, this.gl.RGBA, this.gl.UNSIGNED_BYTE, e);
 	}
-}, m = { neutral: ["#000000", "#ffffff"] }, h = (e) => e < .20689655172413793 ? (e / t) ** 2 : 1, g = /* @__PURE__ */ new Map();
-function _(t) {
-	let n = JSON.stringify(t), a = g.get(n);
+}, j = { neutral: ["#000000", "#ffffff"] }, M = (e) => e < .20689655172413793 ? (e / t) ** 2 : 1, N = /* @__PURE__ */ new Map();
+function P(t) {
+	let n = JSON.stringify(t), a = N.get(n);
 	if (a) return a;
 	l(t);
 	let { colors: s } = t, { ramp: d } = e(o(t)), f = /* @__PURE__ */ new Float64Array(257), p = /* @__PURE__ */ new Float64Array(257), m = /* @__PURE__ */ new Float64Array(257);
@@ -71,26 +240,26 @@ function _(t) {
 		let [t, n, i] = r(d(e / 256));
 		f[e] = Math.max(u(t), e ? f[e - 1] : 0), p[e] = n, m[e] = i;
 	}
-	let h = f[0], _ = f[256], v = [0, 0], y = (e) => {
-		let t = h + e * (_ - h), n = 0, r = 256;
+	let h = f[0], g = f[256], _ = [0, 0], v = (e) => {
+		let t = h + e * (g - h), n = 0, r = 256;
 		if (t <= h) r = 0;
-		else if (t >= _) n = 256;
+		else if (t >= g) n = 256;
 		else for (; r - n > 1;) {
 			let e = n + r >> 1;
 			f[e] < t ? n = e : r = e;
 		}
 		let i = f[r] > f[n] ? (t - f[n]) / (f[r] - f[n]) : 0;
-		return v[0] = p[n] + i * (p[r] - p[n]), v[1] = m[n] + i * (m[r] - m[n]), v;
-	}, b = i.map((e) => r(s?.[e] ?? c[e]));
+		return _[0] = p[n] + i * (p[r] - p[n]), _[1] = m[n] + i * (m[r] - m[n]), _;
+	}, y = i.map((e) => r(s?.[e] ?? c[e]));
 	return a = {
 		low: h,
-		high: _,
-		neutralAt: y,
-		a: Float64Array.from(b, (e) => e[1]),
-		b: Float64Array.from(b, (e) => e[2])
-	}, g.size >= 64 && g.clear(), g.set(n, a), a;
+		high: g,
+		neutralAt: v,
+		a: Float64Array.from(y, (e) => e[1]),
+		b: Float64Array.from(y, (e) => e[2])
+	}, N.size >= 64 && N.clear(), N.set(n, a), a;
 }
-function v(e) {
+function F(e) {
 	let t = i.length, n = (t) => Math.atan2(e.b[t], e.a[t]), r = Array.from({ length: t }, (e, t) => t).sort((e, t) => n(e) - n(t)), a = r.map((n, i) => {
 		let a = r[(i + 1) % t], [o, s, c, l] = [
 			e.a[n],
@@ -117,11 +286,11 @@ function v(e) {
 		w1: 0
 	};
 	return ([n, r, i]) => {
-		let s = (u(n) - o) / c, [d, f] = e.neutralAt(s), p = h(n), m = (r - d) * p, g = (i - f) * p;
-		if (l.t = s, l.w0 = l.w1 = 0, m * m + g * g < 1e-10) return l;
+		let s = (u(n) - o) / c, [d, f] = e.neutralAt(s), p = M(n), m = (r - d) * p, h = (i - f) * p;
+		if (l.t = s, l.w0 = l.w1 = 0, m * m + h * h < 1e-10) return l;
 		for (let { i0: e, i1: t, det: n, m: r } of a) {
 			if (n <= 1e-12) continue;
-			let i = r[0] * m + r[1] * g, a = r[2] * m + r[3] * g;
+			let i = r[0] * m + r[1] * h, a = r[2] * m + r[3] * h;
 			if (i >= -1e-9 && a >= -1e-9) return Object.assign(l, {
 				i0: e,
 				i1: t,
@@ -129,49 +298,50 @@ function v(e) {
 				w1: Math.max(0, a)
 			}), l;
 		}
-		let _ = -Infinity;
+		let g = -Infinity;
 		for (let n = 0; n < t; n++) {
-			let t = e.a[n] ** 2 + e.b[n] ** 2, r = (m * e.a[n] + g * e.b[n]) / (t || 1), i = r * Math.sqrt(t);
-			i > _ && (Object.assign(l, {
+			let t = e.a[n] ** 2 + e.b[n] ** 2, r = (m * e.a[n] + h * e.b[n]) / (t || 1), i = r * Math.sqrt(t);
+			i > g && (Object.assign(l, {
 				i0: n,
 				i1: n,
 				w0: Math.max(0, r),
 				w1: 0
-			}), _ = i);
+			}), g = i);
 		}
 		return l;
 	};
 }
-function y([e, t, r], a = m) {
-	let { t: o, i0: s, i1: c, w0: l, w1: u } = v(_(a))(n(e, t, r)), d = {};
+function I([e, t, r], a = j) {
+	let { t: o, i0: s, i1: c, w0: l, w1: u } = F(P(a))(n(e, t, r)), d = {};
 	return l > 1e-6 && (d[i[s]] = l), u > 1e-6 && (d[i[c]] = (d[i[c]] ?? 0) + u), {
 		t: o,
 		weights: d
 	};
 }
-function b(e, t = {}, r = "images") {
-	let i = _(e), o = e[r]?.strength ?? 1, c = e[r]?.tint ?? 1;
+function L(e, t = {}, r = "images") {
+	let i = P(e), o = e[r]?.strength ?? 1, c = e[r]?.tint ?? 1;
 	if (!(o >= 0 && o <= 1)) throw RangeError("strength must be between 0 and 1");
 	if (!(c >= 0 && c <= 1)) throw RangeError("tint must be between 0 and 1");
-	let l = v(_(t.source ?? m)), { low: u, high: d } = i;
-	return (e, r, f) => {
-		let p = n(e, r, f), { t: m, i0: g, i1: _, w0: v, w1: y } = l(p), b = t.invert ? 1 - m : m, x = c + (1 - c) * Math.max(0, 1 - v - y), S = a(u + b * (d - u)), C = 1 / Math.max(h(S), 1e-6), [w, T] = i.neutralAt(b), E = [
+	let l = F(P(t.source ?? j)), u = t.filter ? y(t.filter).apply : null, { low: d, high: f } = i;
+	return (e, r, p) => {
+		u && ([e, r, p] = u(e, r, p));
+		let m = n(e, r, p), { t: h, i0: g, i1: _, w0: v, w1: y } = l(m), b = t.invert ? 1 - h : h, x = c + (1 - c) * Math.max(0, 1 - v - y), S = a(d + b * (f - d)), C = 1 / Math.max(M(S), 1e-6), [w, T] = i.neutralAt(b), E = [
 			S,
 			x * w + C * (v * i.a[g] + y * i.a[_]),
 			x * T + C * (v * i.b[g] + y * i.b[_])
 		];
-		return s(o === 1 ? E : p.map((e, t) => e + (E[t] - e) * o));
+		return s(o === 1 ? E : m.map((e, t) => e + (E[t] - e) * o));
 	};
 }
-function x(e, t, n) {
-	let { low: r, high: o, neutralAt: c, a: l, b: u } = _(e), d = n ? i.indexOf(n) : -1, [f, p] = c(t);
+function R(e, t, n) {
+	let { low: r, high: o, neutralAt: c, a: l, b: u } = P(e), d = n ? i.indexOf(n) : -1, [f, p] = c(t);
 	return s([
 		a(r + t * (o - r)),
 		f + (d >= 0 ? l[d] : 0),
 		p + (d >= 0 ? u[d] : 0)
 	]);
 }
-function S(e, t = 33) {
+function z(e, t = 33) {
 	let n = new Float32Array(t ** 3 * 3), r = 0;
 	for (let i = 0; i < t; i++) for (let a = 0; a < t; a++) for (let o = 0; o < t; o++) {
 		let s = e(o / (t - 1), a / (t - 1), i / (t - 1));
@@ -179,7 +349,7 @@ function S(e, t = 33) {
 	}
 	return n;
 }
-function C(e, t, n) {
+function B(e, t, n) {
 	let r = /* @__PURE__ */ new Int32Array(256), i = /* @__PURE__ */ new Float32Array(256);
 	for (let e = 0; e < 256; e++) {
 		let t = e / 255 * (n - 1);
@@ -194,33 +364,34 @@ function C(e, t, n) {
 		}
 	}
 }
-function w(e, t) {
+function ee(e, t) {
 	for (let n = 0; n < e.length; n += 4) {
 		let r = t(e[n] / 255, e[n + 1] / 255, e[n + 2] / 255);
 		e[n] = r[0] * 255, e[n + 1] = r[1] * 255, e[n + 2] = r[2] * 255;
 	}
 }
-function T(e, t, n = "Huet theme") {
+function te(e, t, n = "Huet theme") {
 	let r = [`TITLE "${n.replace(/"/g, "'")}"`, `LUT_3D_SIZE ${t}`];
 	for (let t = 0; t < e.length; t += 3) r.push(`${e[t].toFixed(6)} ${e[t + 1].toFixed(6)} ${e[t + 2].toFixed(6)}`);
 	return r.join("\n") + "\n";
 }
 // src/core/svgs.ts
-var E = /currentcolor|var\(|context-(?:fill|stroke)/i, D = /^\s*(?:inherit|unset)\s*$/i, O = /* @__PURE__ */ new Set([
+var ne = /currentcolor|var\(|context-(?:fill|stroke)/i, V = /^\s*(?:inherit|unset)\s*$/i, H = /* @__PURE__ */ new Set([
 	"fill",
 	"stroke",
 	"stop-color",
 	"style",
-	"class"
-]), k = /* @__PURE__ */ new WeakMap();
-function A(e) {
+	"class",
+	"href"
+]), U = /* @__PURE__ */ new WeakMap();
+function W(e) {
 	let t;
 	try {
 		t = e.cssRules;
 	} catch {
 		return [];
 	}
-	let n = k.get(e);
+	let n = U.get(e);
 	if (n?.size === t.length) return n.rules;
 	let r = [], i = (e, t) => {
 		for (let n of e) if (n instanceof CSSStyleRule) for (let e of [
@@ -239,19 +410,19 @@ function A(e) {
 		}
 		else n instanceof CSSMediaRule ? i(n.cssRules, [...t, matchMedia(n.media.mediaText)]) : n instanceof CSSSupportsRule ? CSS.supports(n.conditionText) && i(n.cssRules, t) : n instanceof CSSGroupingRule && n.constructor.name !== "CSSStartingStyleRule" && i(n.cssRules, t);
 	};
-	return i(t, []), k.set(e, {
+	return i(t, []), U.set(e, {
 		size: t.length,
 		rules: r
 	}), r;
 }
-var j = (e, t) => {
+var G = (e, t) => {
 	try {
 		return e.matches(t);
 	} catch {
 		return !1;
 	}
-}, M;
-function N(e) {
+}, K;
+function q(e) {
 	let t = /^rgba?\(\s*([\d.]+)[\s,]+([\d.]+)[\s,]+([\d.]+)\s*(?:[,/]\s*([\d.]+)(%?))?\s*\)$/i.exec(e);
 	if (t) {
 		let e = t[4] === void 0 ? 1 : Number(t[4]) / (t[5] ? 100 : 1);
@@ -263,12 +434,12 @@ function N(e) {
 		];
 	}
 	if (!/^(?:oklch|oklab|lch|lab|hwb|hsla?|color)\(/i.test(e)) return null;
-	if (!M) {
+	if (!K) {
 		let e = document.createElement("canvas");
-		e.width = e.height = 1, M = e.getContext("2d", { willReadFrequently: !0 });
+		e.width = e.height = 1, K = e.getContext("2d", { willReadFrequently: !0 });
 	}
-	M.clearRect(0, 0, 1, 1), M.fillStyle = "transparent", M.fillStyle = e, M.fillRect(0, 0, 1, 1);
-	let [n, r, i, a] = M.getImageData(0, 0, 1, 1).data;
+	K.clearRect(0, 0, 1, 1), K.fillStyle = "transparent", K.fillStyle = e, K.fillRect(0, 0, 1, 1);
+	let [n, r, i, a] = K.getImageData(0, 0, 1, 1).data;
 	return [
 		n,
 		r,
@@ -276,30 +447,40 @@ function N(e) {
 		a / 255
 	];
 }
-function P(e, t, n = {}) {
-	let { selector: r = "svg[data-huet-recolor]", ...i } = n, a = i, o = b(t, a, "svgs"), s = t.svgs?.strength === 0, c = /* @__PURE__ */ new Map(), l, u = !1, d = /* @__PURE__ */ new Map(), f = /* @__PURE__ */ new Set(), p = (e, { hadStyle: t, paints: n }) => {
+function J(e, t, n = {}) {
+	let { selector: r = "svg[data-huet-recolor], [data-huet-recolor] svg", ...i } = n, a = i, o = t, s = /* @__PURE__ */ new Map(), c = t.svgs?.strength === 0, l = /* @__PURE__ */ new Map(), u = /* @__PURE__ */ new Map(), d, f = !1, p = /* @__PURE__ */ new Map(), m = [], h = {}, g = /* @__PURE__ */ new WeakMap(), _ = /* @__PURE__ */ new Set(), v = /* @__PURE__ */ new WeakMap(), y = /* @__PURE__ */ new Set();
+	L(t, a, "svgs");
+	let b = /* @__PURE__ */ new Set(), S = (e, { hadStyle: t, paints: n }) => {
 		for (let [t, { via: r, value: i, priority: a, written: o }] of n) if (r === "attribute") {
 			if (e.getAttribute(t) !== o) continue;
 			i === null ? e.removeAttribute(t) : e.setAttribute(t, i);
 		} else e.style.getPropertyValue(t) === o && (i ? e.style.setProperty(t, i, a) : e.style.removeProperty(t));
 		!t && e.getAttribute("style") === "" && e.removeAttribute("style");
-	}, m = ([e, t, n, r]) => {
-		let i = `${e} ${t} ${n} ${r}`, a = c.get(i);
-		if (!a) {
-			let s = o(e / 255, t / 255, n / 255).map((e) => Math.round(Math.min(1, Math.max(0, e)) * 255));
-			a = r === 1 ? `rgb(${s.join(", ")})` : `rgba(${s.join(", ")}, ${r})`, c.set(i, a);
+	}, C = (e) => {
+		let t = s.get(e);
+		return t || s.set(e, t = L(o, e ? {
+			...a,
+			filter: e
+		} : a, "svgs")), t;
+	}, O = ([e, t, n, r], i) => {
+		let a = `${i}|${e} ${t} ${n} ${r}`, o = l.get(a);
+		if (!o) {
+			let s = C(i)(e / 255, t / 255, n / 255).map((e) => Math.round(Math.min(1, Math.max(0, e)) * 255));
+			o = r === 1 ? `rgb(${s.join(", ")})` : `rgba(${s.join(", ")}, ${r})`, l.set(a, o);
 		}
-		return a;
-	}, h = () => {
-		if (l !== void 0 && cancelAnimationFrame(l), l = void 0, u) return;
-		for (let [e, t] of d) p(e, t);
-		if (d.clear(), f = /* @__PURE__ */ new Set(), s) {
-			v.takeRecords();
+		return o;
+	}, k = () => {
+		if (d !== void 0 && cancelAnimationFrame(d), d = void 0, f) return;
+		for (let [e, t] of p) S(e, t);
+		p.clear();
+		for (let e of m) T(e, h);
+		if (m = [], b = /* @__PURE__ */ new Set(), c) {
+			N.takeRecords();
 			return;
 		}
-		e instanceof SVGElement && e.matches(r) && f.add(e);
-		for (let t of e.querySelectorAll(r)) t instanceof SVGElement && f.add(t);
-		let t = e.getRootNode(), n = [...t.styleSheets, ...t.adoptedStyleSheets].flatMap(A).filter((e) => e.media.every((e) => e.matches)), i = (e, t, n) => {
+		e instanceof SVGElement && e.matches(r) && b.add(e);
+		for (let t of e.querySelectorAll(r)) t instanceof SVGElement && b.add(t);
+		let t = e.getRootNode(), n = [...t.styleSheets, ...t.adoptedStyleSheets].flatMap(W).filter((e) => e.media.every((e) => e.matches)), i = (e, t, n) => {
 			let r = e.style, i = r?.getPropertyValue(t) ?? "";
 			if (i && r.getPropertyPriority(t) === "important") return [
 				i,
@@ -307,7 +488,7 @@ function P(e, t, n = {}) {
 				!0
 			];
 			let a = "", o = "";
-			for (let r of n) r.paint === t && j(e, r.selector) && (r.important ? o = r.value : a = r.value);
+			for (let r of n) r.paint === t && G(e, r.selector) && (r.important ? o = r.value : a = r.value);
 			if (o) return [
 				o,
 				"rule",
@@ -339,44 +520,60 @@ function P(e, t, n = {}) {
 			let l = c.get(e);
 			if (l !== void 0) return l;
 			let [u] = i(e, t, r.contains(e) ? s : n);
-			return l = u && !D.test(u) ? E.test(u) : t === "stop-color" && !u ? !1 : e.parentElement ? o(e.parentElement, t, r, s) : !1, c.set(e, l), l;
-		}, c = [], h = /* @__PURE__ */ new Set();
-		for (let e of f) {
-			let t = n.filter(({ selector: t }) => j(e, t) || e.querySelector(t) !== null);
+			return l = u && !V.test(u) ? ne.test(u) : t === "stop-color" && !u ? !1 : e.parentElement ? o(e.parentElement, t, r, s) : !1, c.set(e, l), l;
+		}, s = [], l = [], y = /* @__PURE__ */ new Set(), C = /* @__PURE__ */ new Map();
+		for (let e of b) {
+			let t = x(e, (e) => b.has(e));
+			D(g, e, t.stuck);
+			for (let { el: e, filter: n } of t.folded) C.set(e, n);
+			let r = n.filter(({ selector: t }) => G(e, t) || e.querySelector(t) !== null);
 			for (let n of [e, ...e.querySelectorAll("*")]) {
-				if (!(n instanceof SVGElement) || h.has(n)) continue;
-				h.add(n);
-				let r = n instanceof SVGStopElement ? ["stop-color"] : ["fill", "stroke"];
-				for (let a of r) {
-					let [r, s, l] = i(n, a, t);
-					if ((!r || D.test(r)) && a !== "stop-color" && !f.has(n) || o(n, a, e, t)) continue;
-					let u = N(getComputedStyle(n).getPropertyValue(a));
-					u && u[3] > 0 && c.push([
+				if (!(n instanceof SVGElement) || y.has(n)) continue;
+				if (y.add(n), n instanceof SVGImageElement) {
+					l.push([n, t.key]);
+					continue;
+				}
+				let a = n instanceof SVGStopElement ? ["stop-color"] : ["fill", "stroke"];
+				for (let c of a) {
+					let [a, l, u] = i(n, c, r);
+					if ((!a || V.test(a)) && c !== "stop-color" && !b.has(n) || o(n, c, e, r)) continue;
+					let d = q(getComputedStyle(n).getPropertyValue(c));
+					d && d[3] > 0 && s.push([
 						n,
-						a,
+						c,
+						d,
+						l,
 						u,
-						s,
-						l
+						t.key
 					]);
 				}
 			}
 		}
-		for (let [e, t, n, r, i] of c) {
-			let a = d.get(e);
-			a || d.set(e, a = {
+		let E = (e) => {
+			let t = p.get(e);
+			return t || p.set(e, t = {
 				hadStyle: e.hasAttribute("style"),
 				paints: /* @__PURE__ */ new Map()
-			});
-			let o = m(n);
-			if (r === "attribute" || r === "") a.paints.set(t, {
+			}), t;
+		}, k = (e, t, n) => {
+			E(e).paints.set(t, {
 				via: "attribute",
 				value: e.getAttribute(t),
 				priority: "",
-				written: o
-			}), e.setAttribute(t, o);
+				written: n
+			}), e.setAttribute(t, n);
+		};
+		for (let [e, t, n, r, i, a] of s) {
+			let o = E(e), s = O(n, a);
+			if (r === "attribute" || r === "") o.paints.set(t, {
+				via: "attribute",
+				value: e.getAttribute(t),
+				priority: "",
+				written: s
+			}), e.setAttribute(t, s);
 			else {
 				let n = e.style.getPropertyValue(t), r = e.style.getPropertyPriority(t);
-				e.style.setProperty(t, o, i ? "important" : ""), a.paints.set(t, {
+				e.style.setProperty(t, s, i ? "important" : ""), o.paints.set(t, {
 					via: "style",
 					value: n || null,
 					priority: r,
@@ -384,43 +581,77 @@ function P(e, t, n = {}) {
 				});
 			}
 		}
-		v.takeRecords();
-	}, g = () => {
-		!u && l === void 0 && (l = requestAnimationFrame(h));
-	}, _ = ({ type: e, target: t, attributeName: n, addedNodes: i, removedNodes: a }) => {
+		for (let [e, t] of l) {
+			let n = e.getAttribute("href") ?? e.getAttributeNS("http://www.w3.org/1999/xlink", "href");
+			if (!n || _.has(n)) continue;
+			let r = `${t}|${n}`, i = u.get(r);
+			i === void 0 && u.set(r, i = A(e, n, t, r));
+			let a = v.get(e), o = typeof i == "string" ? i : a?.href === n ? a.url : void 0;
+			o ? (v.set(e, {
+				href: n,
+				url: o
+			}), k(e, "href", o)) : k(e, "visibility", "hidden");
+		}
+		for (let [e, t] of C) w(e, h, t), m.push(e);
+		N.takeRecords();
+	}, A = (e, t, n, r) => {
+		let i = u, s = (async () => {
+			let s = new Image(), c = new URL(t, e.baseURI);
+			c.protocol !== "data:" && c.origin !== location.origin && (s.crossOrigin = "anonymous"), s.src = c.href;
+			try {
+				if (await s.decode(), u !== i) return;
+				let e = Q(s, {
+					...o,
+					images: o.svgs
+				}, n ? {
+					...a,
+					filter: n
+				} : a);
+				i.set(r, e.toDataURL());
+			} catch (n) {
+				_.add(t), reportError(Error(`Huet couldn't read the raster <image> inside ${E(e.ownerSVGElement ?? e)}, so it keeps its own colors. Cross-origin images need CORS headers.`, { cause: n }));
+			}
+			j();
+		})();
+		return y.add(s), s.finally(() => y.delete(s)), s;
+	}, j = () => {
+		!f && d === void 0 && (d = requestAnimationFrame(k));
+	}, M = ({ type: e, target: t, attributeName: n, addedNodes: i, removedNodes: a }) => {
 		if (!(t instanceof Element)) return !1;
 		let o = t.closest(r) !== null;
-		if (e === "attributes") return f.has(t) || t.matches(r) ? !0 : o ? O.has(n) : n === "class" && t.querySelector(r) !== null;
+		if (e === "attributes") return b.has(t) || t.matches(r) ? !0 : o ? H.has(n) : n === "class" && t.querySelector(r) !== null;
 		if (o) return !0;
 		for (let e of [...i, ...a]) if (e instanceof Element && (e.matches(r) || e.querySelector(r) !== null)) return !0;
 		return !1;
-	}, v = new MutationObserver((e) => {
-		e.some(_) && g();
+	}, N = new MutationObserver((e) => {
+		e.some(M) && j();
 	});
-	return v.observe(e, {
+	return N.observe(e, {
 		subtree: !0,
 		childList: !0,
 		attributes: !0
-	}), h(), {
+	}), k(), {
 		update(e, t) {
-			if (u) throw Error("Cannot update a destroyed Huet SVG mount");
-			t && (a = t), o = b(e, a, "svgs"), s = e.svgs?.strength === 0, c = /* @__PURE__ */ new Map(), g();
+			if (f) throw Error("Cannot update a destroyed Huet SVG mount");
+			t && (a = t), L(e, a, "svgs"), o = e, s = /* @__PURE__ */ new Map(), c = e.svgs?.strength === 0, l = /* @__PURE__ */ new Map(), u = /* @__PURE__ */ new Map(), j();
 		},
 		async ready() {
-			u || (l !== void 0 || v.takeRecords().some(_)) && h();
+			if (!f) for ((d !== void 0 || N.takeRecords().some(M)) && k(); y.size && !f;) await Promise.all(y), k();
 		},
 		destroy() {
-			if (!u) {
-				u = !0, l !== void 0 && cancelAnimationFrame(l), v.disconnect();
-				for (let [e, t] of d) p(e, t);
-				d.clear(), f.clear();
+			if (!f) {
+				f = !0, d !== void 0 && cancelAnimationFrame(d), N.disconnect();
+				for (let [e, t] of p) S(e, t);
+				p.clear();
+				for (let e of m) T(e, h);
+				m = [], b.clear();
 			}
 		}
 	};
 }
 // src/core/images.ts
-var F = /* @__PURE__ */ new Map();
-function I(e, { lutSize: t = 17, ...n }) {
+var Y = /* @__PURE__ */ new Map();
+function re(e, { lutSize: t = 17, ...n }) {
 	let r = JSON.stringify([
 		e.neutral,
 		e.colorModel,
@@ -428,92 +659,100 @@ function I(e, { lutSize: t = 17, ...n }) {
 		e.images,
 		n,
 		t
-	]), i = F.get(r);
-	return i || (F.size >= 16 && F.clear(), F.set(r, i = S(b(e, n), t))), i;
+	]), i = Y.get(r);
+	return i || (Y.size >= 16 && Y.clear(), Y.set(r, i = z(L(e, n), t))), i;
 }
-var L, R = () => {
-	if (L === void 0) try {
-		L = new p();
+var X, Z = () => {
+	if (X === void 0) try {
+		X = new A();
 	} catch {
-		L = null;
+		X = null;
 	}
-	return L;
-}, z = () => R() !== null, B = (e) => e instanceof HTMLImageElement ? [e.naturalWidth, e.naturalHeight] : [e.width, e.height];
-function V(e, t, n = {}, r = document.createElement("canvas")) {
-	let [i, a] = B(e), { renderer: o = "gpu", ...s } = n, c = s.lutSize ?? 17, l = I(t, s), u = o === "gpu" ? R() : null;
+	return X;
+}, ie = () => Z() !== null, ae = (e) => e instanceof HTMLImageElement ? [e.naturalWidth, e.naturalHeight] : [e.width, e.height];
+function Q(e, t, n = {}, r = document.createElement("canvas")) {
+	let [i, a] = ae(e), { renderer: o = "gpu", ...s } = n, c = s.lutSize ?? 17, l = re(t, s), u = o === "gpu" ? Z() : null;
 	if (u) return u.setLut(l, c), u.render(e, r, i, a), r;
 	r.width !== i && (r.width = i), r.height !== a && (r.height = a);
 	let d = r.getContext("2d", { willReadFrequently: !0 });
 	d.clearRect(0, 0, i, a), d.drawImage(e, 0, 0);
 	let f = d.getImageData(0, 0, i, a);
-	return C(f.data, l, c), d.putImageData(f, 0, 0), r;
+	return B(f.data, l, c), d.putImageData(f, 0, 0), r;
 }
-var H = [
+var $ = [
 	"class",
 	"title",
 	"alt"
 ];
-function U(e, t, n = {}) {
-	let { selector: r = "img[data-huet-recolor]", hoverOriginal: i = !1, ...a } = n, o = t, s = a, c = 0, l, u = !1, d = /* @__PURE__ */ new Map(), f = /* @__PURE__ */ new Map(), p = /* @__PURE__ */ new Map(), m = /* @__PURE__ */ new Set(), h = (e, t) => {
+function oe(e, t, n = {}) {
+	let { selector: r = "img[data-huet-recolor], [data-huet-recolor] img", hoverOriginal: i = !1, ...a } = n, o = t, s = a, c = 0, l, u = !1, d = /* @__PURE__ */ new Map(), f = /* @__PURE__ */ new Map(), p = /* @__PURE__ */ new Map(), m = /* @__PURE__ */ new WeakMap(), h = (e) => d.has(e) || f.has(e), g = /* @__PURE__ */ new Set(), _ = (e, t) => {
 		let n = `${t} ${e}`, r = p.get(n);
 		if (!r) {
 			let i = new Image();
 			i.crossOrigin = t, i.src = e, p.set(n, r = i.decode().then(() => i)), r.catch(() => p.delete(n));
 		}
 		return r;
-	}, g = (e, t, n, r) => {
+	}, v = (e, t, n, r) => {
 		let i = t.saved.get(n);
 		if (r === void 0) {
 			if (!i) return;
 			t.saved.delete(n), i[0] ? e.style.setProperty(n, i[0], i[1]) : e.style.removeProperty(n);
 		} else i || t.saved.set(n, [e.style.getPropertyValue(n), e.style.getPropertyPriority(n)]), e.style.setProperty(n, r, "important");
-	}, _ = (e, t, n) => {
+	}, y = (e, t, n) => {
 		let r = e.getAttribute(n);
 		n === "alt" ? (r ? t.setAttribute("aria-label", r) : t.removeAttribute("aria-label"), r === "" ? t.setAttribute("aria-hidden", "true") : t.removeAttribute("aria-hidden")) : r === null ? t.removeAttribute(n) : t.setAttribute(n, r);
-	}, v = (e, t) => {
+	}, b = (e, t) => {
 		let n = document.createElement("canvas");
 		n.setAttribute("role", "img");
-		for (let t of H) _(e, n, t);
+		for (let t of $) y(e, n, t);
 		n.style.cssText = e.style.cssText;
 		for (let [e, [r, i]] of t.saved) r ? n.style.setProperty(e, r, i) : n.style.removeProperty(e);
 		if (i) {
 			let r = () => {
-				t.hovering = !0, b(e, t);
+				t.hovering = !0, E(e, t);
 			}, i = () => {
-				t.hovering = !1, b(e, t);
+				t.hovering = !1, E(e, t);
 			};
 			n.addEventListener("pointerenter", r), e.addEventListener("pointerleave", i), t.leave = () => e.removeEventListener("pointerleave", i);
 		}
-		return f.set(n, e), D.observe(n), n;
-	}, y = (e) => e.ready && !e.failed && !e.hovering, b = (e, t) => {
-		let { canvas: n } = t;
-		n && y(t) ? (e.nextSibling !== n && e.after(n), g(e, t, "display", "none")) : (n?.remove(), g(e, t, "display")), t.ready || t.failed ? g(e, t, "visibility") : g(e, t, "visibility", "hidden"), t.failed ? e.setAttribute("data-huet-recolored", "original") : t.ready ? e.setAttribute("data-huet-recolored", "") : e.removeAttribute("data-huet-recolored");
-	}, x = (e, t) => {
-		t.failed = !0, t.ready = !1, b(e, t);
-	}, S = (e, t) => {
-		t.leave?.(), t.canvas && (t.canvas.remove(), f.delete(t.canvas), D.unobserve(t.canvas)), D.unobserve(e);
-		for (let n of [...t.saved.keys()]) g(e, t, n);
-		e.removeAttribute("data-huet-recolored"), d.delete(e);
-	}, C = (e, t) => {
-		try {
-			let n = t.canvas ??= v(e, t);
-			V(t.image, o, s, n), t.drawn = c, t.ready = !0, b(e, t);
-		} catch {
-			x(e, t);
+		return f.set(n, e), P.observe(n), n;
+	}, S = (e) => e.ready && !e.failed && !e.hovering, C = (e, t, n) => {
+		for (let { el: r, filter: i } of t.filters) {
+			let a = r === e ? t.canvas : r;
+			a && (n ? w(a, t, i) : T(a, t));
 		}
-	}, w = (e) => e.image && !e.failed && e.drawn !== c, T = (e = !1) => {
+	}, E = (e, t) => {
+		let { canvas: n } = t, r = !!n && S(t);
+		C(e, t, r), r ? (e.nextSibling !== n && e.after(n), v(e, t, "display", "none")) : (n?.remove(), v(e, t, "display")), t.ready || t.failed ? v(e, t, "visibility") : v(e, t, "visibility", "hidden"), t.failed ? e.setAttribute("data-huet-recolored", "original") : t.ready ? e.setAttribute("data-huet-recolored", "") : e.removeAttribute("data-huet-recolored");
+	}, O = (e, t) => {
+		t.failed = !0, t.ready = !1, E(e, t);
+	}, k = (e, t) => {
+		t.leave?.(), C(e, t, !1), t.canvas && (t.canvas.remove(), f.delete(t.canvas), P.unobserve(t.canvas)), P.unobserve(e);
+		for (let n of [...t.saved.keys()]) v(e, t, n);
+		e.removeAttribute("data-huet-recolored"), d.delete(e);
+	}, A = (e, t) => {
+		try {
+			let n = t.canvas ??= b(e, t), { folded: r, stuck: i, key: a } = x(e, h);
+			D(m, e, i), C(e, t, !1), t.filters = r, Q(t.image, o, a ? {
+				...s,
+				filter: a
+			} : s, n), t.drawn = c, t.ready = !0, E(e, t);
+		} catch {
+			O(e, t);
+		}
+	}, j = (e) => e.image && !e.failed && e.drawn !== c, M = (e = !1) => {
 		l = void 0;
-		for (let [t, n] of d) w(n) && (e || n.near.img || n.near.canvas) && C(t, n);
-	}, E = () => {
-		u || l !== void 0 || (l = requestAnimationFrame(() => T()));
-	}, D = new IntersectionObserver((e) => {
+		for (let [t, n] of d) j(n) && (e || n.near.img || n.near.canvas) && A(t, n);
+	}, N = () => {
+		u || l !== void 0 || (l = requestAnimationFrame(() => M()));
+	}, P = new IntersectionObserver((e) => {
 		for (let { target: t, isIntersecting: n } of e) {
 			let e = t instanceof HTMLCanvasElement, r = e ? f.get(t) : t, i = r && d.get(r);
-			i && (i.near[e ? "canvas" : "img"] = n, n && w(i) && E());
+			i && (i.near[e ? "canvas" : "img"] = n, n && j(i) && N());
 		}
-	}, { rootMargin: "100% 0px" }), O = (e) => {
-		m.add(e), e.finally(() => m.delete(e));
-	}, k = (e) => {
+	}, { rootMargin: "100% 0px" }), F = (e) => {
+		g.add(e), e.finally(() => g.delete(e));
+	}, I = (e) => {
 		let t = {
 			ready: !1,
 			drawn: -1,
@@ -524,43 +763,44 @@ function U(e, t, n = {}) {
 				canvas: !1
 			},
 			generation: 0,
-			saved: /* @__PURE__ */ new Map()
+			saved: /* @__PURE__ */ new Map(),
+			filters: []
 		};
-		d.set(e, t), D.observe(e), A(e, t);
-	}, A = (e, t) => {
+		d.set(e, t), P.observe(e), L(e, t);
+	}, L = (e, t) => {
 		let n = ++t.generation;
-		t.image = void 0, t.ready = t.failed = t.hovering = !1, b(e, t);
+		t.image = void 0, t.ready = t.failed = t.hovering = !1, E(e, t);
 		let r = async () => {
 			if (d.get(e) !== t || n !== t.generation) return;
 			let r = (e.srcset ? e.currentSrc : "") || e.src;
-			if (!r) return x(e, t);
+			if (!r) return O(e, t);
 			try {
-				let i = await h(r, e.crossOrigin);
+				let i = await _(r, e.crossOrigin);
 				if (d.get(e) !== t || n !== t.generation) return;
-				t.image = i, t.drawn = -1, E();
+				t.image = i, t.drawn = -1, N();
 			} catch {
-				d.get(e) === t && n === t.generation && x(e, t);
+				d.get(e) === t && n === t.generation && O(e, t);
 			}
 		};
-		O(e.complete ? r() : new Promise((i) => {
-			e.addEventListener("load", () => i(r()), { once: !0 }), e.addEventListener("error", () => i(d.get(e) === t && n === t.generation ? x(e, t) : void 0), { once: !0 });
+		F(e.complete ? r() : new Promise((i) => {
+			e.addEventListener("load", () => i(r()), { once: !0 }), e.addEventListener("error", () => i(d.get(e) === t && n === t.generation ? O(e, t) : void 0), { once: !0 });
 		}));
-	}, j = () => {
+	}, R = () => {
 		if (u) return;
 		let t = /* @__PURE__ */ new Set();
 		e instanceof HTMLImageElement && e.matches(r) && t.add(e);
 		for (let n of e.querySelectorAll(r)) n instanceof HTMLImageElement && t.add(n);
-		for (let [e, n] of d) t.has(e) ? y(n) && e.nextSibling !== n.canvas && b(e, n) : S(e, n);
-		for (let e of t) d.has(e) || k(e);
-	}, M = new MutationObserver((e) => {
+		for (let [e, n] of d) t.has(e) ? S(n) && e.nextSibling !== n.canvas && E(e, n) : k(e, n);
+		for (let e of t) d.has(e) || I(e);
+	}, z = new MutationObserver((e) => {
 		for (let { type: t, target: n, attributeName: r } of e) {
 			if (t !== "attributes" || !(n instanceof HTMLImageElement)) continue;
 			let e = d.get(n);
-			e && (H.includes(r) ? e.canvas && _(n, e.canvas, r) : r !== "data-huet-recolor" && A(n, e));
+			e && ($.includes(r) ? e.canvas && y(n, e.canvas, r) : r !== "data-huet-recolor" && L(n, e));
 		}
-		j();
+		R();
 	});
-	return j(), M.observe(e, {
+	return R(), z.observe(e, {
 		subtree: !0,
 		childList: !0,
 		attributes: !0,
@@ -569,27 +809,27 @@ function U(e, t, n = {}) {
 			"srcset",
 			"sizes",
 			"data-huet-recolor",
-			...H
+			...$
 		]
 	}), {
 		update(e, t) {
 			if (u) throw Error("Cannot update a destroyed Huet image mount");
-			o = e, t && (s = t), c++, E();
+			o = e, t && (s = t), c++, N();
 		},
 		async ready() {
 			do
-				await Promise.all(m), u || T(!0);
-			while (m.size);
+				await Promise.all(g), u || M(!0);
+			while (g.size);
 		},
 		destroy() {
 			if (!u) {
-				u = !0, l !== void 0 && cancelAnimationFrame(l), M.disconnect(), D.disconnect();
-				for (let [e, t] of d) S(e, t);
-				m = /* @__PURE__ */ new Set();
+				u = !0, l !== void 0 && cancelAnimationFrame(l), z.disconnect(), P.disconnect();
+				for (let [e, t] of d) k(e, t);
+				g = /* @__PURE__ */ new Set();
 			}
 		}
 	};
 }
-export { p as GpuRecolor, C as applyLut, w as applyTransform, S as buildLut, y as coordinatesOf, z as hasGpu, U as mountImages, P as mountSvgs, x as rampColor, V as recolorImage, b as recolorer, T as toCube };
+export { A as GpuRecolor, B as applyLut, ee as applyTransform, z as buildLut, I as coordinatesOf, ie as hasGpu, oe as mountImages, J as mountSvgs, R as rampColor, Q as recolorImage, L as recolorer, te as toCube };
 
 //# sourceMappingURL=images.js.map

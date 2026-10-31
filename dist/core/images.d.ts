@@ -23,7 +23,10 @@ type Source = HTMLImageElement | HTMLCanvasElement | ImageBitmap;
  */
 export declare function recolorImage(source: Source, theme: Theme, options?: ImageOptions, out?: HTMLCanvasElement): HTMLCanvasElement;
 export interface MountImagesOptions extends ImageOptions {
-    /** Which images to recolor. Defaults to `img[data-huet-recolor]`. */
+    /**
+     * Which images to recolor. Defaults to `img[data-huet-recolor], [data-huet-recolor] img`:
+     * marked images, and every image inside a marked element.
+     */
     selector?: string;
     /** Show the original image while the pointer is over it. */
     hoverOriginal?: boolean;
@@ -36,6 +39,12 @@ export interface MountImagesOptions extends ImageOptions {
  * New originals stay hidden until their recolored copy is ready to paint.
  * Theme updates redraw once per frame, and images far outside the viewport
  * are redrawn when they scroll near it. `destroy` removes the canvases.
+ *
+ * Color functions of a CSS `filter` on the image, such as `grayscale(1)`, are
+ * applied before recoloring and lifted from the canvas, since they would
+ * otherwise wash out the theme. So are filters on ancestors that wrap only
+ * recolored images. A color filter on an ancestor that also shows other
+ * content can't be lifted, so it's reported as an error, once per image.
  */
 export declare function mountImages(root: ParentNode & Node, theme: Theme, options?: MountImagesOptions): {
     /** Recolor every image into a new theme, optionally with new options. */

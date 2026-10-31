@@ -15,6 +15,13 @@ export interface RecolorOptions {
      * theme, since inverted photos read as negatives.
      */
     invert?: boolean;
+    /**
+     * A CSS `filter` the image is shown with, such as `grayscale(1)`. Its color
+     * functions run before recoloring, so the result can be shown without the
+     * filter, which would otherwise wash out the theme. Other functions, like
+     * `blur()`, are ignored.
+     */
+    filter?: string;
 }
 /** Coordinates of a color in a theme's ramps (useful for inspecting a pixel). */
 export declare function coordinatesOf([r, g, b]: Triple, source?: Theme): Coordinates;
