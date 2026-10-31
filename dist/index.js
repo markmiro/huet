@@ -2,62 +2,62 @@ import e, { useCallback as t, useContext as n, useEffect as r, useLayoutEffect a
 import { mountTheme as l } from "huet";
 import { Color as u, Theme as d, baseThemeConfig as f, getLightness as p, parseThemeConfig as m, rampModes as h, themeConfigs as g, themeFromConfig as ee } from "huet/config";
 import { Fragment as _, jsx as v, jsxs as y } from "react/jsx-runtime";
-import { createPortal as b } from "react-dom";
-import te from "file-saver";
-import x from "chroma-js";
-import { chunk as ne, first as re, flatMap as ie, initial as ae, isEqual as oe, last as se, map as ce, range as S, tail as le } from "lodash-es";
-import * as C from "@radix-ui/react-popover";
-import { IconCheck as ue, IconChevronDown as de } from "@tabler/icons-react";
+import { createPortal as te } from "react-dom";
+import ne from "file-saver";
+import b from "chroma-js";
+import { chunk as re, first as ie, flatMap as ae, initial as oe, isEqual as se, last as ce, map as le, range as x, tail as ue } from "lodash-es";
+import * as S from "@radix-ui/react-popover";
+import { IconCheck as de, IconChevronDown as fe } from "@tabler/icons-react";
 // src/context.ts
-var fe = e.createContext(null);
-function w() {
-	let e = n(fe);
+var pe = e.createContext(null);
+function C() {
+	let e = n(pe);
 	if (!e) throw Error("Only available inside ThemeConfigurator");
 	return e;
 }
 // src/private/cx.ts
-function T(...e) {
+function w(...e) {
 	return e.filter(Boolean).join(" ");
 }
 // src/private/AllExceptFirst.tsx
-var pe = {
+var me = {
 	1: "hc:ml-1",
 	2: "hc:ml-2",
 	3: "hc:ml-4"
-}, me = {
+}, he = {
 	1: "hc:mt-1",
 	2: "hc:mt-2",
 	3: "hc:mt-4"
 };
-function he({ exceptFirst: t, each: n, children: r }) {
+function ge({ exceptFirst: t, each: n, children: r }) {
 	return e.Children.map(r, (e, r) => /* @__PURE__ */ v("div", {
-		className: T(r > 0 && t, n) || void 0,
+		className: w(r > 0 && t, n) || void 0,
 		children: e
 	}));
 }
-function E({ size: e = 1, growEach: t, children: n, className: r }) {
+function T({ size: e = 1, growEach: t, children: n, className: r }) {
 	return /* @__PURE__ */ v("div", {
-		className: T("hc:flex hc:flex-row", r),
-		children: /* @__PURE__ */ v(he, {
+		className: w("hc:flex hc:flex-row", r),
+		children: /* @__PURE__ */ v(ge, {
 			each: t ? "hc:grow" : void 0,
-			exceptFirst: pe[e],
+			exceptFirst: me[e],
 			children: n
 		})
 	});
 }
-function D({ size: e = 1, children: t, className: n }) {
+function E({ size: e = 1, children: t, className: n }) {
 	return /* @__PURE__ */ v("div", {
-		className: T("hc:flex hc:flex-col", n),
-		children: /* @__PURE__ */ v(he, {
-			exceptFirst: me[e],
+		className: w("hc:flex hc:flex-col", n),
+		children: /* @__PURE__ */ v(ge, {
+			exceptFirst: he[e],
 			children: t
 		})
 	});
 }
 // src/private/Checkbox.tsx
-function ge({ label: e, value: t, onChange: n, className: r }) {
+function _e({ label: e, value: t, onChange: n, className: r }) {
 	return /* @__PURE__ */ y("label", {
-		className: T("huet-text-100 hc:inline-flex hc:relative hc:cursor-default", r),
+		className: w("huet-text-100 hc:inline-flex hc:relative hc:cursor-default", r),
 		children: [
 			/* @__PURE__ */ v("input", {
 				"aria-label": e,
@@ -75,25 +75,25 @@ function ge({ label: e, value: t, onChange: n, className: r }) {
 	});
 }
 // src/configurator.css?inline
-var _e = "/*! tailwindcss v4.3.3 | MIT License | https://tailwindcss.com */\n@layer properties{@supports (((-webkit-hyphens:none)) and (not (margin-trim:inline))) or ((-moz-orient:inline) and (not (color:rgb(from red r g b)))){*,:before,:after,::backdrop{--tw-translate-x:0;--tw-translate-y:0;--tw-translate-z:0;--tw-scale-x:1;--tw-scale-y:1;--tw-scale-z:1;--tw-border-style:solid;--tw-leading:initial;--tw-font-weight:initial;--tw-shadow:0 0 #0000;--tw-shadow-color:initial;--tw-shadow-alpha:100%;--tw-inset-shadow:0 0 #0000;--tw-inset-shadow-color:initial;--tw-inset-shadow-alpha:100%;--tw-ring-color:initial;--tw-ring-shadow:0 0 #0000;--tw-inset-ring-color:initial;--tw-inset-ring-shadow:0 0 #0000;--tw-ring-inset:initial;--tw-ring-offset-width:0px;--tw-ring-offset-color:#fff;--tw-ring-offset-shadow:0 0 #0000;--tw-outline-style:solid;--tw-duration:initial;--tw-ease:initial}}}:root,:host{--hc-spacing:.25rem;--hc-font-weight-normal:400;--hc-font-weight-bold:700;--hc-radius-xs:.125rem;--hc-radius-sm:.25rem;--hc-radius-md:.375rem;--hc-radius-lg:.5rem;--hc-default-transition-duration:.15s;--hc-default-transition-timing-function:cubic-bezier(.4, 0, .2, 1);--hc-font-ui:-apple-system, BlinkMacSystemFont, \"Segoe UI\", \"Roboto\", \"Oxygen\", \"Ubuntu\", \"Cantarell\", \"Fira Sans\", \"Droid Sans\", \"Helvetica Neue\", sans-serif}[data-huet-configurator]{all:initial}[data-huet-configurator] :where(:not(svg,svg *)){all:unset;box-sizing:border-box;display:block}[data-huet-configurator][data-huet-root],[data-huet-configurator][data-huet-color-bg],[data-huet-configurator] [data-huet-color-bg]{background-color:var(--huet-background);color:var(--huet-foreground)}[data-huet-configurator][data-huet-color-text],[data-huet-configurator] [data-huet-color-text]{color:var(--huet-relative-text,var(--huet-foreground))}[data-huet-configurator][data-huet-color-border],[data-huet-configurator] [data-huet-color-border]{border-color:var(--huet-relative-border)}[data-huet-configurator][data-huet-color-outline],[data-huet-configurator] [data-huet-color-outline]{outline-color:var(--huet-relative-outline)}@media (forced-colors:active){[data-huet-configurator][data-huet-root],[data-huet-configurator][data-huet-color-bg],[data-huet-configurator] [data-huet-color-bg]{color:canvastext;background-color:canvas}[data-huet-configurator][data-huet-color-text],[data-huet-configurator] [data-huet-color-text]{color:canvastext}[data-huet-configurator][data-huet-color-border],[data-huet-configurator] [data-huet-color-border]{border-color:buttonborder}[data-huet-configurator][data-huet-color-outline],[data-huet-configurator] [data-huet-color-outline]{outline-color:highlight}}[data-huet-configurator] :focus,[data-huet-configurator] [data-focus-within]:focus-within{z-index:1;box-shadow:0 0 0 2px #00f5,0 0 0 2px #fff5!important}[data-huet-configurator] input[type=range]{appearance:none;background:0 0;width:100%!important}[data-huet-configurator] input[type=range]::-webkit-slider-thumb{-webkit-appearance:none!important;background:currentColor!important;width:1px!important;height:1em!important}[data-huet-configurator] input[type=color]::-webkit-color-swatch-wrapper{padding:0;-webkit-appearance:none!important}[data-huet-configurator] input[type=color]::-webkit-color-swatch{border:none;padding:0}.hc\\:pointer-events-none{pointer-events:none}.hc\\:invisible{visibility:hidden}.hc\\:absolute{position:absolute}.hc\\:fixed{position:fixed}.hc\\:relative{position:relative}.hc\\:top-0{top:0}.hc\\:top-1\\/2{top:50%}.hc\\:right-\\[1em\\]{right:1em}.hc\\:bottom-0{bottom:0}.hc\\:bottom-\\[1em\\]{bottom:1em}.hc\\:left-0{left:0}.hc\\:left-1\\/2{left:50%}.hc\\:z-\\[999\\]{z-index:999}.hc\\:z-\\[1000\\]{z-index:1000}.hc\\:mx-2{margin-inline:calc(var(--hc-spacing) * 2)}.hc\\:-mt-2{margin-top:calc(var(--hc-spacing) * -2)}.hc\\:mt-1{margin-top:var(--hc-spacing)}.hc\\:mt-2{margin-top:calc(var(--hc-spacing) * 2)}.hc\\:mt-4{margin-top:calc(var(--hc-spacing) * 4)}.hc\\:mt-px{margin-top:1px}.hc\\:mr-1{margin-right:var(--hc-spacing)}.hc\\:mr-2{margin-right:calc(var(--hc-spacing) * 2)}.hc\\:mb-1{margin-bottom:var(--hc-spacing)}.hc\\:mb-2{margin-bottom:calc(var(--hc-spacing) * 2)}.hc\\:mb-\\[6px\\]{margin-bottom:6px}.hc\\:ml-1{margin-left:var(--hc-spacing)}.hc\\:ml-2{margin-left:calc(var(--hc-spacing) * 2)}.hc\\:ml-4{margin-left:calc(var(--hc-spacing) * 4)}.hc\\:flex{display:flex}.hc\\:inline{display:inline}.hc\\:inline-block{display:inline-block}.hc\\:inline-flex{display:inline-flex}.hc\\:size-\\[\\.625em\\]{width:.625em;height:.625em}.hc\\:size-\\[1\\.25em\\]{width:1.25em;height:1.25em}.hc\\:h-0{height:0}.hc\\:h-2{height:calc(var(--hc-spacing) * 2)}.hc\\:h-4{height:calc(var(--hc-spacing) * 4)}.hc\\:h-6{height:calc(var(--hc-spacing) * 6)}.hc\\:h-8{height:calc(var(--hc-spacing) * 8)}.hc\\:h-\\[\\.5em\\]{height:.5em}.hc\\:h-\\[\\.375em\\]{height:.375em}.hc\\:h-\\[4px\\]{height:4px}.hc\\:h-\\[min\\(40em\\,var\\(--radix-popover-content-available-height\\)\\)\\]{height:min(40em, var(--radix-popover-content-available-height))}.hc\\:h-\\[min\\(64em\\,100vh-2em\\)\\]{height:min(64em,100vh - 2em)}.hc\\:h-full{height:100%}.hc\\:min-h-0{min-height:0}.hc\\:w-0{width:0}.hc\\:w-\\[5em\\]{width:5em}.hc\\:w-\\[28em\\]{width:28em}.hc\\:w-\\[30em\\]{width:30em}.hc\\:w-full{width:100%}.hc\\:max-w-\\[30em\\]{max-width:30em}.hc\\:min-w-0{min-width:0}.hc\\:flex-auto{flex:auto}.hc\\:shrink-0{flex-shrink:0}.hc\\:grow{flex-grow:1}.hc\\:basis-\\[20em\\]{flex-basis:20em}.hc\\:-translate-x-1\\/2{--tw-translate-x:calc(calc(1 / 2 * 100%) * -1);translate:var(--tw-translate-x) var(--tw-translate-y)}.hc\\:-translate-y-1\\/2{--tw-translate-y:calc(calc(1 / 2 * 100%) * -1);translate:var(--tw-translate-x) var(--tw-translate-y)}.hc\\:translate-y-0{--tw-translate-y:0px;translate:var(--tw-translate-x) var(--tw-translate-y)}.hc\\:translate-y-\\[2em\\]{--tw-translate-y:2em;translate:var(--tw-translate-x) var(--tw-translate-y)}.hc\\:translate-y-px{--tw-translate-y:1px;translate:var(--tw-translate-x) var(--tw-translate-y)}.hc\\:scale-y-0{--tw-scale-y:0%;scale:var(--tw-scale-x) var(--tw-scale-y)}.hc\\:rotate-180{rotate:180deg}.hc\\:cursor-auto{cursor:auto}.hc\\:cursor-default{cursor:default}.hc\\:cursor-pointer{cursor:pointer}.hc\\:flex-col{flex-direction:column}.hc\\:flex-row{flex-direction:row}.hc\\:items-center{align-items:center}.hc\\:justify-between{justify-content:space-between}.hc\\:justify-center{justify-content:center}.hc\\:gap-1\\.5{gap:calc(var(--hc-spacing) * 1.5)}.hc\\:gap-\\[\\.5em\\]{gap:.5em}.hc\\:gap-\\[\\.25em\\]{gap:.25em}.hc\\:gap-\\[\\.75em\\]{gap:.75em}.hc\\:gap-\\[\\.375em\\]{gap:.375em}.hc\\:self-stretch{align-self:stretch}.hc\\:overflow-hidden{overflow:hidden}.hc\\:overflow-x-hidden{overflow-x:hidden}.hc\\:overflow-y-auto{overflow-y:auto}.hc\\:overflow-y-scroll{overflow-y:scroll}.hc\\:overscroll-contain{overscroll-behavior:contain}.hc\\:rounded-full{border-radius:2147483647px}.hc\\:rounded-lg{border-radius:var(--hc-radius-lg)}.hc\\:rounded-md{border-radius:var(--hc-radius-md)}.hc\\:rounded-sm{border-radius:var(--hc-radius-sm)}.hc\\:rounded-xs{border-radius:var(--hc-radius-xs)}.hc\\:border{border-style:var(--tw-border-style);border-width:1px}.hc\\:border-x-\\[\\.5em\\]{border-inline-style:var(--tw-border-style);border-inline-width:.5em}.hc\\:border-x-\\[\\.75em\\]{border-inline-style:var(--tw-border-style);border-inline-width:.75em}.hc\\:border-t{border-top-style:var(--tw-border-style);border-top-width:1px}.hc\\:border-b{border-bottom-style:var(--tw-border-style);border-bottom-width:1px}.hc\\:border-b-\\[\\.5em\\]{border-bottom-style:var(--tw-border-style);border-bottom-width:.5em}.hc\\:border-b-\\[\\.75em\\]{border-bottom-style:var(--tw-border-style);border-bottom-width:.75em}.hc\\:border-\\(color\\:--item-border\\){border-color:var(--item-border)}.hc\\:border-\\[color-mix\\(in_srgb\\,var\\(--huet-background\\)_calc\\(30\\%\\*var\\(--huet-configurator-contrast\\,1\\)\\)\\,transparent\\)\\]{border-color:var(--huet-background)}@supports (color:color-mix(in lab, red, red)){.hc\\:border-\\[color-mix\\(in_srgb\\,var\\(--huet-background\\)_calc\\(30\\%\\*var\\(--huet-configurator-contrast\\,1\\)\\)\\,transparent\\)\\]{border-color:color-mix(in srgb,var(--huet-background) calc(30% * var(--huet-configurator-contrast,1)),transparent)}}.hc\\:border-transparent{border-color:#0000}.hc\\:border-x-transparent{border-inline-color:#0000}.hc\\:border-b-current{border-bottom-color:currentColor}.hc\\:bg-\\(--trigger-bg\\){background-color:var(--trigger-bg)}.hc\\:bg-\\[linear-gradient\\(to_right\\,black\\,white\\)\\]{background-image:linear-gradient(90deg,#000,#fff)}.hc\\:p-0{padding:0}.hc\\:p-2{padding:calc(var(--hc-spacing) * 2)}.hc\\:p-4{padding:calc(var(--hc-spacing) * 4)}.hc\\:px-2{padding-inline:calc(var(--hc-spacing) * 2)}.hc\\:px-4{padding-inline:calc(var(--hc-spacing) * 4)}.hc\\:px-\\[\\.5em\\]{padding-inline:.5em}.hc\\:px-\\[\\.625em\\]{padding-inline:.625em}.hc\\:py-2{padding-block:calc(var(--hc-spacing) * 2)}.hc\\:py-\\[\\.3em\\]{padding-block:.3em}.hc\\:py-\\[\\.5em\\]{padding-block:.5em}.hc\\:py-\\[\\.375em\\]{padding-block:.375em}.hc\\:pt-2{padding-top:calc(var(--hc-spacing) * 2)}.hc\\:pr-\\[\\.375em\\]{padding-right:.375em}.hc\\:pl-\\[\\.5em\\]{padding-left:.5em}.hc\\:text-left{text-align:left}.hc\\:font-ui{font-family:var(--hc-font-ui)}.hc\\:text-\\[\\.75rem\\]{font-size:.75rem}.hc\\:text-\\[\\.8125rem\\]{font-size:.8125rem}.hc\\:text-\\[1\\.25em\\]{font-size:1.25em}.hc\\:leading-none{--tw-leading:1;line-height:1}.hc\\:font-bold{--tw-font-weight:var(--hc-font-weight-bold);font-weight:var(--hc-font-weight-bold)}.hc\\:font-normal{--tw-font-weight:var(--hc-font-weight-normal);font-weight:var(--hc-font-weight-normal)}.hc\\:underline{text-decoration-line:underline}.hc\\:opacity-0{opacity:0}.hc\\:opacity-70{opacity:.7}.hc\\:opacity-100{opacity:1}.hc\\:shadow-\\[0_5px_30px_color-mix\\(in_srgb\\,var\\(--huet-foreground\\)_calc\\(12\\.5\\%\\*var\\(--huet-configurator-contrast\\,1\\)\\)\\,transparent\\)\\]{--tw-shadow:0 5px 30px var(--tw-shadow-color,var(--huet-foreground))}@supports (color:color-mix(in lab, red, red)){.hc\\:shadow-\\[0_5px_30px_color-mix\\(in_srgb\\,var\\(--huet-foreground\\)_calc\\(12\\.5\\%\\*var\\(--huet-configurator-contrast\\,1\\)\\)\\,transparent\\)\\]{--tw-shadow:0 5px 30px var(--tw-shadow-color,color-mix(in srgb,var(--huet-foreground) calc(12.5% * var(--huet-configurator-contrast,1)),transparent))}}.hc\\:shadow-\\[0_5px_30px_color-mix\\(in_srgb\\,var\\(--huet-foreground\\)_calc\\(12\\.5\\%\\*var\\(--huet-configurator-contrast\\,1\\)\\)\\,transparent\\)\\]{box-shadow:var(--tw-inset-shadow), var(--tw-inset-ring-shadow), var(--tw-ring-offset-shadow), var(--tw-ring-shadow), var(--tw-shadow)}.hc\\:shadow-\\[0_5px_30px_color-mix\\(in_srgb\\,var\\(--huet-relative-text\\)_calc\\(12\\.5\\%\\*var\\(--huet-configurator-contrast\\,1\\)\\)\\,transparent\\)\\]{--tw-shadow:0 5px 30px var(--tw-shadow-color,var(--huet-relative-text))}@supports (color:color-mix(in lab, red, red)){.hc\\:shadow-\\[0_5px_30px_color-mix\\(in_srgb\\,var\\(--huet-relative-text\\)_calc\\(12\\.5\\%\\*var\\(--huet-configurator-contrast\\,1\\)\\)\\,transparent\\)\\]{--tw-shadow:0 5px 30px var(--tw-shadow-color,color-mix(in srgb,var(--huet-relative-text) calc(12.5% * var(--huet-configurator-contrast,1)),transparent))}}.hc\\:shadow-\\[0_5px_30px_color-mix\\(in_srgb\\,var\\(--huet-relative-text\\)_calc\\(12\\.5\\%\\*var\\(--huet-configurator-contrast\\,1\\)\\)\\,transparent\\)\\]{box-shadow:var(--tw-inset-shadow), var(--tw-inset-ring-shadow), var(--tw-ring-offset-shadow), var(--tw-ring-shadow), var(--tw-shadow)}.hc\\:shadow-\\[0_6px_24px_color-mix\\(in_srgb\\,var\\(--huet-foreground\\)_calc\\(16\\%\\*var\\(--huet-configurator-contrast\\,1\\)\\)\\,transparent\\)\\]{--tw-shadow:0 6px 24px var(--tw-shadow-color,var(--huet-foreground))}@supports (color:color-mix(in lab, red, red)){.hc\\:shadow-\\[0_6px_24px_color-mix\\(in_srgb\\,var\\(--huet-foreground\\)_calc\\(16\\%\\*var\\(--huet-configurator-contrast\\,1\\)\\)\\,transparent\\)\\]{--tw-shadow:0 6px 24px var(--tw-shadow-color,color-mix(in srgb,var(--huet-foreground) calc(16% * var(--huet-configurator-contrast,1)),transparent))}}.hc\\:shadow-\\[0_6px_24px_color-mix\\(in_srgb\\,var\\(--huet-foreground\\)_calc\\(16\\%\\*var\\(--huet-configurator-contrast\\,1\\)\\)\\,transparent\\)\\]{box-shadow:var(--tw-inset-shadow), var(--tw-inset-ring-shadow), var(--tw-ring-offset-shadow), var(--tw-ring-shadow), var(--tw-shadow)}.hc\\:outline{outline-style:var(--tw-outline-style);outline-width:1px}.hc\\:-outline-offset-2{outline-offset:calc(2px * -1)}.hc\\:outline-\\[color-mix\\(in_srgb\\,var\\(--huet-foreground\\)_calc\\(30\\%\\*var\\(--huet-configurator-contrast\\,1\\)\\)\\,transparent\\)\\]{outline-color:var(--huet-foreground)}@supports (color:color-mix(in lab, red, red)){.hc\\:outline-\\[color-mix\\(in_srgb\\,var\\(--huet-foreground\\)_calc\\(30\\%\\*var\\(--huet-configurator-contrast\\,1\\)\\)\\,transparent\\)\\]{outline-color:color-mix(in srgb,var(--huet-foreground) calc(30% * var(--huet-configurator-contrast,1)),transparent)}}.hc\\:transition-\\[opacity\\,translate\\,height\\]{transition-property:opacity,translate,height;transition-timing-function:var(--tw-ease,var(--hc-default-transition-timing-function));transition-duration:var(--tw-duration,var(--hc-default-transition-duration))}.hc\\:transition-\\[scale\\,margin\\,opacity\\]{transition-property:scale,margin,opacity;transition-timing-function:var(--tw-ease,var(--hc-default-transition-timing-function));transition-duration:var(--tw-duration,var(--hc-default-transition-duration))}.hc\\:transition-opacity{transition-property:opacity;transition-timing-function:var(--tw-ease,var(--hc-default-transition-timing-function));transition-duration:var(--tw-duration,var(--hc-default-transition-duration))}.hc\\:transition-transform{transition-property:transform,translate,scale,rotate;transition-timing-function:var(--tw-ease,var(--hc-default-transition-timing-function));transition-duration:var(--tw-duration,var(--hc-default-transition-duration))}.hc\\:duration-150{--tw-duration:.15s;transition-duration:.15s}.hc\\:duration-200{--tw-duration:.2s;transition-duration:.2s}.hc\\:duration-400{--tw-duration:.4s;transition-duration:.4s}.hc\\:ease-\\[ease-out\\]{--tw-ease:ease-out;transition-timing-function:ease-out}.hc\\:ease-\\[ease\\]{--tw-ease:ease;transition-timing-function:ease}.hc\\:select-none{-webkit-user-select:none;user-select:none}.hc\\:not-focus-visible\\:shadow-none\\!:not(:focus-visible){--tw-shadow:0 0 #0000!important;box-shadow:var(--tw-inset-shadow), var(--tw-inset-ring-shadow), var(--tw-ring-offset-shadow), var(--tw-ring-shadow), var(--tw-shadow)!important}@media (hover:hover){.hc\\:hover\\:border-\\(color\\:--item-border-hover\\):hover{border-color:var(--item-border-hover)}.hc\\:hover\\:bg-\\(--trigger-hover\\):hover{background-color:var(--trigger-hover)}}@property --tw-translate-x{syntax:\"*\";inherits:false;initial-value:0}@property --tw-translate-y{syntax:\"*\";inherits:false;initial-value:0}@property --tw-translate-z{syntax:\"*\";inherits:false;initial-value:0}@property --tw-scale-x{syntax:\"*\";inherits:false;initial-value:1}@property --tw-scale-y{syntax:\"*\";inherits:false;initial-value:1}@property --tw-scale-z{syntax:\"*\";inherits:false;initial-value:1}@property --tw-border-style{syntax:\"*\";inherits:false;initial-value:solid}@property --tw-leading{syntax:\"*\";inherits:false}@property --tw-font-weight{syntax:\"*\";inherits:false}@property --tw-shadow{syntax:\"*\";inherits:false;initial-value:0 0 #0000}@property --tw-shadow-color{syntax:\"*\";inherits:false}@property --tw-shadow-alpha{syntax:\"<percentage>\";inherits:false;initial-value:100%}@property --tw-inset-shadow{syntax:\"*\";inherits:false;initial-value:0 0 #0000}@property --tw-inset-shadow-color{syntax:\"*\";inherits:false}@property --tw-inset-shadow-alpha{syntax:\"<percentage>\";inherits:false;initial-value:100%}@property --tw-ring-color{syntax:\"*\";inherits:false}@property --tw-ring-shadow{syntax:\"*\";inherits:false;initial-value:0 0 #0000}@property --tw-inset-ring-color{syntax:\"*\";inherits:false}@property --tw-inset-ring-shadow{syntax:\"*\";inherits:false;initial-value:0 0 #0000}@property --tw-ring-inset{syntax:\"*\";inherits:false}@property --tw-ring-offset-width{syntax:\"<length>\";inherits:false;initial-value:0}@property --tw-ring-offset-color{syntax:\"*\";inherits:false;initial-value:#fff}@property --tw-ring-offset-shadow{syntax:\"*\";inherits:false;initial-value:0 0 #0000}@property --tw-outline-style{syntax:\"*\";inherits:false;initial-value:solid}@property --tw-duration{syntax:\"*\";inherits:false}@property --tw-ease{syntax:\"*\";inherits:false}", O = /* @__PURE__ */ new WeakMap();
-function k(e) {
-	let t = O.get(e);
-	return t || O.set(e, t = ee(e)), t;
+var ve = "/*! tailwindcss v4.3.3 | MIT License | https://tailwindcss.com */\n@layer properties{@supports (((-webkit-hyphens:none)) and (not (margin-trim:inline))) or ((-moz-orient:inline) and (not (color:rgb(from red r g b)))){*,:before,:after,::backdrop{--tw-translate-x:0;--tw-translate-y:0;--tw-translate-z:0;--tw-scale-x:1;--tw-scale-y:1;--tw-scale-z:1;--tw-border-style:solid;--tw-leading:initial;--tw-font-weight:initial;--tw-shadow:0 0 #0000;--tw-shadow-color:initial;--tw-shadow-alpha:100%;--tw-inset-shadow:0 0 #0000;--tw-inset-shadow-color:initial;--tw-inset-shadow-alpha:100%;--tw-ring-color:initial;--tw-ring-shadow:0 0 #0000;--tw-inset-ring-color:initial;--tw-inset-ring-shadow:0 0 #0000;--tw-ring-inset:initial;--tw-ring-offset-width:0px;--tw-ring-offset-color:#fff;--tw-ring-offset-shadow:0 0 #0000;--tw-outline-style:solid;--tw-duration:initial;--tw-ease:initial}}}:root,:host{--hc-spacing:.25rem;--hc-font-weight-normal:400;--hc-font-weight-bold:700;--hc-radius-xs:.125rem;--hc-radius-sm:.25rem;--hc-radius-md:.375rem;--hc-radius-lg:.5rem;--hc-default-transition-duration:.15s;--hc-default-transition-timing-function:cubic-bezier(.4, 0, .2, 1);--hc-font-ui:-apple-system, BlinkMacSystemFont, \"Segoe UI\", \"Roboto\", \"Oxygen\", \"Ubuntu\", \"Cantarell\", \"Fira Sans\", \"Droid Sans\", \"Helvetica Neue\", sans-serif}[data-huet-configurator]{all:initial}[data-huet-configurator] :where(:not(svg,svg *)){all:unset;box-sizing:border-box;display:block}[data-huet-configurator][data-huet-root],[data-huet-configurator][data-huet-color-bg],[data-huet-configurator] [data-huet-color-bg]{background-color:var(--huet-background);color:var(--huet-foreground)}[data-huet-configurator][data-huet-color-text],[data-huet-configurator] [data-huet-color-text]{color:var(--huet-relative-text,var(--huet-foreground))}[data-huet-configurator][data-huet-color-border],[data-huet-configurator] [data-huet-color-border]{border-color:var(--huet-relative-border)}[data-huet-configurator][data-huet-color-outline],[data-huet-configurator] [data-huet-color-outline]{outline-color:var(--huet-relative-outline)}@media (forced-colors:active){[data-huet-configurator][data-huet-root],[data-huet-configurator][data-huet-color-bg],[data-huet-configurator] [data-huet-color-bg]{color:canvastext;background-color:canvas}[data-huet-configurator][data-huet-color-text],[data-huet-configurator] [data-huet-color-text]{color:canvastext}[data-huet-configurator][data-huet-color-border],[data-huet-configurator] [data-huet-color-border]{border-color:buttonborder}[data-huet-configurator][data-huet-color-outline],[data-huet-configurator] [data-huet-color-outline]{outline-color:highlight}}[data-huet-configurator] :focus,[data-huet-configurator] [data-focus-within]:focus-within{z-index:1;box-shadow:0 0 0 2px #00f5,0 0 0 2px #fff5!important}[data-huet-configurator] input[type=range]{appearance:none;background:0 0;width:100%!important}[data-huet-configurator] input[type=range]::-webkit-slider-thumb{-webkit-appearance:none!important;background:currentColor!important;width:1px!important;height:1em!important}[data-huet-configurator] input[type=color]::-webkit-color-swatch-wrapper{padding:0;-webkit-appearance:none!important}[data-huet-configurator] input[type=color]::-webkit-color-swatch{border:none;padding:0}.hc\\:pointer-events-none{pointer-events:none}.hc\\:invisible{visibility:hidden}.hc\\:absolute{position:absolute}.hc\\:fixed{position:fixed}.hc\\:relative{position:relative}.hc\\:top-0{top:0}.hc\\:top-1\\/2{top:50%}.hc\\:right-\\[1em\\]{right:1em}.hc\\:bottom-0{bottom:0}.hc\\:bottom-\\[1em\\]{bottom:1em}.hc\\:left-0{left:0}.hc\\:left-1\\/2{left:50%}.hc\\:z-\\[999\\]{z-index:999}.hc\\:z-\\[1000\\]{z-index:1000}.hc\\:mx-2{margin-inline:calc(var(--hc-spacing) * 2)}.hc\\:-mt-2{margin-top:calc(var(--hc-spacing) * -2)}.hc\\:mt-1{margin-top:var(--hc-spacing)}.hc\\:mt-2{margin-top:calc(var(--hc-spacing) * 2)}.hc\\:mt-4{margin-top:calc(var(--hc-spacing) * 4)}.hc\\:mt-px{margin-top:1px}.hc\\:mr-1{margin-right:var(--hc-spacing)}.hc\\:mr-2{margin-right:calc(var(--hc-spacing) * 2)}.hc\\:mb-1{margin-bottom:var(--hc-spacing)}.hc\\:mb-2{margin-bottom:calc(var(--hc-spacing) * 2)}.hc\\:mb-\\[6px\\]{margin-bottom:6px}.hc\\:ml-1{margin-left:var(--hc-spacing)}.hc\\:ml-2{margin-left:calc(var(--hc-spacing) * 2)}.hc\\:ml-4{margin-left:calc(var(--hc-spacing) * 4)}.hc\\:flex{display:flex}.hc\\:inline{display:inline}.hc\\:inline-block{display:inline-block}.hc\\:inline-flex{display:inline-flex}.hc\\:size-\\[\\.625em\\]{width:.625em;height:.625em}.hc\\:size-\\[1\\.25em\\]{width:1.25em;height:1.25em}.hc\\:h-0{height:0}.hc\\:h-2{height:calc(var(--hc-spacing) * 2)}.hc\\:h-4{height:calc(var(--hc-spacing) * 4)}.hc\\:h-6{height:calc(var(--hc-spacing) * 6)}.hc\\:h-8{height:calc(var(--hc-spacing) * 8)}.hc\\:h-\\[\\.5em\\]{height:.5em}.hc\\:h-\\[\\.375em\\]{height:.375em}.hc\\:h-\\[4px\\]{height:4px}.hc\\:h-\\[min\\(40em\\,var\\(--radix-popover-content-available-height\\)\\)\\]{height:min(40em, var(--radix-popover-content-available-height))}.hc\\:h-\\[min\\(64em\\,100vh-2em\\)\\]{height:min(64em,100vh - 2em)}.hc\\:h-full{height:100%}.hc\\:min-h-0{min-height:0}.hc\\:w-0{width:0}.hc\\:w-\\[5em\\]{width:5em}.hc\\:w-\\[28em\\]{width:28em}.hc\\:w-\\[30em\\]{width:30em}.hc\\:w-full{width:100%}.hc\\:max-w-\\[30em\\]{max-width:30em}.hc\\:min-w-0{min-width:0}.hc\\:flex-auto{flex:auto}.hc\\:shrink-0{flex-shrink:0}.hc\\:grow{flex-grow:1}.hc\\:basis-\\[20em\\]{flex-basis:20em}.hc\\:-translate-x-1\\/2{--tw-translate-x:calc(calc(1 / 2 * 100%) * -1);translate:var(--tw-translate-x) var(--tw-translate-y)}.hc\\:-translate-y-1\\/2{--tw-translate-y:calc(calc(1 / 2 * 100%) * -1);translate:var(--tw-translate-x) var(--tw-translate-y)}.hc\\:translate-y-0{--tw-translate-y:0px;translate:var(--tw-translate-x) var(--tw-translate-y)}.hc\\:translate-y-\\[2em\\]{--tw-translate-y:2em;translate:var(--tw-translate-x) var(--tw-translate-y)}.hc\\:translate-y-px{--tw-translate-y:1px;translate:var(--tw-translate-x) var(--tw-translate-y)}.hc\\:scale-y-0{--tw-scale-y:0%;scale:var(--tw-scale-x) var(--tw-scale-y)}.hc\\:rotate-180{rotate:180deg}.hc\\:cursor-auto{cursor:auto}.hc\\:cursor-default{cursor:default}.hc\\:cursor-pointer{cursor:pointer}.hc\\:flex-col{flex-direction:column}.hc\\:flex-row{flex-direction:row}.hc\\:items-center{align-items:center}.hc\\:justify-between{justify-content:space-between}.hc\\:justify-center{justify-content:center}.hc\\:gap-1\\.5{gap:calc(var(--hc-spacing) * 1.5)}.hc\\:gap-\\[\\.5em\\]{gap:.5em}.hc\\:gap-\\[\\.25em\\]{gap:.25em}.hc\\:gap-\\[\\.75em\\]{gap:.75em}.hc\\:gap-\\[\\.375em\\]{gap:.375em}.hc\\:self-stretch{align-self:stretch}.hc\\:overflow-hidden{overflow:hidden}.hc\\:overflow-x-hidden{overflow-x:hidden}.hc\\:overflow-y-auto{overflow-y:auto}.hc\\:overflow-y-scroll{overflow-y:scroll}.hc\\:overscroll-contain{overscroll-behavior:contain}.hc\\:rounded-full{border-radius:2147483647px}.hc\\:rounded-lg{border-radius:var(--hc-radius-lg)}.hc\\:rounded-md{border-radius:var(--hc-radius-md)}.hc\\:rounded-sm{border-radius:var(--hc-radius-sm)}.hc\\:rounded-xs{border-radius:var(--hc-radius-xs)}.hc\\:border{border-style:var(--tw-border-style);border-width:1px}.hc\\:border-x-\\[\\.5em\\]{border-inline-style:var(--tw-border-style);border-inline-width:.5em}.hc\\:border-x-\\[\\.75em\\]{border-inline-style:var(--tw-border-style);border-inline-width:.75em}.hc\\:border-t{border-top-style:var(--tw-border-style);border-top-width:1px}.hc\\:border-b{border-bottom-style:var(--tw-border-style);border-bottom-width:1px}.hc\\:border-b-\\[\\.5em\\]{border-bottom-style:var(--tw-border-style);border-bottom-width:.5em}.hc\\:border-b-\\[\\.75em\\]{border-bottom-style:var(--tw-border-style);border-bottom-width:.75em}.hc\\:border-\\(color\\:--item-border\\){border-color:var(--item-border)}.hc\\:border-\\[color-mix\\(in_srgb\\,var\\(--huet-background\\)_calc\\(30\\%\\*var\\(--huet-configurator-contrast\\,1\\)\\)\\,transparent\\)\\]{border-color:var(--huet-background)}@supports (color:color-mix(in lab, red, red)){.hc\\:border-\\[color-mix\\(in_srgb\\,var\\(--huet-background\\)_calc\\(30\\%\\*var\\(--huet-configurator-contrast\\,1\\)\\)\\,transparent\\)\\]{border-color:color-mix(in srgb,var(--huet-background) calc(30% * var(--huet-configurator-contrast,1)),transparent)}}.hc\\:border-transparent{border-color:#0000}.hc\\:border-x-transparent{border-inline-color:#0000}.hc\\:border-b-current{border-bottom-color:currentColor}.hc\\:bg-\\(--trigger-bg\\){background-color:var(--trigger-bg)}.hc\\:bg-\\[linear-gradient\\(to_right\\,black\\,white\\)\\]{background-image:linear-gradient(90deg,#000,#fff)}.hc\\:p-0{padding:0}.hc\\:p-2{padding:calc(var(--hc-spacing) * 2)}.hc\\:p-4{padding:calc(var(--hc-spacing) * 4)}.hc\\:px-2{padding-inline:calc(var(--hc-spacing) * 2)}.hc\\:px-4{padding-inline:calc(var(--hc-spacing) * 4)}.hc\\:px-\\[\\.5em\\]{padding-inline:.5em}.hc\\:px-\\[\\.625em\\]{padding-inline:.625em}.hc\\:py-2{padding-block:calc(var(--hc-spacing) * 2)}.hc\\:py-\\[\\.3em\\]{padding-block:.3em}.hc\\:py-\\[\\.5em\\]{padding-block:.5em}.hc\\:py-\\[\\.375em\\]{padding-block:.375em}.hc\\:pt-2{padding-top:calc(var(--hc-spacing) * 2)}.hc\\:pr-\\[\\.375em\\]{padding-right:.375em}.hc\\:pl-\\[\\.5em\\]{padding-left:.5em}.hc\\:text-left{text-align:left}.hc\\:font-ui{font-family:var(--hc-font-ui)}.hc\\:text-\\[\\.75rem\\]{font-size:.75rem}.hc\\:text-\\[\\.8125rem\\]{font-size:.8125rem}.hc\\:text-\\[1\\.25em\\]{font-size:1.25em}.hc\\:leading-none{--tw-leading:1;line-height:1}.hc\\:font-bold{--tw-font-weight:var(--hc-font-weight-bold);font-weight:var(--hc-font-weight-bold)}.hc\\:font-normal{--tw-font-weight:var(--hc-font-weight-normal);font-weight:var(--hc-font-weight-normal)}.hc\\:underline{text-decoration-line:underline}.hc\\:opacity-0{opacity:0}.hc\\:opacity-70{opacity:.7}.hc\\:opacity-100{opacity:1}.hc\\:shadow-\\[0_5px_30px_color-mix\\(in_srgb\\,var\\(--huet-foreground\\)_calc\\(12\\.5\\%\\*var\\(--huet-configurator-contrast\\,1\\)\\)\\,transparent\\)\\]{--tw-shadow:0 5px 30px var(--tw-shadow-color,var(--huet-foreground))}@supports (color:color-mix(in lab, red, red)){.hc\\:shadow-\\[0_5px_30px_color-mix\\(in_srgb\\,var\\(--huet-foreground\\)_calc\\(12\\.5\\%\\*var\\(--huet-configurator-contrast\\,1\\)\\)\\,transparent\\)\\]{--tw-shadow:0 5px 30px var(--tw-shadow-color,color-mix(in srgb,var(--huet-foreground) calc(12.5% * var(--huet-configurator-contrast,1)),transparent))}}.hc\\:shadow-\\[0_5px_30px_color-mix\\(in_srgb\\,var\\(--huet-foreground\\)_calc\\(12\\.5\\%\\*var\\(--huet-configurator-contrast\\,1\\)\\)\\,transparent\\)\\]{box-shadow:var(--tw-inset-shadow), var(--tw-inset-ring-shadow), var(--tw-ring-offset-shadow), var(--tw-ring-shadow), var(--tw-shadow)}.hc\\:shadow-\\[0_5px_30px_color-mix\\(in_srgb\\,var\\(--huet-relative-text\\)_calc\\(12\\.5\\%\\*var\\(--huet-configurator-contrast\\,1\\)\\)\\,transparent\\)\\]{--tw-shadow:0 5px 30px var(--tw-shadow-color,var(--huet-relative-text))}@supports (color:color-mix(in lab, red, red)){.hc\\:shadow-\\[0_5px_30px_color-mix\\(in_srgb\\,var\\(--huet-relative-text\\)_calc\\(12\\.5\\%\\*var\\(--huet-configurator-contrast\\,1\\)\\)\\,transparent\\)\\]{--tw-shadow:0 5px 30px var(--tw-shadow-color,color-mix(in srgb,var(--huet-relative-text) calc(12.5% * var(--huet-configurator-contrast,1)),transparent))}}.hc\\:shadow-\\[0_5px_30px_color-mix\\(in_srgb\\,var\\(--huet-relative-text\\)_calc\\(12\\.5\\%\\*var\\(--huet-configurator-contrast\\,1\\)\\)\\,transparent\\)\\]{box-shadow:var(--tw-inset-shadow), var(--tw-inset-ring-shadow), var(--tw-ring-offset-shadow), var(--tw-ring-shadow), var(--tw-shadow)}.hc\\:shadow-\\[0_6px_24px_color-mix\\(in_srgb\\,var\\(--huet-foreground\\)_calc\\(16\\%\\*var\\(--huet-configurator-contrast\\,1\\)\\)\\,transparent\\)\\]{--tw-shadow:0 6px 24px var(--tw-shadow-color,var(--huet-foreground))}@supports (color:color-mix(in lab, red, red)){.hc\\:shadow-\\[0_6px_24px_color-mix\\(in_srgb\\,var\\(--huet-foreground\\)_calc\\(16\\%\\*var\\(--huet-configurator-contrast\\,1\\)\\)\\,transparent\\)\\]{--tw-shadow:0 6px 24px var(--tw-shadow-color,color-mix(in srgb,var(--huet-foreground) calc(16% * var(--huet-configurator-contrast,1)),transparent))}}.hc\\:shadow-\\[0_6px_24px_color-mix\\(in_srgb\\,var\\(--huet-foreground\\)_calc\\(16\\%\\*var\\(--huet-configurator-contrast\\,1\\)\\)\\,transparent\\)\\]{box-shadow:var(--tw-inset-shadow), var(--tw-inset-ring-shadow), var(--tw-ring-offset-shadow), var(--tw-ring-shadow), var(--tw-shadow)}.hc\\:outline{outline-style:var(--tw-outline-style);outline-width:1px}.hc\\:-outline-offset-2{outline-offset:calc(2px * -1)}.hc\\:outline-\\[color-mix\\(in_srgb\\,var\\(--huet-foreground\\)_calc\\(30\\%\\*var\\(--huet-configurator-contrast\\,1\\)\\)\\,transparent\\)\\]{outline-color:var(--huet-foreground)}@supports (color:color-mix(in lab, red, red)){.hc\\:outline-\\[color-mix\\(in_srgb\\,var\\(--huet-foreground\\)_calc\\(30\\%\\*var\\(--huet-configurator-contrast\\,1\\)\\)\\,transparent\\)\\]{outline-color:color-mix(in srgb,var(--huet-foreground) calc(30% * var(--huet-configurator-contrast,1)),transparent)}}.hc\\:transition-\\[opacity\\,translate\\,height\\]{transition-property:opacity,translate,height;transition-timing-function:var(--tw-ease,var(--hc-default-transition-timing-function));transition-duration:var(--tw-duration,var(--hc-default-transition-duration))}.hc\\:transition-\\[scale\\,margin\\,opacity\\]{transition-property:scale,margin,opacity;transition-timing-function:var(--tw-ease,var(--hc-default-transition-timing-function));transition-duration:var(--tw-duration,var(--hc-default-transition-duration))}.hc\\:transition-opacity{transition-property:opacity;transition-timing-function:var(--tw-ease,var(--hc-default-transition-timing-function));transition-duration:var(--tw-duration,var(--hc-default-transition-duration))}.hc\\:transition-transform{transition-property:transform,translate,scale,rotate;transition-timing-function:var(--tw-ease,var(--hc-default-transition-timing-function));transition-duration:var(--tw-duration,var(--hc-default-transition-duration))}.hc\\:duration-150{--tw-duration:.15s;transition-duration:.15s}.hc\\:duration-200{--tw-duration:.2s;transition-duration:.2s}.hc\\:duration-400{--tw-duration:.4s;transition-duration:.4s}.hc\\:ease-\\[ease-out\\]{--tw-ease:ease-out;transition-timing-function:ease-out}.hc\\:ease-\\[ease\\]{--tw-ease:ease;transition-timing-function:ease}.hc\\:select-none{-webkit-user-select:none;user-select:none}.hc\\:not-focus-visible\\:shadow-none\\!:not(:focus-visible){--tw-shadow:0 0 #0000!important;box-shadow:var(--tw-inset-shadow), var(--tw-inset-ring-shadow), var(--tw-ring-offset-shadow), var(--tw-ring-shadow), var(--tw-shadow)!important}@media (hover:hover){.hc\\:hover\\:border-\\(color\\:--item-border-hover\\):hover{border-color:var(--item-border-hover)}.hc\\:hover\\:bg-\\(--trigger-hover\\):hover{background-color:var(--trigger-hover)}}@property --tw-translate-x{syntax:\"*\";inherits:false;initial-value:0}@property --tw-translate-y{syntax:\"*\";inherits:false;initial-value:0}@property --tw-translate-z{syntax:\"*\";inherits:false;initial-value:0}@property --tw-scale-x{syntax:\"*\";inherits:false;initial-value:1}@property --tw-scale-y{syntax:\"*\";inherits:false;initial-value:1}@property --tw-scale-z{syntax:\"*\";inherits:false;initial-value:1}@property --tw-border-style{syntax:\"*\";inherits:false;initial-value:solid}@property --tw-leading{syntax:\"*\";inherits:false}@property --tw-font-weight{syntax:\"*\";inherits:false}@property --tw-shadow{syntax:\"*\";inherits:false;initial-value:0 0 #0000}@property --tw-shadow-color{syntax:\"*\";inherits:false}@property --tw-shadow-alpha{syntax:\"<percentage>\";inherits:false;initial-value:100%}@property --tw-inset-shadow{syntax:\"*\";inherits:false;initial-value:0 0 #0000}@property --tw-inset-shadow-color{syntax:\"*\";inherits:false}@property --tw-inset-shadow-alpha{syntax:\"<percentage>\";inherits:false;initial-value:100%}@property --tw-ring-color{syntax:\"*\";inherits:false}@property --tw-ring-shadow{syntax:\"*\";inherits:false;initial-value:0 0 #0000}@property --tw-inset-ring-color{syntax:\"*\";inherits:false}@property --tw-inset-ring-shadow{syntax:\"*\";inherits:false;initial-value:0 0 #0000}@property --tw-ring-inset{syntax:\"*\";inherits:false}@property --tw-ring-offset-width{syntax:\"<length>\";inherits:false;initial-value:0}@property --tw-ring-offset-color{syntax:\"*\";inherits:false;initial-value:#fff}@property --tw-ring-offset-shadow{syntax:\"*\";inherits:false;initial-value:0 0 #0000}@property --tw-outline-style{syntax:\"*\";inherits:false;initial-value:solid}@property --tw-duration{syntax:\"*\";inherits:false}@property --tw-ease{syntax:\"*\";inherits:false}", D = /* @__PURE__ */ new WeakMap();
+function O(e) {
+	let t = D.get(e);
+	return t || D.set(e, t = ee(e)), t;
 }
 // src/private/ConfiguratorPortal.tsx
-function A() {
+function k() {
 	if (document.head.querySelector("style[data-huet-configurator-styles]")) return;
 	let e = document.createElement("style");
-	e.setAttribute("data-huet-configurator-styles", ""), e.textContent = _e, document.head.append(e);
+	e.setAttribute("data-huet-configurator-styles", ""), e.textContent = ve, document.head.append(e);
 }
-function j({ themeConfig: e, children: t }) {
+function A({ themeConfig: e, children: t }) {
 	let [n, r] = s(null);
 	i(() => {
-		A();
+		k();
 		let e = document.createElement("div");
 		return e.setAttribute("data-huet-configurator", ""), document.body.append(e), r(e), () => e.remove();
 	}, []);
-	let c = a(() => k(e), [e]), u = o(c);
+	let c = a(() => O(e), [e]), u = o(c);
 	u.current = c;
 	let d = o(void 0);
 	return i(() => {
@@ -110,31 +110,31 @@ function j({ themeConfig: e, children: t }) {
 		e && e.theme !== c && (e.theme = c, e.update(c));
 	}, [c]), i(() => {
 		n?.style.setProperty("--huet-configurator-contrast", String(e.contrastMultiplier));
-	}, [n, e.contrastMultiplier]), n ? b(t, n) : null;
+	}, [n, e.contrastMultiplier]), n ? te(t, n) : null;
 }
 // src/private/Arrow.tsx
-var ve = {
+var ye = {
 	".5em": "hc:border-x-[.5em] hc:border-b-[.5em]",
 	".75em": "hc:border-x-[.75em] hc:border-b-[.75em]"
 };
-function M({ size: e, className: t, style: n }) {
+function j({ size: e, className: t, style: n }) {
 	return /* @__PURE__ */ v("span", {
-		className: T("hc:inline-block hc:w-0 hc:h-0 hc:border-x-transparent hc:border-b-current", ve[e], t),
+		className: w("hc:inline-block hc:w-0 hc:h-0 hc:border-x-transparent hc:border-b-current", ye[e], t),
 		style: n
 	});
 }
 // src/private/displayError.ts
-function N(e) {
+function M(e) {
 	console.error(e), alert(e);
 }
 // src/private/inputClass.ts
-var P = "hc:py-[.3em] hc:px-[.5em] hc:border hc:max-w-[30em] hc:rounded-xs";
+var N = "hc:py-[.3em] hc:px-[.5em] hc:border hc:max-w-[30em] hc:rounded-xs";
 // src/private/Button.tsx
-function F({ children: e, className: t, onUpload: n }) {
-	return /* @__PURE__ */ y(L, {
+function P({ children: e, className: t, onUpload: n }) {
+	return /* @__PURE__ */ y(I, {
 		as: "div",
 		"data-focus-within": "",
-		className: T("hc:relative", t),
+		className: w("hc:relative", t),
 		children: [e, /* @__PURE__ */ v("input", {
 			type: "file",
 			className: "hc:absolute hc:w-full hc:h-full hc:left-0 hc:top-0 hc:opacity-0",
@@ -146,40 +146,40 @@ function F({ children: e, className: t, onUpload: n }) {
 							e = JSON.parse(t.result);
 						} catch {}
 						let r = m(e);
-						r ? n(r) : N("That file isn't a valid Huet theme.");
+						r ? n(r) : M("That file isn't a valid Huet theme.");
 					}
 					t.removeEventListener("load", r);
 				};
 				t.addEventListener("load", r);
 				let i = e.target.files?.[0];
-				e.target.value = "", i && (i.type === "application/json" || i.name.toLowerCase().endsWith(".json") ? t.readAsText(i) : N("Only JSON files are accepted."));
+				e.target.value = "", i && (i.type === "application/json" || i.name.toLowerCase().endsWith(".json") ? t.readAsText(i) : M("Only JSON files are accepted."));
 			}
 		})]
 	});
 }
-function I(e, t) {
+function F(e, t) {
 	if (e && !t) throw Error("Need a callback, otherwise `doubleCheck(boolOrMessage, cb)` doesn't do anything.");
 	return (n) => {
 		(!e || window.confirm(e === !0 ? "Are you sure?" : e)) && t?.(n);
 	};
 }
-function L({ as: e = "button", colors: t = "huet-bg-10", className: n, children: r, verify: i, onClick: a, ...o }) {
+function I({ as: e = "button", colors: t = "huet-bg-10", className: n, children: r, verify: i, onClick: a, ...o }) {
 	return /* @__PURE__ */ v(e, {
-		onClick: I(i, a),
+		onClick: F(i, a),
 		...o,
-		className: T(P, "hc:w-full hc:border-transparent hc:cursor-default hc:flex hc:justify-center hc:items-center", t, n),
+		className: w(N, "hc:w-full hc:border-transparent hc:cursor-default hc:flex hc:justify-center hc:items-center", t, n),
 		children: r
 	});
 }
-function ye({ onClick: e, className: t, verify: n, ...r }) {
+function be({ onClick: e, className: t, verify: n, ...r }) {
 	return /* @__PURE__ */ v("button", {
 		...r,
-		className: T("hc:underline hc:cursor-pointer", t),
-		onClick: I(n, e)
+		className: w("hc:underline hc:cursor-pointer", t),
+		onClick: F(n, e)
 	});
 }
 // src/private/BgColors.tsx
-function be({ theme: e, scaleValue: t, isSelected: n, onClick: r }) {
+function xe({ theme: e, scaleValue: t, isSelected: n, onClick: r }) {
 	let i = e.ramps[e.bgRamp], a = i(t), o = new u({
 		theme: e,
 		bgColor: null,
@@ -187,7 +187,7 @@ function be({ theme: e, scaleValue: t, isSelected: n, onClick: r }) {
 		ramp: i,
 		baseRamp: i
 	});
-	return /* @__PURE__ */ y(L, {
+	return /* @__PURE__ */ y(I, {
 		colors: "",
 		className: "hc:relative hc:h-8",
 		style: {
@@ -200,7 +200,7 @@ function be({ theme: e, scaleValue: t, isSelected: n, onClick: r }) {
 		children: [
 			t * 100,
 			"%",
-			n && /* @__PURE__ */ v(M, {
+			n && /* @__PURE__ */ v(j, {
 				size: ".5em",
 				className: "hc:absolute hc:bottom-0 hc:left-1/2 hc:-translate-x-1/2 hc:translate-y-px",
 				style: { color: o.contrast(100).toString() }
@@ -208,8 +208,8 @@ function be({ theme: e, scaleValue: t, isSelected: n, onClick: r }) {
 		]
 	});
 }
-function xe({ theme: e, bgRampValue: t, onRampValueChange: n }) {
-	return /* @__PURE__ */ v(E, {
+function Se({ theme: e, bgRampValue: t, onRampValueChange: n }) {
+	return /* @__PURE__ */ v(T, {
 		growEach: !0,
 		size: 2,
 		children: [
@@ -217,7 +217,7 @@ function xe({ theme: e, bgRampValue: t, onRampValueChange: n }) {
 			.25,
 			.75,
 			1
-		].map((r) => /* @__PURE__ */ v(be, {
+		].map((r) => /* @__PURE__ */ v(xe, {
 			theme: e,
 			scaleValue: r,
 			isSelected: t === r,
@@ -226,7 +226,7 @@ function xe({ theme: e, bgRampValue: t, onRampValueChange: n }) {
 	});
 }
 // src/private/ColorRamps.tsx
-function Se({ color: e, grayRamp: t }) {
+function Ce({ color: e, grayRamp: t }) {
 	let n = (p(e) - (t.startL ?? 0)) / ((t.endL ?? 0) - (t.startL ?? 0));
 	return /* @__PURE__ */ v("div", {
 		className: "hc:absolute hc:border hc:border-[color-mix(in_srgb,var(--huet-background)_calc(30%*var(--huet-configurator-contrast,1)),transparent)] hc:outline hc:outline-[color-mix(in_srgb,var(--huet-foreground)_calc(30%*var(--huet-configurator-contrast,1)),transparent)] hc:-outline-offset-2 hc:top-1/2 hc:-translate-y-1/2",
@@ -238,37 +238,37 @@ function Se({ color: e, grayRamp: t }) {
 		}
 	});
 }
-function Ce(e) {
+function we(e) {
 	return [e, e];
 }
-function we(e) {
-	let t = e.config.classes, n = Array.isArray(t) ? t : [...S(0, 1, 1 / (t ?? 1)), 1], r = re(n) ?? 0, i = se(n) ?? 1, a = ae(le(n));
-	return ne([
+function Te(e) {
+	let t = e.config.classes, n = Array.isArray(t) ? t : [...x(0, 1, 1 / (t ?? 1)), 1], r = ie(n) ?? 0, i = ce(n) ?? 1, a = oe(ue(n));
+	return re([
 		r,
-		...ie(a, Ce),
+		...ae(a, we),
 		i
 	], 2);
 }
-var Te = e.memo(function({ ramp: e }) {
+var Ee = e.memo(function({ ramp: e }) {
 	if (!e) return null;
 	switch (e.config.classes ? "classes" : "normal") {
 		case "classes": return /* @__PURE__ */ v("div", {
 			className: "hc:rounded-xs hc:h-full hc:w-full hc:flex",
-			children: we(e).map(([t = 0, n = 0], r) => /* @__PURE__ */ v("div", {
+			children: Te(e).map(([t = 0, n = 0], r) => /* @__PURE__ */ v("div", {
 				className: "hc:h-full",
 				style: {
-					backgroundColor: x.lab(...e((t + n) / 2)).hex(),
+					backgroundColor: b.lab(...e((t + n) / 2)).hex(),
 					width: `${(n - t) * 100}%`
 				}
 			}, r))
 		});
 		default: return /* @__PURE__ */ v("div", {
 			className: "hc:rounded-xs hc:h-full hc:w-full",
-			style: { background: `linear-gradient(to right, ${S(0, 1.2, .2).map((t) => x.lab(...e(t)).hex()).join(",")})` }
+			style: { background: `linear-gradient(to right, ${x(0, 1.2, .2).map((t) => b.lab(...e(t)).hex()).join(",")})` }
 		});
 	}
 });
-function Ee({ ramp: e, theme: t }) {
+function De({ ramp: e, theme: t }) {
 	return /* @__PURE__ */ v("div", {
 		className: "hc:flex hc:w-full hc:flex-row hc:h-4 hc:mb-2",
 		style: {
@@ -277,24 +277,24 @@ function Ee({ ramp: e, theme: t }) {
 		},
 		children: /* @__PURE__ */ y("div", {
 			className: "hc:w-full hc:relative hc:flex",
-			children: [/* @__PURE__ */ v(Te, { ramp: e }), e.config.colors.map((e, n) => /* @__PURE__ */ v(Se, {
+			children: [/* @__PURE__ */ v(Ee, { ramp: e }), e.config.colors.map((e, n) => /* @__PURE__ */ v(Ce, {
 				color: t.pallet[e] ?? "",
 				grayRamp: t.ramps.gray
 			}, n))]
 		})
 	});
 }
-function De({ theme: e }) {
+function Oe({ theme: e }) {
 	return /* @__PURE__ */ y("div", {
 		className: "hc:w-full",
-		children: [/* @__PURE__ */ v("div", { className: "huet-border-10 hc:h-[4px] hc:mb-[6px] hc:w-full hc:bg-[linear-gradient(to_right,black,white)]" }), Object.keys(e.ramps).map((t) => /* @__PURE__ */ v(Ee, {
+		children: [/* @__PURE__ */ v("div", { className: "huet-border-10 hc:h-[4px] hc:mb-[6px] hc:w-full hc:bg-[linear-gradient(to_right,black,white)]" }), Object.keys(e.ramps).map((t) => /* @__PURE__ */ v(De, {
 			ramp: e.ramps[t],
 			theme: e
 		}, t))]
 	});
 }
 // src/private/Labeled.tsx
-function R({ label: e, children: t, className: n, ...r }) {
+function L({ label: e, children: t, className: n, ...r }) {
 	return e ? /* @__PURE__ */ y("label", {
 		className: n,
 		...r,
@@ -309,13 +309,13 @@ function R({ label: e, children: t, className: n, ...r }) {
 	});
 }
 // src/private/Input.tsx
-function Oe({ label: e, value: t, onChange: n, className: r, ...i }) {
-	return /* @__PURE__ */ v(R, {
+function ke({ label: e, value: t, onChange: n, className: r, ...i }) {
+	return /* @__PURE__ */ v(L, {
 		label: e,
 		className: "hc:flex hc:flex-col hc:flex-auto hc:min-w-0 hc:min-h-0 hc:max-w-[30em]",
 		children: /* @__PURE__ */ v("input", {
 			"aria-label": e,
-			className: T("huet-border-20", P, "hc:w-full hc:cursor-auto", r),
+			className: w("huet-border-20", N, "hc:w-full hc:cursor-auto", r),
 			value: t,
 			onChange: (e) => n?.(e.target.value),
 			...i
@@ -323,7 +323,7 @@ function Oe({ label: e, value: t, onChange: n, className: r, ...i }) {
 	});
 }
 // src/private/Pallet.tsx
-function ke({ color: e, onChange: t }) {
+function Ae({ color: e, onChange: t }) {
 	let [n, i] = s(), a = o({
 		picked: e,
 		onChange: t
@@ -342,10 +342,10 @@ function ke({ color: e, onChange: t }) {
 		style: { backgroundColor: (n ?? e) || "transparent" }
 	});
 }
-function Ae({ colors: e, onColorsChange: t }) {
-	return /* @__PURE__ */ v(E, {
+function je({ colors: e, onColorsChange: t }) {
+	return /* @__PURE__ */ v(T, {
 		growEach: !0,
-		children: ce(e, (n, r) => /* @__PURE__ */ v(ke, {
+		children: le(e, (n, r) => /* @__PURE__ */ v(Ae, {
 			color: n,
 			onChange: (n) => t({
 				...e,
@@ -355,7 +355,7 @@ function Ae({ colors: e, onColorsChange: t }) {
 	});
 }
 // src/private/Range.tsx
-function z({ label: e, min: t = 0, max: n = 100, decimals: i = 0, value: o, onChange: c, className: l, hideInput: u = !1 }) {
+function R({ label: e, min: t = 0, max: n = 100, decimals: i = 0, value: o, onChange: c, className: l, hideInput: u = !1 }) {
 	let d = 1 / 10 ** i, [f, p] = s(!1), [m, h] = s(o.toFixed(i)), g = o < t || o > n;
 	r(() => {
 		f || h(o.toFixed(i));
@@ -371,13 +371,13 @@ function z({ label: e, min: t = 0, max: n = 100, decimals: i = 0, value: o, onCh
 	}, _ = (e) => {
 		let t = Number.parseFloat(e.target.value);
 		c?.(t);
-	}, b = (e) => {
+	}, te = (e) => {
 		let t = null;
 		if (e.key === "ArrowUp" && (t = 1), e.key === "ArrowDown" && (t = -1), t) {
 			let n = e.shiftKey ? o + d * 10 * t : o + d * t;
 			h(n.toFixed(i)), c?.(n), e.preventDefault();
 		}
-	}, te = a(() => /* @__PURE__ */ y("span", {
+	}, ne = a(() => /* @__PURE__ */ y("span", {
 		className: "hc:flex hc:justify-between",
 		children: [e, /* @__PURE__ */ y("span", {
 			className: g ? "huet-text-red-100" : "huet-text-50",
@@ -396,16 +396,16 @@ function z({ label: e, min: t = 0, max: n = 100, decimals: i = 0, value: o, onCh
 		t,
 		n
 	]);
-	return /* @__PURE__ */ v(R, {
-		label: e && te,
-		className: T("hc:flex hc:flex-col hc:max-w-[30em]", l),
-		onKeyDown: b,
+	return /* @__PURE__ */ v(L, {
+		label: e && ne,
+		className: w("hc:flex hc:flex-col hc:max-w-[30em]", l),
+		onKeyDown: te,
 		children: /* @__PURE__ */ y("span", {
 			className: "hc:flex hc:items-center",
 			children: [!u && /* @__PURE__ */ v("input", {
 				"aria-hidden": !0,
 				type: "number",
-				className: T(g ? "huet-border-red-100 huet-bg-red-10 huet-bg/text-red-100" : "huet-border-20", "hc:py-[.3em] hc:px-[.5em] hc:border hc:max-w-[30em] hc:rounded-xs", "hc:w-[5em] hc:mr-2 hc:cursor-auto"),
+				className: w(g ? "huet-border-red-100 huet-bg-red-10 huet-bg/text-red-100" : "huet-border-20", "hc:py-[.3em] hc:px-[.5em] hc:border hc:max-w-[30em] hc:rounded-xs", "hc:w-[5em] hc:mr-2 hc:cursor-auto"),
 				value: m,
 				step: d,
 				onFocus: () => p(!0),
@@ -414,7 +414,7 @@ function z({ label: e, min: t = 0, max: n = 100, decimals: i = 0, value: o, onCh
 			}), /* @__PURE__ */ v("input", {
 				"aria-label": typeof e == "string" ? e : void 0,
 				type: "range",
-				className: T("huet-border-20", P, "hc:w-full hc:self-stretch hc:cursor-default"),
+				className: w("huet-border-20", N, "hc:w-full hc:self-stretch hc:cursor-default"),
 				min: t,
 				max: n,
 				step: d,
@@ -425,7 +425,7 @@ function z({ label: e, min: t = 0, max: n = 100, decimals: i = 0, value: o, onCh
 	});
 }
 // src/private/EditTheme.tsx
-function B({ theme: e, themerTheme: n, onThemeConfigChange: r }) {
+function z({ theme: e, themerTheme: n, onThemeConfigChange: r }) {
 	let i = e.config;
 	function a(e) {
 		return (t) => {
@@ -440,13 +440,13 @@ function B({ theme: e, themerTheme: n, onThemeConfigChange: r }) {
 			...i,
 			id: Math.random()
 		}, t = JSON.stringify(e, null, "  "), n = new Blob([t], { type: "text/plain;charset=utf-8" });
-		te(n, `${i.name} Huet Theme.json`);
+		ne(n, `${i.name} Huet Theme.json`);
 	}, [i]);
-	return /* @__PURE__ */ v(_, { children: /* @__PURE__ */ y(D, {
+	return /* @__PURE__ */ v(_, { children: /* @__PURE__ */ y(E, {
 		size: 2,
 		className: "hc:p-4",
 		children: [
-			/* @__PURE__ */ y("div", { children: [/* @__PURE__ */ v(Oe, {
+			/* @__PURE__ */ y("div", { children: [/* @__PURE__ */ v(ke, {
 				label: "Theme Name",
 				className: "hc:flex-auto hc:min-w-0 hc:min-h-0 hc:mb-2",
 				value: i.name,
@@ -454,19 +454,19 @@ function B({ theme: e, themerTheme: n, onThemeConfigChange: r }) {
 					...i,
 					name: e
 				})
-			}), /* @__PURE__ */ v(L, {
+			}), /* @__PURE__ */ v(I, {
 				onClick: d,
 				children: "Export Theme"
 			})] }),
-			/* @__PURE__ */ v(R, {
+			/* @__PURE__ */ v(L, {
 				label: "Background Color",
-				children: /* @__PURE__ */ v(xe, {
+				children: /* @__PURE__ */ v(Se, {
 					theme: e,
 					bgRampValue: i.bgRampValue,
 					onRampValueChange: o
 				})
 			}),
-			/* @__PURE__ */ v(z, {
+			/* @__PURE__ */ v(R, {
 				label: "Contrast",
 				min: 0,
 				max: 1,
@@ -474,18 +474,18 @@ function B({ theme: e, themerTheme: n, onThemeConfigChange: r }) {
 				value: i.contrastMultiplier,
 				onChange: s
 			}),
-			/* @__PURE__ */ v(R, {
+			/* @__PURE__ */ v(L, {
 				label: "Pallet",
-				children: /* @__PURE__ */ v(Ae, {
+				children: /* @__PURE__ */ v(je, {
 					colors: i.pallet,
 					onColorsChange: c
 				})
 			}),
-			/* @__PURE__ */ v(R, {
+			/* @__PURE__ */ v(L, {
 				label: "Color ramps",
-				children: /* @__PURE__ */ v(De, { theme: n })
+				children: /* @__PURE__ */ v(Oe, { theme: n })
 			}),
-			/* @__PURE__ */ v(z, {
+			/* @__PURE__ */ v(R, {
 				label: "Signal Lightness on 'Black'",
 				value: i.endSignalLightness,
 				onChange: u,
@@ -493,7 +493,7 @@ function B({ theme: e, themerTheme: n, onThemeConfigChange: r }) {
 				max: 1,
 				decimals: 2
 			}),
-			/* @__PURE__ */ v(z, {
+			/* @__PURE__ */ v(R, {
 				label: "Signal Lightness on 'White'",
 				value: i.startSignalLightness,
 				onChange: l,
@@ -505,18 +505,18 @@ function B({ theme: e, themerTheme: n, onThemeConfigChange: r }) {
 	}) });
 }
 // src/private/persistentState.ts
-var V = "huet:", H = "useBrowserState_huet_", je = ["themer:showHelp"], Me = 500, U = (e) => typeof e == "boolean" ? e : void 0;
-function Ne(e) {
+var B = "huet:", V = "useBrowserState_huet_", Me = ["themer:showHelp"], Ne = 500, H = (e) => typeof e == "boolean" ? e : void 0;
+function Pe(e) {
 	return (t) => e.includes(t) ? t : void 0;
 }
-function W() {
+function U() {
 	try {
 		return typeof window > "u" ? null : window.localStorage;
 	} catch {
 		return null;
 	}
 }
-function G(e) {
+function Fe(e) {
 	let t = [];
 	for (let n = 0; n < e.length; n++) {
 		let r = e.key(n);
@@ -524,74 +524,74 @@ function G(e) {
 	}
 	return t;
 }
-function Pe(e, t, n) {
-	if (K.has(e)) return n(K.get(e)) ?? t;
-	let r = W();
+function Ie(e, t, n) {
+	if (W.has(e)) return n(W.get(e)) ?? t;
+	let r = U();
 	if (!r) return t;
 	try {
-		let i = r.getItem(V + e);
+		let i = r.getItem(B + e);
 		if (i === null) return t;
 		let a = n(JSON.parse(i));
 		if (a !== void 0) return a;
 	} catch {}
 	console.warn(`Huet: discarding invalid saved value for "${e}"`);
 	try {
-		r.removeItem(V + e);
+		r.removeItem(B + e);
 	} catch {}
 	return t;
 }
-var K = /* @__PURE__ */ new Map(), q = /* @__PURE__ */ new Set(), J;
-function Y() {
-	for (let e of q) e();
+var W = /* @__PURE__ */ new Map(), G = /* @__PURE__ */ new Set(), K;
+function q() {
+	for (let e of G) e();
 }
-function Fe(e, t) {
-	K.set(e, t), clearTimeout(J), J = setTimeout(X, Me), Y();
+function Le(e, t) {
+	W.set(e, t), clearTimeout(K), K = setTimeout(J, Ne), q();
 }
-function X() {
-	if (clearTimeout(J), J = void 0, K.size === 0) return;
-	let e = W();
-	for (let [t, n] of K) try {
-		e?.setItem(V + t, JSON.stringify(n));
+function J() {
+	if (clearTimeout(K), K = void 0, W.size === 0) return;
+	let e = U();
+	for (let [t, n] of W) try {
+		e?.setItem(B + t, JSON.stringify(n));
 	} catch (e) {
 		console.warn(`Huet: couldn't save "${t}"`, e);
 	}
-	K.clear(), Y();
-}
-function Ie() {
-	clearTimeout(J), J = void 0, K.clear(), Y();
-	let e = W();
-	if (e) for (let t of G(e)) (t.startsWith(V) || t.startsWith(H)) && e.removeItem(t);
-}
-function Le() {
-	Ie(), window.location.reload();
+	W.clear(), q();
 }
 function Re() {
-	let e = W();
-	if (e) try {
-		for (let t of G(e)) t.startsWith(H) && e.removeItem(t);
-		for (let t of je) e.removeItem(V + t);
-	} catch {}
+	clearTimeout(K), K = void 0, W.clear(), q();
+	let e = U();
+	if (e) for (let t of Fe(e)) (t.startsWith(B) || t.startsWith(V)) && e.removeItem(t);
 }
-typeof window < "u" && (Re(), window.addEventListener("pagehide", X), document.addEventListener("visibilitychange", () => {
-	document.visibilityState === "hidden" && X();
-}));
-function ze(e) {
-	return q.add(e), () => {
-		q.delete(e);
-	};
+function ze() {
+	Re(), window.location.reload();
 }
 function Be() {
-	return c(ze, () => K.size > 0, () => !1);
+	let e = U();
+	if (e) try {
+		for (let t of Fe(e)) t.startsWith(V) && e.removeItem(t);
+		for (let t of Me) e.removeItem(B + t);
+	} catch {}
 }
-function Z(e, n, i) {
-	let [a, c] = s(() => Pe(e, n, i)), l = o(a);
+typeof window < "u" && (Be(), window.addEventListener("pagehide", J), document.addEventListener("visibilitychange", () => {
+	document.visibilityState === "hidden" && J();
+}));
+function Ve(e) {
+	return G.add(e), () => {
+		G.delete(e);
+	};
+}
+function He() {
+	return c(Ve, () => W.size > 0, () => !1);
+}
+function Y(e, n, i) {
+	let [a, c] = s(() => Ie(e, n, i)), l = o(a);
 	l.current = a;
 	let u = o(!1), d = o(void 0), f = o(void 0);
 	return r(() => {
-		u.current && a !== d.current?.value && (f.current = { raw: a }, d.current = void 0, Fe(e, a));
-	}, [e, a]), r(() => ze(() => {
-		if (!K.has(e)) return;
-		let t = K.get(e);
+		u.current && a !== d.current?.value && (f.current = { raw: a }, d.current = void 0, Le(e, a));
+	}, [e, a]), r(() => Ve(() => {
+		if (!W.has(e)) return;
+		let t = W.get(e);
 		if (t === l.current || t === f.current?.raw || t === d.current?.raw) return;
 		let n = i(t);
 		n !== void 0 && (f.current = void 0, d.current = {
@@ -603,22 +603,22 @@ function Z(e, n, i) {
 	}, [])];
 }
 // src/private/Tabs.tsx
-var Q = {
+var X = {
 	THEMES: "THEMES",
 	EDIT_THEME: "EDIT_THEME"
-}, Ve = Ne(Object.values(Q)), He = [{
-	tab: Q.THEMES,
+}, Ue = Pe(Object.values(X)), We = [{
+	tab: X.THEMES,
 	label: "Themes"
 }, {
-	tab: Q.EDIT_THEME,
+	tab: X.EDIT_THEME,
 	label: "Edit Theme"
 }];
-function Ue({ currentTab: e, onTabChange: t, className: n, buttonClassName: r }) {
+function Ge({ currentTab: e, onTabChange: t, className: n, buttonClassName: r }) {
 	return /* @__PURE__ */ v("div", {
-		className: T("hc:px-2 hc:pt-2 hc:border-b", n),
-		children: /* @__PURE__ */ v(E, {
+		className: w("hc:px-2 hc:pt-2 hc:border-b", n),
+		children: /* @__PURE__ */ v(T, {
 			growEach: !0,
-			children: He.map(({ tab: n, label: i }) => /* @__PURE__ */ v(L, {
+			children: We.map(({ tab: n, label: i }) => /* @__PURE__ */ v(I, {
 				"aria-pressed": e === n,
 				colors: e === n ? "huet-bg-100" : "huet-text-100",
 				className: r,
@@ -629,7 +629,7 @@ function Ue({ currentTab: e, onTabChange: t, className: n, buttonClassName: r })
 	});
 }
 // src/private/HuetLogo.tsx
-function We({ className: e }) {
+function Ke({ className: e }) {
 	return /* @__PURE__ */ v("svg", {
 		className: e,
 		viewBox: "0 0 2000 2000",
@@ -639,14 +639,14 @@ function We({ className: e }) {
 	});
 }
 // src/private/ThemerShell.tsx
-function Ge() {
-	let e = Be();
+function qe() {
+	let e = He();
 	return /* @__PURE__ */ v("span", {
-		className: T("huet-bg-green-20 huet-bg/text-green-100 hc:inline hc:rounded-lg hc:px-2 hc:font-normal", "hc:transition-opacity hc:duration-400 hc:ease-[ease]", e ? "hc:opacity-0" : "hc:opacity-100"),
+		className: w("huet-bg-green-20 huet-bg/text-green-100 hc:inline hc:rounded-lg hc:px-2 hc:font-normal", "hc:transition-opacity hc:duration-400 hc:ease-[ease]", e ? "hc:opacity-0" : "hc:opacity-100"),
 		children: "Saved"
 	});
 }
-function Ke({ isExpanded: e, onClick: t }) {
+function Je({ isExpanded: e, onClick: t }) {
 	return /* @__PURE__ */ y("button", {
 		onClick: t,
 		"aria-expanded": e,
@@ -655,9 +655,9 @@ function Ke({ isExpanded: e, onClick: t }) {
 		children: [/* @__PURE__ */ y("span", {
 			className: "hc:py-2 hc:px-2 hc:font-bold hc:flex hc:items-center hc:gap-1.5",
 			children: [
-				/* @__PURE__ */ v(We, { className: "hc:size-[1.25em] hc:shrink-0" }),
+				/* @__PURE__ */ v(Ke, { className: "hc:size-[1.25em] hc:shrink-0" }),
 				"Huet Theme Configurator ",
-				e && /* @__PURE__ */ v(Ge, {})
+				e && /* @__PURE__ */ v(qe, {})
 			]
 		}), /* @__PURE__ */ v("span", {
 			className: "huet-bg-20 hc:flex hc:justify-center hc:items-center hc:px-4 hc:font-bold",
@@ -665,28 +665,28 @@ function Ke({ isExpanded: e, onClick: t }) {
 		})]
 	});
 }
-var qe = T("huet-outline-20 hc:fixed hc:right-[1em] hc:bottom-[1em] hc:z-[999]", "hc:font-ui hc:text-[.75rem] hc:outline", "hc:transition-[opacity,translate,height] hc:duration-200 hc:ease-[ease-out]"), Je = {
+var Ye = w("huet-outline-20 hc:fixed hc:right-[1em] hc:bottom-[1em] hc:z-[999]", "hc:font-ui hc:text-[.75rem] hc:outline", "hc:transition-[opacity,translate,height] hc:duration-200 hc:ease-[ease-out]"), Xe = {
 	expanded: "hc:shadow-[0_5px_30px_color-mix(in_srgb,var(--huet-foreground)_calc(12.5%*var(--huet-configurator-contrast,1)),transparent)]",
 	collapsed: "hc:shadow-[0_5px_30px_color-mix(in_srgb,var(--huet-relative-text)_calc(12.5%*var(--huet-configurator-contrast,1)),transparent)]"
 };
-function Ye({ children: e }) {
-	let [t, n] = Z("themer:isExpanded", !0, U), [i, a] = s(!1);
+function Ze({ children: e }) {
+	let [t, n] = Y("themer:isExpanded", !0, H), [i, a] = s(!1);
 	return r(() => a(!0), []), t ? /* @__PURE__ */ y("div", {
-		className: T(qe, "huet-bg-0", Je.expanded, "hc:flex hc:flex-col hc:h-[min(64em,100vh-2em)]", i ? "hc:translate-y-0 hc:opacity-100" : "hc:translate-y-[2em] hc:opacity-0"),
-		children: [/* @__PURE__ */ v(Ke, {
+		className: w(Ye, "huet-bg-0", Xe.expanded, "hc:flex hc:flex-col hc:h-[min(64em,100vh-2em)]", i ? "hc:translate-y-0 hc:opacity-100" : "hc:translate-y-[2em] hc:opacity-0"),
+		children: [/* @__PURE__ */ v(Je, {
 			isExpanded: !0,
 			onClick: () => n((e) => !e)
 		}), e]
 	}) : /* @__PURE__ */ v("div", {
-		className: T(qe, "huet-text-100", Je.collapsed),
-		children: /* @__PURE__ */ v(Ke, { onClick: () => n((e) => !e) })
+		className: w(Ye, "huet-text-100", Xe.collapsed),
+		children: /* @__PURE__ */ v(Je, { onClick: () => n((e) => !e) })
 	});
 }
 // src/private/Themes.tsx
-function Xe(e) {
+function Qe(e) {
 	return u.fromTheme(e).contrast(0);
 }
-function Ze({ theme: e, isSelected: t, children: n, onClick: r, isHidden: i }) {
+function $e({ theme: e, isSelected: t, children: n, onClick: r, isHidden: i }) {
 	let a = u.fromTheme(e), s = a.contrast(0), c = "hc:w-full hc:h-full hc:border hc:rounded-sm hc:relative hc:overflow-hidden", l = {
 		backgroundColor: s.hex,
 		color: s.contrast(100).hex,
@@ -695,7 +695,7 @@ function Ze({ theme: e, isSelected: t, children: n, onClick: r, isHidden: i }) {
 	}, d = o(null), f = d.current ? d.current.clientHeight : 0;
 	return /* @__PURE__ */ v("div", {
 		ref: d,
-		className: T("hc:flex hc:relative hc:basis-[20em] hc:shrink-0 hc:transition-[scale,margin,opacity] hc:duration-150 hc:ease-[ease-out]", i && "hc:pointer-events-none hc:scale-y-0 hc:opacity-0"),
+		className: w("hc:flex hc:relative hc:basis-[20em] hc:shrink-0 hc:transition-[scale,margin,opacity] hc:duration-150 hc:ease-[ease-out]", i && "hc:pointer-events-none hc:scale-y-0 hc:opacity-0"),
 		style: i ? {
 			marginTop: `-${f / 2}px`,
 			marginBottom: `-${f / 2}px`
@@ -703,7 +703,7 @@ function Ze({ theme: e, isSelected: t, children: n, onClick: r, isHidden: i }) {
 		children: t ? /* @__PURE__ */ y("div", {
 			className: c,
 			style: l,
-			children: [n, /* @__PURE__ */ v(M, {
+			children: [n, /* @__PURE__ */ v(j, {
 				size: ".75em",
 				className: "hc:absolute hc:bottom-0 hc:left-1/2 hc:-translate-x-1/2"
 			})]
@@ -718,48 +718,47 @@ function Ze({ theme: e, isSelected: t, children: n, onClick: r, isHidden: i }) {
 		})
 	});
 }
-function Qe({ theme: e }) {
+function et(e) {
+	return e.length ? `linear-gradient(to right, ${e.map((t, n) => `${t} ${n / e.length * 100}% ${(n + 1) / e.length * 100}%`).join(", ")})` : "none";
+}
+function tt({ theme: e }) {
 	return /* @__PURE__ */ v("div", {
-		className: "hc:flex hc:h-[.5em]",
-		children: Object.keys(e.pallet).map((t) => /* @__PURE__ */ v("div", {
-			className: "hc:w-full hc:h-full",
-			style: { backgroundColor: e.pallet[t] }
-		}, t))
+		"aria-hidden": "true",
+		className: "hc:h-[.5em]",
+		style: { background: et(Object.values(e.pallet)) }
 	});
 }
-function $e({ children: e }) {
+function nt({ children: e }) {
 	return /* @__PURE__ */ v("h3", {
 		className: "hc:mx-2 hc:py-2 hc:flex hc:items-center hc:justify-between",
 		children: e
 	});
 }
-function et({ bg: e }) {
+function rt({ bg: e }) {
 	return /* @__PURE__ */ v("div", {
 		className: "hc:-mt-2 hc:h-2",
 		style: { background: `linear-gradient(${e}, ${e.contrast(12)})` }
 	});
 }
-function tt({ theme: e, bg: t }) {
+function it({ theme: e, bg: t }) {
 	return Object.keys(e.ramps).filter((t) => {
 		let n = e.ramps[t].config.mode;
 		return n === h.SIGNAL || n === h.FURTHEST;
 	}).map((n) => {
 		let r = t.base(e.ramps[n]);
 		return /* @__PURE__ */ v("div", {
-			className: "hc:flex",
-			children: [
+			"aria-hidden": "true",
+			className: w("hc:mt-px", n === "gray" ? "hc:h-6" : "hc:h-2"),
+			style: { background: et([
 				100,
 				75,
 				50,
 				25
-			].map((e) => /* @__PURE__ */ v("div", {
-				className: T("hc:w-full hc:mt-px", n === "gray" ? "hc:h-6" : "hc:h-2"),
-				style: { backgroundColor: r.contrast(e).hex }
-			}, e))
+			].map((e) => r.contrast(e).hex)) }
 		}, n);
 	});
 }
-function nt({ children: e }) {
+function at({ children: e }) {
 	return /* @__PURE__ */ v("div", {
 		className: "hc:flex",
 		children: /* @__PURE__ */ v("div", {
@@ -768,57 +767,57 @@ function nt({ children: e }) {
 		})
 	});
 }
-var rt = e.memo(function({ config: e, isSelected: t, onClick: n, onRemove: r }) {
-	let [i, a] = s(!1), o = new d(e), c = Xe(o), l = e.id === f.id;
+var ot = e.memo(function({ config: e, isSelected: t, onClick: n, onRemove: r }) {
+	let [i, a] = s(!1), o = new d(e), c = Qe(o), l = e.id === f.id;
 	function u() {
 		a(!0), setTimeout(() => r(), 200);
 	}
-	return /* @__PURE__ */ y(Ze, {
+	return /* @__PURE__ */ y($e, {
 		theme: o,
 		isSelected: t,
 		onClick: n,
 		isHidden: i,
 		children: [
-			/* @__PURE__ */ v(Qe, { theme: o }),
-			/* @__PURE__ */ y($e, { children: [o.name, t && !l && /* @__PURE__ */ v(ye, {
+			/* @__PURE__ */ v(tt, { theme: o }),
+			/* @__PURE__ */ y(nt, { children: [o.name, t && !l && /* @__PURE__ */ v(be, {
 				style: { color: c.base(o.ramps.red).contrast(100).hex },
 				onClick: u,
 				verify: !0,
 				children: "Remove"
 			})] }),
-			/* @__PURE__ */ v(et, { bg: c }),
-			/* @__PURE__ */ v(nt, { children: /* @__PURE__ */ v(tt, {
+			/* @__PURE__ */ v(rt, { bg: c }),
+			/* @__PURE__ */ v(at, { children: /* @__PURE__ */ v(it, {
 				theme: o,
 				bg: c
 			}) })
 		]
 	});
 });
-function it(e, t) {
+function st(e, t) {
 	let n = e.contrast(100, e.theme.ramps[t]);
 	return {
 		backgroundColor: n.hex,
 		color: n.contrast(100).hex
 	};
 }
-function at({ config: e, onReset: t, onCreate: n }) {
-	let r = new d(e), i = Xe(r);
-	return /* @__PURE__ */ y(Ze, {
+function ct({ config: e, onReset: t, onCreate: n }) {
+	let r = new d(e), i = Qe(r);
+	return /* @__PURE__ */ y($e, {
 		isSelected: !0,
 		theme: r,
 		children: [
-			/* @__PURE__ */ v(Qe, { theme: r }),
-			/* @__PURE__ */ v($e, { children: r.name }),
-			/* @__PURE__ */ v(et, { bg: i }),
-			/* @__PURE__ */ y(nt, { children: [/* @__PURE__ */ v(L, {
+			/* @__PURE__ */ v(tt, { theme: r }),
+			/* @__PURE__ */ v(nt, { children: r.name }),
+			/* @__PURE__ */ v(rt, { bg: i }),
+			/* @__PURE__ */ y(at, { children: [/* @__PURE__ */ v(I, {
 				colors: "",
-				style: it(i, "green"),
+				style: st(i, "green"),
 				onClick: n,
 				children: "Save As New Theme"
-			}), /* @__PURE__ */ v(L, {
+			}), /* @__PURE__ */ v(I, {
 				colors: "",
 				className: "hc:mt-1",
-				style: it(i, "red"),
+				style: st(i, "red"),
 				verify: !0,
 				onClick: t,
 				children: "Reset"
@@ -826,17 +825,17 @@ function at({ config: e, onReset: t, onCreate: n }) {
 		]
 	});
 }
-function ot({ config: e, themes: t }) {
+function lt({ config: e, themes: t }) {
 	let { selected: n, isModified: r, select: a, remove: s, saveAsNew: c } = t, l = e.id === n.id, u = l && r, d = () => a(e), f = o(null);
 	return i(() => {
 		l && f.current && f.current.scrollIntoView({ block: "center" });
 	}, []), /* @__PURE__ */ v("div", {
 		ref: f,
-		children: u ? /* @__PURE__ */ v(at, {
+		children: u ? /* @__PURE__ */ v(ct, {
 			config: n,
 			onReset: d,
 			onCreate: c
-		}) : /* @__PURE__ */ v(rt, {
+		}) : /* @__PURE__ */ v(ot, {
 			config: e,
 			isSelected: l,
 			onClick: d,
@@ -844,13 +843,13 @@ function ot({ config: e, themes: t }) {
 		})
 	});
 }
-var st = (e) => {
+var ut = (e) => {
 	if (!Array.isArray(e)) return;
 	let t = e.map(m).filter((e) => e !== void 0);
 	return t.length > 0 ? t : void 0;
 };
-function ct() {
-	let [e, t] = Z("themes", g, st), [n, r] = w(), i = n.config, a = e.find((e) => e.id === i.id), o = a !== void 0 && !oe(a, i);
+function dt() {
+	let [e, t] = Y("themes", g, ut), [n, r] = C(), i = n.config, a = e.find((e) => e.id === i.id), o = a !== void 0 && !se(a, i);
 	function s(e) {
 		t((t) => [e, ...t]), r(e);
 	}
@@ -880,49 +879,49 @@ function ct() {
 		}
 	};
 }
-function lt() {
-	let e = ct();
-	return /* @__PURE__ */ y(D, {
+function ft() {
+	let e = dt();
+	return /* @__PURE__ */ y(E, {
 		size: 3,
 		className: "hc:p-4",
-		children: [/* @__PURE__ */ v(F, {
+		children: [/* @__PURE__ */ v(P, {
 			onUpload: e.importTheme,
 			children: "Import Theme"
-		}), e.configs.map((t) => /* @__PURE__ */ v(ot, {
+		}), e.configs.map((t) => /* @__PURE__ */ v(lt, {
 			config: t,
 			themes: e
 		}, t.id))]
 	});
 }
 // src/Themer.tsx
-var ut = new d(f);
-function dt({ children: e }) {
+var pt = new d(f);
+function mt({ children: e }) {
 	return /* @__PURE__ */ v("div", {
 		className: "hc:overflow-y-scroll hc:overflow-x-hidden hc:w-[30em] hc:overscroll-contain hc:flex-auto hc:min-w-0 hc:min-h-0",
 		children: e
 	});
 }
-function ft() {
-	let [e, t] = w(), [n, r] = Z("themer:shouldThemeSelf", !0, U), [i, a] = Z("themer:currentTab", Q.THEMES, Ve), o = n ? e : ut;
-	return /* @__PURE__ */ v(j, {
+function ht() {
+	let [e, t] = C(), [n, r] = Y("themer:shouldThemeSelf", !0, H), [i, a] = Y("themer:currentTab", X.THEMES, Ue), o = n ? e : pt;
+	return /* @__PURE__ */ v(A, {
 		themeConfig: o.config,
-		children: /* @__PURE__ */ v(Ye, { children: /* @__PURE__ */ y("div", {
+		children: /* @__PURE__ */ v(Ze, { children: /* @__PURE__ */ y("div", {
 			className: "hc:flex hc:flex-col hc:flex-auto hc:min-w-0 hc:min-h-0 hc:overflow-hidden",
 			children: [
-				/* @__PURE__ */ v(Ue, {
+				/* @__PURE__ */ v(Ge, {
 					currentTab: i,
 					onTabChange: a
 				}),
-				/* @__PURE__ */ v(dt, { children: i === Q.EDIT_THEME ? /* @__PURE__ */ v(B, {
+				/* @__PURE__ */ v(mt, { children: i === X.EDIT_THEME ? /* @__PURE__ */ v(z, {
 					theme: e,
 					themerTheme: o,
 					onThemeConfigChange: t
-				}) : /* @__PURE__ */ v(lt, {}) }),
+				}) : /* @__PURE__ */ v(ft, {}) }),
 				/* @__PURE__ */ v("div", {
 					className: "huet-bg-10",
-					children: /* @__PURE__ */ v(D, {
+					children: /* @__PURE__ */ v(E, {
 						className: "hc:p-4",
-						children: /* @__PURE__ */ v(ge, {
+						children: /* @__PURE__ */ v(_e, {
 							label: "Theme the themer",
 							value: n,
 							onChange: r
@@ -934,7 +933,7 @@ function ft() {
 	});
 }
 // src/private/ErrorBoundary.tsx
-var pt = class extends e.Component {
+var gt = class extends e.Component {
 	constructor(...e) {
 		super(...e), this.state = { hasError: !1 };
 	}
@@ -966,7 +965,7 @@ var pt = class extends e.Component {
 					"Try clearing local storage:",
 					" ",
 					/* @__PURE__ */ v("button", {
-						onClick: Le,
+						onClick: ze,
 						children: "Reset this Page"
 					})
 				]
@@ -975,31 +974,31 @@ var pt = class extends e.Component {
 	}
 };
 // src/ThemeConfigurator.tsx
-function mt(e) {
+function _t(e) {
 	let t = typeof e == "string" ? document.querySelector(e) : e;
 	if (!t) throw Error(`Huet: no element matches ${String(e)}`);
 	return t;
 }
-function ht(e, t) {
-	let n = a(() => k(t), [t]), r = o(n);
+function vt(e, t) {
+	let n = a(() => O(t), [t]), r = o(n);
 	r.current = n;
 	let s = o(void 0);
 	i(() => {
 		if (!e) return;
-		let t = l(mt(e), r.current);
+		let t = l(_t(e), r.current);
 		return s.current = t, () => {
 			t.destroy(), s.current = void 0;
 		};
 	}, [e]), i(() => s.current?.update(n), [n]);
 }
-function gt({ target: e, config: t, setConfig: n, children: r }) {
+function yt({ target: e, config: t, setConfig: n, children: r }) {
 	let i = a(() => new d(t), [t]);
-	return ht(e, t), /* @__PURE__ */ v(fe.Provider, {
+	return vt(e, t), /* @__PURE__ */ v(pe.Provider, {
 		value: [i, n],
 		children: r
 	});
 }
-function _t({ value: e, onChange: n, target: r, children: i }) {
+function bt({ value: e, onChange: n, target: r, children: i }) {
 	let a = o(e);
 	a.current = e;
 	let s = o(n);
@@ -1008,44 +1007,44 @@ function _t({ value: e, onChange: n, target: r, children: i }) {
 		let t = typeof e == "function" ? e(a.current) : e;
 		t !== a.current && s.current?.(t);
 	}, []);
-	return /* @__PURE__ */ v(gt, {
+	return /* @__PURE__ */ v(yt, {
 		target: r,
 		config: e,
 		setConfig: c,
 		children: i
 	});
 }
-function vt({ defaultValue: e = f, onChange: t, target: n, children: r }) {
-	let [a, s] = Z("theme", e, m), c = o(t);
-	return c.current = t, i(() => c.current?.(a), [a]), /* @__PURE__ */ v(gt, {
+function xt({ defaultValue: e = f, onChange: t, target: n, children: r }) {
+	let [a, s] = Y("theme", e, m), c = o(t);
+	return c.current = t, i(() => c.current?.(a), [a]), /* @__PURE__ */ v(yt, {
 		target: n,
 		config: a,
 		setConfig: s,
 		children: r
 	});
 }
-function yt({ componentName: e, children: t, ...n }) {
-	return /* @__PURE__ */ v(pt, {
+function Z({ componentName: e, children: t, ...n }) {
+	return /* @__PURE__ */ v(gt, {
 		componentName: e,
-		children: n.value ? /* @__PURE__ */ v(_t, {
+		children: n.value ? /* @__PURE__ */ v(bt, {
 			...n,
 			value: n.value,
 			children: t
-		}) : /* @__PURE__ */ v(vt, {
+		}) : /* @__PURE__ */ v(xt, {
 			...n,
 			children: t
 		})
 	});
 }
-function bt(e) {
-	return /* @__PURE__ */ v(yt, {
+function St(e) {
+	return /* @__PURE__ */ v(Z, {
 		componentName: "Theme Configurator",
 		...e,
-		children: /* @__PURE__ */ v(ft, {})
+		children: /* @__PURE__ */ v(ht, {})
 	});
 }
 // src/private/ThemeMiniMap.tsx
-var xt = [
+var Ct = [
 	100,
 	87.5,
 	75,
@@ -1056,7 +1055,7 @@ var xt = [
 	12.5,
 	0
 ];
-function St(e) {
+function wt(e) {
 	let t = e.theme;
 	return Object.keys(t.ramps).filter((e) => {
 		let n = t.ramps[e].config.mode;
@@ -1066,39 +1065,39 @@ function St(e) {
 		return {
 			rampKey: n,
 			color: r,
-			distance: Math.abs(x(r).get("lab.l") - x(e.hex).get("lab.l"))
+			distance: Math.abs(b(r).get("lab.l") - b(e.hex).get("lab.l"))
 		};
 	}).sort((e, t) => t.distance - e.distance);
 }
-function Ct(e) {
-	return `linear-gradient(to right, ${xt.map((t) => e.contrast(t).hex).join(", ")})`;
+function Tt(e) {
+	return `linear-gradient(to right, ${Ct.map((t) => e.contrast(t).hex).join(", ")})`;
 }
-function wt({ bg: e }) {
+function Q({ bg: e }) {
 	return /* @__PURE__ */ y("span", {
 		"aria-hidden": !0,
 		className: "hc:flex hc:flex-col hc:gap-[.25em] hc:shrink-0",
 		children: [/* @__PURE__ */ v("span", {
 			className: "hc:flex hc:gap-[.25em]",
-			children: St(e).map(({ rampKey: e, color: t }) => /* @__PURE__ */ v("span", {
+			children: wt(e).map(({ rampKey: e, color: t }) => /* @__PURE__ */ v("span", {
 				title: e,
 				className: "hc:size-[.625em] hc:rounded-full",
 				style: { backgroundColor: t }
 			}, e))
 		}), /* @__PURE__ */ v("span", {
 			className: "hc:h-[.375em] hc:rounded-full",
-			style: { backgroundImage: Ct(e) }
+			style: { backgroundImage: Tt(e) }
 		})]
 	});
 }
 // src/EmbeddedThemeConfigurator.tsx
 var $ = "hc:not-focus-visible:shadow-none!";
-function Tt({ config: e, isSelected: t, isModified: n, onSelect: r }) {
+function Et({ config: e, isSelected: t, isModified: n, onSelect: r }) {
 	let i = u.fromTheme(new d(e)), a = i.contrast(100), o = t ? a.hex : i.contrast(15).hex, s = t ? a.hex : i.contrast(40).hex;
 	return /* @__PURE__ */ y("button", {
 		type: "button",
 		"aria-pressed": t,
 		onClick: r,
-		className: T("hc:flex hc:items-center hc:gap-[.75em] hc:w-full hc:py-[.5em] hc:px-[.625em]", "hc:rounded-md hc:border hc:cursor-pointer hc:text-left", $, "hc:border-(color:--item-border) hc:hover:border-(color:--item-border-hover)"),
+		className: w("hc:flex hc:items-center hc:gap-[.75em] hc:w-full hc:py-[.5em] hc:px-[.625em]", "hc:rounded-md hc:border hc:cursor-pointer hc:text-left", $, "hc:border-(color:--item-border) hc:hover:border-(color:--item-border-hover)"),
 		style: {
 			backgroundColor: i.hex,
 			color: a.hex,
@@ -1106,7 +1105,7 @@ function Tt({ config: e, isSelected: t, isModified: n, onSelect: r }) {
 			"--item-border-hover": s
 		},
 		children: [
-			/* @__PURE__ */ v(wt, { bg: i }),
+			/* @__PURE__ */ v(Q, { bg: i }),
 			/* @__PURE__ */ v("span", {
 				className: "hc:grow",
 				children: e.name
@@ -1115,45 +1114,45 @@ function Tt({ config: e, isSelected: t, isModified: n, onSelect: r }) {
 				className: "hc:opacity-70",
 				children: "Edited"
 			}),
-			/* @__PURE__ */ v(ue, {
+			/* @__PURE__ */ v(de, {
 				size: "1em",
 				stroke: 2.5,
-				className: T("hc:shrink-0", !t && "hc:invisible")
+				className: w("hc:shrink-0", !t && "hc:invisible")
 			})
 		]
 	});
 }
-function Et() {
-	let e = ct(), { selected: t, saved: n, isModified: r } = e, i = n !== void 0 && n.id !== f.id;
+function Dt() {
+	let e = dt(), { selected: t, saved: n, isModified: r } = e, i = n !== void 0 && n.id !== f.id;
 	return /* @__PURE__ */ y(_, { children: [/* @__PURE__ */ v("div", {
 		className: "hc:flex hc:flex-col hc:gap-[.375em] hc:p-2 hc:flex-auto hc:min-h-0 hc:overflow-y-auto hc:overscroll-contain",
 		children: e.configs.map((n) => {
 			let i = n.id === t.id;
-			return /* @__PURE__ */ v(Tt, {
+			return /* @__PURE__ */ v(Et, {
 				config: i ? t : n,
 				isSelected: i,
 				isModified: i && r,
 				onSelect: () => !i && e.select(n)
 			}, n.id);
 		})
-	}), /* @__PURE__ */ v(E, {
+	}), /* @__PURE__ */ v(T, {
 		growEach: !0,
 		className: "hc:p-2 hc:border-t",
 		children: [
-			/* @__PURE__ */ v(F, {
+			/* @__PURE__ */ v(P, {
 				onUpload: e.importTheme,
 				children: "Import"
 			}, "import"),
-			(r || !n) && /* @__PURE__ */ v(L, {
+			(r || !n) && /* @__PURE__ */ v(I, {
 				onClick: e.saveAsNew,
 				children: "Save as New"
 			}, "save"),
-			r && /* @__PURE__ */ v(L, {
+			r && /* @__PURE__ */ v(I, {
 				verify: !0,
 				onClick: e.reset,
 				children: "Reset"
 			}, "reset"),
-			!r && i && /* @__PURE__ */ v(L, {
+			!r && i && /* @__PURE__ */ v(I, {
 				verify: !0,
 				onClick: () => e.remove(n),
 				children: "Remove"
@@ -1161,31 +1160,31 @@ function Et() {
 		].filter(Boolean)
 	})] });
 }
-function Dt() {
-	let [e, t] = w(), [n, r] = Z("embedded:currentTab", Q.THEMES, Ve);
-	return /* @__PURE__ */ y(_, { children: [/* @__PURE__ */ v(Ue, {
+function Ot() {
+	let [e, t] = C(), [n, r] = Y("embedded:currentTab", X.THEMES, Ue);
+	return /* @__PURE__ */ y(_, { children: [/* @__PURE__ */ v(Ge, {
 		currentTab: n,
 		onTabChange: r,
 		buttonClassName: $
-	}), n === Q.EDIT_THEME ? /* @__PURE__ */ v("div", {
+	}), n === X.EDIT_THEME ? /* @__PURE__ */ v("div", {
 		className: "hc:flex-auto hc:min-h-0 hc:overflow-y-auto hc:overscroll-contain",
-		children: /* @__PURE__ */ v(B, {
+		children: /* @__PURE__ */ v(z, {
 			theme: e,
 			themerTheme: e,
 			onThemeConfigChange: t
 		})
-	}) : /* @__PURE__ */ v(Et, {})] });
+	}) : /* @__PURE__ */ v(Dt, {})] });
 }
-function Ot({ mode: e = "contrast", side: t = "bottom", align: n = "end", style: r }) {
-	let [a] = w(), [o, c] = s(!1);
-	i(A, []);
+function kt({ mode: e = "contrast", side: t = "bottom", align: n = "end", style: r }) {
+	let [a] = C(), [o, c] = s(!1);
+	i(k, []);
 	let l = u.fromTheme(a), d = l.contrast(100), f = e === "contrast" ? d : l, p = {
 		color: f.contrast(100).hex,
 		borderColor: e === "outlined" || e === "blended" && o ? d.hex : "transparent",
 		"--trigger-bg": e === "contrast" ? f.hex : "transparent",
 		"--trigger-hover": e === "contrast" ? f.contrast(6).hex : `color-mix(in srgb, ${d.hex} 8%, transparent)`
 	};
-	return /* @__PURE__ */ y(C.Root, {
+	return /* @__PURE__ */ y(S.Root, {
 		open: o,
 		onOpenChange: c,
 		children: [/* @__PURE__ */ v("span", {
@@ -1194,40 +1193,40 @@ function Ot({ mode: e = "contrast", side: t = "bottom", align: n = "end", style:
 				fontSize: "inherit",
 				...r
 			},
-			children: /* @__PURE__ */ v(C.Trigger, {
+			children: /* @__PURE__ */ v(S.Trigger, {
 				asChild: !0,
 				children: /* @__PURE__ */ y("button", {
 					type: "button",
 					"aria-label": `Theme: ${a.name}`,
 					title: a.name,
-					className: T("hc:inline-flex hc:items-center hc:gap-[.5em] hc:py-[.375em] hc:pl-[.5em] hc:pr-[.375em]", "hc:rounded-md hc:border hc:cursor-pointer", $, "hc:bg-(--trigger-bg) hc:hover:bg-(--trigger-hover)"),
+					className: w("hc:inline-flex hc:items-center hc:gap-[.5em] hc:py-[.375em] hc:pl-[.5em] hc:pr-[.375em]", "hc:rounded-md hc:border hc:cursor-pointer", $, "hc:bg-(--trigger-bg) hc:hover:bg-(--trigger-hover)"),
 					style: p,
-					children: [/* @__PURE__ */ v(wt, { bg: f }), /* @__PURE__ */ v(de, {
+					children: [/* @__PURE__ */ v(Q, { bg: f }), /* @__PURE__ */ v(fe, {
 						size: "1em",
 						stroke: 2,
-						className: T("hc:shrink-0 hc:transition-transform hc:duration-150", o && "hc:rotate-180")
+						className: w("hc:shrink-0 hc:transition-transform hc:duration-150", o && "hc:rotate-180")
 					})]
 				})
 			})
-		}), /* @__PURE__ */ v(j, {
+		}), /* @__PURE__ */ v(A, {
 			themeConfig: a.config,
-			children: /* @__PURE__ */ v(C.Content, {
+			children: /* @__PURE__ */ v(S.Content, {
 				side: t,
 				align: n,
 				sideOffset: 6,
 				collisionPadding: 8,
 				"aria-label": "Theme Configurator",
-				className: T("huet-bg-0 huet-border-100 hc:border hc:rounded-lg hc:z-[1000] hc:overflow-hidden", "hc:font-ui hc:text-[.8125rem] hc:flex hc:flex-col hc:w-[28em]", "hc:h-[min(40em,var(--radix-popover-content-available-height))]", "hc:shadow-[0_6px_24px_color-mix(in_srgb,var(--huet-foreground)_calc(16%*var(--huet-configurator-contrast,1)),transparent)]"),
-				children: /* @__PURE__ */ v(Dt, {})
+				className: w("huet-bg-0 huet-border-100 hc:border hc:rounded-lg hc:z-[1000] hc:overflow-hidden", "hc:font-ui hc:text-[.8125rem] hc:flex hc:flex-col hc:w-[28em]", "hc:h-[min(40em,var(--radix-popover-content-available-height))]", "hc:shadow-[0_6px_24px_color-mix(in_srgb,var(--huet-foreground)_calc(16%*var(--huet-configurator-contrast,1)),transparent)]"),
+				children: /* @__PURE__ */ v(Ot, {})
 			})
 		})]
 	});
 }
-function kt({ mode: e, side: t, align: n, style: r, ...i }) {
-	return /* @__PURE__ */ v(yt, {
+function At({ mode: e, side: t, align: n, style: r, ...i }) {
+	return /* @__PURE__ */ v(Z, {
 		componentName: "Embedded Theme Configurator",
 		...i,
-		children: /* @__PURE__ */ v(Ot, {
+		children: /* @__PURE__ */ v(kt, {
 			mode: e,
 			side: t,
 			align: n,
@@ -1235,6 +1234,6 @@ function kt({ mode: e, side: t, align: n, style: r, ...i }) {
 		})
 	});
 }
-export { kt as EmbeddedThemeConfigurator, bt as ThemeConfigurator };
+export { At as EmbeddedThemeConfigurator, St as ThemeConfigurator };
 
 //# sourceMappingURL=index.js.map
