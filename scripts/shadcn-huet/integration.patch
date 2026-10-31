@@ -1,5 +1,5 @@
 diff --git a/apps/v4/app/(app)/(root)/cards/qr-connect.tsx b/apps/v4/app/(app)/(root)/cards/qr-connect.tsx
-index 28e1b65..90e6a62 100644
+index 28e1b65c2..90e6a62f2 100644
 --- a/apps/v4/app/(app)/(root)/cards/qr-connect.tsx
 +++ b/apps/v4/app/(app)/(root)/cards/qr-connect.tsx
 @@ -36,6 +36,7 @@ export function QrConnect() {
@@ -11,42 +11,25 @@ index 28e1b65..90e6a62 100644
              className="size-40 text-black"
              role="img"
 diff --git a/apps/v4/app/globals.css b/apps/v4/app/globals.css
-index 00c2223..d6a3760 100644
+index 00c2223f0..ce6d06d75 100644
 --- a/apps/v4/app/globals.css
 +++ b/apps/v4/app/globals.css
-@@ -424,6 +424,31 @@
-     }
+@@ -416,14 +416,6 @@
+     display: block;
    }
  
-+  /*
-+    Shiki paints plain text as #fff (dark) or #24292e (light). The theme
-+    foreground can be dimmer than that. Keep syntax hues; only the plain
-+    foreground tokens follow --foreground.
-+  */
-+  pre[data-language],
-+  [data-rehype-pretty-code-figure] pre {
-+    --shiki-light: var(--foreground) !important;
-+    --shiki-dark: var(--foreground) !important;
-+  }
-+
-+  :is(pre, code, [data-line]) span[style*="#FFF"],
-+  :is(pre, code, [data-line]) span[style*="#fff"],
-+  :is(pre, code, [data-line]) span[style*="#E1E4E8"],
-+  :is(pre, code, [data-line]) span[style*="#e1e4e8"] {
-+    --shiki-dark: var(--foreground) !important;
-+  }
-+
-+  :is(pre, code, [data-line]) span[style*="#1F2328"],
-+  :is(pre, code, [data-line]) span[style*="#1f2328"],
-+  :is(pre, code, [data-line]) span[style*="#24292E"],
-+  :is(pre, code, [data-line]) span[style*="#24292e"] {
-+    --shiki-light: var(--foreground) !important;
-+  }
-+
+-  [data-line] span {
+-    color: var(--shiki-light);
+-
+-    @variant dark {
+-      color: var(--shiki-dark) !important;
+-    }
+-  }
+-
    [data-highlighted-line],
    [data-highlighted-chars] {
      position: relative;
-@@ -460,3 +485,21 @@
+@@ -460,3 +452,21 @@
      @apply rounded-xl border-none bg-clip-padding shadow-2xl ring-4 ring-neutral-200/80 dark:bg-neutral-900 dark:ring-neutral-800;
    }
  }
@@ -81,7 +64,7 @@ index 05fe74b..c424b7e 100644
                  dangerouslySetInnerHTML={{ __html: registry.logo }}
                  className="grayscale *:[svg]:size-8 *:[svg]:fill-foreground"
 diff --git a/apps/v4/components/site-header.tsx b/apps/v4/components/site-header.tsx
-index 7897e95..215c54b 100644
+index 7897e95f0..215c54bb0 100644
 --- a/apps/v4/components/site-header.tsx
 +++ b/apps/v4/components/site-header.tsx
 @@ -19,7 +19,7 @@ export function SiteHeader() {
@@ -93,8 +76,240 @@ index 7897e95..215c54b 100644
        <div className="container-wrapper px-6 group-has-data-[slot=designer]/layout:max-w-none 3xl:fixed:px-0">
          <div className="flex h-(--header-height) items-center **:data-[slot=separator]:h-4! group-has-data-[slot=designer]/layout:fixed:max-w-none 3xl:fixed:container">
            <MobileNav
+diff --git a/apps/v4/lib/highlight-code.ts b/apps/v4/lib/highlight-code.ts
+index 6ea08f6a3..88166e118 100644
+--- a/apps/v4/lib/highlight-code.ts
++++ b/apps/v4/lib/highlight-code.ts
+@@ -1,4 +1,5 @@
+ import { createHash } from "crypto"
++import { huetShikiTheme } from "huet"
+ import { LRUCache } from "lru-cache"
+ import { codeToHtml } from "shiki"
+ import type { ShikiTransformer } from "shiki"
+@@ -81,10 +82,7 @@ export async function highlightCode(code: string, language: string = "tsx") {
+ 
+   const html = await codeToHtml(code, {
+     lang: language,
+-    themes: {
+-      dark: "github-dark",
+-      light: "github-light",
+-    },
++    theme: huetShikiTheme(),
+     transformers: [
+       {
+         pre(node) {
+diff --git a/apps/v4/registry/bases/aria/hooks/_registry.ts b/apps/v4/registry/bases/aria/hooks/_registry.ts
+index b9e58b940..91ba91ffe 100644
+--- a/apps/v4/registry/bases/aria/hooks/_registry.ts
++++ b/apps/v4/registry/bases/aria/hooks/_registry.ts
+@@ -14,7 +14,7 @@ export const hooks: Registry["items"] = [
+   {
+     name: "use-highlighted-code",
+     type: "registry:hook",
+-    dependencies: ["shiki"],
++    dependencies: ["shiki", "huet"],
+     files: [
+       {
+         path: "hooks/use-highlighted-code.ts",
+diff --git a/apps/v4/registry/bases/aria/lib/highlighter.tsx b/apps/v4/registry/bases/aria/lib/highlighter.tsx
+index 4765dcd1a..9883aee5e 100644
+--- a/apps/v4/registry/bases/aria/lib/highlighter.tsx
++++ b/apps/v4/registry/bases/aria/lib/highlighter.tsx
+@@ -1,6 +1,8 @@
+ import * as React from "react"
++import { huetShikiTheme } from "huet"
+ import {
+   createHighlighterCore,
++  getTokenStyleObject,
+   type GrammarState,
+   type HighlighterCore,
+ } from "shiki/core"
+@@ -37,12 +39,19 @@ const aliases: Record<string, keyof typeof languages> = {
+ 
+ let highlighter: Promise<HighlighterCore> | undefined
+ 
++// Shiki names styles as in CSS (font-style); React wants fontStyle.
++function reactStyle(style: Record<string, string>) {
++  return Object.fromEntries(
++    Object.entries(style).map(([name, value]) => [
++      name.replace(/-(\w)/g, (_, letter: string) => letter.toUpperCase()),
++      value,
++    ])
++  ) as React.CSSProperties
++}
++
+ function getHighlighter() {
+   highlighter ??= createHighlighterCore({
+-    themes: [
+-      import("shiki/themes/github-light.mjs"),
+-      import("shiki/themes/github-dark.mjs"),
+-    ],
++    themes: [huetShikiTheme()],
+     langs: [],
+     engine: createJavaScriptRegexEngine({ forgiving: true }),
+   })
+@@ -86,8 +95,7 @@ export async function loadHighlighter(language: string) {
+       const tokenize = (text: string) =>
+         shiki.codeToTokens(text, {
+           lang,
+-          themes: { light: "github-light", dark: "github-dark" },
+-          defaultColor: false,
++          theme: "huet",
+           grammarState: state,
+         }).tokens
+ 
+@@ -103,8 +111,7 @@ export async function loadHighlighter(language: string) {
+           line.map((token, index) => (
+             <span
+               key={index}
+-              style={token.htmlStyle as React.CSSProperties}
+-              className="text-(--shiki-light) dark:text-(--shiki-dark)"
++              style={reactStyle(getTokenStyleObject(token))}
+             >
+               {token.content}
+             </span>
+diff --git a/apps/v4/registry/bases/base/hooks/_registry.ts b/apps/v4/registry/bases/base/hooks/_registry.ts
+index b9e58b940..91ba91ffe 100644
+--- a/apps/v4/registry/bases/base/hooks/_registry.ts
++++ b/apps/v4/registry/bases/base/hooks/_registry.ts
+@@ -14,7 +14,7 @@ export const hooks: Registry["items"] = [
+   {
+     name: "use-highlighted-code",
+     type: "registry:hook",
+-    dependencies: ["shiki"],
++    dependencies: ["shiki", "huet"],
+     files: [
+       {
+         path: "hooks/use-highlighted-code.ts",
+diff --git a/apps/v4/registry/bases/base/lib/highlighter.tsx b/apps/v4/registry/bases/base/lib/highlighter.tsx
+index 4765dcd1a..9883aee5e 100644
+--- a/apps/v4/registry/bases/base/lib/highlighter.tsx
++++ b/apps/v4/registry/bases/base/lib/highlighter.tsx
+@@ -1,6 +1,8 @@
+ import * as React from "react"
++import { huetShikiTheme } from "huet"
+ import {
+   createHighlighterCore,
++  getTokenStyleObject,
+   type GrammarState,
+   type HighlighterCore,
+ } from "shiki/core"
+@@ -37,12 +39,19 @@ const aliases: Record<string, keyof typeof languages> = {
+ 
+ let highlighter: Promise<HighlighterCore> | undefined
+ 
++// Shiki names styles as in CSS (font-style); React wants fontStyle.
++function reactStyle(style: Record<string, string>) {
++  return Object.fromEntries(
++    Object.entries(style).map(([name, value]) => [
++      name.replace(/-(\w)/g, (_, letter: string) => letter.toUpperCase()),
++      value,
++    ])
++  ) as React.CSSProperties
++}
++
+ function getHighlighter() {
+   highlighter ??= createHighlighterCore({
+-    themes: [
+-      import("shiki/themes/github-light.mjs"),
+-      import("shiki/themes/github-dark.mjs"),
+-    ],
++    themes: [huetShikiTheme()],
+     langs: [],
+     engine: createJavaScriptRegexEngine({ forgiving: true }),
+   })
+@@ -86,8 +95,7 @@ export async function loadHighlighter(language: string) {
+       const tokenize = (text: string) =>
+         shiki.codeToTokens(text, {
+           lang,
+-          themes: { light: "github-light", dark: "github-dark" },
+-          defaultColor: false,
++          theme: "huet",
+           grammarState: state,
+         }).tokens
+ 
+@@ -103,8 +111,7 @@ export async function loadHighlighter(language: string) {
+           line.map((token, index) => (
+             <span
+               key={index}
+-              style={token.htmlStyle as React.CSSProperties}
+-              className="text-(--shiki-light) dark:text-(--shiki-dark)"
++              style={reactStyle(getTokenStyleObject(token))}
+             >
+               {token.content}
+             </span>
+diff --git a/apps/v4/registry/bases/radix/hooks/_registry.ts b/apps/v4/registry/bases/radix/hooks/_registry.ts
+index b9e58b940..91ba91ffe 100644
+--- a/apps/v4/registry/bases/radix/hooks/_registry.ts
++++ b/apps/v4/registry/bases/radix/hooks/_registry.ts
+@@ -14,7 +14,7 @@ export const hooks: Registry["items"] = [
+   {
+     name: "use-highlighted-code",
+     type: "registry:hook",
+-    dependencies: ["shiki"],
++    dependencies: ["shiki", "huet"],
+     files: [
+       {
+         path: "hooks/use-highlighted-code.ts",
+diff --git a/apps/v4/registry/bases/radix/lib/highlighter.tsx b/apps/v4/registry/bases/radix/lib/highlighter.tsx
+index 4765dcd1a..9883aee5e 100644
+--- a/apps/v4/registry/bases/radix/lib/highlighter.tsx
++++ b/apps/v4/registry/bases/radix/lib/highlighter.tsx
+@@ -1,6 +1,8 @@
+ import * as React from "react"
++import { huetShikiTheme } from "huet"
+ import {
+   createHighlighterCore,
++  getTokenStyleObject,
+   type GrammarState,
+   type HighlighterCore,
+ } from "shiki/core"
+@@ -37,12 +39,19 @@ const aliases: Record<string, keyof typeof languages> = {
+ 
+ let highlighter: Promise<HighlighterCore> | undefined
+ 
++// Shiki names styles as in CSS (font-style); React wants fontStyle.
++function reactStyle(style: Record<string, string>) {
++  return Object.fromEntries(
++    Object.entries(style).map(([name, value]) => [
++      name.replace(/-(\w)/g, (_, letter: string) => letter.toUpperCase()),
++      value,
++    ])
++  ) as React.CSSProperties
++}
++
+ function getHighlighter() {
+   highlighter ??= createHighlighterCore({
+-    themes: [
+-      import("shiki/themes/github-light.mjs"),
+-      import("shiki/themes/github-dark.mjs"),
+-    ],
++    themes: [huetShikiTheme()],
+     langs: [],
+     engine: createJavaScriptRegexEngine({ forgiving: true }),
+   })
+@@ -86,8 +95,7 @@ export async function loadHighlighter(language: string) {
+       const tokenize = (text: string) =>
+         shiki.codeToTokens(text, {
+           lang,
+-          themes: { light: "github-light", dark: "github-dark" },
+-          defaultColor: false,
++          theme: "huet",
+           grammarState: state,
+         }).tokens
+ 
+@@ -103,8 +111,7 @@ export async function loadHighlighter(language: string) {
+           line.map((token, index) => (
+             <span
+               key={index}
+-              style={token.htmlStyle as React.CSSProperties}
+-              className="text-(--shiki-light) dark:text-(--shiki-dark)"
++              style={reactStyle(getTokenStyleObject(token))}
+             >
+               {token.content}
+             </span>
 diff --git a/apps/v4/registry/new-york-v4/charts/chart-line-dots-custom.tsx b/apps/v4/registry/new-york-v4/charts/chart-line-dots-custom.tsx
-index 355f23a..61c10e1 100644
+index 355f23a10..61c10e1f9 100644
 --- a/apps/v4/registry/new-york-v4/charts/chart-line-dots-custom.tsx
 +++ b/apps/v4/registry/new-york-v4/charts/chart-line-dots-custom.tsx
 @@ -88,7 +88,7 @@ export function ChartLineDotsCustom() {
@@ -107,7 +322,7 @@ index 355f23a..61c10e1 100644
                    />
                  )
 diff --git a/apps/v4/registry/new-york-v4/ui/bubble.tsx b/apps/v4/registry/new-york-v4/ui/bubble.tsx
-index da2c990..34b4a3e 100644
+index da2c99035..34b4a3eca 100644
 --- a/apps/v4/registry/new-york-v4/ui/bubble.tsx
 +++ b/apps/v4/registry/new-york-v4/ui/bubble.tsx
 @@ -25,7 +25,7 @@ const bubbleVariants = cva(
@@ -120,7 +335,7 @@ index da2c990..34b4a3e 100644
            "*:data-[slot=bubble-content]:border-border *:data-[slot=bubble-content]:bg-background [&>[data-slot=bubble-content]:is(button,a):hover]:bg-muted [&>[data-slot=bubble-content]:is(button,a):hover]:text-foreground dark:[&>[data-slot=bubble-content]:is(button,a):hover]:bg-input/30",
          ghost:
 diff --git a/apps/v4/registry/styles/style-luma.css b/apps/v4/registry/styles/style-luma.css
-index 891fbb6..923b58b 100644
+index 891fbb6e2..923b58bca 100644
 --- a/apps/v4/registry/styles/style-luma.css
 +++ b/apps/v4/registry/styles/style-luma.css
 @@ -1473,7 +1473,7 @@
@@ -133,7 +348,7 @@ index 891fbb6..923b58b 100644
  
    .cn-bubble-variant-outline {
 diff --git a/apps/v4/registry/styles/style-lyra.css b/apps/v4/registry/styles/style-lyra.css
-index 05342f2..b206ac6 100644
+index 05342f268..b206ac661 100644
 --- a/apps/v4/registry/styles/style-lyra.css
 +++ b/apps/v4/registry/styles/style-lyra.css
 @@ -1452,7 +1452,7 @@
@@ -146,7 +361,7 @@ index 05342f2..b206ac6 100644
  
    .cn-bubble-variant-outline {
 diff --git a/apps/v4/registry/styles/style-maia.css b/apps/v4/registry/styles/style-maia.css
-index ed13c68..7635e51 100644
+index ed13c6871..7635e5190 100644
 --- a/apps/v4/registry/styles/style-maia.css
 +++ b/apps/v4/registry/styles/style-maia.css
 @@ -1474,7 +1474,7 @@
@@ -159,7 +374,7 @@ index ed13c68..7635e51 100644
  
    .cn-bubble-variant-outline {
 diff --git a/apps/v4/registry/styles/style-mira.css b/apps/v4/registry/styles/style-mira.css
-index 1f6b9ef..02fdca7 100644
+index 1f6b9efe3..02fdca7a9 100644
 --- a/apps/v4/registry/styles/style-mira.css
 +++ b/apps/v4/registry/styles/style-mira.css
 @@ -1479,7 +1479,7 @@
@@ -172,7 +387,7 @@ index 1f6b9ef..02fdca7 100644
  
    .cn-bubble-variant-outline {
 diff --git a/apps/v4/registry/styles/style-nova.css b/apps/v4/registry/styles/style-nova.css
-index 293204b..181d0f7 100644
+index 293204b2b..181d0f77c 100644
 --- a/apps/v4/registry/styles/style-nova.css
 +++ b/apps/v4/registry/styles/style-nova.css
 @@ -1477,7 +1477,7 @@
@@ -185,7 +400,7 @@ index 293204b..181d0f7 100644
  
    .cn-bubble-variant-outline {
 diff --git a/apps/v4/registry/styles/style-rhea.css b/apps/v4/registry/styles/style-rhea.css
-index 94bbca2..64b18d4 100644
+index 94bbca2a7..64b18d418 100644
 --- a/apps/v4/registry/styles/style-rhea.css
 +++ b/apps/v4/registry/styles/style-rhea.css
 @@ -1473,7 +1473,7 @@
@@ -198,7 +413,7 @@ index 94bbca2..64b18d4 100644
  
    .cn-bubble-variant-outline {
 diff --git a/apps/v4/registry/styles/style-sera.css b/apps/v4/registry/styles/style-sera.css
-index 6fb2c12..390d014 100644
+index 6fb2c1289..390d01432 100644
 --- a/apps/v4/registry/styles/style-sera.css
 +++ b/apps/v4/registry/styles/style-sera.css
 @@ -1464,7 +1464,7 @@
@@ -211,7 +426,7 @@ index 6fb2c12..390d014 100644
  
    .cn-bubble-variant-outline {
 diff --git a/apps/v4/registry/styles/style-vega.css b/apps/v4/registry/styles/style-vega.css
-index 9f03b3c..e933573 100644
+index 9f03b3c6d..e9335737e 100644
 --- a/apps/v4/registry/styles/style-vega.css
 +++ b/apps/v4/registry/styles/style-vega.css
 @@ -1477,7 +1477,7 @@
@@ -223,3 +438,26 @@ index 9f03b3c..e933573 100644
    }
  
    .cn-bubble-variant-outline {
+diff --git a/apps/v4/source.config.ts b/apps/v4/source.config.ts
+index d668a1f88..57027e807 100644
+--- a/apps/v4/source.config.ts
++++ b/apps/v4/source.config.ts
+@@ -1,4 +1,5 @@
+ import { defineConfig, defineDocs } from "fumadocs-mdx/config"
++import { huetShikiTheme } from "huet"
+ import rehypePrettyCode from "rehype-pretty-code"
+ 
+ import { transformers } from "@/lib/highlight-code"
+@@ -10,10 +11,8 @@ export default defineConfig({
+       plugins.push([
+         rehypePrettyCode,
+         {
+-          theme: {
+-            dark: "vesper",
+-            light: "github-light-default",
+-          },
++          // Token colors are Huet's CSS variables, so they follow the theme.
++          theme: huetShikiTheme(),
+           transformers,
+         },
+       ])

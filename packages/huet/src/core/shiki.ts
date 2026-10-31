@@ -36,6 +36,41 @@ export type CodeRole = keyof typeof codeRoles;
 
 const color = (role: CodeRole) => `var(--huet-code-${role}, ${codeRoles[role]})`;
 
+/**
+ * Terminal colors for `ansi` blocks, each emitted as
+ * `var(--huet-code-ansi-<name>, <default>)`. Without them Shiki falls back to
+ * its own fixed palette, which ignores the theme. Huet has one color per hue
+ * on a surface, so bright variants share their base color, and black and
+ * white become muted and foreground text: readable in either polarity.
+ */
+export const ansiColors = {
+  black: "var(--huet-muted)",
+  red: "var(--huet-red)",
+  green: "var(--huet-green)",
+  yellow: "var(--huet-yellow)",
+  blue: "var(--huet-blue)",
+  magenta: "var(--huet-purple)",
+  cyan: "color-mix(in oklab, var(--huet-blue), var(--huet-green))",
+  white: "var(--huet-foreground)",
+} as const;
+export type AnsiColor = keyof typeof ansiColors;
+
+/*
+  Shiki accepts only hex for terminal colors. It swaps other values for
+  placeholders by mutating the theme's `colors`, so a theme object highlighted
+  twice (as Shiki's `codeToHtml` shorthand does) loses the mapping and renders the
+  placeholders. Fixed hex sentinels, mapped back through the theme's own
+  `colorReplacements` (which Shiki copies), survive any number of passes.
+*/
+const terminalColors: Record<string, string> = {};
+const terminalReplacements: Record<string, string> = {};
+Object.entries(ansiColors).forEach(([name, value], i) => {
+  const key = name[0].toUpperCase() + name.slice(1);
+  const sentinel = `#ffffff${(i + 1).toString(16).padStart(2, "0")}`;
+  terminalReplacements[sentinel] = `var(--huet-code-ansi-${name}, ${value})`;
+  terminalColors[`terminal.ansi${key}`] = terminalColors[`terminal.ansiBright${key}`] = sentinel;
+});
+
 type FontStyle = "italic" | "bold" | "underline" | "strikethrough";
 // In GitHub's order: equally specific scopes resolve to the later rule.
 const rules: [scope: string[], role?: CodeRole, fontStyle?: FontStyle][] = [
@@ -82,6 +117,8 @@ export interface HuetShikiTheme {
   name: string;
   type: "light" | "dark";
   colors: Record<string, string>;
+  /** Maps the hex sentinels in `colors` back to Huet's variables. */
+  colorReplacements: Record<string, string>;
   fg: string;
   bg: string;
   tokenColors: { scope: string[]; settings: { foreground?: string; fontStyle?: string } }[];
@@ -97,7 +134,9 @@ export function huetShikiTheme({ name = "huet" }: { name?: string } = {}): HuetS
     colors: {
       "editor.foreground": color("foreground"),
       "editor.background": color("background"),
+      ...terminalColors,
     },
+    colorReplacements: { ...terminalReplacements },
     tokenColors: rules.map(([scope, role, fontStyle]) => ({
       scope,
       settings: {

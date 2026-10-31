@@ -1,7 +1,7 @@
 import { transformerNotationDiff, transformerNotationHighlight } from "@shikijs/transformers";
 import { codeToHtml } from "shiki";
 import { describe, expect, it } from "vitest";
-import { huetShikiTheme, huetShikiTransformer } from "./shiki";
+import { ansiColors, huetShikiTheme, huetShikiTransformer, type AnsiColor } from "./shiki";
 
 const highlight = (code: string, lang: string) =>
   codeToHtml(code, { lang, theme: huetShikiTheme(), transformers: [huetShikiTransformer()] });
@@ -15,6 +15,26 @@ describe("huetShikiTheme", () => {
     expect(html).toContain("var(--huet-code-comment, var(--huet-muted))");
     expect(html).toContain("color-mix(in oklab, var(--huet-blue) 55%, var(--huet-foreground))");
     expect(html).not.toMatch(/#[0-9a-f]{3,8}\b/i);
+  });
+
+  it("colors ANSI output with Huet variables instead of Shiki's fixed terminal palette", async () => {
+    const theme = huetShikiTheme();
+    for (const name of Object.keys(ansiColors)) {
+      const key = name[0].toUpperCase() + name.slice(1);
+      const sentinel = theme.colors[`terminal.ansi${key}`];
+      expect(theme.colorReplacements[sentinel]).toBe(`var(--huet-code-ansi-${name}, ${ansiColors[name as AnsiColor]})`);
+      expect(theme.colors[`terminal.ansiBright${key}`]).toBe(sentinel);
+    }
+    const code = "\x1b[31mfail\x1b[0m \x1b[92mok\x1b[0m \x1b[36mcyan\x1b[0m \x1b[2;33mdim\x1b[0m plain";
+    // Shiki normalizes a theme object on every call; the colors must survive repeats.
+    for (let pass = 0; pass < 2; pass++) {
+      const html = await codeToHtml(code, { lang: "ansi", theme });
+      expect(html).toContain("color:var(--huet-code-ansi-red, var(--huet-red))");
+      expect(html).toContain("color:var(--huet-code-ansi-green, var(--huet-green))");
+      expect(html).toContain("color:var(--huet-code-ansi-cyan, color-mix(in oklab, var(--huet-blue), var(--huet-green)))");
+      expect(html).toContain("color:var(--huet-code-ansi-yellow, var(--huet-yellow))");
+      expect(html).not.toMatch(/#[0-9a-f]{3,8}\b/i);
+    }
   });
 
   it("gives the pre its background and a Huet surface class", async () => {

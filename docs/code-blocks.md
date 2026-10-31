@@ -128,6 +128,18 @@ Scopes and their order follow GitHub's VS Code theme. Each scope maps to a role:
 | `changed` | `--huet-yellow` | diff changes |
 | `punctuation` | `--huet-muted` | bracket highlights |
 
+Terminal output (`lang: "ansi"`) uses the theme's ANSI colors, exported as `ansiColors` and overridable with `--huet-code-ansi-<name>`:
+
+| ANSI color | Default |
+| --- | --- |
+| `black` | `--huet-muted` |
+| `red`, `green`, `yellow`, `blue` | the Huet token of that name |
+| `magenta` | `--huet-purple` |
+| `cyan` | blue and green, mixed evenly |
+| `white` | `--huet-foreground` |
+
+Bright variants share their base color, since a surface has one token per hue, and black and white become text colors so they stay readable in either polarity. Shiki only accepts hex terminal colors, so the theme gives it fixed sentinels and maps them back to the variables with its `colorReplacements`. Dim text (`\x1b[2m`) isn't dimmed.
+
 GitHub's strings are a deeper (light theme) or paler (dark theme) blue than its constants. Huet has one blue per surface, so strings mix it toward the foreground with `color-mix(in oklab, …)`, which raises contrast in either polarity. Every other role is a single Huet token.
 
 Override any role with `--huet-code-<role>` on the block or an ancestor, e.g. `pre { --huet-code-string: var(--huet-green); }`. Values like `var(--huet-green)` resolve where they're declared, so set overrides on the surface (the `<pre>`) when they reference Huet's variables.

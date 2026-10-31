@@ -6,7 +6,7 @@ import { checkTheme, themes as presets, type Theme } from "huet"
 import { mountImages, mountSvgs } from "huet/images"
 // shadcn's tokens need amounts and ramp positions that no class has, so this
 // adapter uses Huet's solver directly.
-import { resolveTheme } from "huet/internal"
+import { resolveTheme, themeVariables, type ResolvedTheme } from "huet/internal"
 import { ThemeConfigurator } from "huet-react"
 
 /**
@@ -115,6 +115,7 @@ function applyHuet(picked: Theme, pageBackground: number) {
   paintThemeHues(theme.ramp, foreground, background, tokens.red, ink(fill("red")))
   paintCharts(chartSteps)
   paintTopNav(background)
+  paintCode(theme, background, surface)
   paintImages(picked)
   paintSvgs(picked)
   const dark = luminance(background) < 0.4
@@ -340,6 +341,64 @@ function paintTopNav(background: string) {
     document.head.append(style)
   }
   style.textContent = `header{background-color:${background}!important}`
+}
+
+/**
+ * Every highlighter on the site uses huetShikiTheme() (integration.patch), so
+ * token colors are Huet's variables, which no mount sets here. Write them for
+ * the surfaces code sits on: shadcn's --code fill under rehype-pretty-code
+ * figures (docs, install commands, component, block and chart source), and the
+ * page everywhere else, such as the registry's CodeBlock.
+ */
+function paintCode(theme: ResolvedTheme, page: string, code: string) {
+  const on = (background: string) =>
+    Object.entries(themeVariables(theme.tokensOn(theme.surfaceOf(background))))
+      .map(([name, value]) => `${name}:${value}`)
+      .join(";")
+  let style = document.getElementById("huet-code")
+  if (!style) {
+    style = document.createElement("style")
+    style.id = "huet-code"
+    document.head.append(style)
+  }
+  style.textContent = `:root{${on(page)}}[data-rehype-pretty-code-figure]{${on(code)}}`
+  watchCode()
+}
+
+// Shiki's inline token colors: a fixed theme writes hex or --shiki-light/dark.
+const tokenSelector = "pre span[style], [data-slot=code-block-content] span[style]"
+const reported = new WeakSet<Element>()
+let codeWatch: MutationObserver | null = null
+
+/**
+ * Report code highlighted with a fixed Shiki theme (a new highlighter, or one
+ * added upstream): its colors can't follow the theme, and nothing else fails.
+ */
+function checkCode(root: Element | Document) {
+  const tokens = [...root.querySelectorAll<HTMLElement>(tokenSelector)]
+  if (root instanceof HTMLElement && root.matches(tokenSelector)) tokens.push(root)
+  for (const token of tokens) {
+    const style = token.getAttribute("style") ?? ""
+    if (!/--shiki-/.test(style) && (!token.style.color || token.style.color.includes("--huet-code-"))) continue
+    const block = token.closest("pre, [data-slot=code-block]") ?? token
+    if (reported.has(block)) continue
+    reported.add(block)
+    console.error(
+      `Huet: this code block was highlighted with a fixed Shiki theme ("${style}"), so it won't follow the Huet theme. ` +
+        "Highlight it with huetShikiTheme() from \"huet\" (see scripts/shadcn-huet/integration.patch and docs/code-blocks.md).",
+      block,
+    )
+  }
+}
+
+function watchCode() {
+  if (codeWatch) return
+  checkCode(document)
+  codeWatch = new MutationObserver((records) => {
+    for (const record of records)
+      for (const node of record.addedNodes) if (node instanceof Element) checkCode(node)
+  })
+  codeWatch.observe(document.body, { subtree: true, childList: true })
 }
 
 /**
