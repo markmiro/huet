@@ -78,6 +78,11 @@ describe("theme coordinates", () => {
     // Image settings are part of the theme, checked with it
     expect(() => recolorer({ ...base, images: { strength: 2 } })).toThrow(/images must be/);
     expect(() => recolorer({ ...base, images: { tint: -1 } })).toThrow(/images must be/);
+    // SVGs have their own settings, and image settings don't reach them
+    const svgsOff = { neutral: ["#ff0000", "#ff0000"], svgs: { strength: 0 } };
+    recolorer(svgsOff, {}, "svgs")(0.2, 0.4, 0.6).forEach((v, i) => expect(v).toBeCloseTo([0.2, 0.4, 0.6][i], 5));
+    expect(recolorer(svgsOff)(0.2, 0.4, 0.6)).toEqual(recolorer({ neutral: svgsOff.neutral })(0.2, 0.4, 0.6));
+    expect(() => recolorer({ ...base, svgs: { strength: 2 } })).toThrow(/svgs must be/);
   });
 
   it("can keep the neutral tint off saturated colors", () => {

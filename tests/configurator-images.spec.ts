@@ -23,3 +23,24 @@ test("image controls recolor, persist and restore originals", async ({ page }) =
   await expect(restored.getByRole("slider", { name: "Image tint", exact: true })).toHaveCount(0);
   await page.screenshot({ path: "docs/screenshots/configurator-images-disabled.png" });
 });
+
+test("the SVG switch recolors inline SVGs on its own and restores their paints", async ({ page }) => {
+  await page.goto("/images.html");
+  const sun = page.locator("#landscape circle");
+  await expect(sun).toHaveAttribute("fill", /^rgb\(/);
+  const dialog = await openConfigurator(page, "Edit Theme");
+  // Turning image theming off leaves SVGs themed.
+  await dialog.getByRole("checkbox", { name: "Theme images", exact: true }).uncheck();
+  await expect(sun).toHaveAttribute("fill", /^rgb\(/);
+  const toggle = dialog.getByRole("checkbox", { name: "Theme SVGs", exact: true });
+  await expect(toggle).toBeChecked();
+  await dialog.getByRole("slider", { name: "SVG strength", exact: true }).fill("40");
+  await page.reload();
+  const restored = await openConfigurator(page, "Edit Theme");
+  await expect(restored.getByRole("slider", { name: "SVG strength", exact: true })).toHaveValue("40");
+  await restored.getByRole("checkbox", { name: "Theme SVGs", exact: true }).uncheck();
+  await expect(sun).toHaveAttribute("fill", "#f4b400");
+  await expect(restored.getByRole("slider", { name: "SVG tint", exact: true })).toHaveCount(0);
+  await page.locator("#landscape").scrollIntoViewIfNeeded();
+  await page.screenshot({ path: "docs/screenshots/configurator-svgs-disabled.png" });
+});

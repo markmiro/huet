@@ -117,7 +117,8 @@ interface Override {
 
 /**
  * Recolor matching inline SVGs under `root` into a theme, keeping them as
- * vectors. Solid fills, strokes, and gradient stops are mapped like image
+ * vectors, with the theme's `svgs` settings. At strength 0 they keep their
+ * own paints. Solid fills, strokes, and gradient stops are mapped like image
  * pixels, including SVG's implicit black fill; their alpha, `none`, paint
  * servers (`url(#…)`), and opacity are kept. Paints that use `currentColor`
  * or a CSS variable are left alone, since the page's CSS already themes them.
@@ -142,7 +143,8 @@ export function mountSvgs(
 ) {
   const { selector = "svg[data-huet-recolor]", ...recolor } = options;
   let settings: RecolorOptions = recolor,
-    map = recolorer(theme, settings),
+    map = recolorer(theme, settings, "svgs"),
+    off = theme.svgs?.strength === 0,
     mapped = new Map<string, string>(),
     frame: number | undefined,
     disposed = false;
@@ -188,6 +190,10 @@ export function mountSvgs(
     overrides.clear();
 
     svgs = new Set();
+    if (off) {
+      observer.takeRecords();
+      return;
+    }
     if (root instanceof SVGElement && root.matches(selector)) svgs.add(root);
     for (const el of root.querySelectorAll(selector)) if (el instanceof SVGElement) svgs.add(el);
 
@@ -303,7 +309,8 @@ export function mountSvgs(
     update(next: Theme, nextOptions?: RecolorOptions) {
       if (disposed) throw new Error("Cannot update a destroyed Huet SVG mount");
       if (nextOptions) settings = nextOptions;
-      map = recolorer(next, settings);
+      map = recolorer(next, settings, "svgs");
+      off = next.svgs?.strength === 0;
       mapped = new Map();
       schedule();
     },

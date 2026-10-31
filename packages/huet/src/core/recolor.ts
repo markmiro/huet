@@ -40,7 +40,7 @@ export interface RecolorOptions {
   invert?: boolean;
 }
 // How strongly, and with how much of the neutral ramp's tint, come from the
-// target theme's `images`. At tint 1 (the default), chroma is added on top of
+// target theme's `images` (or `svgs`). At tint 1 (the default), chroma is added on top of
 // the neutral ramp, so a yellow-tinted ramp turns blue skies teal. At 0, the
 // tint fades out as colors approach anchor saturation, keeping hues closer to
 // the theme's anchors.
@@ -191,11 +191,14 @@ export function coordinatesOf(
   return { t, weights };
 }
 
-/** Map gamma-encoded sRGB channels (0–1) from the source theme into the target theme. */
-export function recolorer(target: Theme, options: RecolorOptions = {}) {
+/**
+ * Map gamma-encoded sRGB channels (0–1) from the source theme into the target
+ * theme, with the target's `images` settings, or its `svgs` settings for SVGs.
+ */
+export function recolorer(target: Theme, options: RecolorOptions = {}, media: "images" | "svgs" = "images") {
   const to = frame(target);
-  const strength = target.images?.strength ?? 1,
-    tint = target.images?.tint ?? 1;
+  const strength = target[media]?.strength ?? 1,
+    tint = target[media]?.tint ?? 1;
   if (!(strength >= 0 && strength <= 1))
     throw new RangeError("strength must be between 0 and 1");
   if (!(tint >= 0 && tint <= 1)) throw new RangeError("tint must be between 0 and 1");

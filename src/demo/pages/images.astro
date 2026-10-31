@@ -41,7 +41,30 @@ const galleries = [
       <code class="huet-bg-5 rounded-xs px-1 font-mono">huet/images</code>. Grays follow the
       theme's neutral ramp and colors follow its hues. Hover an image to see the original.
     </p>
-    <p class="huet-text-50 mt-4">Adjust their tint and strength, or turn image theming off, in the configurator’s Edit Theme tab.</p>
+    <p class="huet-text-50 mt-4">
+      Adjust their tint and strength, or turn image or SVG theming off, in the configurator’s Edit Theme tab.
+    </p>
+
+    <Section title="SVG">
+      <p class="huet-text-50 -mt-12 mb-6 text-sm">
+        An inline SVG recolored as vectors with <code class="huet-bg-5 rounded-xs px-1 font-mono">mountSvgs</code>
+      </p>
+      <figure class="huet-bg-5 huet-border-10 max-w-[28em] overflow-hidden rounded border">
+        <svg id="landscape" data-huet-recolor viewBox="0 0 320 180" role="img" aria-label="Hills under a sun" class="block w-full">
+          <defs>
+            <linearGradient id="sky" x1="0" y1="0" x2="0" y2="1">
+              <stop offset="0" stop-color="#4a90d9" />
+              <stop offset="1" stop-color="#f6d6a8" />
+            </linearGradient>
+          </defs>
+          <rect width="320" height="180" fill="url(#sky)" />
+          <circle cx="240" cy="62" r="26" fill="#f4b400" />
+          <path d="M0 120 Q80 70 160 112 T320 100 V180 H0Z" fill="#5b8c3a" />
+          <path d="M0 146 Q110 108 210 140 T320 136 V180 H0Z" fill="#2f5d34" />
+          <path d="M58 136 l10 -26 l10 26Z" fill="#d93f3f" stroke="#1f1f1f" stroke-width="2" />
+        </svg>
+      </figure>
+    </Section>
 
     {/* Emoji section, commented out for now.
     <Section title="Emoji">
