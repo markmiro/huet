@@ -4,7 +4,8 @@ test("explicit contrast classes render original colors and update live", async (
   await page.goto("/lab.html");
   const result = await page.evaluate(async () => {
     const modulePath = "/packages/huet/src/core/index.ts";
-    const { createTheme, mountTheme } = await import(modulePath);
+    const { mountTheme } = await import(modulePath);
+    const { resolveTheme } = await import("/packages/huet/src/internal.ts");
     const root = document.createElement("div");
     root.innerHTML = `<section class="huet-bg-gray-60"><div>
       <button class="huet-bg-blue-20 huet-text-100 huet-border-red-60" style="border-width:1px;border-style:solid">Save</button>
@@ -15,18 +16,19 @@ test("explicit contrast classes render original colors and update live", async (
     const input = root.querySelector("input")!;
     const hex = (value: string) => "#" + value.match(/[\d.]+/g)!.slice(0, 3)
       .map(Number).map(n => n.toString(16).padStart(2, "0")).join("");
-    let theme = createTheme();
-    const mount = mountTheme(root, theme);
+    const base = { neutral: ["#000000", "#ffffff"] };
+    let theme = resolveTheme(base);
+    const mount = mountTheme(root, base);
     const checks: { actual: string; expected: string }[] = [];
-    for (const options of [{}, { background: 0 }, { contrast: .3 }]) {
-      theme = createTheme(options);
-      mount.update(theme);
-      const parent = theme.relative.contrast(60);
-      const bg = parent.contrast(20, parent.theme.ramps.blue);
-      const inputBg = parent.contrast(10);
+    for (const [next, options] of [[base, {}], [base, { background: 0 }], [{ ...base, contrast: .3 }, { background: 1 }]] as const) {
+      theme = resolveTheme(next, options);
+      mount.update(next, options);
+      const parent = theme.step(theme.root, 60);
+      const bg = theme.step(parent, 20, "blue");
+      const inputBg = theme.step(parent, 10);
       for (const [el, expected] of [
-        [button, [bg.hex, parent.contrast(100).hex, parent.contrast(60, parent.theme.ramps.red).hex]],
-        [input, [inputBg.hex, inputBg.contrast(80).hex, inputBg.contrast(60, parent.theme.ramps.red).hex]],
+        [button, [bg.hex, theme.step(parent, 100).hex, theme.step(parent, 60, "red").hex]],
+        [input, [inputBg.hex, theme.step(inputBg, 80).hex, theme.step(inputBg, 60, "red").hex]],
       ] as const) {
         const style = getComputedStyle(el);
         [style.backgroundColor, style.color, style.borderColor].forEach((color, i) =>
@@ -36,7 +38,7 @@ test("explicit contrast classes render original colors and update live", async (
     input.className = "huet-text-green-70";
     await new Promise(resolve => requestAnimationFrame(resolve));
     checks.push({ actual: hex(getComputedStyle(input).color), expected:
-      theme.relative.contrast(60).contrast(70, theme.relative.theme.ramps.green).hex });
+      theme.step(theme.step(theme.root, 60), 70, "green").hex });
     mount.destroy();
     root.remove();
     return checks;

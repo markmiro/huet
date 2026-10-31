@@ -16,6 +16,20 @@
   --color-huet-green: var(--huet-green);
   --color-huet-blue: var(--huet-blue);
   --color-huet-purple: var(--huet-purple);
+  /* Neutral contrast steps from the nearest surface, e.g. text-huet-60. */
+  --color-huet-0: var(--huet-0);
+  --color-huet-5: var(--huet-5);
+  --color-huet-10: var(--huet-10);
+  --color-huet-20: var(--huet-20);
+  --color-huet-30: var(--huet-30);
+  --color-huet-40: var(--huet-40);
+  --color-huet-50: var(--huet-50);
+  --color-huet-60: var(--huet-60);
+  --color-huet-70: var(--huet-70);
+  --color-huet-80: var(--huet-80);
+  --color-huet-90: var(--huet-90);
+  --color-huet-95: var(--huet-95);
+  --color-huet-100: var(--huet-100);
 }
 /* Use huet-bg-[ramp-]amount for backgrounds so nested colors are recalculated.
    Opacity modifiers on the token utilities (text-huet-blue/50) void contrast guarantees. */

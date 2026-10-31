@@ -34,7 +34,7 @@ export default defineConfig({
 });
 ```
 
-Then mount a Huet theme on an ancestor of the content (see [framework integration](frameworks.md)). Code blocks then follow the page theme. Without a mounted theme (or serialized `themeVariables`), the variables are undefined and tokens fall back to the inherited text color.
+Then mount a Huet theme on an ancestor of the content (see [framework integration](frameworks.md)). Code blocks then follow the page theme. Without a mounted theme (or `themeCss`), the variables are undefined and tokens fall back to the inherited text color.
 
 Astro's `<Code>` component takes the same props, which is how the demo page highlights at build time:
 
@@ -96,22 +96,18 @@ Color the +/− markers with the row's own tokens, `var(--huet-green)` and `var(
 
 ## Without a mount
 
-The variables can come from anywhere, so a server-rendered page, or a block inside an element that is already a theme root, can set them inline. These are the values `mountTheme` writes for a root and a `huet-bg-<amount>` block inside it:
+The variables can come from anywhere, so a server-rendered page can write them with `themeCss`. A code block that should always be dark, whatever the page's mode, is the same theme on a dark background:
 
 ```ts
-import { themeVariables, type HuetTheme } from "huet";
+import { themeCss, themes } from "huet";
 
-function codeBlockVariables(theme: HuetTheme, amount: number) {
-  const root = theme.relative;
-  const block = root.contrast(amount);
-  return {
-    root: themeVariables(theme.tokens(root.hex, root.hex)),
-    block: { ...themeVariables(theme.tokens(block.hex, root.hex)), "--huet-foreground": block.contrast(100).hex },
-  };
-}
+const css =
+  themeCss(themes.Sunset, { background: 1 }) +
+  // Blocks near the dark end of the ramp in both modes
+  themeCss(themes.Sunset, { background: 0.05, selector: "pre.astro-code" });
 ```
 
-The demo's "Every theme" grid uses this, because the page is already mounted and Huet roots can't nest. Highlight those blocks without the transformer so the page's mount doesn't treat them as its surfaces.
+Highlight those blocks without the transformer, so a mounted page doesn't also treat them as its surfaces. A block at a contrast amount from its parent (`huet-bg-5` on the page) needs `mountTheme`, which works that color out against the parent. The demo's "Every theme" grid sits inside a page that's already mounted, and Huet roots can't nest, so it writes each card's colors inline with Huet's internals instead.
 
 ## Roles
 

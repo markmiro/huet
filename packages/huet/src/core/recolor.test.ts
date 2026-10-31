@@ -11,9 +11,9 @@ import {
 } from "./recolor";
 import { defaultColors } from "./theme";
 
+const base = { neutral: ["#000000", "#ffffff"] };
 const sunset = {
-  dark: "#242744",
-  light: "#ffe173",
+  neutral: ["#242744", "#ffe173"],
   colors: { red: "#f20031", yellow: "#c16000", green: "#008d29", blue: "#12889d", purple: "#b555c8" },
 };
 /** Evaluate a transform through a 33³ LUT, as the demo renders it. */
@@ -46,7 +46,7 @@ describe("theme coordinates", () => {
   });
 
   it("is the identity when the target is the source", () => {
-    const same = recolorer({});
+    const same = recolorer(base);
     const next = random(1);
     for (let i = 0; i < 500; i++) {
       const c = [next(), next(), next()] as const;
@@ -58,11 +58,11 @@ describe("theme coordinates", () => {
     const toSunset = recolorer(sunset);
     const hex = (x: readonly number[]) =>
       "#" + x.map((v) => Math.round(v * 255).toString(16).padStart(2, "0")).join("");
-    expect(hex(toSunset(0, 0, 0))).toBe(sunset.dark);
-    expect(hex(toSunset(1, 1, 1))).toBe(sunset.light);
+    expect(hex(toSunset(0, 0, 0))).toBe(sunset.neutral[0]);
+    expect(hex(toSunset(1, 1, 1))).toBe(sunset.neutral[1]);
     const [, a, b] = oklabFromRgb(...toSunset(...rgb(defaultColors.red)));
     const target = oklabFromRgb(...rgb(sunset.colors.red));
-    const neutral = oklabFromRgb(...rgb(sunset.dark));
+    const neutral = oklabFromRgb(...rgb(sunset.neutral[0]));
     // Hue of the added chroma matches the target's red anchor.
     expect(Math.atan2(b - neutral[2], a - neutral[1])).toBeCloseTo(
       Math.atan2(target[2], target[1]),
@@ -71,29 +71,30 @@ describe("theme coordinates", () => {
   });
 
   it("keeps lightness direction unless asked to invert, and blends partially", () => {
-    expect(recolorer({})(1, 1, 1)[0]).toBeCloseTo(1, 5);
-    expect(recolorer({}, { invert: true })(1, 1, 1)[0]).toBeCloseTo(0, 5);
-    const half = recolorer({ dark: "#ff0000", light: "#ff0000" }, { strength: 0 });
+    expect(recolorer(base)(1, 1, 1)[0]).toBeCloseTo(1, 5);
+    expect(recolorer(base, { invert: true })(1, 1, 1)[0]).toBeCloseTo(0, 5);
+    const half = recolorer({ neutral: ["#ff0000", "#ff0000"], images: { strength: 0 } });
     half(0.2, 0.4, 0.6).forEach((v, i) => expect(v).toBeCloseTo([0.2, 0.4, 0.6][i], 5));
-    expect(() => recolorer({}, { strength: 2 })).toThrow(RangeError);
-    expect(() => recolorer({}, { tint: -1 })).toThrow(RangeError);
+    // Image settings are part of the theme, checked with it
+    expect(() => recolorer({ ...base, images: { strength: 2 } })).toThrow(/images must be/);
+    expect(() => recolorer({ ...base, images: { tint: -1 } })).toThrow(/images must be/);
   });
 
   it("can keep the neutral tint off saturated colors", () => {
     const blue = rgb(defaultColors.blue);
     const anchor = oklabFromRgb(...rgb(sunset.colors.blue));
     const hue = (x: readonly number[]) => Math.atan2(x[2], x[1]);
-    const untinted = oklabFromRgb(...recolorer(sunset, { tint: 0 })(...blue));
+    const untinted = oklabFromRgb(...recolorer({ ...sunset, images: { tint: 0 } })(...blue));
     const tinted = oklabFromRgb(...recolorer(sunset)(...blue));
     expect(Math.abs(hue(untinted) - hue(anchor))).toBeLessThan(0.05);
     expect(Math.abs(hue(tinted) - hue(anchor))).toBeGreaterThan(0.1);
     // Grays keep the full tint either way.
-    expect(recolorer(sunset, { tint: 0 })(0.5, 0.5, 0.5)).toEqual(recolorer(sunset)(0.5, 0.5, 0.5));
+    expect(recolorer({ ...sunset, images: { tint: 0 } })(0.5, 0.5, 0.5)).toEqual(recolorer(sunset)(0.5, 0.5, 0.5));
   });
 });
 
 describe("multi-hue neutral ramps", () => {
-  const astro = { neutral: { colors: ["#040816", "#ffb980", "#ffffff"], colorModel: "hcl" as const } };
+  const astro = { neutral: ["#040816", "#ffb980", "#ffffff"], colorModel: "hcl" as const };
   const chroma = (x: readonly number[]) => {
     const [, a, b] = oklabFromRgb(x[0], x[1], x[2]);
     return Math.hypot(a, b);
@@ -103,7 +104,7 @@ describe("multi-hue neutral ramps", () => {
     const peach = rgb("#ffb980");
     // The default gray with the same relative lightness as the peach stop.
     const { t } = coordinatesOf(peach, astro);
-    const gray = rampColor({}, t);
+    const gray = rampColor(base, t);
     const mapped = recolorer(astro)(...gray);
     mapped.forEach((v, i) => expect(Math.abs(v - peach[i]) * 255).toBeLessThan(2));
     // Ramp endpoints still map to the ramp's endpoints.
@@ -112,8 +113,8 @@ describe("multi-hue neutral ramps", () => {
   });
 
   it("keeps HCL midtones saturated where OKLab passes through gray", () => {
-    const hcl = { neutral: { colors: [sunset.dark, sunset.light], colorModel: "hcl" as const } };
-    const oklab = { dark: sunset.dark, light: sunset.light };
+    const hcl = { neutral: sunset.neutral, colorModel: "hcl" as const };
+    const oklab = { neutral: sunset.neutral };
     expect(chroma(recolorer(hcl)(0.5, 0.5, 0.5))).toBeGreaterThan(
       chroma(recolorer(oklab)(0.5, 0.5, 0.5)) + 0.03,
     );
@@ -126,7 +127,7 @@ describe("multi-hue neutral ramps", () => {
       const c = [next(), next(), next()] as const;
       same(...c).forEach((v, k) => expect(v).toBeCloseTo(c[k], 4));
     }
-    expect(() => recolorer({ dark: "#000000", neutral: astro.neutral })).toThrow(TypeError);
+    expect(() => recolorer({ neutral: ["#000000"] })).toThrow(TypeError);
   });
 });
 
@@ -143,8 +144,7 @@ describe("near black", () => {
 
   it("keeps LUT cells near black smooth for every neutral step", () => {
     const deepDive = {
-      dark: "#001b4f",
-      light: "#b6e8e8",
+      neutral: ["#001b4f", "#b6e8e8"],
       colors: { red: "#ff6669", yellow: "#a09c5c", green: "#319647", blue: "#496eff", purple: "#af5bff" },
     };
     const deltaE = (x: readonly number[], y: readonly number[]) => {
@@ -166,7 +166,7 @@ describe("near black", () => {
   it("round-trips exactly through the identity LUT", () => {
     const pixels = Uint8ClampedArray.from({ length: 256 * 4 }, (_, i) => (i % 4 === 3 ? 255 : i >> 2));
     const copy = pixels.slice();
-    applyLut(copy, buildLut(recolorer({}), 33), 33);
+    applyLut(copy, buildLut(recolorer(base), 33), 33);
     expect([...copy]).toEqual([...pixels]);
   });
 
@@ -204,7 +204,7 @@ describe("lookup tables", () => {
   });
 
   it("serialize as .cube files", () => {
-    const cube = toCube(buildLut(recolorer({}), 2), 2, 'say "hi"').trim().split("\n");
+    const cube = toCube(buildLut(recolorer(base), 2), 2, 'say "hi"').trim().split("\n");
     expect(cube.slice(0, 2)).toEqual([`TITLE "say 'hi'"`, "LUT_3D_SIZE 2"]);
     expect(cube).toHaveLength(10);
     expect(cube[3]).toBe("1.000000 0.000000 0.000000");

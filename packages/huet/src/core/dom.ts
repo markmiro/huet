@@ -1,7 +1,7 @@
-import Color from "../Color";
-import chroma from "chroma-js";
 import { classVariable, parseClassToken, parseColorClass, stateKey, validateClasses, type ColorClass, type Surface } from "./classes";
-import { themeVariables, type HuetTheme } from "./theme";
+import { stepVariables } from "./css";
+import type { Surface as Background } from "./steps";
+import { resolveTheme, themeVariables, type BackgroundOptions, type ResolvedTheme, type Theme } from "./theme";
 const selector = '[class*="huet-"]';
 const mounted = new WeakSet<HTMLElement>();
 const owners = new WeakMap<HTMLElement, () => void>();
@@ -10,11 +10,11 @@ interface Pending { values: Record<string, string>; markers: Set<string> }
 /** An element whose background changes with Tailwind variants. State 0 is its resting background. */
 interface Dim { el: HTMLElement; keys: number[] }
 /** Colors for every combination of the states of `dims`. The last dim varies fastest. */
-interface Context { dims: Dim[]; bg: Color[]; tokens: Readonly<Record<string, string>>[] }
+interface Context { dims: Dim[]; bg: Background[]; tokens: Readonly<Record<string, string>>[] }
 /** Each element's colors are computed for every combination of its ancestors' states. */
 const maxCombinations = 256;
-const resolve = (base: Color, spec: ColorClass) =>
-  base.contrast(spec.amount, spec.ramp ? base.theme.ramps[spec.ramp] : undefined);
+const resolve = (theme: ResolvedTheme, base: Background, spec: ColorClass) =>
+  theme.step(base, spec.amount, spec.ramp);
 const weight = (key: number) =>
   `max(0%, (1 - max(var(--huet-state) - ${key}, ${key} - var(--huet-state))) * 100%)`;
 /**
@@ -28,8 +28,15 @@ function select(dim: Dim, entries: string[]) {
       value = `color-mix(in srgb, ${entries[i]} ${weight(dim.keys[i])}, ${value})`;
   return value;
 }
-/** Mount once per independent tree. Elements with Huet classes receive inline variables. */
-export function mountTheme(root: HTMLElement, initialTheme: HuetTheme) {
+/**
+ * Color `root` and the Huet classes under it with a theme, and keep them
+ * colored as elements change. `background` places the root on the theme's
+ * neutral ramp: 0 is dark, 1 (the default) is light. Mount once per independent
+ * tree. Elements with Huet classes receive inline variables.
+ */
+export function mountTheme(root: HTMLElement, initialTheme: Theme, options: BackgroundOptions = {}) {
+  let background = options.background ?? 1;
+  let theme = resolveTheme(initialTheme, { background });
   if (
     mounted.has(root) ||
     root.parentElement?.closest("[data-huet-root]") ||
@@ -42,8 +49,7 @@ export function mountTheme(root: HTMLElement, initialTheme: HuetTheme) {
   mounted.add(root);
   const previousRoot = root.getAttribute("data-huet-root");
   root.setAttribute("data-huet-root", "");
-  let theme = initialTheme,
-    disposed = false;
+  let disposed = false;
   const originals = new Map<HTMLElement, Map<string, [string, string]>>();
   const originalAttributes = new Map<HTMLElement, Map<string, string | null>>();
   const writeValues = (el: HTMLElement, { values, markers }: Pending) => {
@@ -99,15 +105,14 @@ export function mountTheme(root: HTMLElement, initialTheme: HuetTheme) {
     originals.delete(el);
     owners.delete(el);
   };
-  const surface = (parent: Color, base: string) => {
+  const surface = (parent: Background, base: string) => {
     const spec = parseColorClass(base);
     const suffix = base.slice("huet-surface-".length);
-    const bg = spec ? resolve(parent, spec) : new Color({
-      theme: parent.theme, bgColor: parent,
-      lab: chroma(theme.surface(parent.hex, (/^\d+$/.test(suffix) ? Number(suffix) : suffix) as Surface)).lab(),
-    });
-    const values = themeVariables(theme.tokens(bg.hex, parent.hex));
-    return { bg, tokens: spec ? { ...values, "--huet-foreground": bg.contrast(100).hex } : values };
+    const bg = spec ? resolve(theme, parent, spec) : theme.derive(
+      parent, theme.surface(parent.full.hex, (/^\d+$/.test(suffix) ? Number(suffix) : suffix) as Surface),
+    );
+    const values = { ...themeVariables(theme.tokensOn(bg, parent)), ...stepVariables(theme, bg) };
+    return { bg, tokens: spec ? { ...values, "--huet-foreground": theme.step(bg, 100).hex } : values };
   };
   const fail = (message: string): never => {
     root.setAttribute("data-huet-error", message);
@@ -147,8 +152,11 @@ export function mountTheme(root: HTMLElement, initialTheme: HuetTheme) {
       });
       return values[0];
     };
-    const rootColor = theme.relative;
-    const top: Context = { dims: [], bg: [rootColor], tokens: [themeVariables(theme.tokens(rootColor.hex, rootColor.hex))] };
+    const rootColor = theme.root;
+    const top: Context = {
+      dims: [], bg: [rootColor],
+      tokens: [{ ...themeVariables(theme.tokensOn(rootColor)), ...stepVariables(theme, rootColor) }],
+    };
     const contexts = new Map<HTMLElement, Context>();
     for (const el of elements) {
       const names = [...el.classList].map(parseClassToken);
@@ -169,7 +177,7 @@ export function mountTheme(root: HTMLElement, initialTheme: HuetTheme) {
         const dim = states.length > 1
           ? { el, keys: [-1, ...states.slice(1).map((x) => stateKey(parseColorClass(x!)!))] }
           : undefined;
-        const bg: Color[] = [], tokens: Context["tokens"] = [];
+        const bg: Background[] = [], tokens: Context["tokens"] = [];
         parent.bg.forEach((color, i) => {
           for (const state of states) {
             const result = state ? surface(color, state) : { bg: color, tokens: parent.tokens[i] };
@@ -190,7 +198,7 @@ export function mountTheme(root: HTMLElement, initialTheme: HuetTheme) {
       for (const { variants, base, spec } of colors) {
         const entry = target(el);
         const from = spec.ownBackground ? context : parent;
-        const value = entry.values[classVariable(base)] ??= fold(from.dims, from.bg.map((x) => resolve(x, spec).hex), el);
+        const value = entry.values[classVariable(base)] ??= fold(from.dims, from.bg.map((x) => resolve(theme, x, spec).hex), el);
         // Without Tailwind, styles.css reads the class without variants from a fixed name.
         if (!variants) {
           entry.values[`--huet-relative-${spec.property}`] = value;
@@ -222,9 +230,12 @@ export function mountTheme(root: HTMLElement, initialTheme: HuetTheme) {
     attributeFilter: ["class"],
   });
   return {
-    update(next: HuetTheme) {
+    /** Recolor with another theme. `background` stays as it was unless given. */
+    update(next: Theme, options: BackgroundOptions = {}) {
       if (disposed) throw new Error("Cannot update a destroyed Huet mount");
-      theme = next;
+      const nextBackground = options.background ?? background;
+      theme = resolveTheme(next, { background: nextBackground });
+      background = nextBackground;
       refresh();
     },
     destroy() {

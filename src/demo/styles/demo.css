@@ -3,7 +3,7 @@
 @import "huet/forms.css";
 @source "../";
 
-/* The configurator applies the saved theme after it loads. Until then, hide
+/* Configurator.tsx mounts the saved theme after it loads. Until then, hide
    the page so it doesn't flash in the default theme. */
 #page:not([data-huet-root]) {
   visibility: hidden;

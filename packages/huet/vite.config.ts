@@ -19,7 +19,7 @@ export default defineConfig({
       entry: {
         index: "src/core/index.ts",
         images: "src/core/images.ts",
-        config: "src/config.ts",
+        internal: "src/internal.ts",
       },
       formats: ["es", "cjs"],
       fileName: (format, entryName) => `${entryName}.${format === "es" ? "js" : "cjs"}`,

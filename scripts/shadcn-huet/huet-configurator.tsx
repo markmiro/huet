@@ -1,8 +1,12 @@
 "use client"
 
 import chroma from "chroma-js"
-import { themeFromConfig, type ThemeConfig } from "huet/config"
+import { useLayoutEffect, useState } from "react"
+import { checkTheme, themes as presets, type Theme } from "huet"
 import { mountImages, mountSvgs } from "huet/images"
+// shadcn's tokens need amounts and ramp positions that no class has, so this
+// adapter uses Huet's solver directly.
+import { resolveTheme } from "huet/internal"
 import { ThemeConfigurator } from "huet-react"
 
 /**
@@ -19,16 +23,16 @@ type Swatch = { key: string; l: number; c: number; h: number }
 let palette: Swatch[] | null = null
 let ring: Swatch | null = null
 
-function applyHuet(config: ThemeConfig) {
-  const theme = themeFromConfig(config)
+function applyHuet(picked: Theme, pageBackground: number) {
+  const theme = resolveTheme(picked, { background: pageBackground })
   const tokens = theme.tokens()
   const isDark = luminance(tokens.background) < 0.4
   // shadcn's dark page is near-black; its light page is the ramp endpoint.
   const background = isDark ? theme.surface(tokens.background, 2.75) : tokens.background
   const fill = (amount: Parameters<typeof theme.surface>[1]) => theme.surface(background, amount)
   // Match the configurator: primary and foreground use the full contrast range.
-  const foreground = theme.relative.contrast(100).hex
-  const mutedForeground = theme.relative.contrast(isDark ? 66 : 51.5).hex
+  const foreground = theme.step(theme.root, 100).hex
+  const mutedForeground = theme.step(theme.root, isDark ? 66 : 51.5).hex
   const ink = (surface: string) => theme.surface(surface, 100)
   stealPalette()
 
@@ -111,8 +115,8 @@ function applyHuet(config: ThemeConfig) {
   paintThemeHues(theme.ramp, foreground, background, tokens.red, ink(fill("red")))
   paintCharts(chartSteps)
   paintTopNav(background)
-  paintImages(theme)
-  paintSvgs(theme)
+  paintImages(picked)
+  paintSvgs(picked)
   const dark = luminance(background) < 0.4
   root.classList.toggle("dark", dark)
   root.style.colorScheme = dark ? "dark" : "light"
@@ -468,7 +472,7 @@ function prepareTree(node: Node) {
  * recolored canvas is ready, then that canvas fades in. Later theme edits
  * redraw the same canvas, so the fade does not replay.
  */
-function paintImages(theme: ReturnType<typeof themeFromConfig>) {
+function paintImages(theme: Theme) {
   if (!imageWatch) {
     imageWatch = new MutationObserver((records) => {
       let added = false
@@ -498,12 +502,50 @@ let svgMount: ReturnType<typeof mountSvgs> | null = null
  * code, as vectors. Paints that use currentColor or a CSS variable already
  * follow the theme tokens and are left alone.
  */
-function paintSvgs(theme: ReturnType<typeof themeFromConfig>) {
+function paintSvgs(theme: Theme) {
   if (!svgMount) svgMount = mountSvgs(document.body, theme)
   else svgMount.update(theme)
 }
 
+type Saved = { theme: Theme; background: number; themes: Record<string, Theme> }
+const storageKey = "huet-shadcn"
+const fallback: Saved = { theme: presets.Base, background: 1, themes: presets }
+
+/** The saved theme, background and theme list, or the defaults if there are none or they're invalid. */
+function load(): Saved {
+  try {
+    const saved = JSON.parse(localStorage.getItem(storageKey) ?? "null")
+    if (!saved) return fallback
+    checkTheme(saved.theme)
+    for (const listed of Object.values(saved.themes ?? {})) checkTheme(listed)
+    return { ...fallback, ...saved }
+  } catch (error) {
+    console.error("Huet: the saved theme is invalid, so it was reset.", error)
+    return fallback
+  }
+}
+
 /** Floating Huet editor. Edits repaint every shadcn color token. */
 export function HuetConfigurator() {
-  return <ThemeConfigurator onChange={applyHuet} />
+  // Loaded in the browser: the server has no localStorage
+  const [saved, setSaved] = useState<Saved>()
+  useLayoutEffect(() => setSaved(load()), [])
+  const change = (changes: Partial<Saved>) =>
+    setSaved((current) => current && { ...current, ...changes })
+  useLayoutEffect(() => {
+    if (!saved) return
+    applyHuet(saved.theme, saved.background)
+    localStorage.setItem(storageKey, JSON.stringify(saved))
+  }, [saved])
+  if (!saved) return null
+  return (
+    <ThemeConfigurator
+      value={saved.theme}
+      onChange={(theme) => change({ theme })}
+      themes={saved.themes}
+      onThemesChange={(themes) => change({ themes })}
+      background={saved.background}
+      onBackgroundChange={(background) => change({ background })}
+    />
+  )
 }

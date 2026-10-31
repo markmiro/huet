@@ -17,32 +17,34 @@ test("embedded configurator picks themes from its Themes tab", async ({ page }) 
   await expect(popover).toBeVisible();
   await expect(popover).toHaveCSS("border-color", "rgb(0, 0, 0)");
 
-  // Each theme on its own background; only the selected one has a strong edge
+  // Each theme on the page's background; only the selected one has a strong edge
   const base = popover.getByRole("button", { name: "Base", exact: true });
-  const inverted = popover.getByRole("button", { name: "Base Inverted" });
-  await expect(inverted).toHaveCSS("background-color", "rgb(0, 0, 0)");
+  const terminal = popover.getByRole("button", { name: "Terminal" });
+  await expect(terminal).toHaveCSS("background-color", "rgb(127, 255, 139)");
   await expect(base).toHaveCSS("border-color", "rgb(0, 0, 0)");
-  await expect(inverted).not.toHaveCSS("border-color", "rgb(255, 255, 255)");
 
-  await inverted.click();
-  await expect(inverted).toHaveAttribute("aria-pressed", "true");
-  await expect(inverted).toHaveCSS("border-color", "rgb(255, 255, 255)");
-  await expect(trigger).toHaveAccessibleName("Theme: Base Inverted");
+  await terminal.click();
+  await expect(terminal).toHaveAttribute("aria-pressed", "true");
+  await expect(trigger).toHaveAccessibleName("Theme: Terminal");
   // The page follows along
-  await expect(page.locator("#page")).toHaveCSS("background-color", "rgb(0, 0, 0)");
+  await expect(page.locator("#page")).toHaveCSS("background-color", "rgb(127, 255, 139)");
 
   await page.keyboard.press("Escape");
   await expect(popover).toHaveCount(0);
 });
 
-test("the Edit Theme tab edits the current theme", async ({ page }) => {
+test("the Edit Theme tab edits the current theme and the page's background", async ({ page }) => {
   const trigger = await open(page);
   await trigger.click();
-  await configurator(page).getByRole("button", { name: "Edit Theme" }).click();
-  await configurator(page).getByText("0%", { exact: true }).click();
+  const popover = configurator(page);
+  await popover.getByRole("button", { name: "Edit Theme" }).click();
+  // The background picker moves the page's background, not the theme
+  await popover.getByRole("button", { name: "0%", exact: true }).click();
   await expect(page.locator("#page")).toHaveCSS("background-color", "rgb(0, 0, 0)");
-  await page.getByLabel("Theme Name").fill("Night");
-  await expect(trigger).toHaveAccessibleName("Theme: Night");
+  await expect(trigger).toHaveAccessibleName("Theme: Base");
+  // Editing a color does change the theme
+  await popover.getByRole("slider", { name: "Contrast" }).fill("0.5");
+  await expect(trigger).toHaveAccessibleName("Theme: Custom");
 });
 
 test("contrast button inverts the page colors", async ({ page }) => {
@@ -51,9 +53,8 @@ test("contrast button inverts the page colors", async ({ page }) => {
   await expect(trigger).toHaveCSS("background-color", "rgb(0, 0, 0)");
   await expect(trigger).toHaveCSS("color", "rgb(255, 255, 255)");
 
-  await trigger.click();
-  await page.getByRole("dialog").getByRole("button", { name: "Base Inverted" }).click();
-  // Dark theme: light button with dark text
+  await page.getByRole("combobox", { name: "Background", exact: true }).selectOption("0");
+  // Dark page: light button with dark text
   await expect(trigger).toHaveCSS("background-color", "rgb(255, 255, 255)");
   await expect(trigger).toHaveCSS("color", "rgb(0, 0, 0)");
 });

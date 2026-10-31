@@ -1,5 +1,5 @@
-import { paletteOf, recolorer, type Palette, type RecolorOptions } from "./recolor";
-import type { HuetTheme } from "./theme";
+import { recolorer, type RecolorOptions } from "./recolor";
+import type { Theme } from "./theme";
 
 export interface MountSvgsOptions extends RecolorOptions {
   /** Which SVG elements to recolor, with everything inside them. Defaults to `svg[data-huet-recolor]`. */
@@ -137,12 +137,12 @@ interface Override {
  */
 export function mountSvgs(
   root: ParentNode & Node,
-  theme: HuetTheme | Palette,
+  theme: Theme,
   options: MountSvgsOptions = {},
 ) {
   const { selector = "svg[data-huet-recolor]", ...recolor } = options;
   let settings: RecolorOptions = recolor,
-    map = recolorer(paletteOf(theme), settings),
+    map = recolorer(theme, settings),
     mapped = new Map<string, string>(),
     frame: number | undefined,
     disposed = false;
@@ -300,10 +300,10 @@ export function mountSvgs(
 
   return {
     /** Recolor every SVG into a new theme, optionally with new options, at the next frame. */
-    update(next: HuetTheme | Palette, nextOptions?: RecolorOptions) {
+    update(next: Theme, nextOptions?: RecolorOptions) {
       if (disposed) throw new Error("Cannot update a destroyed Huet SVG mount");
       if (nextOptions) settings = nextOptions;
-      map = recolorer(paletteOf(next), settings);
+      map = recolorer(next, settings);
       mapped = new Map();
       schedule();
     },

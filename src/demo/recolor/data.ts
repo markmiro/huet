@@ -1,29 +1,25 @@
-import type { Palette } from "huet/images";
-import { hues } from "huet";
-import { themeConfigs } from "huet/config";
+import { themes as presets, type Theme } from "huet";
 
-export interface RecolorTheme extends Palette {
+export interface RecolorTheme {
   name: string;
-  /** Where the theme's background sits on its ramp; below 0.5 is a dark theme. */
+  theme: Theme;
+  /** Where the page background sits on the theme's ramp; below 0.5 is dark. */
   background: number;
 }
 
+// The presets that were designed as dark themes open on their dark end.
+const darkPresets = ["Radioactive", "Terminal", "Deep Dive", "Royal Purple", "Orange Boost", "Faded Future", "Sunset", "Astro"];
+
 export const themes: RecolorTheme[] = [
-  { name: "Huet default (identity)", background: 1 },
-  // Port each legacy theme's gray ramp (stops and color model) to `neutral`,
-  // e.g. Sunset in HCL and Astro through its peach middle stop.
-  ...themeConfigs.map(({ name = "", pallet, ramps, bgRampValue }) => ({
+  { name: "Huet default (identity)", theme: { neutral: ["#000000", "#ffffff"] }, background: 1 },
+  ...Object.entries(presets).map(([name, theme]) => ({
     name,
-    neutral: {
-      colors: (ramps.gray.colors ?? ["black", "white"]).map((stop) => pallet[stop] ?? stop),
-      colorModel: ramps.gray.colorModel ?? "lab",
-    },
-    colors: Object.fromEntries(hues.map((hue) => [hue, pallet[hue]])),
-    background: bgRampValue,
+    theme,
+    background: darkPresets.includes(name) ? 0 : 1,
   })),
-  { name: "Lab · White & blue", dark: "#233b91", light: "#ffffff", background: 1 },
-  { name: "Lab · Paper", dark: "#302723", light: "#f1e4cd", background: 1 },
-  { name: "Lab · Low contrast", dark: "#777479", light: "#b6b0ae", background: 0.7 },
+  { name: "Lab · White & blue", theme: { neutral: ["#233b91", "#ffffff"] }, background: 1 },
+  { name: "Lab · Paper", theme: { neutral: ["#302723", "#f1e4cd"] }, background: 1 },
+  { name: "Lab · Low contrast", theme: { neutral: ["#777479", "#b6b0ae"] }, background: 0.7 },
 ];
 
 export interface DemoImage {

@@ -4,24 +4,24 @@ import {
   applyTransform,
   buildLut,
   recolorer,
-  type Palette,
   type RecolorOptions,
 } from "huet/images";
+import type { Theme } from "huet";
 
 export type Request =
-  | { type: "lut"; target: Palette; options: RecolorOptions; size: number; fresh?: boolean }
+  | { type: "lut"; target: Theme; options: RecolorOptions; size: number; fresh?: boolean }
   | {
       type: "apply";
       mode: "lut" | "exact";
       pixels: Uint8ClampedArray;
-      target: Palette;
+      target: Theme;
       options: RecolorOptions;
       size: number;
     };
 
 // LUTs are small (33³ × 3 floats ≈ 430 KB), so keep recent ones for reuse.
 const luts = new Map<string, Float32Array>();
-function lutFor(target: Palette, options: RecolorOptions, size: number, fresh = false) {
+function lutFor(target: Theme, options: RecolorOptions, size: number, fresh = false) {
   const key = JSON.stringify([target, options, size]);
   let lut = luts.get(key);
   if (!lut || fresh) {

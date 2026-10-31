@@ -1,169 +1,122 @@
-import React, { useCallback, useLayoutEffect, useMemo, useRef } from "react";
-import { mountTheme } from "huet";
-import { mountImages } from "huet/images";
-import {
-  baseThemeConfig,
-  parseThemeConfig,
-  Theme,
-  type ThemeConfig,
-} from "huet/config";
+import { isEqual } from "lodash-es";
+import React, { useEffect, useMemo, useRef } from "react";
+import { themes as presets, type Theme } from "huet";
+import { resolveTheme } from "huet/internal";
 
 import { ThemeConfiguratorContext } from "./context";
 import Themer from "./Themer";
 import ErrorBoundary from "./private/ErrorBoundary";
-import usePersistentState from "./private/persistentState";
-import imageSettings from "./private/imageSettings";
-import themeFor from "./private/themeFor";
-
-type Target = string | HTMLElement;
+import usePersistentState, { asString } from "./private/persistentState";
 
 export interface ThemeConfiguratorProps {
+  /** The theme being edited. */
+  value: Theme;
   /**
-   * An element or selector to theme through Huet classes such as
-   * `huet-bg-10`. Leave it out to apply the theme yourself, for example with
-   * `mountTheme(root, themeFromConfig(config))` in `onChange`.
+   * Called with every edit, and when a theme is picked from `themes`. Apply
+   * the theme yourself, with `mountTheme`, `themeCss` or `recolorImage`.
    */
-  target?: Target;
-  /** The theme, for a controlled configurator. Edits call `onChange`. */
-  value?: ThemeConfig;
+  onChange: (theme: Theme) => void;
+  /** The themes to pick from, by name. Defaults to Huet's presets. */
+  themes?: Readonly<Record<string, Theme>>;
   /**
-   * The starting theme when uncontrolled. The configurator saves edits in
-   * localStorage and restores them on reload.
+   * Called with a new list when someone saves, renames, removes or imports a
+   * theme. Leave it out for a fixed list.
    */
-  defaultValue?: ThemeConfig;
+  onThemesChange?: (themes: Record<string, Theme>) => void;
   /**
-   * Called with the edited theme. When uncontrolled, it is also called once on
-   * mount with the restored theme.
+   * Where your page's background sits on the theme's neutral ramp, from 0
+   * (dark) to 1 (light). The configurator previews themes on it. It isn't
+   * part of the theme, so a light/dark switch on your page sets it. Defaults to 1.
    */
-  onChange?: (config: ThemeConfig) => void;
+  background?: number;
+  /** Called when someone picks a background in the configurator. Leave it out to hide the picker. */
+  onBackgroundChange?: (background: number) => void;
 }
 
-function resolve(target: Target) {
-  const el =
-    typeof target === "string" ? document.querySelector<HTMLElement>(target) : target;
-  if (!el) throw new Error(`Huet: no element matches ${String(target)}`);
-  return el;
+/** `base`, or `base 2`, `base 3`, … whichever isn't in `themes` yet. */
+function freeName(themes: Readonly<Record<string, Theme>>, base: string) {
+  let name = base;
+  for (let i = 2; name in themes; i++) name = `${base} ${i}`;
+  return name;
 }
 
-/** Applies the configured theme to `target` with Huet's class-based styles. */
-function useThemeTarget(target: Target | undefined, config: ThemeConfig) {
-  const theme = useMemo(() => themeFor(config), [config]);
-  const latest = useRef(theme);
-  latest.current = theme;
-  const mount = useRef<ReturnType<typeof mountTheme>>(undefined);
-  // Remount only when the target changes. Theme changes go through update().
-  useLayoutEffect(() => {
-    if (!target) return;
-    const current = mountTheme(resolve(target), latest.current);
-    mount.current = current;
-    return () => {
-      current.destroy();
-      mount.current = undefined;
-    };
-  }, [target]);
-  useLayoutEffect(() => mount.current?.update(theme), [theme]);
-  const settings = imageSettings(config);
-  const latestSettings = useRef(settings);
-  latestSettings.current = settings;
-  const images = useRef<ReturnType<typeof mountImages>>(undefined);
-  useLayoutEffect(() => {
-    if (!target || !settings.enabled) return;
-    images.current = mountImages(resolve(target), latest.current, {
-      ...latestSettings.current, hoverOriginal: true,
-    });
-    return () => {
-      images.current?.destroy();
-      images.current = undefined;
-    };
-  }, [target, settings.enabled]);
-  useLayoutEffect(() => {
-    images.current?.update(theme, latestSettings.current);
-  }, [theme, settings.tint, settings.strength]);
-}
-
-type WithChildren = { children?: React.ReactNode };
-
-function Panel({
-  target,
-  config,
-  setConfig,
-  children,
-}: WithChildren & {
-  target?: Target;
-  config: ThemeConfig;
-  setConfig: React.Dispatch<React.SetStateAction<ThemeConfig>>;
-}) {
-  const theme = useMemo(() => new Theme(config), [config]);
-  useThemeTarget(target, config);
-  return (
-    <ThemeConfiguratorContext.Provider value={[theme, setConfig]}>
-      {children}
-    </ThemeConfiguratorContext.Provider>
-  );
-}
-
-function Controlled({
+/** Shares the edited theme with `children` through ThemeConfiguratorContext. */
+export function ConfiguratorRoot({
   value,
   onChange,
-  target,
+  themes = presets,
+  onThemesChange,
+  background = 1,
+  onBackgroundChange,
   children,
-}: Required<Pick<ThemeConfiguratorProps, "value">> &
-  ThemeConfiguratorProps &
-  WithChildren) {
-  const latest = useRef(value);
-  latest.current = value;
+}: ThemeConfiguratorProps & { children?: React.ReactNode }) {
   const onChangeRef = useRef(onChange);
   onChangeRef.current = onChange;
-  const setConfig = useCallback<React.Dispatch<React.SetStateAction<ThemeConfig>>>(
-    (action) => {
-      const next = typeof action === "function" ? action(latest.current) : action;
-      if (next !== latest.current) onChangeRef.current?.(next);
-    },
-    [],
+  const callbacks = useRef({ onThemesChange, onBackgroundChange });
+  callbacks.current = { onThemesChange, onBackgroundChange };
+  const canEditList = onThemesChange !== undefined;
+  const canSetBackground = onBackgroundChange !== undefined;
+  const name = useMemo(
+    () => Object.entries(themes).find(([, listed]) => isEqual(listed, value))?.[0],
+    [themes, value],
+  );
+  // The last listed theme picked, so edits to it can be reset. It's saved with
+  // the panel's state, so Reset still works after a reload.
+  const [lastPicked, setLastPicked] = usePersistentState("themer:editedFrom", "", asString);
+  useEffect(() => {
+    if (name !== undefined) setLastPicked(name);
+  }, [name, setLastPicked]);
+  const editedFrom = name === undefined && lastPicked in themes ? lastPicked : undefined;
+  const state = useMemo(
+    () => ({
+      theme: value,
+      // Throws a descriptive error for an invalid theme, which the boundary shows
+      resolved: resolveTheme(value, { background }),
+      setTheme: (theme: Theme) => onChangeRef.current(theme),
+      themes,
+      background,
+      name,
+      editedFrom,
+      reset: () => {
+        if (editedFrom !== undefined) onChangeRef.current(themes[editedFrom]);
+      },
+      setBackground: canSetBackground
+        ? (next: number) => callbacks.current.onBackgroundChange?.(next)
+        : undefined,
+      list: canEditList
+        ? {
+            saveAsNew: () => {
+              const saved = freeName(themes, `${editedFrom ?? "Custom"} Copy`);
+              callbacks.current.onThemesChange?.({ [saved]: value, ...themes });
+              setLastPicked(saved);
+            },
+            remove: (removed: string) => {
+              const { [removed]: _, ...rest } = themes;
+              callbacks.current.onThemesChange?.(rest);
+              // Removing the picked theme picks the first one left
+              const [first] = Object.values(rest);
+              if (removed === name && first) onChangeRef.current(first);
+            },
+            rename: (from: string, to: string) => {
+              if (!to || to === from || to in themes) return;
+              // Same order, new key
+              callbacks.current.onThemesChange?.(
+                Object.fromEntries(Object.entries(themes).map(([key, theme]) => [key === from ? to : key, theme])),
+              );
+              setLastPicked(to);
+            },
+            add: (added: string, theme: Theme) => {
+              const saved = freeName(themes, added);
+              callbacks.current.onThemesChange?.({ [saved]: theme, ...themes });
+              onChangeRef.current(theme);
+            },
+          }
+        : undefined,
+    }),
+    [value, themes, background, name, editedFrom, canEditList, canSetBackground, setLastPicked],
   );
   return (
-    <Panel target={target} config={value} setConfig={setConfig}>
-      {children}
-    </Panel>
-  );
-}
-
-function Uncontrolled({
-  defaultValue = baseThemeConfig,
-  onChange,
-  target,
-  children,
-}: ThemeConfiguratorProps & WithChildren) {
-  const [config, setConfig] = usePersistentState("theme", defaultValue, parseThemeConfig);
-  const onChangeRef = useRef(onChange);
-  onChangeRef.current = onChange;
-  useLayoutEffect(() => onChangeRef.current?.(config), [config]);
-  return (
-    <Panel target={target} config={config} setConfig={setConfig}>
-      {children}
-    </Panel>
-  );
-}
-
-/**
- * Holds the edited theme, controlled or saved in localStorage, applies it to
- * `target`, and shares it with `children` through ThemeConfiguratorContext.
- */
-export function ConfiguratorRoot({
-  componentName,
-  children,
-  ...props
-}: ThemeConfiguratorProps & WithChildren & { componentName: string }) {
-  return (
-    <ErrorBoundary componentName={componentName}>
-      {props.value ? (
-        <Controlled {...props} value={props.value}>
-          {children}
-        </Controlled>
-      ) : (
-        <Uncontrolled {...props}>{children}</Uncontrolled>
-      )}
-    </ErrorBoundary>
+    <ThemeConfiguratorContext.Provider value={state}>{children}</ThemeConfiguratorContext.Provider>
   );
 }
 
@@ -174,8 +127,10 @@ export function ConfiguratorRoot({
  */
 export default function ThemeConfigurator(props: ThemeConfiguratorProps) {
   return (
-    <ConfiguratorRoot componentName="Theme Configurator" {...props}>
-      <Themer />
-    </ConfiguratorRoot>
+    <ErrorBoundary componentName="Theme Configurator">
+      <ConfiguratorRoot {...props}>
+        <Themer />
+      </ConfiguratorRoot>
+    </ErrorBoundary>
   );
 }

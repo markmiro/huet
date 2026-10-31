@@ -20,8 +20,9 @@ import {
 const PREFIX = "huet:";
 // Keys written by the old order-based `useBrowserState` hook.
 const LEGACY_PREFIX = "useBrowserState_huet_";
-// Settings the configurator no longer has
-const REMOVED_KEYS = ["themer:showHelp"];
+// Settings the configurator no longer has. The edited theme and the theme
+// list now belong to the host page, through `value` and `themes`.
+const REMOVED_KEYS = ["themer:showHelp", "theme", "themes"];
 const SAVE_DELAY = 500;
 
 /** Turns a stored JSON value into `T`, or returns `undefined` if it's invalid. */

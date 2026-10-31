@@ -1,8 +1,7 @@
 ---
 import { transformerNotationDiff, transformerNotationHighlight } from "@shikijs/transformers";
 import { Code } from "astro:components";
-import { codeRoles, huetShikiTheme, huetShikiTransformer, type CodeRole } from "huet";
-import { themeConfigs } from "huet/config";
+import { codeRoles, huetShikiTheme, huetShikiTransformer, themes, type CodeRole } from "huet";
 import Section from "../components/Section.astro";
 import Demo from "../layouts/Demo.astro";
 import { card, languages, post, rows } from "../code/samples";
@@ -17,7 +16,7 @@ const notation = [transformerNotationDiff(), transformerNotationHighlight()];
 const surfaces = [0, 5, 10, 15, 20, 25, 75, 80, 85, 90, 95, 100];
 const roles = (Object.keys(codeRoles) as CodeRole[]).filter((r) => r !== "background" && r !== "punctuation");
 const role = (r: CodeRole) => `var(--huet-code-${r}, ${codeRoles[r]})`;
-const cards = themeConfigs.filter((config) => config.name);
+const cards = Object.keys(themes);
 const inline = "huet-bg-10 rounded-xs px-1 font-mono text-[0.9em]";
 ---
 <Demo title="Code">
@@ -114,13 +113,13 @@ const inline = "huet-bg-10 rounded-xs px-1 font-mono text-[0.9em]";
 
     <Section title="Every theme">
       <p class="huet-text-50 -mt-12 mb-6 text-sm">
-        Identical HTML in every card. The page is already a theme root, so each card gets its colors from
-        <code class={inline}>themeVariables()</code> instead of a nested mount, the way a server-rendered page would.
+        Identical HTML in every card, on the page's background. The page is already a theme root, so each card's
+        colors are written inline instead of through a nested mount.
       </p>
       <div class="grid grid-cols-[repeat(auto-fill,minmax(16em,1fr))] gap-4">
-        {cards.map((config, i) => (
+        {cards.map((name, i) => (
           <figure data-card={i} class="rounded-lg p-3 outline-offset-2" style="background: var(--huet-background); color: var(--huet-foreground)">
-            <figcaption class="mb-2 text-sm font-bold">{config.name}</figcaption>
+            <figcaption class="mb-2 text-sm font-bold">{name}</figcaption>
             <Code code={card.code} lang={card.lang} theme={theme} />
           </figure>
         ))}
@@ -177,18 +176,19 @@ const inline = "huet-bg-10 rounded-xs px-1 font-mono text-[0.9em]";
 </style>
 
 <script>
-  import { themeVariables, type HuetTheme } from "huet";
+  import { themes } from "huet";
+  import { resolveTheme, themeVariables, type ResolvedTheme } from "huet/internal";
   import { contrast } from "../../../packages/huet/src/core/color";
-  import { themeConfigs, themeFromConfig } from "huet/config";
-  import { subscribeTheme } from "../components/themeStore";
+  import { subscribeTheme, themeName } from "../components/themeStore";
 
   const $ = <T extends Element>(selector: string) => document.querySelector<T>(selector)!;
   const slider = $<HTMLInputElement>("#surface");
   const surfaces = slider.dataset.surfaces!.split(",").map(Number);
   const surfaceValue = $("#surface-value");
   const firstBlock = $<HTMLElement>(".post pre");
-  const cards = themeConfigs.filter((config) => config.name);
+  const cards = Object.entries(themes);
   let current: string | undefined;
+  let background = 1;
 
   // Probes resolve each role exactly as a token inside the first post block would.
   const lcCells = [...document.querySelectorAll<HTMLElement>("[data-lc]")];
@@ -218,22 +218,21 @@ const inline = "huet-bg-10 rounded-xs px-1 font-mono text-[0.9em]";
   }
 
   // Same values mountTheme writes for a root and a `huet-bg-<amount>` child.
-  function surfaceVariables(theme: HuetTheme, amount: number) {
-    const root = theme.relative;
-    const block = root.contrast(amount);
+  function surfaceVariables(theme: ResolvedTheme, amount: number) {
+    const { root } = theme;
+    const block = theme.step(root, amount);
     return {
-      root: themeVariables(theme.tokens(root.hex, root.hex)),
-      block: { ...themeVariables(theme.tokens(block.hex, root.hex)), "--huet-foreground": block.contrast(100).hex },
+      root: themeVariables(theme.tokensOn(root)),
+      block: { ...themeVariables(theme.tokensOn(block, root)), "--huet-foreground": theme.step(block, 100).hex },
     };
   }
-  const cardThemes = cards.map((config) => themeFromConfig(config));
   function paintCards(amount: number) {
     document.querySelectorAll<HTMLElement>("[data-card]").forEach((el, i) => {
-      const { root, block } = surfaceVariables(cardThemes[i], amount);
+      const { root, block } = surfaceVariables(resolveTheme(cards[i][1], { background }), amount);
       for (const [key, value] of Object.entries(root)) el.style.setProperty(key, value);
       const pre = el.querySelector<HTMLElement>("pre")!;
       for (const [key, value] of Object.entries(block)) pre.style.setProperty(key, value);
-      el.toggleAttribute("data-selected", cards[i].name === current);
+      el.toggleAttribute("data-selected", cards[i][0] === current);
     });
   }
 
@@ -285,9 +284,13 @@ const inline = "huet-bg-10 rounded-xs px-1 font-mono text-[0.9em]";
     slider.value = String(index);
   }
   slider.addEventListener("input", () => setSurface(surfaces[Number(slider.value)]));
-  subscribeTheme((config) => {
-    current = config.name;
+  subscribeTheme((state) => {
+    current = themeName(state.theme);
+    background = state.background;
     setSurface(surfaces[Number(slider.value)]);
+    // The observers only see later changes, so measure the theme as applied
+    measure();
+    measureRows(rowsFigure);
     document.body.dataset.ready = "";
   });
 </script>

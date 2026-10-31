@@ -2,7 +2,7 @@ import {
   fromLightness, lightnessOf as lightness, lightnessToe as toe,
   oklabFromRgb, rgbFromOklab, toOklab, type Triple,
 } from "./color";
-import { defaultColors, hues, neutralRampOf, type Hue, type HuetTheme, type NeutralRamp } from "./theme";
+import { checkTheme, defaultColors, hues, neutralRampOf, rampOptionsOf, type Hue, type Theme } from "./theme";
 
 /*
   A theme's ramps form a coordinate system for colors:
@@ -19,24 +19,8 @@ import { defaultColors, hues, neutralRampOf, type Hue, type HuetTheme, type Neut
   baked into a 3D lookup table once per theme and applied cheaply (or on a GPU).
 */
 
-/** The parts of a theme that define its color coordinates. */
-export interface Palette {
-  dark?: string;
-  light?: string;
-  /** A multi-stop or hue-shifting neutral ramp, as in `createTheme`. Use instead of dark/light. */
-  neutral?: NeutralRamp;
-  colors?: Partial<Record<Hue, string>>;
-}
-
-/** The ramps of a theme from `createTheme`, in the shape the recolorer reads. */
-export function paletteOf(theme: HuetTheme | Palette): Palette {
-  if (!("tokens" in theme)) return theme;
-  const { neutral, colors } = theme;
-  // A two-stop OKLab ramp is the plain dark → light mix.
-  return neutral.colors.length === 2 && neutral.colorModel === "oklab"
-    ? { dark: theme.dark, light: theme.light, colors }
-    : { neutral, colors };
-}
+/** The theme images are assumed to be in when no `source` is given: black to white. */
+const defaultSource: Theme = { neutral: ["#000000", "#ffffff"] };
 
 export interface Coordinates {
   /** Position on the dark → light ramp: 0 is dark, 1 is light. */
@@ -46,24 +30,20 @@ export interface Coordinates {
 }
 
 export interface RecolorOptions {
-  /** The theme the image is assumed to be in. Defaults to Huet's default theme. */
-  source?: Palette;
-  /** 0 keeps the original color, 1 fully adopts the target theme. */
-  strength?: number;
+  /** The theme the image is assumed to be in. Defaults to black to white with Huet's default hues. */
+  source?: Theme;
   /**
    * Flip the lightness coordinate. Off by default so light stays light and
    * dark stays dark; meant for UI screenshots shown in an opposite-polarity
    * theme, since inverted photos read as negatives.
    */
   invert?: boolean;
-  /**
-   * How much a tinted neutral ramp also tints saturated colors. At 1 (the
-   * default), chroma is added on top of the neutral ramp, so a yellow-tinted
-   * ramp turns blue skies teal. At 0, the tint fades out as colors approach
-   * anchor saturation, keeping hues closer to the theme's anchors.
-   */
-  tint?: number;
 }
+// How strongly, and with how much of the neutral ramp's tint, come from the
+// target theme's `images`. At tint 1 (the default), chroma is added on top of
+// the neutral ramp, so a yellow-tinted ramp turns blue skies teal. At 0, the
+// tint fades out as colors approach anchor saturation, keeping hues closer to
+// the theme's anchors.
 
 /*
   CIE lightness L* (0–1) of a color with OKLab lightness L, treating L³ as its
@@ -94,12 +74,13 @@ interface Frame {
 }
 
 const frames = new Map<string, Frame>();
-function frame(palette: Palette): Frame {
-  const key = JSON.stringify(palette);
+function frame(theme: Theme): Frame {
+  const key = JSON.stringify(theme);
   let cached = frames.get(key);
   if (cached) return cached;
-  const { dark, light, neutral, colors } = palette;
-  const { ramp } = neutralRampOf({ dark, light, neutral });
+  checkTheme(theme);
+  const { colors } = theme;
+  const { ramp } = neutralRampOf(rampOptionsOf(theme));
   // Sample the neutral ramp, which may pass through middle stops or travel
   // around the hue wheel, and index it by lightness: a gray lands on the ramp
   // color with the same relative lightness.
@@ -148,7 +129,7 @@ function frame(palette: Palette): Frame {
 }
 
 
-/** Express OKLab colors in a palette's ramp coordinates. */
+/** Express OKLab colors in a theme's ramp coordinates. */
 function decomposer(source: Frame) {
   const n = hues.length;
   const angle = (i: number) => Math.atan2(source.b[i], source.a[i]);
@@ -198,10 +179,10 @@ function decomposer(source: Frame) {
   };
 }
 
-/** Coordinates of a color in a palette's ramps (useful for inspecting a pixel). */
+/** Coordinates of a color in a theme's ramps (useful for inspecting a pixel). */
 export function coordinatesOf(
   [r, g, b]: Triple,
-  source: Palette = {},
+  source: Theme = defaultSource,
 ): Coordinates {
   const { t, i0, i1, w0, w1 } = decomposer(frame(source))(oklabFromRgb(r, g, b));
   const weights: Partial<Record<Hue, number>> = {};
@@ -211,14 +192,14 @@ export function coordinatesOf(
 }
 
 /** Map gamma-encoded sRGB channels (0–1) from the source theme into the target theme. */
-export function recolorer(target: Palette, options: RecolorOptions = {}) {
-  const strength = options.strength ?? 1,
-    tint = options.tint ?? 1;
+export function recolorer(target: Theme, options: RecolorOptions = {}) {
+  const to = frame(target);
+  const strength = target.images?.strength ?? 1,
+    tint = target.images?.tint ?? 1;
   if (!(strength >= 0 && strength <= 1))
     throw new RangeError("strength must be between 0 and 1");
   if (!(tint >= 0 && tint <= 1)) throw new RangeError("tint must be between 0 and 1");
-  const decompose = decomposer(frame(options.source ?? {}));
-  const to = frame(target);
+  const decompose = decomposer(frame(options.source ?? defaultSource));
   const { low, high } = to;
   return (r: number, g: number, b: number): Triple => {
     const lab = oklabFromRgb(r, g, b);
@@ -240,9 +221,9 @@ export function recolorer(target: Palette, options: RecolorOptions = {}) {
   };
 }
 
-/** A color on a palette's neutral ramp, or on a hue ramp at anchor chroma. */
-export function rampColor(palette: Palette, t: number, hue?: Hue): Triple {
-  const { low, high, neutralAt, a, b } = frame(palette);
+/** A color on a theme's neutral ramp, or on a hue ramp at anchor chroma. */
+export function rampColor(theme: Theme, t: number, hue?: Hue): Triple {
+  const { low, high, neutralAt, a, b } = frame(theme);
   const i = hue ? hues.indexOf(hue) : -1;
   const [na, nb] = neutralAt(t);
   return rgbFromOklab([

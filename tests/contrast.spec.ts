@@ -4,7 +4,7 @@ import { toOklab, contrast, lightness, luminance } from "../packages/huet/src/co
 /** Distance in CIE L* (0–1) between two colors. */
 const distance = (a: string, b: string) => Math.abs(lightness(a) - lightness(b));
 import { writeFileSync } from "node:fs";
-import baseThemeConfig from "../packages/huet/src/private/baseThemeConfig";
+import { themes } from "../packages/huet/src/core/themes";
 const screenshots = process.env.HUET_SCREENSHOTS ?? "test-results/screenshots";
 const rampButton = (page: Page, ramp: string) =>
   page.getByRole("group", { name: "Background ramp" }).getByRole("button", { name: ramp, exact: true });
@@ -14,9 +14,9 @@ test("Color Contrast forms retain hue and scale low-strength fills", async ({ pa
   await page.goto("/color-contrast");
   const results = [];
   for (const position of [1, .75, .25, 0]) {
-    await page.evaluate(config => {
-      localStorage.setItem("huet:theme", JSON.stringify(config));
-    }, { ...baseThemeConfig, bgRampValue: position, contrastMultiplier: 1 });
+    await page.evaluate(saved => {
+      localStorage.setItem("huet-demo:theme", JSON.stringify(saved));
+    }, { theme: themes.Base, background: position, themes });
     await page.reload();
     await expect(page.getByRole("button", { name: "Submit", exact: true })).toHaveCount(24);
     const form = page.locator("[data-form-example]");
@@ -53,7 +53,7 @@ test("both existing signal-lightness sliders affect the rendered form", async ({
   await page.goto("/color-contrast");
   await openConfigurator(page, "Edit Theme");
   const form = page.locator("[data-form-example]");
-  for (const [label, index] of [["Signal Lightness on 'White'", 0], ["Signal Lightness on 'Black'", 3]] as const) {
+  for (const [label, index] of [["Signal lightness on light backgrounds", 0], ["Signal lightness on dark backgrounds", 3]] as const) {
     const red = form.locator(":scope > div").nth(index).locator("input").nth(1);
     const slider = page.getByRole("slider", { name: label, exact: true });
     const set = async (value: string) => {
@@ -70,7 +70,7 @@ test("both existing signal-lightness sliders affect the rendered form", async ({
   }
 });
 
-test("gray cells blend with each selected colored background ramp", async ({ page }) => {
+test("gray cells keep the hue of each colored background", async ({ page }) => {
   await page.setViewportSize({ width: 2000, height: 1100 });
   await page.goto("/color-contrast");
   await expect(page.locator("[data-row]")).toHaveCount(6);
@@ -90,9 +90,10 @@ test("gray cells blend with each selected colored background ramp", async ({ pag
         };
       });
     expect(cells.zero, hue).toBe(cells.background);
+    // Neutral classes on a colored row are a deeper or paler version of it
     const [, a, b] = toOklab(cells.background);
     const [, x, y] = toOklab(cells.gray20);
-    expect(Math.hypot(x, y), hue).toBeGreaterThan(.005);
+    expect(Math.hypot(x, y), hue).toBeGreaterThan(.6 * Math.hypot(a, b));
     expect(Math.abs(Math.atan2(a * y - b * x, a * x + b * y)), hue).toBeLessThan(.15);
     expect(["#000000", "#ffffff"]).toContain(cells.gray100);
     if (hue === "blue")

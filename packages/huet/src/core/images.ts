@@ -1,18 +1,17 @@
 import { GpuRecolor } from "./gpu";
-import { applyLut, buildLut, paletteOf, recolorer, type Palette, type RecolorOptions } from "./recolor";
-import type { HuetTheme } from "./theme";
+import { applyLut, buildLut, recolorer, type RecolorOptions } from "./recolor";
+import type { Theme } from "./theme";
 
 export {
   applyLut,
   applyTransform,
   buildLut,
   coordinatesOf,
-  paletteOf,
   rampColor,
   recolorer,
   toCube,
 } from "./recolor";
-export type { Coordinates, Palette, RecolorOptions, Transform } from "./recolor";
+export type { Coordinates, RecolorOptions, Transform } from "./recolor";
 export { GpuRecolor } from "./gpu";
 export { mountSvgs, type MountSvgsOptions } from "./svgs";
 
@@ -28,8 +27,9 @@ export interface ImageOptions extends RecolorOptions {
 
 // LUTs are small (17³ × 3 floats ≈ 59 KB), so keep recent ones for reuse.
 const luts = new Map<string, Float32Array>();
-function lutFor(target: Palette, { lutSize = 17, ...options }: ImageOptions) {
-  const key = JSON.stringify([target, options, lutSize]);
+function lutFor(target: Theme, { lutSize = 17, ...options }: ImageOptions) {
+  // Contrast doesn't change image colors, so it isn't part of the key.
+  const key = JSON.stringify([target.neutral, target.colorModel, target.colors, target.images, options, lutSize]);
   let lut = luts.get(key);
   if (!lut) {
     if (luts.size >= 16) luts.clear();
@@ -66,14 +66,14 @@ const sizeOf = (source: Source) =>
  */
 export function recolorImage(
   source: Source,
-  theme: HuetTheme | Palette,
+  theme: Theme,
   options: ImageOptions = {},
   out = document.createElement("canvas"),
 ): HTMLCanvasElement {
   const [width, height] = sizeOf(source);
   const { renderer: preferred = "gpu", ...lutOptions } = options;
   const size = lutOptions.lutSize ?? 17;
-  const lut = lutFor(paletteOf(theme), lutOptions);
+  const lut = lutFor(theme, lutOptions);
   const renderer = preferred === "gpu" ? gpuRecolor() : null;
   if (renderer) {
     renderer.setLut(lut, size);
@@ -132,11 +132,11 @@ const mirrored = ["class", "title", "alt"];
  */
 export function mountImages(
   root: ParentNode & Node,
-  theme: HuetTheme | Palette,
+  theme: Theme,
   options: MountImagesOptions = {},
 ) {
   const { selector = "img[data-huet-recolor]", hoverOriginal = false, ...recolor } = options;
-  let target = paletteOf(theme),
+  let target = theme,
     settings: ImageOptions = recolor,
     version = 0,
     frame: number | undefined,
@@ -383,9 +383,9 @@ export function mountImages(
 
   return {
     /** Recolor every image into a new theme, optionally with new options. */
-    update(next: HuetTheme | Palette, nextOptions?: ImageOptions) {
+    update(next: Theme, nextOptions?: ImageOptions) {
       if (disposed) throw new Error("Cannot update a destroyed Huet image mount");
-      target = paletteOf(next);
+      target = next;
       if (nextOptions) settings = nextOptions;
       version++;
       schedule();

@@ -8,6 +8,7 @@ import { createRoot } from "react-dom/client";
 import { describe, expect, it } from "vitest";
 
 import inlineCss from "./configurator.css?inline";
+import { themes, type Theme } from "huet";
 import { ThemeConfigurator } from "./index";
 
 (globalThis as { IS_REACT_ACT_ENVIRONMENT?: boolean }).IS_REACT_ACT_ENVIRONMENT =
@@ -150,7 +151,11 @@ describe("ThemeConfigurator portal", () => {
     const host = document.createElement("div");
     document.body.append(host);
     const roots = [createRoot(host), createRoot(document.createElement("div"))];
-    const app = React.createElement(StrictMode, null, React.createElement(ThemeConfigurator));
+    const app = React.createElement(
+      StrictMode,
+      null,
+      React.createElement(ThemeConfigurator, { value: themes.Base, onChange: () => {} }),
+    );
     await act(async () => roots[0].render(app));
 
     const containers = document.querySelectorAll<HTMLElement>("[data-huet-configurator]");
@@ -173,5 +178,66 @@ describe("ThemeConfigurator portal", () => {
     expect(document.querySelectorAll("[data-huet-configurator]")).toHaveLength(0);
     expect(container.hasAttribute("data-huet-root")).toBe(false);
     expect(panel.isConnected).toBe(false);
+  });
+});
+
+describe("ThemeConfigurator props", () => {
+  it("previews on the page's background and reports picked themes", async () => {
+    localStorage.clear();
+    const changes: Theme[] = [];
+    const root = createRoot(document.createElement("div"));
+    const render = (background: number) =>
+      act(async () =>
+        root.render(
+          React.createElement(ThemeConfigurator, {
+            value: themes.Base,
+            onChange: (theme) => changes.push(theme),
+            themes: { Base: themes.Base, Sunset: themes.Sunset },
+            background,
+          }),
+        ),
+      );
+    await render(0);
+    const container = document.querySelector<HTMLElement>("[data-huet-configurator]")!;
+    const panel = () => container.querySelector<HTMLElement>(".huet-bg-0")!;
+    expect(panel().style.getPropertyValue("--huet-background")).toBe("#000000");
+    await render(1);
+    expect(panel().style.getPropertyValue("--huet-background")).toBe("#ffffff");
+
+    // Only the given themes are listed, and picking one reports it
+    const cards = [...container.querySelectorAll("h3")].map((title) => title.textContent);
+    expect(cards).toEqual(["Base", "Sunset"]);
+    const sunset = [...container.querySelectorAll("button")].find((b) => b.textContent?.includes("Sunset"))!;
+    await act(async () => sunset.click());
+    expect(changes).toEqual([themes.Sunset]);
+    await act(async () => root.unmount());
+  });
+});
+
+describe("ThemeConfigurator reset", () => {
+  it("offers to reset an edited theme to the listed theme it came from", async () => {
+    localStorage.clear();
+    const changes: Theme[] = [];
+    const root = createRoot(document.createElement("div"));
+    const render = (value: Theme) =>
+      act(async () =>
+        root.render(
+          React.createElement(ThemeConfigurator, { value, onChange: (theme) => changes.push(theme) }),
+        ),
+      );
+    const resetButton = () =>
+      [...document.querySelectorAll("button")].find((b) => b.textContent === "Reset to Sunset");
+
+    await render(themes.Sunset);
+    expect(resetButton()).toBeUndefined();
+    await render({ ...themes.Sunset, contrast: 0.5 });
+    expect(document.querySelector("h3")!.textContent).toContain("Custom");
+
+    const confirm = window.confirm;
+    window.confirm = () => true;
+    await act(async () => resetButton()!.click());
+    window.confirm = confirm;
+    expect(changes).toEqual([themes.Sunset]);
+    await act(async () => root.unmount());
   });
 });

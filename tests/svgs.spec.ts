@@ -1,6 +1,6 @@
 import { test, expect, type Page } from "@playwright/test";
 
-const theme = { dark: "#123456", light: "#abcdef" };
+const theme = { neutral: ["#123456", "#abcdef"] };
 const dark = "rgb(18, 52, 86)";
 const light = "rgb(171, 205, 239)";
 
@@ -118,7 +118,7 @@ test("maps the original paints on every update, and keeps the page's later edits
     const a = w.root.querySelector("#a");
     const b = w.root.querySelector("#b");
     const first = a.getAttribute("fill");
-    mount.update({ dark: "#000000", light: "#808080" });
+    mount.update({ neutral: ["#000000", "#808080"] });
     await mount.ready();
     const gray = w.paint("a");
     mount.update(theme);

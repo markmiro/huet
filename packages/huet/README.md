@@ -12,30 +12,28 @@ pnpm add huet   # or: npm install huet
 
 | Entry point | Contents |
 | --- | --- |
-| `huet` | `createTheme`, `mountTheme`, class validation |
+| `huet` | The `Theme` type, preset `themes`, `mountTheme`, `themeCss`, `checkTheme`, class validation |
 | `huet/images` | `mountImages`, `mountSvgs`, `recolorImage`, and the lower-level recoloring functions |
-| `huet/config` | The theme config format that `huet-react` and exported theme files use, and `themeFromConfig` |
 | `huet/styles.css` | Huet's class styles |
 | `huet/tailwind.css` | The same styles as a Tailwind v4 bridge |
 | `huet/forms.css` | Optional minimal styles for native form controls, drawn from the theme |
 
-`huet/core` is an alias of `huet`. Huet doesn't depend on React or any other framework.
+`huet/core` is an alias of `huet`. Huet doesn't depend on React or any other framework. `huet/internal` is shared with `huet-react` and isn't public API.
 
 ## Minimal setup
 
 ```ts
-import { createTheme, mountTheme } from "huet";
+import { mountTheme, themes, type Theme } from "huet";
 import "huet/styles.css";
 
-const theme = createTheme({
-  dark: "#233b91",
-  light: "#ffffff",
-  background: 1,
-});
+const theme: Theme = { neutral: ["#233b91", "#ffffff"] };
 const colors = mountTheme(document.querySelector<HTMLElement>("#app")!, theme);
 
-// Update CSS variables without rerendering framework components.
-colors.update(createTheme({ dark: "#233b91", background: 0 }));
+// Dark mode is the same theme on the dark end of its ramp. Updates set CSS
+// variables without rerendering framework components.
+colors.update(theme, { background: 0 });
+// Or switch to a preset
+colors.update(themes.Sunset);
 // On unmount:
 // colors.destroy();
 ```
@@ -66,9 +64,9 @@ Huet supplies colors. Add padding, border widths/styles, focus behavior, radii, 
 
 Examples: `huet-bg-blue-20`, `huet-text-100`, `huet-border-red-60`, `huet-outline-blue-80`.
 
-Amounts use the original 0–100 relative contrast scale, not Tailwind shades, opacity, or contrast ratios. The 13 amounts are Tailwind's 11 steps (50, 100, 200 … 900, 950 become 5, 10, 20 … 90, 95) plus both ends, but they measure distance from the parent's background, not a fixed lightness: on a dark parent, `huet-bg-10` is lighter than the parent. Zero matches the reference background; 100 requests the full available ramp strength. Equal steps in amount are equal steps in CIE L* lightness, toward whichever end of the ramp text reads better against (measured with [APCA](https://github.com/Myndex/apca-w3)). Omitting the ramp uses the inherited base ramp (gray for `createTheme`). Choosing a blue background does not automatically switch that base ramp to blue. The `white` ramp preserves the original direct-ramp behavior: it chooses a discrete color from the background, ignoring the local amount.
+Amounts use the original 0–100 relative contrast scale, not Tailwind shades, opacity, or contrast ratios. The 13 amounts are Tailwind's 11 steps (50, 100, 200 … 900, 950 become 5, 10, 20 … 90, 95) plus both ends, but they measure distance from the parent's background, not a fixed lightness: on a dark parent, `huet-bg-10` is lighter than the parent. Zero matches the reference background; 100 requests the full available ramp strength. Equal steps in amount are equal steps in CIE L* lightness, toward whichever end of the ramp text reads better against (measured with [APCA](https://github.com/Myndex/apca-w3)). Omitting the ramp uses the theme's neutral ramp. On a colored parent, neutral steps keep the parent's color: `huet-bg-20` on a blue card is a deeper or paler blue, blending into the neutral ramp only near 100. Hue classes such as `huet-text-red-100` aim for each hue's signal lightness (see [Themes](#themes)). The `white` ramp chooses a discrete color from the background, ignoring the local amount.
 
-The classes use the same `Color.contrast()` solver as Huet's original React API, including the neutral/semantic ramp corrections and stable global contrast fade.
+The classes use the solver from Huet's original React API, including its neutral and hue ramp corrections and the contrast fade.
 
 ### What colors are relative to
 
@@ -104,7 +102,7 @@ validateClasses("bg-huet-blue"); // A background Huet can't track; suggests huet
 npx huet check src/App.vue src/Card.svelte src/Page.tsx
 ```
 
-The CLI checks literal tokens, including comments/strings, and exits nonzero for unknown classes. It is a lexical checker, not a framework parser. Pass explicit files or shell-expanded globs. `validateClasses()` also detects conflicting properties: one class per property for each variant chain, so `hover:huet-text-60 hover:huet-bg/text-80` conflict but `huet-text-60 hover:huet-text-100` don't. Dynamically constructed names and arbitrary ramp names are not supported yet. To compute a color for any other amount, use `theme.relative.contrast()` (see [Shared colors](#shared-colors-and-theme-updates)).
+The CLI checks literal tokens, including comments/strings, and exits nonzero for unknown classes. It is a lexical checker, not a framework parser. Pass explicit files or shell-expanded globs. `validateClasses()` also detects conflicting properties: one class per property for each variant chain, so `hover:huet-text-60 hover:huet-bg/text-80` conflict but `huet-text-60 hover:huet-text-100` don't. Dynamically constructed names and arbitrary ramp names are not supported yet.
 
 These are errors, and each message says what to write instead:
 
@@ -189,52 +187,72 @@ Popups the browser draws itself, such as the date picker, the color picker and d
 
 The example demos' [Forms page](https://markmiro.github.io/huet/forms.html) shows every control with the styles on and off.
 
-## Shared colors and theme updates
+## Themes
 
-JavaScript is the source of truth. Endpoints, neutral ramp stops, and semantic overrides accept opaque `#rgb` or `#rrggbb`. `background` is a position from 0 to 1 along the neutral ramp (OKLab unless you choose another [color model](#multi-hue-ramps)). `contrast` is a global multiplier from 0 to 1 for the new relative classes; it preserves enabled color choices and fades them together.
+A theme is plain JSON, so presets, saved themes, exported files and the [`huet-react`](https://www.npmjs.com/package/huet-react) configurator all use the same shape. Everything that takes a theme (`mountTheme`, `themeCss`, `mountImages`, `mountSvgs`, `recolorImage`) takes this one.
+
+| Field | Default | |
+| --- | --- | --- |
+| `neutral` | required | The neutral ramp: two or more colors, darkest first |
+| `colorModel` | `"oklab"` | How the neutral ramp blends between its colors. See [multi-hue ramps](#multi-hue-ramps) |
+| `colors` | Huet's hues | Anchors for `red`, `yellow`, `green`, `blue` and `purple`. Missing hues use the defaults |
+| `contrast` | `1` | From 0 to 2. Below 1, every color fades toward the page background, roles (`huet-text`, `huet-muted`, …) included, for dimmed or disabled UI; 0 is the background alone. Above 1, explicit amounts such as `huet-text-60` reach full contrast sooner (at 2, at half the amount) |
+| `signalLightness` | `{ onLight: 0.49, onDark: 0.49 }` | Where hue classes such as `huet-text-red-100` aim at full strength, as a position on each hue's dark → hue → light ramp, on light and on dark backgrounds. Role colors such as `huet-text-red` are chosen for readability instead |
+| `images` | `{ strength: 1, tint: 1 }` | How `mountImages`, `mountSvgs` and `recolorImage` apply the theme. `strength` 0 keeps the originals; `tint` is how much a tinted neutral ramp also tints saturated colors |
+
+Where the page background sits isn't part of a theme. Pass `background`, a position from 0 (the dark end of the neutral ramp) to 1 (the light end, the default), when you render one. A site's light/dark switch sets it, and every theme works on either end.
 
 ```ts
-const theme = createTheme({
-  dark: "#233b91",
-  light: "#fff",
-  background: 1,
-  contrast: 1,
+import { checkTheme, mountTheme, themes, type Theme } from "huet";
+
+const theme: Theme = {
+  neutral: ["#233b91", "#ffffff"],
   colors: { red: "#d14457" },
-});
+  contrast: 1,
+};
+const dark = matchMedia("(prefers-color-scheme: dark)").matches;
+const colors = mountTheme(document.body, theme, { background: dark ? 0 : 1 });
 
-// Same calculations as huet-bg-blue-20 and its automatic text:
-const root = theme.relative;
-const button = root.contrast(20, root.theme.ramps.blue);
-const buttonBackground = button.hex;
-const buttonText = button.contrast(100).hex;
+// Dim everything toward the background, keeping each color's light/dark side
+colors.update({ ...theme, contrast: 0.5 });
 
-// Reduce global contrast without switching nested colors' light/dark sides.
-colors.update(createTheme({ dark: "#233b91", contrast: 0.5 }));
+// Validate a saved theme before using it. Throws an error that says what's wrong.
+const saved: unknown = JSON.parse(localStorage.getItem("theme") ?? "null");
+checkTheme(saved);
+colors.update(saved);
 ```
 
-Read inherited CSS variables with `getComputedStyle()` when a chart needs the actual mounted colors. Directly editing variables does not rerun the solver; use `update()`.
+Every function that takes a theme checks it the same way, so a typo or a field from an older format fails loudly instead of being ignored. `themes` has Huet's presets by name: Base, Radioactive, Blueprint, Terminal, Paperback, Deep Dive, Royal Purple, Orange Boost, Faded Future, A Box of Macaroni, Sunset and Astro.
+
+Read the mounted colors with `getComputedStyle()` when a chart needs them. Editing the variables directly doesn't rerun the solver; use `update()`.
+
+### Without JavaScript
+
+`themeCss(theme, { background, selector })` returns a CSS rule with a theme's colors on one background, for pages that render on the server or at build time, or that should show the right colors before any script runs. It sets `color-scheme`, the role colors (`--huet-background`, `--huet-foreground`, `--huet-muted`, `--huet-border` and one per hue, which `huet/styles.css`, `huet/tailwind.css` and the Shiki theme read) and the neutral contrast steps `--huet-0`, `--huet-5`, … `--huet-100`. `mountTheme` writes the same variables on the root and on each nested surface, so `--huet-60` always means 60% contrast from the nearest background. In Tailwind, the steps are the `huet-0` … `huet-100` colors, such as `text-huet-60`.
+
+```ts
+const css =
+  themeCss(themes.Sunset, { background: 1 }) +
+  themeCss(themes.Sunset, { background: 0, selector: ".dark" });
+```
+
+Nested `huet-bg-*` surfaces still need `mountTheme`, which works out each one against its parent.
 
 ## Multi-hue ramps
 
-`dark` and `light` make a straight OKLab ramp. A theme like Sunset (navy to yellow) loses its in-between hues on that line, and its midtones turn muddy. To change that, pass a `neutral` ramp, which has the same shape as a theme config's `ramps.gray`. `colors` lists the stops, darkest first. `colorModel` sets how to interpolate between them. Hue-based models such as `hcl` travel around the hue wheel:
+By default, a neutral ramp is a straight line in OKLab. A theme like Sunset (navy to yellow) loses its in-between hues on that line, and its midtones turn muddy. `colorModel` sets how to blend between the ramp's colors, and hue-based models such as `hcl` travel around the hue wheel. Middle colors bend the ramp through them:
 
 ```ts
-import { createTheme, mountTheme } from "huet";
+import { mountTheme, type Theme } from "huet";
 import "huet/styles.css";
 
 // Sunset: navy → purple → pink → orange → yellow
-const sunset = createTheme({
-  neutral: { colors: ["#242744", "#ffe173"], colorModel: "hcl" },
-  background: 0,
-});
+const sunset: Theme = { neutral: ["#242744", "#ffe173"], colorModel: "hcl" };
 
 // Astro: near-black → mauve → peach → white
-const astro = createTheme({
-  neutral: { colors: ["#040816", "#ffb980", "#ffffff"], colorModel: "hcl" },
-  background: 0,
-});
+const astro: Theme = { neutral: ["#040816", "#ffb980", "#ffffff"], colorModel: "hcl" };
 
-const colors = mountTheme(document.querySelector<HTMLElement>("#app")!, sunset);
+const colors = mountTheme(document.querySelector<HTMLElement>("#app")!, sunset, { background: 0 });
 colors.update(astro); // switch themes later without rerendering
 ```
 
@@ -254,43 +272,28 @@ You keep using the same classes. Only the theme changes. The ramp affects:
 - every neutral class (no ramp name, or `gray`): `huet-bg-30`, `huet-text-60`, `huet-bg/border-40`, …
 - the preset `foreground`, `muted`, and `border` tokens, plus `huet-surface-N` surfaces that start on the ramp
 
-Neutral classes sample this ramp even inside colored surfaces. Semantic ramps (`red`, `blue`, …) keep their own hue.
+Inside a colored surface, neutral classes keep that surface's color: gray on a blue card is a deeper or paler blue, blending into the ramp's own color only near full strength. Semantic ramps (`red`, `blue`, …) keep their own hue.
 
 | `colorModel` | Path between stops |
 | --- | --- |
 | `oklab` (default), `lab`, `lrgb`, `rgb` | Straight line. Hues blend through gray when they are far apart. |
 | `hcl` / `lch`, `oklch`, `hsl`, `hsv`, `hsi` | Around the hue wheel, keeping colors saturated in the middle |
 
-Pass either `neutral` or `dark`/`light`, not both. The first and last stops become `theme.dark` and `theme.light`. Themes without `neutral` produce the same output as earlier releases. `theme.ramp(t)` returns the hex color at any position (0–1), which is useful for drawing a matching gradient or chart scale:
-
-```ts
-const gradient = `linear-gradient(to right, ${Array.from({ length: 17 }, (_, i) => astro.ramp(i / 16)).join(", ")})`;
-```
-
-To use a theme from the [`huet-react`](https://www.npmjs.com/package/huet-react) configurator (a `ThemeConfig`, such as an exported theme file) as is, pass it to `themeFromConfig`:
-
-```ts
-import { mountTheme } from "huet";
-import { themeFromConfig } from "huet/config";
-mountTheme(document.querySelector("#app")!, themeFromConfig(exportedTheme));
-```
-
-To turn one into `createTheme` options by hand instead, replace each name in `ramps.gray.colors` with its `pallet` hex value (Astro's `["black", "gray", "white"]` becomes `["#040816", "#ffb980", "#ffffff"]`), then keep `colorModel` as is. See [multi-hue ramps](https://github.com/markmiro/huet/blob/master/docs/color-models.md) for before/after screenshots. The [lab demo](https://markmiro.github.io/huet/lab.html) includes Sunset and Astro presets, a middle-stop control, and a color-model picker.
+A two-color OKLab ramp is a plain mix of its ends. Sunset and Astro are also in `themes`. See [multi-hue ramps](https://github.com/markmiro/huet/blob/master/docs/color-models.md) for before/after screenshots. The [lab demo](https://markmiro.github.io/huet/lab.html) includes Sunset and Astro presets, a middle-stop control, and a color-model picker.
 
 ## Themed images
 
 `huet/images` recolors images into a theme. Each pixel is read as a position on Huet's default ramps (lightness along the neutral ramp, plus weights on the two nearest hue ramps) and written back at the same position in your theme. Grays follow your neutral ramp, and greens become your green.
 
 ```ts
-import { createTheme, mountTheme } from "huet";
+import { mountTheme, themes, type Theme } from "huet";
 import { mountImages } from "huet/images";
 
-const sunset = createTheme({ neutral: { colors: ["#242744", "#ffe173"], colorModel: "hcl" } });
-const colors = mountTheme(document.body, sunset);
-const images = mountImages(document.body, sunset, { hoverOriginal: true });
+const colors = mountTheme(document.body, themes.Sunset);
+const images = mountImages(document.body, themes.Sunset, { hoverOriginal: true });
 
-// Switch themes later: update both mounts.
-const paper = createTheme({ dark: "#302723", light: "#f1e4cd" });
+// Switch themes later: update both mounts. Images don't depend on the background.
+const paper: Theme = { neutral: ["#302723", "#f1e4cd"] };
 colors.update(paper);
 images.update(paper);
 // On unmount: images.destroy() removes the canvases and shows the original images.
@@ -302,13 +305,13 @@ images.update(paper);
 
 `mountImages` draws each matching image, recolored, into a `<canvas>` inserted right after it, and hides the `<img>` (`display: none`). The image's `src` and `srcset` are left alone. The canvas copies the image's `class` and inline `style` and gets `role="img"` with the image's `alt` as its label; later changes to `class`, `alt`, and `title` carry over. Size images with CSS, since `width` and `height` attributes don't carry over. `mountImages` picks up images that are added later or whose `src` changes, and it waits for `srcset` to choose a size first. Options:
 
+How strongly images take on the theme, and how much of its tint, are part of the theme: its `images` field (see [Themes](#themes)). Options:
+
 | Option | Default | Effect |
 | --- | --- | --- |
 | `selector` | `img[data-huet-recolor]` | Which images to recolor |
-| `strength` | `1` | 0 keeps the original, 1 fully adopts the theme |
-| `tint` | `1` | How much a tinted neutral ramp also shifts saturated colors |
 | `invert` | `false` | Flip lightness, for UI screenshots shown in an opposite-polarity theme |
-| `source` | Huet's default ramps | The theme the images are assumed to be in |
+| `source` | Black to white with Huet's hues | The theme the images are assumed to be in |
 | `hoverOriginal` | `false` | Show the original while the pointer is over the image |
 | `lutSize` | `17` | Size of the lookup table each theme is baked into |
 | `renderer` | `"gpu"` | `"gpu"` renders with WebGL2 and falls back to the CPU without it; `"cpu"` always uses the CPU. `hasGpu()` tells you which one `"gpu"` gets |
@@ -332,18 +335,17 @@ const svgs = mountSvgs(document.body, sunset); // recolors <svg data-huet-recolo
 svgs.update(paper);
 ```
 
-Solid fills, strokes, and gradient stops are mapped, including the black that SVG paints by default. Their alpha is kept, as are `none`, paint servers (`url(#gradient)`), and `opacity`, `fill-opacity`, and `stop-opacity`. Paints that use `currentColor` or a CSS variable, whether declared on the element or inherited, are left alone, since the page's CSS already themes them. Mapped colors are written where the original came from: as presentation attributes (`fill="…"`) for attribute and default paints, so the page's CSS rules, `:hover` included, still outrank them, and as inline styles for paints set in CSS. They go on the SVG, on elements that declare their own paint, and on gradient stops; children that inherit a paint follow their parent. Each update maps the original paints, so switching themes never compounds. SVGs added later, or whose paints change, are recolored at the next frame, and removed or opted-out SVGs get their own styles back, as does every SVG on `destroy()`. `await svgs.ready()` applies pending changes right away. Options are `selector` (default `svg[data-huet-recolor]`), `strength`, `tint`, `invert`, and `source`, as for images.
+Solid fills, strokes, and gradient stops are mapped, including the black that SVG paints by default. Their alpha is kept, as are `none`, paint servers (`url(#gradient)`), and `opacity`, `fill-opacity`, and `stop-opacity`. Paints that use `currentColor` or a CSS variable, whether declared on the element or inherited, are left alone, since the page's CSS already themes them. Mapped colors are written where the original came from: as presentation attributes (`fill="…"`) for attribute and default paints, so the page's CSS rules, `:hover` included, still outrank them, and as inline styles for paints set in CSS. They go on the SVG, on elements that declare their own paint, and on gradient stops; children that inherit a paint follow their parent. Each update maps the original paints, so switching themes never compounds. SVGs added later, or whose paints change, are recolored at the next frame, and removed or opted-out SVGs get their own styles back, as does every SVG on `destroy()`. `await svgs.ready()` applies pending changes right away. Options are `selector` (default `svg[data-huet-recolor]`), `invert`, and `source`, as for images. Strength and tint come from the theme's `images`, as for images.
 
 To find CSS-driven paints, `mountSvgs` reads the page's stylesheets, matching rules in document order with `!important` ones first; it doesn't compare specificity or cascade layers, and it can't read cross-origin stylesheets, whose paints count as solid colors. A change to an ancestor's `class` rescans the SVGs, but changes to ancestors' inline styles or to stylesheets are picked up at the next update.
 
 For canvases, video frames, or your own pipeline, use the lower-level functions:
 
 - `recolorImage(source, theme, options?, canvas?)` draws a decoded image or canvas into a recolored canvas.
-- `recolorer(palette, options?)` returns the per-pixel `(r, g, b) => [r, g, b]` mapping.
+- `recolorer(theme, options?)` returns the per-pixel `(r, g, b) => [r, g, b]` mapping.
 - `buildLut` / `applyLut` bake that mapping into a 3D lookup table and apply it to `ImageData`.
 - `toCube` exports the table as a `.cube` file for ffmpeg, Resolve, or Photoshop.
 - `coordinatesOf` / `rampColor` read a pixel's ramp coordinates, or the color at a coordinate.
-- `paletteOf(theme)` converts a `createTheme` result into the palette these functions take.
 
 The [image recolor demo](https://markmiro.github.io/huet/recolor.html) compares renderers and themes. The example demos' [Images page](https://markmiro.github.io/huet/images.html) recolors a photo and screenshot gallery into whichever theme you pick in the theme configurator.
 
@@ -364,11 +366,11 @@ export default defineConfig({
 
 Rows marked with Shiki's `// [!code ++]` and `// [!code --]` notation (from `@shikijs/transformers`) get green and red Huet backgrounds nested in the block, and their tokens are solved against the row. `// [!code highlight]` rows are left for a CSS highlighter tint; see the docs. Astro's `<Code>` component takes the same `theme` and `transformers` props. Shiki isn't a dependency of `huet`; the theme is a plain object. See [code blocks](https://github.com/markmiro/huet/blob/master/docs/code-blocks.md) for the token roles and overrides, and the example demos' [Code page](https://markmiro.github.io/huet/code.html).
 
-React, Vue, Svelte, and Astro lifecycle examples are in [framework integration](https://github.com/markmiro/huet/blob/master/docs/frameworks.md). Portals and shadow roots require independent mounts. The DOM adapter runs only in a browser; SSR can compute colors through `theme.relative` and emit matching styles before mounting.
+React, Vue, Svelte, and Astro lifecycle examples are in [framework integration](https://github.com/markmiro/huet/blob/master/docs/frameworks.md). Portals and shadow roots require independent mounts. The DOM adapter runs only in a browser; SSR can write the page's colors with `themeCss` before mounting.
 
 ## Compatibility and limits
 
-The first-pass `huet-surface-*`, `huet-muted`, `huet-focus`, and amount-free text/border classes remain supported so existing examples keep working. They use preset roles, as do `theme.tokens()` and `theme.surface()`. They are not equivalent to the new explicit-amount classes. Prefer the new syntax for new projects; do not mix old and new classes for the same property. The [lab demo](https://markmiro.github.io/huet/lab.html) demonstrates those presets.
+The first-pass `huet-surface-*`, `huet-muted`, `huet-focus`, and amount-free text/border classes remain supported so existing examples keep working. They use preset roles. They are not equivalent to the new explicit-amount classes. Prefer the new syntax for new projects; do not mix old and new classes for the same property. The [lab demo](https://markmiro.github.io/huet/lab.html) demonstrates those presets.
 
 Preset roles aim for APCA lightness contrast (Lc) 90 (foreground), 60 (muted) and 30 (border). On a background that can't reach Lc 90, such as anywhere on a narrow ramp, they keep those proportions of the contrast that's available instead, so the three stay distinct. Muted and border step from the surface toward the text's endpoint along the neutral ramp's shape, so on a colored surface they start in its hue and pass through the ramp's hues. Explicit neutral classes such as `huet-text-60` stay on the base ramp there. Lc values are design targets, not an accessibility conformance claim: APCA is still a draft.
 

@@ -1,76 +1,53 @@
-import { Color } from "huet/config";
-import type { Theme } from "huet/config";
+import type { Theme } from "huet";
+import { resolveTheme } from "huet/internal";
 import { HSpace } from "./AllExceptFirst";
 import Arrow from "./Arrow";
 import Button from "./Button";
 
-function BgColorPreview({
-  theme,
-  scaleValue,
-  isSelected,
-  onClick,
-}: {
-  theme: Theme;
-  scaleValue: number;
-  isSelected: boolean;
-  onClick: () => void;
-}) {
-  // Each swatch previews a background of the theme being edited, not the
-  // panel's own theme, so its colors are computed here and set inline.
-  const ramp = theme.ramps[theme.bgRamp];
-  const lab = ramp(scaleValue);
-  const color = new Color({
-    theme,
-    bgColor: null,
-    lab,
-    ramp,
-    baseRamp: ramp,
-  });
+const positions = [0, 0.25, 0.75, 1];
 
-  return (
-    <Button
-      colors=""
-      className="hc:relative hc:h-8"
-      style={{
-        backgroundColor: color.toString(),
-        borderColor: color.contrast(isSelected ? 100 : 12).toString(),
-        color: color.contrast(75).toString(),
-        boxShadow: `0 2px 10px ${color.shadowColor(0.2)}`,
-      }}
-      onClick={onClick}
-    >
-      {scaleValue * 100}%
-      {isSelected && (
-        <Arrow
-          size=".5em"
-          className="hc:absolute hc:bottom-0 hc:left-1/2 hc:-translate-x-1/2 hc:translate-y-px"
-          style={{ color: color.contrast(100).toString() }}
-        />
-      )}
-    </Button>
-  );
-}
-
+/**
+ * Background positions to pick from, each previewed in the edited theme. Its
+ * colors come from that theme, not the panel's, so they're set inline.
+ */
 export default function BgColors({
   theme,
-  bgRampValue,
-  onRampValueChange,
+  background,
+  onChange,
 }: {
   theme: Theme;
-  bgRampValue: number;
-  onRampValueChange: (value: number) => void;
+  background: number;
+  onChange: (background: number) => void;
 }) {
   return (
     <HSpace growEach size={2}>
-      {[0, 0.25, 0.75, 1].map((scaleValue) => (
-        <BgColorPreview
-          key={scaleValue}
-          theme={theme}
-          scaleValue={scaleValue}
-          isSelected={bgRampValue === scaleValue}
-          onClick={() => onRampValueChange(scaleValue)}
-        />
-      ))}
+      {positions.map((position) => {
+        const { root, step } = resolveTheme(theme, { background: position });
+        const isSelected = position === background;
+        return (
+          <Button
+            key={position}
+            colors=""
+            aria-pressed={isSelected}
+            className="hc:relative hc:h-8"
+            style={{
+              backgroundColor: root.hex,
+              borderColor: step(root, isSelected ? 100 : 10).hex,
+              color: step(root, 80).hex,
+            }}
+            onClick={() => onChange(position)}
+          >
+            {position * 100}%
+            {isSelected && (
+              <Arrow
+                size=".5em"
+                className="hc:absolute hc:bottom-0 hc:left-1/2 hc:-translate-x-1/2 hc:translate-y-px"
+                style={{ color: step(root, 100).hex }}
+              />
+            )}
+          </Button>
+        );
+      })}
     </HSpace>
   );
 }

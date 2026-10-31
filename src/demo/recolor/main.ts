@@ -4,11 +4,9 @@ import {
   rampColor,
   recolorer,
   toCube,
-  type Palette,
   type RecolorOptions,
 } from "huet/images";
-import { createTheme, mountTheme } from "huet";
-import { hues, type Hue, type HuetTheme } from "huet";
+import { hues, mountTheme, type Hue, type Theme } from "huet";
 import { images, themes, type DemoImage, type RecolorTheme } from "./data";
 import { emojiSheet } from "./emoji";
 import { GpuRecolor } from "huet/images";
@@ -89,21 +87,19 @@ function call<T>(request: Request, transfer: Transferable[] = []): Promise<T & {
   });
 }
 
-const palette = ({ dark, light, neutral, colors }: RecolorTheme): Palette => ({
-  dark,
-  light,
-  neutral,
-  colors,
-});
+const identity: Theme = { neutral: ["#000000", "#ffffff"] };
 /** The theme's background position on its ramp, after the invert toggle. */
 const backgroundOf = (theme: RecolorTheme) =>
   invertTheme.checked ? 1 - theme.background : theme.background;
+/** The theme images are recolored into: the picked theme at the sliders' strength and tint. */
+const targetOf = ({ theme }: RecolorTheme): Theme => ({
+  ...theme,
+  images: { strength: Number(strength.value) / 100, tint: Number(tint.value) / 100 },
+});
 const optionsFor = (theme: RecolorTheme, image?: HTMLImageElement): RecolorOptions => {
   const surface = polarity.checked && image ? surfaceOf(image) : null;
   return {
     invert: !!surface && surface !== (backgroundOf(theme) < 0.5 ? "dark" : "light"),
-    strength: Number(strength.value) / 100,
-    tint: Number(tint.value) / 100,
   };
 };
 const lutSize = () => Number(sizeSelect.value);
@@ -111,10 +107,10 @@ const luts = new Map<string, Promise<{ lut: Float32Array; ms: number }>>();
 function lutFor(theme: RecolorTheme, image?: HTMLImageElement) {
   const options = optionsFor(theme, image),
     size = lutSize();
-  const key = JSON.stringify([palette(theme), options, size]);
+  const key = JSON.stringify([targetOf(theme), options, size]);
   let lut = luts.get(key);
   if (!lut) {
-    luts.set(key, (lut = call<{ lut: Float32Array }>({ type: "lut", target: palette(theme), options, size })));
+    luts.set(key, (lut = call<{ lut: Float32Array }>({ type: "lut", target: targetOf(theme), options, size })));
   }
   return lut;
 }
@@ -190,7 +186,7 @@ async function render(
   const source = pixelsOf(image);
   const pixels = source.data.slice();
   const result = await call<{ pixels: Uint8ClampedArray }>(
-    { type: "apply", mode: mode === "exact" ? "exact" : "lut", pixels, target: palette(theme), options: optionsFor(theme, image), size: lutSize() },
+    { type: "apply", mode: mode === "exact" ? "exact" : "lut", pixels, target: targetOf(theme), options: optionsFor(theme, image), size: lutSize() },
     [pixels.buffer],
   );
   out.width = source.width;
@@ -223,21 +219,21 @@ const cards = images.map((image, index) => {
 });
 
 // ---- Coordinate grid ----
-function rampStrip(palette: Palette, hue: Hue | null) {
+function rampStrip(theme: Theme, hue: Hue | null) {
   const canvas = document.createElement("canvas");
   canvas.width = 128;
   canvas.height = 1;
   const context = canvas.getContext("2d")!;
   const row = context.createImageData(128, 1);
   for (let x = 0; x < 128; x++) {
-    const [r, g, b] = rampColor(palette, x / 127, hue ?? undefined);
+    const [r, g, b] = rampColor(theme, x / 127, hue ?? undefined);
     row.data.set([r * 255, g * 255, b * 255, 255], x * 4);
   }
   context.putImageData(row, 0, 0);
   return canvas;
 }
 function renderRamps() {
-  const theme = palette(themes[state.theme]);
+  const theme = themes[state.theme].theme;
   const root = $("#ramps");
   root.replaceChildren();
   for (const hue of [null, ...hues]) {
@@ -245,7 +241,7 @@ function renderRamps() {
     row.className = "ramp-row";
     row.innerHTML = `<span>${hue ?? "neutral"}</span>`;
     row.append(
-      Object.assign(rampStrip({}, hue), { className: "before" }),
+      Object.assign(rampStrip(identity, hue), { className: "before" }),
       Object.assign(document.createElement("span"), { textContent: "→", className: "arrow before" }),
       rampStrip(theme, hue),
     );
@@ -256,7 +252,6 @@ function renderRamps() {
 // ---- Page theme ----
 // The page itself is colored by Huet: surfaces carry `huet-surface-*` classes,
 // and the stylesheet falls back to fixed colors when no theme is mounted.
-const pageThemes = new Map<string, HuetTheme>();
 let pageMount: ReturnType<typeof mountTheme> | null = null;
 function themePage() {
   const root = document.documentElement;
@@ -267,17 +262,11 @@ function themePage() {
     return;
   }
   const theme = themes[state.theme];
-  const background = backgroundOf(theme),
-    key = `${state.theme}:${background}`;
-  let next = pageThemes.get(key);
-  if (!next) {
-    next = createTheme({ ...palette(theme), background });
-    pageThemes.set(key, next);
-  }
-  if (pageMount) pageMount.update(next);
-  else pageMount = mountTheme(document.body, next);
+  const background = backgroundOf(theme);
+  if (pageMount) pageMount.update(theme.theme, { background });
+  else pageMount = mountTheme(document.body, theme.theme, { background });
   // Match native controls and scrollbars to the page's polarity.
-  const bg = next.tokens().background;
+  const bg = document.body.style.getPropertyValue("--huet-background");
   root.style.colorScheme = textEnd(bg, "#000000", "#ffffff") === "#ffffff" ? "dark" : "light";
 }
 
@@ -383,7 +372,7 @@ function inspect(event: MouseEvent) {
   const { t, weights } = coordinatesOf(rgb);
   const parts = Object.entries(weights).map(([hue, w]) => `${hue} ${w!.toFixed(2)}`);
   const theme = themes[state.theme];
-  const mapped = recolorer(palette(theme), optionsFor(theme, focusOriginal))(...rgb);
+  const mapped = recolorer(targetOf(theme), optionsFor(theme, focusOriginal))(...rgb);
   $("#inspect").innerHTML =
     `<span class="before">${swatch(rgb)}</span> t ${t.toFixed(2)}${parts.length ? " + " + parts.join(" + ") : " (neutral)"} → ${swatch(mapped)} ${theme.name}`;
 }
@@ -415,7 +404,7 @@ $("#bench").addEventListener("click", async () => {
   const element = loaded.get(image) ?? (await load(image));
   const source = pixelsOf(element);
   const mp = (source.width * source.height) / 1e6;
-  const target = palette(theme),
+  const target = targetOf(theme),
     options = optionsFor(theme, element);
   const rows: [string, string, number, string][] = [];
   const exact = await call<{ pixels: Uint8ClampedArray }>(

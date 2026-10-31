@@ -13,7 +13,7 @@ Relative UI colors and themed images from one theme. Choose a theme, then give e
 
 | Package | What it is |
 | --- | --- |
-| [`huet`](packages/huet) | The theming library, for any framework: `createTheme`, `mountTheme`, Huet classes, Tailwind v4 bridge, themed images (`huet/images`) and form controls (`huet/forms.css`) |
+| [`huet`](packages/huet) | The theming library, for any framework: one JSON `Theme` format, preset `themes`, `mountTheme`, `themeCss`, Huet classes, Tailwind v4 bridge, themed images (`huet/images`) and form controls (`huet/forms.css`) |
 | [`huet-react`](packages/huet-react) | `<ThemeConfigurator>`, a floating React panel for picking and editing themes |
 
 ## Quick start
@@ -34,19 +34,19 @@ pnpm add github:markmiro/huet#dist-react    # optional
 Your lockfile pins the exact commit; each commit message names the `master` commit it was built from. Run `pnpm update huet huet-react` (or your package manager's equivalent) to pick up newer builds.
 
 ```ts
-import { createTheme, mountTheme } from "huet";
+import { mountTheme, themes, type Theme } from "huet";
 import { mountImages } from "huet/images";
 import "huet/styles.css";
 
-const theme = createTheme({ dark: "#233b91", light: "#ffffff", background: 1 });
+const theme: Theme = { neutral: ["#233b91", "#ffffff"] };
 const root = document.querySelector<HTMLElement>("#app")!;
 const colors = mountTheme(root, theme);
 const images = mountImages(root, theme); // recolors <img data-huet-recolor>
 
-// Later: switch themes without rerendering
-const paper = createTheme({ dark: "#302723", light: "#f1e4cd" });
-colors.update(paper);
-images.update(paper);
+// Later: dark mode, then another theme, without rerendering
+colors.update(theme, { background: 0 });
+colors.update(themes.Paperback);
+images.update(themes.Paperback);
 ```
 
 ```html
@@ -62,10 +62,10 @@ images.update(paper);
 ```tsx
 import { ThemeConfigurator } from "huet-react";
 
-<ThemeConfigurator target="#app" />;
+<ThemeConfigurator value={theme} onChange={setTheme} />;
 ```
 
-The [`huet` README](packages/huet/README.md) covers class syntax, Tailwind, multi-hue ramps and themed images. The [`huet-react` README](packages/huet-react/README.md) covers the configurator's props, including a controlled `value`/`onChange` mode. Lifecycle examples for React, Vue, Svelte and Astro are in [framework integration](docs/frameworks.md).
+The [`huet` README](packages/huet/README.md) covers class syntax, Tailwind, multi-hue ramps and themed images. The [`huet-react` README](packages/huet-react/README.md) covers the configurator's props and wiring it to your page. Lifecycle examples for React, Vue, Svelte and Astro are in [framework integration](docs/frameworks.md).
 
 ## Repository layout
 

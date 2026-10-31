@@ -1,12 +1,14 @@
-import { useState } from "react";
+import { useLayoutEffect, useRef, useState } from "react";
+import { mountTheme } from "huet";
+import { mountImages } from "huet/images";
 import {
   EmbeddedThemeConfigurator,
   type EmbeddedThemeConfiguratorMode,
 } from "huet-react";
-import type { ThemeConfig } from "huet/config";
-import { publishTheme } from "./themeStore";
+import { setDemoTheme, themeApplied, themeName, useDemoTheme } from "./themeStore";
 
 const modes: EmbeddedThemeConfiguratorMode[] = ["contrast", "outlined", "blended"];
+const backgrounds = [0, 0.25, 0.75, 1];
 const storageKey = "huet-demo:themeButton";
 
 function savedMode(): EmbeddedThemeConfiguratorMode {
@@ -14,20 +16,62 @@ function savedMode(): EmbeddedThemeConfiguratorMode {
   return modes.find((mode) => mode === saved) ?? "contrast";
 }
 
-function onChange(config: ThemeConfig) {
-  for (const el of document.querySelectorAll("[data-theme-name]"))
-    el.textContent = config.name ?? "Untitled";
-  publishTheme(config);
+const selectClass = "huet-bg-0 huet-border-30 rounded border px-1 py-0.5";
+
+/**
+ * Themes `#page` and recolors its `img[data-huet-recolor]` with the demo's
+ * theme. Image strength 0 means image theming is off, so the originals show.
+ */
+function usePageTheme() {
+  const { theme, background, themes } = useDemoTheme();
+  const colors = useRef<ReturnType<typeof mountTheme>>(undefined);
+  const images = useRef<ReturnType<typeof mountImages>>(undefined);
+  useLayoutEffect(() => {
+    const page = document.getElementById("page")!;
+    if (colors.current) colors.current.update(theme, { background });
+    else colors.current = mountTheme(page, theme, { background });
+    if (theme.images?.strength === 0) {
+      images.current?.destroy();
+      images.current = undefined;
+    } else if (images.current) images.current.update(theme);
+    else images.current = mountImages(page, theme, { hoverOriginal: true });
+    for (const el of document.querySelectorAll("[data-theme-name]")) el.textContent = themeName(theme);
+    themeApplied({ theme, background });
+    // The theme's name can change with the list, as when it's saved or renamed
+  }, [theme, background, themes]);
+  useLayoutEffect(
+    () => () => {
+      colors.current?.destroy();
+      images.current?.destroy();
+    },
+    [],
+  );
 }
 
 /**
- * The embedded theme configurator, with a switch for its button style. It
- * themes the page's `#page` root.
+ * The page's background, the embedded theme configurator, and a switch for
+ * its button style. It themes the page with whatever the configurator picks.
  */
 export default function ThemeButton() {
   const [mode, setMode] = useState(savedMode);
+  const { theme, background, themes } = useDemoTheme();
+  usePageTheme();
   return (
     <div className="flex items-center gap-2 px-2 py-1 text-sm">
+      <label className="flex items-center gap-2">
+        Background
+        <select
+          value={background}
+          onChange={(event) => setDemoTheme({ background: Number(event.target.value) })}
+          className={selectClass}
+        >
+          {backgrounds.map((value) => (
+            <option key={value} value={value}>
+              {value * 100}%
+            </option>
+          ))}
+        </select>
+      </label>
       <label className="flex items-center gap-2">
         Theme button
         <select
@@ -37,7 +81,7 @@ export default function ThemeButton() {
             localStorage.setItem(storageKey, next);
             setMode(next);
           }}
-          className="huet-bg-0 huet-border-30 rounded border px-1 py-0.5"
+          className={selectClass}
         >
           {modes.map((option) => (
             <option key={option} value={option}>
@@ -46,7 +90,15 @@ export default function ThemeButton() {
           ))}
         </select>
       </label>
-      <EmbeddedThemeConfigurator mode={mode} target="#page" onChange={onChange} />
+      <EmbeddedThemeConfigurator
+        mode={mode}
+        value={theme}
+        onChange={(next) => setDemoTheme({ theme: next })}
+        themes={themes}
+        onThemesChange={(next) => setDemoTheme({ themes: next })}
+        background={background}
+        onBackgroundChange={(next) => setDemoTheme({ background: next })}
+      />
     </div>
   );
 }

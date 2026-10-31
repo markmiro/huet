@@ -47,7 +47,7 @@ function TitleBar({
 
 // Docked 1em (12px) from the viewport's bottom-right corner. The 1px outline
 // is the parent's 25% contrast. The shadow is 12.5% of the foreground, scaled
-// by the theme's contrast like the old `Color.alpha()`.
+// by the theme's contrast.
 const panelClass = cx(
   "huet-outline-20 hc:fixed hc:right-[1em] hc:bottom-[1em] hc:z-[999]",
   "hc:font-ui hc:text-[.75rem] hc:outline",

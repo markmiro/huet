@@ -45,8 +45,8 @@ test("controls take their colors from the theme and the surface they're on", asy
   const inverted = page.locator("fieldset.huet-bg-100");
   await expect(inverted.getByLabel("Starred")).toHaveCSS("background-color", "rgb(255, 255, 255)");
 
-  await page.getByRole("button", { name: /^Theme:/ }).click();
-  await page.getByRole("dialog").getByRole("button", { name: "Base Inverted" }).click();
+  // On a dark page background
+  await page.getByRole("combobox", { name: "Background", exact: true }).selectOption("0");
   await expect(page.getByLabel("Checked", { exact: true })).toHaveCSS("background-color", "rgb(255, 255, 255)");
   await expect(inverted.getByLabel("Starred")).toHaveCSS("background-color", "rgb(0, 0, 0)");
 });

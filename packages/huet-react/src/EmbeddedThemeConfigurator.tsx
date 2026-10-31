@@ -1,7 +1,8 @@
 import * as Popover from "@radix-ui/react-popover";
 import { IconCheck, IconChevronDown } from "@tabler/icons-react";
 import React, { useLayoutEffect, useState } from "react";
-import { baseThemeConfig, Color, Theme, type ThemeConfig } from "huet/config";
+import type { Theme } from "huet";
+import { resolveTheme } from "huet/internal";
 
 import { useThemeConfigurator } from "./context";
 import { ConfiguratorRoot, type ThemeConfiguratorProps } from "./ThemeConfigurator";
@@ -10,10 +11,10 @@ import Button, { JsonUploadButton } from "./private/Button";
 import ConfiguratorPortal, { injectStyles } from "./private/ConfiguratorPortal";
 import EditTheme from "./private/EditTheme";
 import Tabs, { asTab, tabEnum, type Tab } from "./private/Tabs";
-import ThemeMiniMap from "./private/ThemeMiniMap";
-import { useSavedThemes } from "./private/Themes";
-import cx from "./private/cx";
 import usePersistentState from "./private/persistentState";
+import ErrorBoundary from "./private/ErrorBoundary";
+import ThemeMiniMap from "./private/ThemeMiniMap";
+import cx from "./private/cx";
 
 /**
  * How the button sits on the page:
@@ -37,25 +38,30 @@ const keyboardFocusOnly = "hc:not-focus-visible:shadow-none!";
 
 /*
   Like the theme cards in the panel, each option shows a different theme, so
-  its colors come from the legacy Color API and are set inline. Hover colors
+  its colors come from the theme's solver and are set inline. Hover colors
   can't be inline, so they go through variables.
 */
 function ThemeOption({
-  config,
+  name,
+  theme,
   isSelected,
-  isModified,
+  isEdited,
   onSelect,
 }: {
-  config: ThemeConfig;
+  name: string;
+  theme: Theme;
   isSelected: boolean;
-  isModified: boolean;
+  /** Shows "Edited" beside the name */
+  isEdited?: boolean;
   onSelect: () => void;
 }) {
-  const bg = Color.fromTheme(new Theme(config));
-  const fg = bg.contrast(100);
+  const { background } = useThemeConfigurator();
+  const preview = resolveTheme(theme, { background });
+  const { root: bg, step } = preview;
+  const fg = step(bg, 100);
   // A subtle edge keeps the list calm; only the selected theme gets a strong one
-  const border = isSelected ? fg.hex : bg.contrast(15).hex;
-  const hoverBorder = isSelected ? fg.hex : bg.contrast(40).hex;
+  const border = isSelected ? fg.hex : step(bg, 15).hex;
+  const hoverBorder = isSelected ? fg.hex : step(bg, 40).hex;
 
   return (
     <button
@@ -77,9 +83,9 @@ function ThemeOption({
         } as React.CSSProperties
       }
     >
-      <ThemeMiniMap bg={bg} />
-      <span className="hc:grow">{config.name}</span>
-      {isModified && <span className="hc:opacity-70">Edited</span>}
+      <ThemeMiniMap theme={preview} bg={bg} />
+      <span className="hc:grow">{name}</span>
+      {isEdited && <span className="hc:opacity-70">Edited</span>}
       <IconCheck
         size="1em"
         stroke={2.5}
@@ -89,25 +95,28 @@ function ThemeOption({
   );
 }
 
-// Mounts each time the popover opens, so themes saved elsewhere show up
+/** The `themes` to pick from, and what can be done with the picked one. */
 function ThemeList() {
-  const themes = useSavedThemes();
-  const { selected, saved, isModified } = themes;
-  const isRemovable = saved !== undefined && saved.id !== baseThemeConfig.id;
+  const { theme, setTheme, themes, name, editedFrom, reset, list } = useThemeConfigurator();
+  const isListed = name !== undefined;
+  const canRemove = list && isListed && Object.keys(themes).length > 1;
   return (
     <>
       <div className="hc:flex hc:flex-col hc:gap-[.375em] hc:p-2 hc:flex-auto hc:min-h-0 hc:overflow-y-auto hc:overscroll-contain">
-        {themes.configs.map((config) => {
-          const isSelected = config.id === selected.id;
+        {!isListed && (
+          <ThemeOption name={editedFrom ?? "Custom"} theme={theme} isSelected isEdited onSelect={() => {}} />
+        )}
+        {Object.entries(themes).map(([listedName, listed]) => {
+          const isSelected = listedName === name;
+          // The edited theme stands in for the one it came from
+          if (!isListed && listedName === editedFrom) return null;
           return (
             <ThemeOption
-              key={config.id}
-              // Show unsaved edits to the current theme
-              config={isSelected ? selected : config}
+              key={listedName}
+              name={listedName}
+              theme={listed}
               isSelected={isSelected}
-              isModified={isSelected && isModified}
-              // Reselecting would discard those edits
-              onSelect={() => !isSelected && themes.select(config)}
+              onSelect={() => !isSelected && setTheme(listed)}
             />
           );
         })}
@@ -115,21 +124,21 @@ function ThemeList() {
       {/* HSpace gives every child a slot, so hidden actions are left out rather than `false` */}
       <HSpace growEach className="hc:p-2 hc:border-t">
         {[
-          <JsonUploadButton key="import" onUpload={themes.importTheme}>
+          <JsonUploadButton key="import" onUpload={(imported, fileName) => (list ? list.add(fileName, imported) : setTheme(imported))}>
             Import
           </JsonUploadButton>,
-          (isModified || !saved) && (
-            <Button key="save" onClick={themes.saveAsNew}>
+          !isListed && list && (
+            <Button key="save" onClick={list.saveAsNew}>
               Save as New
             </Button>
           ),
-          isModified && (
-            <Button key="reset" verify onClick={themes.reset}>
+          editedFrom !== undefined && (
+            <Button key="reset" verify={`Discard your edits and go back to ${editedFrom}?`} onClick={reset}>
               Reset
             </Button>
           ),
-          !isModified && isRemovable && (
-            <Button key="remove" verify onClick={() => themes.remove(saved)}>
+          canRemove && (
+            <Button key="remove" verify={`Remove ${name}?`} onClick={() => list.remove(name)}>
               Remove
             </Button>
           ),
@@ -139,23 +148,15 @@ function ThemeList() {
   );
 }
 
+/** The popover's Themes and Edit Theme tabs. */
 function Configurator() {
-  const [theme, setConfig] = useThemeConfigurator();
-  const [currentTab, setCurrentTab] = usePersistentState<Tab>(
-    "embedded:currentTab",
-    tabEnum.THEMES,
-    asTab,
-  );
+  const [currentTab, setCurrentTab] = usePersistentState<Tab>("embedded:currentTab", tabEnum.THEMES, asTab);
   return (
     <>
-      <Tabs
-        currentTab={currentTab}
-        onTabChange={setCurrentTab}
-        buttonClassName={keyboardFocusOnly}
-      />
+      <Tabs currentTab={currentTab} onTabChange={setCurrentTab} buttonClassName={keyboardFocusOnly} />
       {currentTab === tabEnum.EDIT_THEME ? (
         <div className="hc:flex-auto hc:min-h-0 hc:overflow-y-auto hc:overscroll-contain">
-          <EditTheme theme={theme} themerTheme={theme} onThemeConfigChange={setConfig} />
+          <EditTheme />
         </div>
       ) : (
         <ThemeList />
@@ -169,17 +170,17 @@ function Picker({
   side = "bottom",
   align = "end",
   style,
-}: EmbeddedThemeConfiguratorProps) {
-  const [theme] = useThemeConfigurator();
+}: Pick<EmbeddedThemeConfiguratorProps, "mode" | "side" | "align" | "style">) {
+  const { theme, resolved, background, name = "Custom" } = useThemeConfigurator();
   const [isOpen, setIsOpen] = useState(false);
   useLayoutEffect(injectStyles, []);
 
-  const page = Color.fromTheme(theme);
-  const fg = page.contrast(100);
+  const { root: page, step } = resolved;
+  const fg = step(page, 100);
   // In contrast mode the button is its own inverted surface
   const surface = mode === "contrast" ? fg : page;
   const buttonStyle = {
-    color: surface.contrast(100).hex,
+    color: step(surface, 100).hex,
     // Contrast mode's fill shows through a transparent border, so its hover
     // color reaches the edge
     borderColor:
@@ -188,7 +189,7 @@ function Picker({
     "--trigger-bg": mode === "contrast" ? surface.hex : "transparent",
     "--trigger-hover":
       mode === "contrast"
-        ? surface.contrast(6).hex
+        ? step(surface, 6).hex
         : `color-mix(in srgb, ${fg.hex} 8%, transparent)`,
   } as React.CSSProperties;
 
@@ -199,8 +200,8 @@ function Picker({
         <Popover.Trigger asChild>
           <button
             type="button"
-            aria-label={`Theme: ${theme.name}`}
-            title={theme.name}
+            aria-label={`Theme: ${name}`}
+            title={name}
             className={cx(
               "hc:inline-flex hc:items-center hc:gap-[.5em] hc:py-[.375em] hc:pl-[.5em] hc:pr-[.375em]",
               "hc:rounded-md hc:border hc:cursor-pointer",
@@ -209,7 +210,7 @@ function Picker({
             )}
             style={buttonStyle}
           >
-            <ThemeMiniMap bg={surface} />
+            <ThemeMiniMap theme={resolved} bg={surface} />
             <IconChevronDown
               size="1em"
               stroke={2}
@@ -221,7 +222,7 @@ function Picker({
           </button>
         </Popover.Trigger>
       </span>
-      <ConfiguratorPortal themeConfig={theme.config}>
+      <ConfiguratorPortal theme={theme} background={background}>
         <Popover.Content
           side={side}
           align={align}
@@ -247,9 +248,9 @@ function Picker({
 /**
  * A compact theme picker to place anywhere on the page. It shows a mini map of
  * the current theme: its colors from highest to lowest contrast, over its gray
- * ramp. Clicking it opens the configurator in a popover: a Themes tab with the
- * saved themes, and an Edit Theme tab. It shares saved themes with
- * ThemeConfigurator, so the two stay in sync on one page.
+ * ramp. Clicking it opens the configurator in a popover: a Themes tab with
+ * `themes`, and an Edit Theme tab. It takes the same props as
+ * ThemeConfigurator, so the two stay in sync when given the same `value`.
  */
 export default function EmbeddedThemeConfigurator({
   mode,
@@ -259,8 +260,10 @@ export default function EmbeddedThemeConfigurator({
   ...props
 }: EmbeddedThemeConfiguratorProps) {
   return (
-    <ConfiguratorRoot componentName="Embedded Theme Configurator" {...props}>
-      <Picker mode={mode} side={side} align={align} style={style} />
-    </ConfiguratorRoot>
+    <ErrorBoundary componentName="Embedded Theme Configurator">
+      <ConfiguratorRoot {...props}>
+        <Picker mode={mode} side={side} align={align} style={style} />
+      </ConfiguratorRoot>
+    </ErrorBoundary>
   );
 }

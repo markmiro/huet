@@ -1,119 +1,190 @@
+import chroma from "chroma-js";
 import saveAs from "file-saver";
 import React, { useCallback } from "react";
-import type { Theme, ThemeConfig } from "huet/config";
+import { colorModels, hues, themes as presets, type ColorModel, type Theme } from "huet";
 
-import { VSpace } from "./AllExceptFirst";
+import { useThemeConfigurator } from "../context";
+import { HSpace, VSpace } from "./AllExceptFirst";
 import BgColors from "./BgColors";
-import Button from "./Button";
+import Button, { JsonUploadButton, TextButton } from "./Button";
 import Checkbox from "./Checkbox";
 import ColorRamps from "./ColorRamps";
 import Input from "./Input";
 import Labeled from "./Labeled";
-import Pallet from "./Pallet";
+import { ColorPicker } from "./Pallet";
 import Range from "./Range";
-import imageSettings from "./imageSettings";
+import Select from "./Select";
 
-/** Edits the theme's name, background, contrast, palette, signal lightness and image theming. */
-export default function EditTheme({
-  theme,
-  themerTheme,
-  onThemeConfigChange,
+// Huet's default hues, for themes that leave some out
+const defaultColors = presets.Base.colors;
+const defaultSignalLightness = { onLight: 0.49, onDark: 0.49 };
+
+/** The neutral ramp's colors, darkest first, with middle colors that can be added and removed. */
+function NeutralColors({
+  colors,
+  onChange,
 }: {
-  theme: Theme;
-  /** The panel's own theme. The color ramps preview it. */
-  themerTheme: Theme;
-  onThemeConfigChange: (config: ThemeConfig) => void;
+  colors: readonly string[];
+  onChange: (colors: string[]) => void;
 }) {
-  const themeConfig = theme.config;
-  const images = imageSettings(themeConfig);
+  // A new middle color goes halfway between the two in the middle of the ramp.
+  const addMiddle = () => {
+    const i = Math.ceil(colors.length / 2);
+    const middle = chroma.mix(colors[i - 1], colors[i], 0.5, "lab").hex();
+    onChange([...colors.slice(0, i), middle, ...colors.slice(i)]);
+  };
+  return (
+    <VSpace size={1}>
+      <HSpace growEach>
+        {colors.map((color, i) => (
+          <ColorPicker
+            key={i}
+            label={i === 0 ? "Darkest" : i === colors.length - 1 ? "Lightest" : `Middle ${i}`}
+            color={color}
+            onChange={(next) => onChange(colors.map((c, j) => (j === i ? next : c)))}
+          />
+        ))}
+      </HSpace>
+      <HSpace>
+        <TextButton onClick={addMiddle}>Add a middle color</TextButton>
+        {colors.length > 2 && (
+          <TextButton onClick={() => onChange([...colors.slice(0, -2), colors[colors.length - 1]])}>
+            Remove the last middle color
+          </TextButton>
+        )}
+      </HSpace>
+    </VSpace>
+  );
+}
 
-  function modify<K extends keyof ThemeConfig>(key: K) {
-    return (newValue: ThemeConfig[K]) => {
-      onThemeConfigChange({
-        ...themeConfig,
-        [key]: newValue
-      });
-    };
-  }
+/** A 0–1 setting shown as a percentage. */
+function Percent({ label, value, onChange }: { label: string; value: number; onChange: (value: number) => void }) {
+  return (
+    <Range
+      label={label}
+      value={Math.round(value * 100)}
+      onChange={(percent) => onChange(Math.max(0, Math.min(100, percent)) / 100)}
+    />
+  );
+}
 
-  // Consider useReducer?
-  const setBgRampValue = modify("bgRampValue");
-  const setContrastMultiplier = modify("contrastMultiplier");
-  const setPallet = modify("pallet");
-  const setStartSignalLightness = modify("startSignalLightness");
-  const setEndSignalLightness = modify("endSignalLightness");
+/** Edits every part of the theme, and the page's background when the page allows it. */
+export default function EditTheme() {
+  const { theme, setTheme, name, editedFrom, reset, background, setBackground, list } = useThemeConfigurator();
+  const edit = (changes: Partial<Theme>) => setTheme({ ...theme, ...changes });
+  const signal = theme.signalLightness ?? defaultSignalLightness;
+  const images = { strength: 1, tint: 1, ...theme.images };
 
   const exportTheme = useCallback(() => {
-    // Generating a random id
-    const configWithNewId = { ...themeConfig, id: Math.random() };
-    const str = JSON.stringify(configWithNewId, null, "  ");
-    const blob = new Blob([str], {
-      type: "text/plain;charset=utf-8"
+    const blob = new Blob([JSON.stringify(theme, null, 2)], {
+      type: "application/json;charset=utf-8",
     });
-    saveAs(blob, `${themeConfig.name} Huet Theme.json`);
-  }, [themeConfig]);
+    saveAs(blob, `${name ?? "Custom"} Huet Theme.json`);
+  }, [theme, name]);
 
   return (
-    <>
-      <VSpace size={2} className="hc:p-4">
-        <div>
-          <Input
-            label="Theme Name"
-            className="hc:flex-auto hc:min-w-0 hc:min-h-0 hc:mb-2"
-            value={themeConfig.name}
-            onChange={name => onThemeConfigChange({ ...themeConfig, name })}
-          />
-          <Button onClick={exportTheme}>Export Theme</Button>
+    <VSpace size={2} className="hc:p-4">
+      {list && name !== undefined && (
+        <Input
+          label="Theme Name"
+          // Renames on blur and Enter, so typing doesn't rename on every key
+          key={name}
+          defaultValue={name}
+          onBlur={(event) => list.rename(name, event.currentTarget.value.trim())}
+          onKeyDown={(event) => {
+            if (event.key === "Enter") list.rename(name, event.currentTarget.value.trim());
+          }}
+        />
+      )}
+      <HSpace growEach>
+        <JsonUploadButton onUpload={(imported, fileName) => (list ? list.add(fileName, imported) : setTheme(imported))}>
+          Import Theme
+        </JsonUploadButton>
+        <Button onClick={exportTheme}>Export Theme</Button>
+      </HSpace>
+      {editedFrom !== undefined && (
+        <p className="hc:flex hc:gap-[.5em]">
+          Edited from {editedFrom}.
+          <TextButton verify={`Discard your edits and go back to ${editedFrom}?`} onClick={reset}>
+            Reset
+          </TextButton>
+          {list && <TextButton onClick={list.saveAsNew}>Save as new</TextButton>}
+        </p>
+      )}
+      {setBackground && (
+        // A group, not a label: each button is named by its own text
+        <div role="group" aria-labelledby="huet-configurator-background">
+          <span id="huet-configurator-background" className="hc:block hc:mb-1">
+            Background
+          </span>
+          <BgColors theme={theme} background={background} onChange={setBackground} />
         </div>
-        <Labeled label="Background Color">
-          <BgColors
-            theme={theme}
-            bgRampValue={themeConfig.bgRampValue}
-            onRampValueChange={setBgRampValue}
+      )}
+      <Labeled label="Neutral colors">
+        <NeutralColors colors={theme.neutral} onChange={(neutral) => edit({ neutral })} />
+      </Labeled>
+      <Labeled label="Blend the neutral colors in">
+        <Select
+          value={theme.colorModel ?? "oklab"}
+          onChange={(colorModel) => edit({ colorModel: colorModel as ColorModel })}
+          options={colorModels}
+        />
+      </Labeled>
+      <Labeled label="Hues">
+        <HSpace growEach>
+          {hues.map((hue) => (
+            <ColorPicker
+              key={hue}
+              label={hue}
+              color={theme.colors?.[hue] ?? defaultColors[hue]}
+              onChange={(color) => edit({ colors: { ...theme.colors, [hue]: color } })}
+            />
+          ))}
+        </HSpace>
+      </Labeled>
+      <Range
+        label="Contrast"
+        min={0}
+        max={2}
+        decimals={2}
+        value={theme.contrast ?? 1}
+        onChange={(contrast) => edit({ contrast })}
+      />
+      <Labeled label="Color ramps">
+        <ColorRamps />
+      </Labeled>
+      <Range
+        label="Signal lightness on light backgrounds"
+        min={0}
+        max={1}
+        decimals={2}
+        value={signal.onLight}
+        onChange={(onLight) => edit({ signalLightness: { ...signal, onLight } })}
+      />
+      <Range
+        label="Signal lightness on dark backgrounds"
+        min={0}
+        max={1}
+        decimals={2}
+        value={signal.onDark}
+        onChange={(onDark) => edit({ signalLightness: { ...signal, onDark } })}
+      />
+      {/* Off is strength 0: images keep their own colors */}
+      <Checkbox
+        label="Theme images"
+        value={images.strength > 0}
+        onChange={(on) => edit({ images: { ...images, strength: on ? 1 : 0 } })}
+      />
+      {images.strength > 0 && (
+        <>
+          <Percent label="Image tint" value={images.tint} onChange={(tint) => edit({ images: { ...images, tint } })} />
+          <Percent
+            label="Image strength"
+            value={images.strength}
+            onChange={(strength) => edit({ images: { ...images, strength } })}
           />
-        </Labeled>
-        <Range
-          label="Contrast"
-          min={0}
-          max={1}
-          decimals={2}
-          value={themeConfig.contrastMultiplier}
-          onChange={setContrastMultiplier}
-        />
-        <Labeled label="Pallet">
-          <Pallet colors={themeConfig.pallet} onColorsChange={setPallet} />
-        </Labeled>
-        <Labeled label="Color ramps">
-          <ColorRamps theme={themerTheme} />
-        </Labeled>
-        <Range
-          label="Signal Lightness on 'Black'"
-          value={themeConfig.endSignalLightness}
-          onChange={setEndSignalLightness}
-          min={0}
-          max={1}
-          decimals={2}
-        />
-        <Range
-          label="Signal Lightness on 'White'"
-          value={themeConfig.startSignalLightness}
-          onChange={setStartSignalLightness}
-          min={0}
-          max={1}
-          decimals={2}
-        />
-        <Checkbox
-          label="Theme images"
-          value={images.enabled}
-          onChange={enabled => modify("images")({ ...images, enabled })}
-        />
-        {images.enabled && <>
-          <Range label="Image tint" value={images.tint * 100}
-            onChange={tint => modify("images")({ ...images, tint: Math.max(0, Math.min(100, tint)) / 100 })} />
-          <Range label="Image strength" value={images.strength * 100}
-            onChange={strength => modify("images")({ ...images, strength: Math.max(0, Math.min(100, strength)) / 100 })} />
-        </>}
-      </VSpace>
-    </>
+        </>
+      )}
+    </VSpace>
   );
 }
