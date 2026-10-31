@@ -1,15 +1,5 @@
 import { Triple } from './color';
-import { Hue, HuetTheme, NeutralRamp } from './theme';
-/** The parts of a theme that define its color coordinates. */
-export interface Palette {
-    dark?: string;
-    light?: string;
-    /** A multi-stop or hue-shifting neutral ramp, as in `createTheme`. Use instead of dark/light. */
-    neutral?: NeutralRamp;
-    colors?: Partial<Record<Hue, string>>;
-}
-/** The ramps of a theme from `createTheme`, in the shape the recolorer reads. */
-export declare function paletteOf(theme: HuetTheme | Palette): Palette;
+import { Hue, Theme } from './theme';
 export interface Coordinates {
     /** Position on the dark → light ramp: 0 is dark, 1 is light. */
     t: number;
@@ -17,30 +7,21 @@ export interface Coordinates {
     weights: Partial<Record<Hue, number>>;
 }
 export interface RecolorOptions {
-    /** The theme the image is assumed to be in. Defaults to Huet's default theme. */
-    source?: Palette;
-    /** 0 keeps the original color, 1 fully adopts the target theme. */
-    strength?: number;
+    /** The theme the image is assumed to be in. Defaults to black to white with Huet's default hues. */
+    source?: Theme;
     /**
      * Flip the lightness coordinate. Off by default so light stays light and
      * dark stays dark; meant for UI screenshots shown in an opposite-polarity
      * theme, since inverted photos read as negatives.
      */
     invert?: boolean;
-    /**
-     * How much a tinted neutral ramp also tints saturated colors. At 1 (the
-     * default), chroma is added on top of the neutral ramp, so a yellow-tinted
-     * ramp turns blue skies teal. At 0, the tint fades out as colors approach
-     * anchor saturation, keeping hues closer to the theme's anchors.
-     */
-    tint?: number;
 }
-/** Coordinates of a color in a palette's ramps (useful for inspecting a pixel). */
-export declare function coordinatesOf([r, g, b]: Triple, source?: Palette): Coordinates;
+/** Coordinates of a color in a theme's ramps (useful for inspecting a pixel). */
+export declare function coordinatesOf([r, g, b]: Triple, source?: Theme): Coordinates;
 /** Map gamma-encoded sRGB channels (0–1) from the source theme into the target theme. */
-export declare function recolorer(target: Palette, options?: RecolorOptions): (r: number, g: number, b: number) => Triple;
-/** A color on a palette's neutral ramp, or on a hue ramp at anchor chroma. */
-export declare function rampColor(palette: Palette, t: number, hue?: Hue): Triple;
+export declare function recolorer(target: Theme, options?: RecolorOptions): (r: number, g: number, b: number) => Triple;
+/** A color on a theme's neutral ramp, or on a hue ramp at anchor chroma. */
+export declare function rampColor(theme: Theme, t: number, hue?: Hue): Triple;
 export type Transform = (r: number, g: number, b: number) => Triple;
 /**
  * Sample a transform on a size³ RGB lattice. Red varies fastest, matching

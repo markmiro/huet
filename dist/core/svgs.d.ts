@@ -1,5 +1,5 @@
-import { Palette, RecolorOptions } from './recolor';
-import { HuetTheme } from './theme';
+import { RecolorOptions } from './recolor';
+import { Theme } from './theme';
 export interface MountSvgsOptions extends RecolorOptions {
     /** Which SVG elements to recolor, with everything inside them. Defaults to `svg[data-huet-recolor]`. */
     selector?: string;
@@ -24,9 +24,9 @@ export interface MountSvgsOptions extends RecolorOptions {
  * order, with `!important` first; specificity and layers aren't compared, and
  * cross-origin stylesheets can't be read.
  */
-export declare function mountSvgs(root: ParentNode & Node, theme: HuetTheme | Palette, options?: MountSvgsOptions): {
+export declare function mountSvgs(root: ParentNode & Node, theme: Theme, options?: MountSvgsOptions): {
     /** Recolor every SVG into a new theme, optionally with new options, at the next frame. */
-    update(next: HuetTheme | Palette, nextOptions?: RecolorOptions): void;
+    update(next: Theme, nextOptions?: RecolorOptions): void;
     /** Resolves once pending updates and DOM changes are recolored, without waiting for a frame. */
     ready(): Promise<void>;
     destroy(): void;

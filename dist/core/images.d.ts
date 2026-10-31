@@ -1,7 +1,7 @@
-import { Palette, RecolorOptions } from './recolor';
-import { HuetTheme } from './theme';
-export { applyLut, applyTransform, buildLut, coordinatesOf, paletteOf, rampColor, recolorer, toCube, } from './recolor';
-export type { Coordinates, Palette, RecolorOptions, Transform } from './recolor';
+import { RecolorOptions } from './recolor';
+import { Theme } from './theme';
+export { applyLut, applyTransform, buildLut, coordinatesOf, rampColor, recolorer, toCube, } from './recolor';
+export type { Coordinates, RecolorOptions, Transform } from './recolor';
 export { GpuRecolor } from './gpu';
 export { mountSvgs, type MountSvgsOptions } from './svgs';
 export interface ImageOptions extends RecolorOptions {
@@ -21,7 +21,7 @@ type Source = HTMLImageElement | HTMLCanvasElement | ImageBitmap;
  * is given), on the GPU when WebGL2 is available unless `renderer: "cpu"`. Cross-origin images need
  * CORS headers and `crossOrigin` set, or the browser refuses to read them.
  */
-export declare function recolorImage(source: Source, theme: HuetTheme | Palette, options?: ImageOptions, out?: HTMLCanvasElement): HTMLCanvasElement;
+export declare function recolorImage(source: Source, theme: Theme, options?: ImageOptions, out?: HTMLCanvasElement): HTMLCanvasElement;
 export interface MountImagesOptions extends ImageOptions {
     /** Which images to recolor. Defaults to `img[data-huet-recolor]`. */
     selector?: string;
@@ -37,9 +37,9 @@ export interface MountImagesOptions extends ImageOptions {
  * Theme updates redraw once per frame, and images far outside the viewport
  * are redrawn when they scroll near it. `destroy` removes the canvases.
  */
-export declare function mountImages(root: ParentNode & Node, theme: HuetTheme | Palette, options?: MountImagesOptions): {
+export declare function mountImages(root: ParentNode & Node, theme: Theme, options?: MountImagesOptions): {
     /** Recolor every image into a new theme, optionally with new options. */
-    update(next: HuetTheme | Palette, nextOptions?: ImageOptions): void;
+    update(next: Theme, nextOptions?: ImageOptions): void;
     /**
      * Resolves once every image queued so far has been recolored, including
      * images outside the viewport, which this draws right away.
