@@ -14,8 +14,10 @@ for (const file of files) {
   try {
     const source = await readFile(file, "utf8");
     // Variants include named groups (group-hover/card:) and brackets ([&>svg]:).
+    // Important may come first or last: !huet-bg-20, huet-bg-20!.
+    // Tailwind backgrounds painting Huet colors are checked too: bg-huet-blue, bg-(--huet-blue).
     for (const match of source.matchAll(
-      /(?<![\w-])(?:(?:[\w*-]*\[[^\]\s"'`]*\]|[\w*-]+)(?:\/[\w-]+)?:)*huet-[\w/.-]+(?:\$\{)?/g,
+      /(?<![\w-])(?:(?:[\w*-]*\[[^\]\s"'`]*\]|[\w*-]+)(?:\/[\w-]+)?:)*!?(?:(?:bg-)?huet-[\w/.[\]-]+|bg-\((?:color:)?--huet-[\w-]+\)[\w/.[\]-]*|bg-\[(?:color:)?var\(--huet-[\w-]+\)\][\w/.[\]-]*)!?(?:\$\{)?/g,
     )) {
       const errors = match[0].endsWith("${")
         ? [`Dynamic Huet class: ${match[0]}`]
