@@ -68,6 +68,18 @@ index 00c2223..d6a3760 100644
 +    opacity: 1;
 +  }
 +}
+diff --git a/apps/v4/components/directory-list.tsx b/apps/v4/components/directory-list.tsx
+index 05fe74b..c424b7e 100644
+--- a/apps/v4/components/directory-list.tsx
++++ b/apps/v4/components/directory-list.tsx
+@@ -233,6 +233,7 @@ function DirectoryListContent() {
+           <React.Fragment key={registry.name}>
+             <Item className="group/item relative gap-6 px-0">
+               <ItemMedia
++                data-huet-recolor=""
+                 variant="image"
+                 dangerouslySetInnerHTML={{ __html: registry.logo }}
+                 className="grayscale *:[svg]:size-8 *:[svg]:fill-foreground"
 diff --git a/apps/v4/components/site-header.tsx b/apps/v4/components/site-header.tsx
 index 7897e95..215c54b 100644
 --- a/apps/v4/components/site-header.tsx
