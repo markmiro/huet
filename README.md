@@ -1,6 +1,6 @@
 # huet-react
 
-A floating theme editor for [Huet](https://www.npmjs.com/package/huet) themes, for React apps. Pick from preset themes, edit the neutral ramp, hues, contrast, signal lightness and image settings, and import or export themes as JSON.
+A floating theme editor for [Huet](https://www.npmjs.com/package/huet) themes, for React apps. Pick from preset themes, edit the base colors (the neutral ramp), hues, contrast, signal lightness and image settings, and import or export themes as JSON. Its controls are built on [Base UI](https://base-ui.com).
 
 [Try it in the demo](https://markmiro.github.io/huet/) (the theme button in the header, or the panel in the bottom-right corner).
 
@@ -72,7 +72,7 @@ To keep the theme across reloads, save it yourself and check it with `checkTheme
 | `themes` | `Record<string, Theme>` | The themes to pick from, by name. Defaults to Huet's presets (`themes` from `huet`). A `value` that matches none of them is listed first as "Custom". |
 | `onThemesChange` | `(themes: Record<string, Theme>) => void` | Called with a new list when someone saves an edited theme as new, renames, removes or imports one. Leave it out and the list is fixed: imports replace the current theme instead. |
 | `background` | `number` | Where your page's background sits on the theme's neutral ramp, from 0 (dark) to 1 (light, the default). The configurator previews themes on it. It isn't part of the theme, so your page's light/dark switch sets it. |
-| `onBackgroundChange` | `(background: number) => void` | Called when someone picks a background (0%, 25%, 75% or 100%) in the editor. Leave it out to hide the picker. |
+| `onBackgroundChange` | `(background: number) => void` | Called when someone moves the editor's Background slider, which snaps to 0, 5, 10, 15, 20, 25, 49 and 51% and the same from the top (75–100%). Leave it out to hide the slider. |
 
 The panel remembers only its own UI state (which tab is open, whether it's collapsed) in localStorage.
 
@@ -94,7 +94,7 @@ It takes the same props as `ThemeConfigurator`, plus:
 | Prop | Type | Effect |
 | --- | --- | --- |
 | `mode` | `"contrast" \| "outlined" \| "blended"` | `contrast` (default) inverts the button, so it's dark on light themes and light on dark ones. `outlined` gives it a full-contrast border. `blended` has no border until it's open. |
-| `side`, `align` | Radix Popover placement | Where the popover opens. Defaults to below, aligned to the end. |
+| `side`, `align` | `"top" \| "right" \| "bottom" \| "left"`, `"start" \| "center" \| "end"` | Where the popover opens. Defaults to below, aligned to the end. |
 | `style` | `CSSProperties` | Inline styles for the wrapper, such as margins. Use this rather than a class: the wrapper resets its styles (see [Styling](#styling)), which overrides layered utilities such as Tailwind's. |
 
 Give a picker and a configurator the same `value` and `onChange`, and they stay in sync.

@@ -1,6 +1,5 @@
 import { default as React } from 'react';
 import { ThemeConfiguratorProps } from './ThemeConfigurator';
-import * as Popover from "@radix-ui/react-popover";
 /**
  * How the button sits on the page:
  * - `contrast`: inverted, so it's dark on light themes and light on dark ones
@@ -10,8 +9,8 @@ import * as Popover from "@radix-ui/react-popover";
 export type EmbeddedThemeConfiguratorMode = "contrast" | "outlined" | "blended";
 export interface EmbeddedThemeConfiguratorProps extends ThemeConfiguratorProps {
     mode?: EmbeddedThemeConfiguratorMode;
-    side?: Popover.PopoverContentProps["side"];
-    align?: Popover.PopoverContentProps["align"];
+    side?: "top" | "right" | "bottom" | "left";
+    align?: "start" | "center" | "end";
     /** Inline styles for the wrapper, such as margins */
     style?: React.CSSProperties;
 }

@@ -1,5 +1,11 @@
 import { default as React } from 'react';
 import { Theme } from 'huet';
+/**
+ * Reads a theme from a JSON file and hands it to `onUpload` with a name from
+ * the file's name: `Sunset Huet Theme.json` is `Sunset`. Shows an error for
+ * anything that isn't a valid theme.
+ */
+export declare function readThemeFile(file: File, onUpload: (theme: Theme, name: string) => void): void;
 export declare function JsonUploadButton({ children, className, onUpload, }: {
     children?: React.ReactNode;
     className?: string;

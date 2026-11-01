@@ -1,0 +1,2 @@
+export declare const popupClass = "huet-bg-0 huet-border-30 hc:border hc:rounded-lg hc:outline-none hc:font-ui hc:text-[.875rem] hc:shadow-[0_8px_28px_color-mix(in_srgb,var(--huet-foreground)_calc(18%*var(--huet-configurator-contrast,1)),transparent)]";
+export declare const itemClass = "hc:flex hc:items-center hc:gap-[.5em] hc:px-[.625em] hc:py-[.4375em] hc:rounded-md hc:cursor-pointer hc:outline-none hc:select-none hc:tint-highlight hc:data-disabled:opacity-50 hc:data-disabled:cursor-default";
