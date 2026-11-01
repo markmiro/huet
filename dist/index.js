@@ -483,10 +483,21 @@ function B({ label: e, noun: t, value: n, onChange: r }) {
 	})] })] });
 }
 function V() {
-	let { theme: e, setTheme: t, name: r, editedFrom: i, reset: a, background: o, setBackground: s, list: c } = E(), l = (n) => t({
+	let { theme: e, setTheme: t, name: r, editedFrom: i, reset: a, background: o, setBackground: s, list: l } = E(), p = (n) => t({
 		...e,
 		...n
-	}), u = e.signalLightness ?? ye, p = n(() => {
+	}), m = e.signalLightness ?? ye, [h, g] = c(), y = (t) => {
+		try {
+			u({
+				...e,
+				neutral: t
+			});
+		} catch {
+			g(e.neutral);
+			return;
+		}
+		g(void 0), p({ neutral: t });
+	}, b = n(() => {
 		let t = new Blob([JSON.stringify(e, null, 2)], { type: "application/json;charset=utf-8" });
 		x(t, `${r ?? "Custom"} Huet Theme.json`);
 	}, [e, r]);
@@ -494,21 +505,21 @@ function V() {
 		size: 2,
 		className: "hc:p-4",
 		children: [
-			c && r !== void 0 && /* @__PURE__ */ _(ge, {
+			l && r !== void 0 && /* @__PURE__ */ _(ge, {
 				label: "Theme Name",
 				defaultValue: r,
-				onBlur: (e) => c.rename(r, e.currentTarget.value.trim()),
+				onBlur: (e) => l.rename(r, e.currentTarget.value.trim()),
 				onKeyDown: (e) => {
-					e.key === "Enter" && c.rename(r, e.currentTarget.value.trim());
+					e.key === "Enter" && l.rename(r, e.currentTarget.value.trim());
 				}
 			}, r),
 			/* @__PURE__ */ v(O, {
 				growEach: !0,
 				children: [/* @__PURE__ */ _(le, {
-					onUpload: (e, n) => c ? c.add(n, e) : t(e),
+					onUpload: (e, n) => l ? l.add(n, e) : t(e),
 					children: "Import Theme"
 				}), /* @__PURE__ */ _(M, {
-					onClick: p,
+					onClick: b,
 					children: "Export Theme"
 				})]
 			}),
@@ -523,8 +534,8 @@ function V() {
 						onClick: a,
 						children: "Reset"
 					}),
-					c && /* @__PURE__ */ _(N, {
-						onClick: c.saveAsNew,
+					l && /* @__PURE__ */ _(N, {
+						onClick: l.saveAsNew,
 						children: "Save as new"
 					})
 				]
@@ -546,14 +557,19 @@ function V() {
 				label: "Neutral colors",
 				children: /* @__PURE__ */ _(be, {
 					colors: e.neutral,
-					onChange: (e) => l({ neutral: e })
+					onChange: y
 				})
+			}),
+			h === e.neutral && /* @__PURE__ */ _("p", {
+				role: "alert",
+				className: "huet-text-red-100",
+				children: "The lightest color has to be lighter than the darkest."
 			}),
 			/* @__PURE__ */ _(I, {
 				label: "Blend the neutral colors in",
 				children: /* @__PURE__ */ _(_e, {
 					value: e.colorModel ?? "oklab",
-					onChange: (e) => l({ colorModel: e }),
+					onChange: (e) => p({ colorModel: e }),
 					options: d
 				})
 			}),
@@ -564,7 +580,7 @@ function V() {
 					children: f.map((t) => /* @__PURE__ */ _(L, {
 						label: t,
 						color: e.colors?.[t] ?? ve[t],
-						onChange: (n) => l({ colors: {
+						onChange: (n) => p({ colors: {
 							...e.colors,
 							[t]: n
 						} })
@@ -577,7 +593,7 @@ function V() {
 				max: 2,
 				decimals: 2,
 				value: e.contrast ?? 1,
-				onChange: (e) => l({ contrast: e })
+				onChange: (e) => p({ contrast: e })
 			}),
 			/* @__PURE__ */ _(I, {
 				label: "Color ramps",
@@ -588,9 +604,9 @@ function V() {
 				min: 0,
 				max: 1,
 				decimals: 2,
-				value: u.onLight,
-				onChange: (e) => l({ signalLightness: {
-					...u,
+				value: m.onLight,
+				onChange: (e) => p({ signalLightness: {
+					...m,
 					onLight: e
 				} })
 			}),
@@ -599,9 +615,9 @@ function V() {
 				min: 0,
 				max: 1,
 				decimals: 2,
-				value: u.onDark,
-				onChange: (e) => l({ signalLightness: {
-					...u,
+				value: m.onDark,
+				onChange: (e) => p({ signalLightness: {
+					...m,
 					onDark: e
 				} })
 			}),
@@ -609,13 +625,13 @@ function V() {
 				label: "Theme images",
 				noun: "Image",
 				value: e.images,
-				onChange: (e) => l({ images: e })
+				onChange: (e) => p({ images: e })
 			}),
 			/* @__PURE__ */ _(B, {
 				label: "Theme SVGs",
 				noun: "SVG",
 				value: e.svgs,
-				onChange: (e) => l({ svgs: e })
+				onChange: (e) => p({ svgs: e })
 			})
 		]
 	});
