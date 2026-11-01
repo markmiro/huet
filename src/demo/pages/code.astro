@@ -33,8 +33,9 @@ const inline = "huet-bg-10 rounded-xs px-1 font-mono text-[0.9em]";
         Code block background
         <output id="surface-value" class="huet-text-50 font-mono text-sm">huet-bg-5</output>
       </span>
-      <input id="surface" type="range" min="0" max={surfaces.length - 1} step="1" value="1" list="surface-ticks" data-surfaces={surfaces.join(",")} class="block w-full accent-current" />
-      <datalist id="surface-ticks">{surfaces.map((_, i) => <option value={i} />)}</datalist>
+      <input id="surface" type="range" min="0" max={surfaces.length - 1} step="1" value="1" data-surfaces={surfaces.join(",")} class="slider huet-border-20 huet-outline-100 block w-full rounded-xs focus-visible:outline-2 focus-visible:outline-offset-4" />
+      <!-- Ticks under each stop, inset by the thumb's radius like the thumb's travel -->
+      <span aria-hidden="true" class="mx-2 flex justify-between">{surfaces.map(() => <span class="huet-border-20 h-1 border-l" />)}</span>
       <span class="huet-text-50 flex justify-between text-xs"><span>page's side · 0–25</span><span>opposite side · 75–100</span></span>
     </label>
 
@@ -237,6 +238,7 @@ const inline = "huet-bg-10 rounded-xs px-1 font-mono text-[0.9em]";
   }
 
   function setSurface(amount: number) {
+    slider.style.setProperty("--fill", String(surfaces.indexOf(amount) / (surfaces.length - 1)));
     surfaceValue.textContent = `huet-bg-${amount}`;
     for (const name of document.querySelectorAll("[data-surface-name]")) name.textContent = `huet-bg-${amount}`;
     // Only blocks from huetShikiTransformer carry a surface class; the cards don't.

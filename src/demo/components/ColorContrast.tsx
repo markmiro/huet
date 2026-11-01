@@ -58,18 +58,18 @@ export default function ColorContrast() {
         <label htmlFor={`${id}-steps`} className="mb-1 block">
           Step sizes
         </label>
-        <div className="relative max-w-[30em]">
+        {/* huet/forms.css draws the chevron and, where browsers allow, the dropdown list */}
+        <div data-huet-forms className="max-w-[30em]">
           <select
             id={`${id}-steps`}
             value={stepKey}
             onChange={(event) => setStepKey(event.target.value as StepKey)}
-            className="huet-border-20 block w-full appearance-none rounded-xs border bg-transparent px-[.5em] py-[.3em] pr-8"
+            className="huet-border-20 flex w-full rounded-xs py-[.3em] pl-[.5em]"
           >
             <option value="increment20">20, 40, 60, ...</option>
             <option value="increment10">10, 20, 30, ...</option>
             <option value="all">0, 5, 10, 20, ..., 90, 95, 100</option>
           </select>
-          <span className="pointer-events-none absolute top-1/2 right-3 -translate-y-1/2 border-x-[.4em] border-t-[.4em] border-x-transparent border-t-current" />
         </div>
         <div className="mt-2 flex flex-col">
           <span id={`${id}-ramp`}>Background ramp</span>
@@ -150,7 +150,7 @@ function NamedColors() {
 function FormExample({ base }: { base: RampKey }) {
   const id = useId();
   return (
-    <div data-form-example className="flex flex-row overflow-scroll">
+    <div data-form-example className="flex flex-row overflow-x-auto">
       {[0, 40, 60, 100].map((bg) => (
         <div key={bg} className={`huet-bg-${base}-${bg}`}>
           <div className="p-4">

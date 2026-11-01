@@ -9,6 +9,12 @@
   visibility: hidden;
 }
 
+/* Scrollbars in the surface's colors instead of the system's */
+#page,
+#page [data-huet-color-bg] {
+  scrollbar-color: var(--huet-border) transparent;
+}
+
 /* Number inputs whose native spin buttons are replaced by themed ones */
 .stepper-input {
   appearance: textfield;

@@ -48,6 +48,7 @@
 [data-huet-configurator][data-huet-root] {
   background-color: var(--huet-background);
   color: var(--huet-foreground);
+  scrollbar-color: var(--huet-border) transparent;
 }
 [data-huet-configurator][data-huet-color-bg],
 [data-huet-configurator] [data-huet-color-bg] {
@@ -109,6 +110,75 @@
   width: 1px !important;
   height: 1em !important;
 }
+[data-huet-configurator] input[type="range"]::-moz-range-thumb {
+  width: 1px;
+  height: 1em;
+  border: none;
+  border-radius: 0;
+  background: currentColor;
+}
+[data-huet-configurator] input[type="range"]::-moz-range-track {
+  background: transparent;
+}
+
+/* Number fields: spin buttons drawn in the surface's muted color. The top half
+   steps up and the bottom half steps down. Firefox can't draw them, so it
+   hides them; the arrow keys still step. */
+[data-huet-configurator] input[type="number"] {
+  -moz-appearance: textfield;
+}
+[data-huet-configurator] input[type="number"]::-webkit-inner-spin-button {
+  -webkit-appearance: none !important;
+  width: 1em;
+  height: 1.25em;
+  margin: 0 0 0 0.25em;
+  background: var(--huet-muted, currentColor);
+  mask: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 30' fill='none' stroke='black' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='m7 11 5-5 5 5M7 19l5 5 5-5'/%3E%3C/svg%3E")
+    center / contain no-repeat;
+  cursor: pointer;
+  opacity: 1;
+}
+[data-huet-configurator] input[type="number"]::-webkit-inner-spin-button:hover {
+  background: currentColor;
+}
+[data-huet-configurator] input[type="number"]::-webkit-outer-spin-button {
+  -webkit-appearance: none !important;
+  margin: 0;
+}
+
+/* Selects: where browsers allow, the dropdown list is the panel's too. The
+   component draws its own chevron, so the browser's is hidden. */
+@supports (appearance: base-select) {
+  [data-huet-configurator] select,
+  [data-huet-configurator] select::picker(select) {
+    appearance: base-select;
+  }
+  [data-huet-configurator] select::picker-icon {
+    display: none;
+  }
+  [data-huet-configurator] select::picker(select) {
+    margin-block: 0.25em;
+    padding: 0.25em;
+    border: 1px solid var(--huet-border);
+    border-radius: 0.25em;
+    background-color: var(--huet-background);
+    color: var(--huet-foreground);
+    font: inherit;
+    box-shadow: 0 0.5em 1.5em rgb(0 0 0 / 0.15);
+  }
+  [data-huet-configurator] select option {
+    padding: 0.3em 0.5em;
+    border-radius: 0.125em;
+    cursor: pointer;
+  }
+  [data-huet-configurator] select option:is(:hover, :focus) {
+    background-color: color-mix(in srgb, currentColor 12%, transparent);
+    box-shadow: none !important;
+  }
+  [data-huet-configurator] select option::checkmark {
+    margin-right: 0.375em;
+  }
+}
 
 /* Color pickers: the swatch fills the input */
 [data-huet-configurator] input[type="color"]::-webkit-color-swatch-wrapper {
@@ -118,6 +188,9 @@
 [data-huet-configurator] input[type="color"]::-webkit-color-swatch {
   border: none;
   padding: 0;
+}
+[data-huet-configurator] input[type="color"]::-moz-color-swatch {
+  border: none;
 }
 
 /* Unlayered, after the reset */

@@ -16,7 +16,11 @@ function savedMode(): EmbeddedThemeConfiguratorMode {
   return modes.find((mode) => mode === saved) ?? "contrast";
 }
 
-const selectClass = "huet-bg-0 huet-border-30 rounded border px-1 py-0.5";
+// huet/forms.css draws the chevron and, where browsers allow, the dropdown
+// list. Customizable selects lay the chevron out inline, so they need less
+// room on the right than the background-image chevron does.
+const selectClass =
+  "huet-bg-0 huet-border-30 rounded border py-0.5 pr-[1.75em] pl-1 supports-[appearance:base-select]:pr-1";
 
 /**
  * Themes `#page` and recolors its `img[data-huet-recolor]` and
@@ -62,7 +66,7 @@ export default function ThemeButton() {
   usePageTheme();
   return (
     <div className="flex items-center gap-2 px-2 py-1 text-sm">
-      <label className="flex items-center gap-2">
+      <label data-huet-forms className="flex items-center gap-1.5">
         Background
         <select
           value={background}
@@ -76,7 +80,7 @@ export default function ThemeButton() {
           ))}
         </select>
       </label>
-      <label className="flex items-center gap-2">
+      <label data-huet-forms className="flex items-center gap-1.5">
         Theme button
         <select
           value={mode}
