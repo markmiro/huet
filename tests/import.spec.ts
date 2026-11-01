@@ -57,7 +57,7 @@ test("importing the same file twice adds two separately selectable themes", asyn
   await expect(listed(page)).toHaveCount(1);
   await expect(listed(page, "Import Test 2")).toHaveCount(1);
   // Only one is selected: both are the same theme, so the first listed wins
-  await expect(configurator(page).locator("[aria-pressed=true]")).toHaveCount(2); // the theme and the Themes tab
+  await expect(configurator(page).locator("[aria-pressed=true]")).toHaveCount(1);
   expect(alerts).toEqual([]);
 });
 

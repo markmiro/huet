@@ -1,6 +1,6 @@
 import { test, expect } from "@playwright/test";
 
-import { configurator, openConfigurator } from "./helpers/configurator";
+import { configurator, openConfigurator, openSettings, setPercent } from "./helpers/configurator";
 
 test("bad saved state falls back to defaults instead of crashing", async ({ page }) => {
   const errors: string[] = [];
@@ -43,16 +43,19 @@ test("the theme and configurator state survive a reload", async ({ page }) => {
   await page.reload();
 
   const dialog = await openConfigurator(page, "Edit Theme");
-  await dialog.getByRole("slider", { name: "Contrast" }).fill("0.5");
+  await setPercent(page, "Blending and contrast", "Contrast", 50);
   await expect(page.locator("[data-theme-name]")).toHaveText("Custom");
   // Leaving the page flushes pending writes
   await page.reload();
 
   // Reopens on the Edit Theme tab, with the edit and where it came from
   await page.getByRole("button", { name: /^Theme:/ }).click();
-  await expect(dialog.getByRole("slider", { name: "Contrast" })).toHaveValue("0.5");
+  const settings = await openSettings(page, "Blending and contrast");
+  await expect(settings.getByRole("textbox", { name: "Contrast", exact: true })).toHaveValue("50");
+  await page.keyboard.press("Escape");
   const keys = await page.evaluate(() => Object.keys(localStorage).sort());
   expect(keys).toEqual(["huet-demo:theme", "huet:embedded:currentTab", "huet:themer:editedFrom"]);
-  await dialog.getByText("Edited from Base.").getByRole("button", { name: "Reset" }).click();
+  await expect(dialog.getByText("from Base", { exact: true })).toBeVisible();
+  await dialog.getByRole("button", { name: "Reset", exact: true }).click();
   await expect(page.locator("[data-theme-name]")).toHaveText("Base");
 });

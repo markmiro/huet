@@ -90,6 +90,16 @@ export function ConfiguratorRoot({
               callbacks.current.onThemesChange?.({ [saved]: value, ...themes });
               setLastPicked(saved);
             },
+            create: () => {
+              const created = freeName(themes, "New Theme");
+              // First, so `name` finds it rather than the theme it copies
+              callbacks.current.onThemesChange?.({ [created]: value, ...themes });
+              setLastPicked(created);
+            },
+            update: (updated: string, theme: Theme) => {
+              callbacks.current.onThemesChange?.({ ...themes, [updated]: theme });
+              setLastPicked(updated);
+            },
             remove: (removed: string) => {
               const { [removed]: _, ...rest } = themes;
               callbacks.current.onThemesChange?.(rest);

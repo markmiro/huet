@@ -24,6 +24,10 @@ export interface ConfiguratorState {
   list?: {
     /** Adds the edited theme to the list under a new name, and picks it. */
     saveAsNew: () => void;
+    /** Adds a copy of the current theme as "New Theme", first in the list, and picks it. */
+    create: () => void;
+    /** Replaces a listed theme, as when saving edits back to the theme they came from. */
+    update: (name: string, theme: Theme) => void;
     remove: (name: string) => void;
     rename: (name: string, next: string) => void;
     /** Adds an imported theme to the list, and picks it. */

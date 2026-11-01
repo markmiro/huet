@@ -50,7 +50,7 @@ function TitleBar({
 // by the theme's contrast.
 const panelClass = cx(
   "huet-outline-20 hc:fixed hc:right-[1em] hc:bottom-[1em] hc:z-[999]",
-  "hc:font-ui hc:text-[.75rem] hc:outline",
+  "hc:font-ui hc:text-[.8125rem] hc:outline",
   "hc:transition-[opacity,translate,height] hc:duration-200 hc:ease-[ease-out]",
 );
 const shadow = {

@@ -3,6 +3,7 @@ import { createPortal } from "react-dom";
 
 import css from "../configurator.css?inline";
 import { mountTheme, type Theme } from "huet";
+import { PortalContainerContext } from "./ui/portal";
 
 /** One shared stylesheet, so consumers don't import any CSS. */
 export function injectStyles() {
@@ -61,5 +62,7 @@ export default function ConfiguratorPortal({
     container?.style.setProperty("--huet-configurator-contrast", String(theme.contrast ?? 1));
   }, [container, theme.contrast]);
 
-  return container ? createPortal(children, container) : null;
+  return container
+    ? createPortal(<PortalContainerContext.Provider value={container}>{children}</PortalContainerContext.Provider>, container)
+    : null;
 }

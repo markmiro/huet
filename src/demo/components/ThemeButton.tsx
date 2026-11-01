@@ -8,7 +8,8 @@ import {
 import { setDemoTheme, themeApplied, themeName, useDemoTheme } from "./themeStore";
 
 const modes: EmbeddedThemeConfiguratorMode[] = ["contrast", "outlined", "blended"];
-const backgrounds = [0, 0.25, 0.75, 1];
+// The stops the configurator's Background slider snaps to
+const backgrounds = [0, 0.05, 0.1, 0.15, 0.2, 0.25, 0.49, 0.51, 0.75, 0.8, 0.85, 0.9, 0.95, 1];
 const storageKey = "huet-demo:themeButton";
 
 function savedMode(): EmbeddedThemeConfiguratorMode {
@@ -75,7 +76,7 @@ export default function ThemeButton() {
         >
           {backgrounds.map((value) => (
             <option key={value} value={value}>
-              {value * 100}%
+              {Math.round(value * 100)}%
             </option>
           ))}
         </select>

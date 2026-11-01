@@ -1,7 +1,7 @@
-import * as Popover from "@radix-ui/react-popover";
-import { IconCheck, IconChevronDown } from "@tabler/icons-react";
+import { Popover } from "@base-ui/react/popover";
+import { IconCheck, IconChevronDown, IconPlus } from "@tabler/icons-react";
 import React, { useLayoutEffect, useState } from "react";
-import type { Theme } from "huet";
+import { themes as presets, type Theme } from "huet";
 import { resolveTheme } from "huet/internal";
 
 import { useThemeConfigurator } from "./context";
@@ -10,8 +10,10 @@ import { HSpace } from "./private/AllExceptFirst";
 import Button, { JsonUploadButton } from "./private/Button";
 import ConfiguratorPortal, { injectStyles } from "./private/ConfiguratorPortal";
 import EditTheme from "./private/EditTheme";
-import Tabs, { asTab, tabEnum, type Tab } from "./private/Tabs";
-import usePersistentState from "./private/persistentState";
+import Tabs, { asTab, TabPanel, tabEnum, type Tab } from "./private/Tabs";
+import usePersistentState, { asBoolean } from "./private/persistentState";
+import { usePortalContainer } from "./private/ui/portal";
+import { Switch } from "./private/ui/switch";
 import ErrorBoundary from "./private/ErrorBoundary";
 import ThemeMiniMap from "./private/ThemeMiniMap";
 import cx from "./private/cx";
@@ -26,8 +28,8 @@ export type EmbeddedThemeConfiguratorMode = "contrast" | "outlined" | "blended";
 
 export interface EmbeddedThemeConfiguratorProps extends ThemeConfiguratorProps {
   mode?: EmbeddedThemeConfiguratorMode;
-  side?: Popover.PopoverContentProps["side"];
-  align?: Popover.PopoverContentProps["align"];
+  side?: "top" | "right" | "bottom" | "left";
+  align?: "start" | "center" | "end";
   /** Inline styles for the wrapper, such as margins */
   style?: React.CSSProperties;
 }
@@ -96,7 +98,7 @@ function ThemeOption({
 }
 
 /** The `themes` to pick from, and what can be done with the picked one. */
-function ThemeList() {
+function ThemeList({ onCreate }: { onCreate: () => void }) {
   const { theme, setTheme, themes, name, editedFrom, reset, list } = useThemeConfigurator();
   const isListed = name !== undefined;
   const canRemove = list && isListed && Object.keys(themes).length > 1;
@@ -120,6 +122,23 @@ function ThemeList() {
             />
           );
         })}
+        {list && (
+          <button
+            type="button"
+            onClick={() => {
+              list.create();
+              onCreate();
+            }}
+            className={cx(
+              "huet-border-30 hc:flex hc:items-center hc:justify-center hc:gap-[.5em] hc:w-full hc:py-[.625em]",
+              "hc:rounded-md hc:border hc:border-dashed hc:cursor-pointer hc:tint-hover huet-text-70",
+              keyboardFocusOnly,
+            )}
+          >
+            <IconPlus size="1em" stroke={2} />
+            New theme
+          </button>
+        )}
       </div>
       {/* HSpace gives every child a slot, so hidden actions are left out rather than `false` */}
       <HSpace growEach className="hc:p-2 hc:border-t">
@@ -148,21 +167,36 @@ function ThemeList() {
   );
 }
 
-/** The popover's Themes and Edit Theme tabs. */
-function Configurator() {
+/** The popover's Themes and Edit Theme tabs, and the switch to theme the popover itself. */
+function Configurator({
+  shouldThemeSelf,
+  onShouldThemeSelfChange,
+}: {
+  shouldThemeSelf: boolean;
+  onShouldThemeSelfChange: (value: boolean) => void;
+}) {
   const [currentTab, setCurrentTab] = usePersistentState<Tab>("embedded:currentTab", tabEnum.THEMES, asTab);
   return (
     <>
-      <Tabs currentTab={currentTab} onTabChange={setCurrentTab} buttonClassName={keyboardFocusOnly} />
-      {currentTab === tabEnum.EDIT_THEME ? (
-        <div className="hc:flex-auto hc:min-h-0 hc:overflow-y-auto hc:overscroll-contain">
+      <Tabs currentTab={currentTab} onTabChange={setCurrentTab}>
+        <TabPanel tab={tabEnum.THEMES} className="hc:flex hc:flex-col hc:flex-auto hc:min-h-0">
+          <ThemeList onCreate={() => setCurrentTab(tabEnum.EDIT_THEME)} />
+        </TabPanel>
+        <TabPanel tab={tabEnum.EDIT_THEME} className="hc:flex-auto hc:min-h-0 hc:overflow-y-auto hc:overscroll-contain">
           <EditTheme />
-        </div>
-      ) : (
-        <ThemeList />
-      )}
+        </TabPanel>
+      </Tabs>
+      <div className="huet-bg-5 huet-border-10 hc:border-t hc:px-[1.25em] hc:py-[.5em]">
+        <Switch label="Theme the themer" checked={shouldThemeSelf} onCheckedChange={onShouldThemeSelfChange} />
+      </div>
     </>
   );
+}
+
+/** Base UI's portal, into the configurator's own container so its styles apply. */
+function PanelPortal({ children }: { children?: React.ReactNode }) {
+  const container = usePortalContainer();
+  return <Popover.Portal container={container}>{children}</Popover.Portal>;
 }
 
 function Picker({
@@ -173,6 +207,8 @@ function Picker({
 }: Pick<EmbeddedThemeConfiguratorProps, "mode" | "side" | "align" | "style">) {
   const { theme, resolved, background, name = "Custom" } = useThemeConfigurator();
   const [isOpen, setIsOpen] = useState(false);
+  // Shared with the floating panel's switch
+  const [shouldThemeSelf, setShouldThemeSelf] = usePersistentState("themer:shouldThemeSelf", true, asBoolean);
   useLayoutEffect(injectStyles, []);
 
   const { root: page, step } = resolved;
@@ -197,49 +233,43 @@ function Picker({
     <Popover.Root open={isOpen} onOpenChange={setIsOpen}>
       {/* Its own scoped container, so the host page's CSS can't restyle it */}
       <span data-huet-configurator="" style={{ fontSize: "inherit", ...style }}>
-        <Popover.Trigger asChild>
-          <button
-            type="button"
-            aria-label={`Theme: ${name}`}
-            title={name}
-            className={cx(
-              "hc:inline-flex hc:items-center hc:gap-[.5em] hc:py-[.375em] hc:pl-[.5em] hc:pr-[.375em]",
-              "hc:rounded-md hc:border hc:cursor-pointer",
-              keyboardFocusOnly,
-              "hc:bg-(--trigger-bg) hc:hover:bg-(--trigger-hover)",
-            )}
-            style={buttonStyle}
-          >
-            <ThemeMiniMap theme={resolved} bg={surface} />
-            <IconChevronDown
-              size="1em"
-              stroke={2}
-              className={cx(
-                "hc:shrink-0 hc:transition-transform hc:duration-150",
-                isOpen && "hc:rotate-180",
-              )}
-            />
-          </button>
+        <Popover.Trigger
+          aria-label={`Theme: ${name}`}
+          title={name}
+          className={cx(
+            "hc:inline-flex hc:items-center hc:gap-[.5em] hc:py-[.375em] hc:pl-[.5em] hc:pr-[.375em]",
+            "hc:rounded-md hc:border hc:cursor-pointer",
+            keyboardFocusOnly,
+            "hc:bg-(--trigger-bg) hc:hover:bg-(--trigger-hover)",
+          )}
+          style={buttonStyle}
+        >
+          <ThemeMiniMap theme={resolved} bg={surface} />
+          <IconChevronDown
+            size="1em"
+            stroke={2}
+            className={cx("hc:shrink-0 hc:transition-transform hc:duration-150", isOpen && "hc:rotate-180")}
+          />
         </Popover.Trigger>
       </span>
-      <ConfiguratorPortal theme={theme} background={background}>
-        <Popover.Content
-          side={side}
-          align={align}
-          sideOffset={6}
-          collisionPadding={8}
-          aria-label="Theme Configurator"
-          className={cx(
-            "huet-bg-0 huet-border-100 hc:border hc:rounded-lg hc:z-[1000] hc:overflow-hidden",
-            "hc:font-ui hc:text-[.8125rem] hc:flex hc:flex-col hc:w-[28em]",
-            // The same size on both tabs, so switching doesn't move the edges
-            "hc:h-[min(40em,var(--radix-popover-content-available-height))]",
-            // As the panel's: 16% of the foreground, scaled by the theme's contrast
-            "hc:shadow-[0_6px_24px_color-mix(in_srgb,var(--huet-foreground)_calc(16%*var(--huet-configurator-contrast,1)),transparent)]",
-          )}
-        >
-          <Configurator />
-        </Popover.Content>
+      <ConfiguratorPortal theme={shouldThemeSelf ? theme : presets.Base} background={background}>
+        <PanelPortal>
+          <Popover.Positioner side={side} align={align} sideOffset={6} collisionPadding={8} className="hc:z-[1000]">
+            <Popover.Popup
+              aria-label="Theme Configurator"
+              className={cx(
+                "huet-bg-0 huet-border-100 hc:border hc:rounded-lg hc:outline-none hc:font-ui hc:text-[.875rem]",
+                // As the panel's: 16% of the foreground, scaled by the theme's contrast
+                "hc:shadow-[0_6px_24px_color-mix(in_srgb,var(--huet-foreground)_calc(16%*var(--huet-configurator-contrast,1)),transparent)]",
+                "hc:overflow-hidden hc:flex hc:flex-col hc:w-[30em] hc:max-w-(--available-width)",
+                // The same size on both tabs, so switching doesn't move the edges
+                "hc:h-[min(52em,var(--available-height))]",
+              )}
+            >
+              <Configurator shouldThemeSelf={shouldThemeSelf} onShouldThemeSelfChange={setShouldThemeSelf} />
+            </Popover.Popup>
+          </Popover.Positioner>
+        </PanelPortal>
       </ConfiguratorPortal>
     </Popover.Root>
   );

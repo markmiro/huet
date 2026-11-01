@@ -8,6 +8,8 @@ import { useThemeConfigurator } from "../context";
 import { VSpace } from "./AllExceptFirst";
 import Arrow from "./Arrow";
 import { TextButton } from "./Button";
+import { Button } from "./ui/button";
+import { IconPlus } from "@tabler/icons-react";
 import cx from "./cx";
 
 /*
@@ -177,11 +179,24 @@ function ThemePreview({
  * The themes passed to the configurator. Picking one replaces the edited
  * theme. An edited theme that matches none of them shows first, as "Custom".
  */
-export default function Themes() {
-  const { theme, setTheme, themes, name } = useThemeConfigurator();
+export default function Themes({ onCreate }: { onCreate?: () => void }) {
+  const { theme, setTheme, themes, name, list } = useThemeConfigurator();
   const entries = Object.entries(themes);
   return (
     <VSpace size={3} className="hc:p-4">
+      {list && (
+        <Button
+          variant="outline"
+          className="hc:w-full hc:border-dashed"
+          onClick={() => {
+            list.create();
+            onCreate?.();
+          }}
+        >
+          <IconPlus size="1em" stroke={2} />
+          New theme
+        </Button>
+      )}
       {name === undefined && <ThemePreview name="Custom" theme={theme} isSelected />}
       {entries.map(([name, listed]) => {
         const isSelected = isEqual(listed, theme);
