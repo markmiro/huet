@@ -23,9 +23,29 @@ export interface ThemeConfiguratorProps {
     background?: number;
     /** Called when someone picks a background in the configurator. Leave it out to hide the picker. */
     onBackgroundChange?: (background: number) => void;
+    /**
+     * Your page's own colors by name, such as a brand accent or a chart
+     * palette. Edit Theme shows them in a row of swatches under the hues. Place
+     * them on the theme yourself, for example on `rampThrough` from
+     * `huet/internal`.
+     */
+    pageColors?: Readonly<Record<string, PageColor>>;
+    /**
+     * Called when someone edits one of `pageColors`, with its new colors, or
+     * with `undefined` to go back to the page's own. Leave it out to show them
+     * without editing.
+     */
+    onPageColorChange?: (name: string, colors: string[] | undefined) => void;
+}
+/** One of a page's own colors: a single color, or a palette such as a chart's. */
+export interface PageColor {
+    /** The colors in use. */
+    colors: readonly string[];
+    /** The page's own colors, when `colors` is an edit of them. Default goes back to these. */
+    own?: readonly string[];
 }
 /** Shares the edited theme with `children` through ThemeConfiguratorContext. */
-export declare function ConfiguratorRoot({ value, onChange, themes, onThemesChange, background, onBackgroundChange, children, }: ThemeConfiguratorProps & {
+export declare function ConfiguratorRoot({ value, onChange, themes, onThemesChange, background, onBackgroundChange, pageColors, onPageColorChange, children, }: ThemeConfiguratorProps & {
     children?: React.ReactNode;
 }): React.JSX.Element;
 /**

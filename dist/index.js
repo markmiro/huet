@@ -227,36 +227,36 @@ var Oe = {
 	icon: "hc:size-[2.25em]",
 	"icon-sm": "hc:size-[1.875em]"
 };
-function B({ variant: e = "secondary", size: t = "md", className: n } = {}) {
+function Ae({ variant: e = "secondary", size: t = "md", className: n } = {}) {
 	return N("hc:inline-flex hc:items-center hc:justify-center hc:shrink-0 hc:rounded-md hc:cursor-pointer hc:select-none hc:whitespace-nowrap hc:font-medium", "hc:tint-hover hc:disabled:opacity-50 hc:disabled:cursor-default", Oe[e], ke[t], n);
 }
-function Ae(e) {
+function je(e) {
 	return !e || window.confirm(e === !0 ? "Are you sure?" : e);
 }
-var V = t.forwardRef(function({ variant: e, size: t, verify: n, className: r, onClick: i, type: a = "button", ...o }, s) {
+var B = t.forwardRef(function({ variant: e, size: t, verify: n, className: r, onClick: i, type: a = "button", ...o }, s) {
 	return /* @__PURE__ */ b("button", {
 		ref: s,
 		type: a,
-		className: B({
+		className: Ae({
 			variant: e,
 			size: t,
 			className: r
 		}),
 		onClick: (e) => {
-			Ae(n) && i?.(e);
+			je(n) && i?.(e);
 		},
 		...o
 	});
 });
-function je({ children: e, className: t }) {
+function Me({ children: e, className: t }) {
 	return /* @__PURE__ */ b("span", {
 		className: N("huet-bg-blue-100 hc:inline-flex hc:items-center hc:justify-center hc:h-[1.5em] hc:min-w-[1.5em] hc:px-[.5em] hc:rounded-full hc:text-[.75em] hc:font-semibold hc:leading-none hc:tabular-nums", t),
 		children: e
 	});
 }
 // src/private/BaseColors.tsx
-var Me = z((e) => C.hsv(e * 360, 1, 1).hex());
-function Ne({ hsv: e, onChange: t }) {
+var Ne = z((e) => C.hsv(e * 360, 1, 1).hex());
+function Pe({ hsv: e, onChange: t }) {
 	let n = l(null), r = (r) => {
 		let i = n.current.getBoundingClientRect();
 		t({
@@ -302,12 +302,12 @@ function Ne({ hsv: e, onChange: t }) {
 		})
 	});
 }
-function Pe({ label: e, color: t, onChange: n, onRemove: r }) {
+function Fe({ label: e, color: t, onChange: n, onRemove: r }) {
 	let [i, a] = Ee(t, n, (e, t) => Se(e, t?.h), L);
 	return /* @__PURE__ */ x("div", {
 		className: "hc:flex hc:flex-col hc:gap-[.75em]",
 		children: [
-			/* @__PURE__ */ b(Ne, {
+			/* @__PURE__ */ b(Pe, {
 				hsv: i,
 				onChange: a
 			}),
@@ -320,7 +320,7 @@ function Pe({ label: e, color: t, onChange: n, onRemove: r }) {
 					...i,
 					h: e
 				}),
-				track: Me,
+				track: Ne,
 				thumbColor: C.hsv(i.h, 1, 1).hex()
 			}),
 			/* @__PURE__ */ x("div", {
@@ -335,7 +335,7 @@ function Pe({ label: e, color: t, onChange: n, onRemove: r }) {
 						className: "huet-text-60 hc:grow",
 						children: e
 					}),
-					r && /* @__PURE__ */ x(V, {
+					r && /* @__PURE__ */ x(B, {
 						variant: "ghost",
 						size: "sm",
 						onClick: r,
@@ -349,8 +349,8 @@ function Pe({ label: e, color: t, onChange: n, onRemove: r }) {
 		]
 	});
 }
-var H = (e, t) => e === 0 ? "Darkest" : e === t - 1 ? "Lightest" : t === 3 ? "Middle" : `Middle ${e}`;
-function Fe({ colors: e, colorModel: n = "oklab", onChange: r }) {
+var Ie = (e, t) => e === 0 ? "Darkest" : e === t - 1 ? "Lightest" : t === 3 ? "Middle" : `Middle ${e}`;
+function Le({ colors: e, colorModel: n = "oklab", onChange: r }) {
 	let { resolved: i } = j(), [a, o] = u(0), s = a !== null && a < e.length ? a : null, c = (t) => {
 		let i = C.mix(e[t], e[t + 1], .5, n === "oklab" ? "oklab" : "lab").hex();
 		r([
@@ -372,10 +372,10 @@ function Fe({ colors: e, colorModel: n = "oklab", onChange: r }) {
 			/* @__PURE__ */ b("div", {
 				className: "hc:flex hc:items-start",
 				children: e.map((n, r) => {
-					let i = H(r, e.length), a = r === s;
+					let i = Ie(r, e.length), a = r === s;
 					return /* @__PURE__ */ x(t.Fragment, { children: [r > 0 && /* @__PURE__ */ b("button", {
 						type: "button",
-						"aria-label": `Add a color between ${H(r - 1, e.length)} and ${i}`,
+						"aria-label": `Add a color between ${Ie(r - 1, e.length)} and ${i}`,
 						title: "Add a middle color",
 						onClick: () => c(r - 1),
 						className: "huet-border-20 hc:flex hc:items-center hc:justify-center hc:shrink-0 hc:size-[1.5em] hc:mx-[.25em] hc:mt-[.875em] hc:rounded-full hc:border hc:border-dashed hc:cursor-pointer hc:tint-hover huet-text-70",
@@ -410,8 +410,8 @@ function Fe({ colors: e, colorModel: n = "oklab", onChange: r }) {
 				children: "Click a color to edit it. Use + to add a middle color."
 			}) : /* @__PURE__ */ b("div", {
 				className: "huet-bg-5 hc:rounded-lg hc:p-[.75em]",
-				children: /* @__PURE__ */ b(Pe, {
-					label: H(s, e.length),
+				children: /* @__PURE__ */ b(Fe, {
+					label: Ie(s, e.length),
 					color: e[s],
 					onChange: (t) => r(e.map((e, n) => n === s ? t : e)),
 					onRemove: s > 0 && s < e.length - 1 ? () => l(s) : void 0
@@ -421,8 +421,8 @@ function Fe({ colors: e, colorModel: n = "oklab", onChange: r }) {
 	});
 }
 // src/private/ui/number-field.tsx
-var Ie = "hc:flex hc:items-center hc:justify-center hc:w-[1.625em] hc:h-full hc:cursor-pointer hc:tint-hover hc:data-disabled:opacity-40 hc:data-disabled:cursor-default";
-function Le({ label: e, value: t, onValueChange: n, min: r, max: i, step: a = 1, suffix: o, invalid: s, allowOutOfRange: c, className: l }) {
+var Re = "hc:flex hc:items-center hc:justify-center hc:w-[1.625em] hc:h-full hc:cursor-pointer hc:tint-hover hc:data-disabled:opacity-40 hc:data-disabled:cursor-default";
+function ze({ label: e, value: t, onValueChange: n, min: r, max: i, step: a = 1, suffix: o, invalid: s, allowOutOfRange: c, className: l }) {
 	return /* @__PURE__ */ b(E.Root, {
 		value: t,
 		onValueChange: (e) => {
@@ -441,7 +441,7 @@ function Le({ label: e, value: t, onValueChange: n, min: r, max: i, step: a = 1,
 			children: [
 				/* @__PURE__ */ b(E.Decrement, {
 					"aria-label": `Decrease ${e}`,
-					className: Ie,
+					className: Re,
 					children: /* @__PURE__ */ b(ie, {
 						size: ".875em",
 						stroke: 2
@@ -459,7 +459,7 @@ function Le({ label: e, value: t, onValueChange: n, min: r, max: i, step: a = 1,
 				}),
 				/* @__PURE__ */ b(E.Increment, {
 					"aria-label": `Increase ${e}`,
-					className: Ie,
+					className: Re,
 					children: /* @__PURE__ */ b(T, {
 						size: ".875em",
 						stroke: 2
@@ -469,65 +469,64 @@ function Le({ label: e, value: t, onValueChange: n, min: r, max: i, step: a = 1,
 		})
 	});
 }
-// src/private/Hues.tsx
-var Re = g.Base.colors, ze = (e) => e[0].toUpperCase() + e.slice(1);
-function Be({ hue: e, color: t, onChange: n, onClose: r }) {
-	let [i, a] = Ee(t, n, (e, t) => we(e, t?.h), R), o = ze(e), s = z((e) => R({
-		...i,
+// src/private/ColorSwatches.tsx
+function Be({ name: e, color: t, onChange: n, onReset: r, onClose: i }) {
+	let [a, o] = Ee(t, n, (e, t) => we(e, t?.h), R), s = z((e) => R({
+		...a,
 		h: e * 360
 	})), c = z((e) => R({
-		...i,
+		...a,
 		s: e
-	}), 6), l = C(t).hex() === C(Re[e]).hex();
+	}), 6);
 	return /* @__PURE__ */ x("div", {
 		className: "hc:grid hc:grid-cols-[5.5em_1fr_auto] hc:items-center hc:gap-x-[.75em] hc:gap-y-[.5em]",
 		children: [
 			/* @__PURE__ */ b("span", { children: "Hue" }),
 			/* @__PURE__ */ b(P, {
-				label: `${o} hue`,
+				label: `${e} hue`,
 				min: 0,
 				max: 360,
-				value: i.h,
-				onValueChange: (e) => a({
-					...i,
+				value: a.h,
+				onValueChange: (e) => o({
+					...a,
 					h: e
 				}),
 				track: s,
-				thumbColor: R(i)
+				thumbColor: R(a)
 			}),
-			/* @__PURE__ */ b(Le, {
-				label: `${o} hue`,
+			/* @__PURE__ */ b(ze, {
+				label: `${e} hue`,
 				min: 0,
 				max: 360,
 				suffix: "°",
-				value: Math.round(i.h),
-				onValueChange: (e) => a({
-					...i,
+				value: Math.round(a.h),
+				onValueChange: (e) => o({
+					...a,
 					h: (e % 360 + 360) % 360
 				})
 			}),
 			/* @__PURE__ */ b("span", { children: "Saturation" }),
 			/* @__PURE__ */ b(P, {
-				label: `${o} saturation`,
+				label: `${e} saturation`,
 				min: 0,
 				max: 1,
 				step: .01,
-				value: i.s,
-				onValueChange: (e) => a({
-					...i,
+				value: a.s,
+				onValueChange: (e) => o({
+					...a,
 					s: e
 				}),
 				track: c,
-				thumbColor: R(i)
+				thumbColor: R(a)
 			}),
-			/* @__PURE__ */ b(Le, {
-				label: `${o} saturation`,
+			/* @__PURE__ */ b(ze, {
+				label: `${e} saturation`,
 				min: 0,
 				max: 100,
 				suffix: "%",
-				value: Math.round(i.s * 100),
-				onValueChange: (e) => a({
-					...i,
+				value: Math.round(a.s * 100),
+				onValueChange: (e) => o({
+					...a,
 					s: Math.max(0, Math.min(100, e)) / 100
 				})
 			}),
@@ -535,26 +534,26 @@ function Be({ hue: e, color: t, onChange: n, onClose: r }) {
 				className: "hc:col-span-3 hc:flex hc:items-center hc:gap-[.5em] hc:pt-[.25em]",
 				children: [
 					/* @__PURE__ */ b(De, {
-						label: `${o} hex`,
-						color: R(i),
-						onChange: (e) => a(we(e, i.h))
+						label: `${e} hex`,
+						color: R(a),
+						onChange: (e) => o(we(e, a.h))
 					}),
 					/* @__PURE__ */ b("span", { className: "hc:grow" }),
-					!l && /* @__PURE__ */ x(V, {
+					r && /* @__PURE__ */ x(B, {
 						variant: "ghost",
 						size: "sm",
-						onClick: () => n(Re[e]),
+						onClick: r,
 						children: [/* @__PURE__ */ b(oe, {
 							size: "1em",
 							stroke: 2
 						}), "Default"]
 					}),
-					/* @__PURE__ */ b(V, {
+					/* @__PURE__ */ b(B, {
 						variant: "ghost",
 						size: "icon-sm",
 						"aria-label": "Done",
 						title: "Done",
-						onClick: r,
+						onClick: i,
 						children: /* @__PURE__ */ b(ue, {
 							size: "1em",
 							stroke: 2
@@ -565,65 +564,117 @@ function Be({ hue: e, color: t, onChange: n, onClose: r }) {
 		]
 	});
 }
-function Ve({ theme: e, onChange: t }) {
-	let [n, r] = u(null), i = (t) => e.colors?.[t] ?? Re[t];
+function Ve({ swatches: e, selected: t, onSelect: n, editor: r }) {
 	return /* @__PURE__ */ x("div", {
 		className: "hc:flex hc:flex-col",
 		children: [/* @__PURE__ */ b("div", {
 			className: "hc:flex hc:gap-[.5em]",
-			children: m.map((e) => {
-				let t = e === n;
+			children: e.map(({ key: e, label: r, fill: i, description: a }) => {
+				let o = e === t;
 				return /* @__PURE__ */ x("button", {
 					type: "button",
-					"aria-pressed": t,
-					"aria-label": `Edit ${e}, ${i(e)}`,
-					onClick: () => r(t ? null : e),
-					className: N("hc:flex hc:flex-col hc:gap-[.375em] hc:grow hc:basis-0 hc:min-w-0 hc:cursor-pointer hc:group", t ? "huet-bg-5 hc:rounded-t-lg hc:p-[.375em] hc:pb-[.5em]" : "hc:p-[.375em]"),
+					"aria-pressed": o,
+					"aria-label": `Edit ${r.toLowerCase()}, ${a}`,
+					onClick: () => n(o ? null : e),
+					className: N("hc:flex hc:flex-col hc:gap-[.375em] hc:grow hc:basis-0 hc:min-w-0 hc:cursor-pointer hc:group", o ? "huet-bg-5 hc:rounded-t-lg hc:p-[.375em] hc:pb-[.5em]" : "hc:p-[.375em]"),
 					children: [/* @__PURE__ */ b("span", {
-						className: N("hc:block hc:h-[2.25em] hc:rounded-md hc:border", t ? "huet-border-10 huet-outline-100 hc:outline-2 hc:outline-offset-2" : "huet-border-20 hc:group-hover:outline-1 hc:group-hover:outline-offset-1 huet-outline-50"),
-						style: { backgroundColor: i(e) }
+						className: N("hc:block hc:h-[2.25em] hc:rounded-md hc:border", o ? "huet-border-10 huet-outline-100 hc:outline-2 hc:outline-offset-2" : "huet-border-20 hc:group-hover:outline-1 hc:group-hover:outline-offset-1 huet-outline-50"),
+						style: { background: i }
 					}), /* @__PURE__ */ b("span", {
-						className: N("hc:text-[.8125em] hc:text-center", t ? "hc:font-semibold" : "huet-text-70"),
-						children: ze(e)
+						className: N("hc:text-[.8125em] hc:text-center", o ? "hc:font-semibold" : "huet-text-70"),
+						children: r
 					})]
 				}, e);
 			})
-		}), n && /* @__PURE__ */ b("div", {
-			className: N("huet-bg-5 hc:rounded-b-lg hc:p-[.75em]", n === m[0] ? "" : "hc:rounded-tl-lg", n === m[m.length - 1] ? "" : "hc:rounded-tr-lg"),
-			children: /* @__PURE__ */ b(Be, {
-				hue: n,
-				color: i(n),
-				onChange: (r) => t({
-					...e.colors,
-					[n]: r
-				}),
-				onClose: () => r(null)
-			}, n)
+		}), t && r && /* @__PURE__ */ b("div", {
+			className: N("huet-bg-5 hc:rounded-b-lg hc:p-[.75em]", t === e[0]?.key ? "" : "hc:rounded-tl-lg", t === e[e.length - 1]?.key ? "" : "hc:rounded-tr-lg"),
+			children: r
 		})]
 	});
 }
+// src/private/Hues.tsx
+var He = g.Base.colors, Ue = (e) => e[0].toUpperCase() + e.slice(1);
+function We({ theme: e, onChange: t }) {
+	let [n, r] = u(null), i = (t) => e.colors?.[t] ?? He[t];
+	return /* @__PURE__ */ b(Ve, {
+		swatches: m.map((e) => ({
+			key: e,
+			label: Ue(e),
+			fill: i(e),
+			description: i(e)
+		})),
+		selected: n,
+		onSelect: (e) => r(e),
+		editor: n && /* @__PURE__ */ b(Be, {
+			name: Ue(n),
+			color: i(n),
+			onChange: (r) => t({
+				...e.colors,
+				[n]: r
+			}),
+			onReset: ((e) => C(i(e)).hex() === C(He[e]).hex())(n) ? void 0 : () => t({
+				...e.colors,
+				[n]: He[n]
+			}),
+			onClose: () => r(null)
+		}, n)
+	});
+}
+// src/private/PageColors.tsx
+var Ge = (e) => [...e].sort((e, t) => C(e).get("oklch.l") - C(t).get("oklch.l")), Ke = (e) => Ge(e)[Math.floor((e.length - 1) / 2)];
+function qe(e, t) {
+	if (e.length <= 1) return [t];
+	let [, n, r] = C(Ke(e)).oklch(), [, i, a] = C(t).oklch(), o = Number.isNaN(a) ? 0 : a, s = !(n >= .02);
+	return e.map((e) => {
+		let [t, a, c] = C(e).oklch(), l = s || Number.isNaN(c) ? o : (c + o - r + 360) % 360, u = s ? i : a * i / n;
+		return C.oklch(t, Math.min(u, Ce(t, l)), l).hex();
+	});
+}
+function Je() {
+	let { pageColors: e, setPageColor: t } = j(), [n, r] = u(null), i = Object.entries(e).filter(([, { colors: e }]) => e.length > 0), a = n === null ? void 0 : e[n];
+	return /* @__PURE__ */ b(Ve, {
+		swatches: i.map(([e, { colors: t }]) => {
+			let n = Ge(t);
+			return {
+				key: e,
+				label: e,
+				fill: n.length > 1 ? `linear-gradient(to right, ${n.join(", ")})` : n[0],
+				description: t.join(", ")
+			};
+		}),
+		selected: n,
+		onSelect: t ? r : () => {},
+		editor: n !== null && a && t && /* @__PURE__ */ b(Be, {
+			name: n,
+			color: Ke(a.colors),
+			onChange: (e) => t(n, qe(a.own ?? a.colors, e)),
+			onReset: a.own ? () => t(n, void 0) : void 0,
+			onClose: () => r(null)
+		}, n)
+	});
+}
 // src/private/displayError.ts
-function He(e) {
+function Ye(e) {
 	console.error(e), alert(e);
 }
 // src/private/inputClass.ts
-var Ue = "hc:py-[.3em] hc:px-[.5em] hc:border hc:max-w-[30em] hc:rounded-xs";
+var Xe = "hc:py-[.3em] hc:px-[.5em] hc:border hc:max-w-[30em] hc:rounded-xs";
 // src/private/Button.tsx
-function We(e, t) {
+function Ze(e, t) {
 	let n = e.name.replace(/\.json$/i, "").replace(/ Huet Theme$/, "").trim() || "Imported";
 	e.type === "application/json" || e.name.toLowerCase().endsWith(".json") ? e.text().then((e) => {
 		let r;
 		try {
 			r = JSON.parse(e), f(r);
 		} catch (e) {
-			He(`That file isn't a valid Huet theme. ${e.message}`);
+			Ye(`That file isn't a valid Huet theme. ${e.message}`);
 			return;
 		}
 		t(r, n);
-	}) : He("Only JSON files are accepted.");
+	}) : Ye("Only JSON files are accepted.");
 }
-function Ge({ children: e, className: t, onUpload: n }) {
-	return /* @__PURE__ */ x(U, {
+function Qe({ children: e, className: t, onUpload: n }) {
+	return /* @__PURE__ */ x(V, {
 		as: "div",
 		"data-focus-within": "",
 		className: N("hc:relative", t),
@@ -633,41 +684,41 @@ function Ge({ children: e, className: t, onUpload: n }) {
 			className: "hc:absolute hc:w-full hc:h-full hc:left-0 hc:top-0 hc:opacity-0",
 			onChange: (e) => {
 				let t = e.target.files?.[0];
-				e.target.value = "", t && We(t, n);
+				e.target.value = "", t && Ze(t, n);
 			}
 		})]
 	});
 }
-function Ke(e, t) {
+function $e(e, t) {
 	if (e && !t) throw Error("Need a callback, otherwise `doubleCheck(boolOrMessage, cb)` doesn't do anything.");
 	return (n) => {
 		(!e || window.confirm(e === !0 ? "Are you sure?" : e)) && t?.(n);
 	};
 }
-function U({ as: e = "button", colors: t = "huet-bg-10", className: n, children: r, verify: i, onClick: a, ...o }) {
+function V({ as: e = "button", colors: t = "huet-bg-10", className: n, children: r, verify: i, onClick: a, ...o }) {
 	return /* @__PURE__ */ b(e, {
-		onClick: Ke(i, a),
+		onClick: $e(i, a),
 		...o,
-		className: N(Ue, "hc:w-full hc:border-transparent hc:cursor-default hc:flex hc:justify-center hc:items-center", t, n),
+		className: N(Xe, "hc:w-full hc:border-transparent hc:cursor-default hc:flex hc:justify-center hc:items-center", t, n),
 		children: r
 	});
 }
-function qe({ onClick: e, className: t, verify: n, ...r }) {
+function et({ onClick: e, className: t, verify: n, ...r }) {
 	return /* @__PURE__ */ b("button", {
 		...r,
 		className: N("hc:underline hc:cursor-pointer", t),
-		onClick: Ke(n, e)
+		onClick: $e(n, e)
 	});
 }
 // src/private/ui/popup.ts
-var Je = "huet-bg-0 huet-border-30 hc:border hc:rounded-lg hc:outline-none hc:font-ui hc:text-[.875rem] hc:shadow-[0_8px_28px_color-mix(in_srgb,var(--huet-foreground)_calc(18%*var(--huet-configurator-contrast,1)),transparent)]", Ye = "hc:flex hc:items-center hc:gap-[.5em] hc:px-[.625em] hc:py-[.4375em] hc:rounded-md hc:cursor-pointer hc:outline-none hc:select-none hc:tint-highlight hc:data-disabled:opacity-50 hc:data-disabled:cursor-default";
+var tt = "huet-bg-0 huet-border-30 hc:border hc:rounded-lg hc:outline-none hc:font-ui hc:text-[.875rem] hc:shadow-[0_8px_28px_color-mix(in_srgb,var(--huet-foreground)_calc(18%*var(--huet-configurator-contrast,1)),transparent)]", nt = "hc:flex hc:items-center hc:gap-[.5em] hc:px-[.625em] hc:py-[.4375em] hc:rounded-md hc:cursor-pointer hc:outline-none hc:select-none hc:tint-highlight hc:data-disabled:opacity-50 hc:data-disabled:cursor-default";
 // src/private/ui/menu.tsx
-function Xe({ label: e, children: t, align: n = "end" }) {
+function rt({ label: e, children: t, align: n = "end" }) {
 	let r = M();
 	return /* @__PURE__ */ x(D.Root, { children: [/* @__PURE__ */ b(D.Trigger, {
 		"aria-label": e,
 		title: e,
-		className: B({
+		className: Ae({
 			variant: "ghost",
 			size: "icon-sm"
 		}),
@@ -682,18 +733,18 @@ function Xe({ label: e, children: t, align: n = "end" }) {
 			align: n,
 			className: ge,
 			children: /* @__PURE__ */ b(D.Popup, {
-				className: N(Je, "hc:p-1 hc:min-w-[12em]"),
+				className: N(tt, "hc:p-1 hc:min-w-[12em]"),
 				children: t
 			})
 		})
 	})] });
 }
-function W({ icon: e, children: t, onClick: n, verify: r, disabled: i }) {
+function H({ icon: e, children: t, onClick: n, verify: r, disabled: i }) {
 	return /* @__PURE__ */ x(D.Item, {
 		disabled: i,
-		className: Ye,
+		className: nt,
 		onClick: () => {
-			Ae(r) && n?.();
+			je(r) && n?.();
 		},
 		children: [/* @__PURE__ */ b("span", {
 			className: "hc:flex hc:w-[1em] hc:justify-center huet-text-70",
@@ -701,11 +752,11 @@ function W({ icon: e, children: t, onClick: n, verify: r, disabled: i }) {
 		}), t]
 	});
 }
-function Ze() {
+function it() {
 	return /* @__PURE__ */ b(D.Separator, { className: "huet-bg-10 hc:h-px hc:my-1 hc:-mx-1" });
 }
 // src/private/ThemeHeader.tsx
-function Qe({ name: e, onDone: t }) {
+function at({ name: e, onDone: t }) {
 	return /* @__PURE__ */ b("input", {
 		"aria-label": "Theme name",
 		autoFocus: !0,
@@ -718,17 +769,17 @@ function Qe({ name: e, onDone: t }) {
 		className: "huet-border-30 hc:min-w-0 hc:grow hc:text-[1.5em] hc:font-semibold hc:leading-tight hc:border-b-2 hc:cursor-text"
 	});
 }
-function $e() {
+function ot() {
 	let { theme: e, setTheme: t, name: n, editedFrom: r, reset: i, list: a, themes: o } = j(), [s, c] = u(!1), d = l(null), f = n === void 0, p = n ?? r ?? "Custom", m = a && n !== void 0, h = a && n !== void 0 && Object.keys(o).length > 1, g = () => {
 		let t = new Blob([JSON.stringify(e, null, 2)], { type: "application/json;charset=utf-8" });
 		de(t, `${p} Huet Theme.json`);
-	}, _ = (e) => We(e, (e, n) => a ? a.add(n, e) : t(e));
+	}, _ = (e) => Ze(e, (e, n) => a ? a.add(n, e) : t(e));
 	return /* @__PURE__ */ x("div", {
 		className: "hc:flex hc:flex-col hc:gap-[.625em] hc:px-[1.25em] hc:pt-[1.125em] hc:pb-[.25em]",
 		children: [/* @__PURE__ */ x("div", {
 			className: "hc:flex hc:items-center hc:gap-[.25em] hc:min-h-[2.25em]",
 			children: [
-				s && m ? /* @__PURE__ */ b(Qe, {
+				s && m ? /* @__PURE__ */ b(at, {
 					name: n,
 					onDone: (e) => {
 						e && a.rename(n, e), c(!1);
@@ -737,7 +788,7 @@ function $e() {
 					className: "hc:text-[1.5em] hc:font-semibold hc:leading-tight hc:truncate",
 					children: p
 				}),
-				m && !s && /* @__PURE__ */ b(V, {
+				m && !s && /* @__PURE__ */ b(B, {
 					variant: "ghost",
 					size: "icon-sm",
 					"aria-label": "Rename theme",
@@ -748,7 +799,7 @@ function $e() {
 						stroke: 2
 					})
 				}),
-				s && /* @__PURE__ */ b(V, {
+				s && /* @__PURE__ */ b(B, {
 					variant: "ghost",
 					size: "icon-sm",
 					"aria-label": "Save name",
@@ -759,25 +810,25 @@ function $e() {
 					})
 				}),
 				/* @__PURE__ */ b("span", { className: "hc:grow" }),
-				/* @__PURE__ */ x(Xe, {
+				/* @__PURE__ */ x(rt, {
 					label: "Theme actions",
 					children: [
-						/* @__PURE__ */ b(W, {
+						/* @__PURE__ */ b(H, {
 							icon: /* @__PURE__ */ b(le, { size: "1em" }),
 							onClick: () => d.current?.click(),
 							children: "Import theme…"
 						}),
-						/* @__PURE__ */ b(W, {
+						/* @__PURE__ */ b(H, {
 							icon: /* @__PURE__ */ b(re, { size: "1em" }),
 							onClick: g,
 							children: "Export theme"
 						}),
-						a && /* @__PURE__ */ x(y, { children: [/* @__PURE__ */ b(Ze, {}), /* @__PURE__ */ b(W, {
+						a && /* @__PURE__ */ x(y, { children: [/* @__PURE__ */ b(it, {}), /* @__PURE__ */ b(H, {
 							icon: /* @__PURE__ */ b(te, { size: "1em" }),
 							onClick: a.saveAsNew,
 							children: f ? "Save as new theme" : "Duplicate"
 						})] }),
-						h && /* @__PURE__ */ b(W, {
+						h && /* @__PURE__ */ b(H, {
 							icon: /* @__PURE__ */ b(ce, { size: "1em" }),
 							verify: `Remove ${n}?`,
 							onClick: () => a.remove(n),
@@ -799,27 +850,27 @@ function $e() {
 		}), f && /* @__PURE__ */ x("div", {
 			className: "hc:flex hc:items-center hc:gap-[.375em] hc:flex-wrap",
 			children: [
-				/* @__PURE__ */ b(je, { children: "Edited" }),
+				/* @__PURE__ */ b(Me, { children: "Edited" }),
 				r !== void 0 && /* @__PURE__ */ x("span", {
 					className: "huet-text-60",
 					children: ["from ", r]
 				}),
 				/* @__PURE__ */ b("span", { className: "hc:grow" }),
-				r !== void 0 && /* @__PURE__ */ b(V, {
+				r !== void 0 && /* @__PURE__ */ b(B, {
 					variant: "ghost",
 					size: "sm",
 					verify: `Discard your edits and go back to ${r}?`,
 					onClick: i,
 					children: "Reset"
 				}),
-				a && r !== void 0 && /* @__PURE__ */ b(V, {
+				a && r !== void 0 && /* @__PURE__ */ b(B, {
 					variant: "secondary",
 					size: "sm",
 					verify: `Save your edits over ${r}?`,
 					onClick: () => a.update(r, e),
 					children: "Save"
 				}),
-				a && /* @__PURE__ */ b(V, {
+				a && /* @__PURE__ */ b(B, {
 					variant: "primary",
 					size: "sm",
 					onClick: a.saveAsNew,
@@ -830,12 +881,12 @@ function $e() {
 	});
 }
 // src/private/ui/popover.tsx
-function et({ label: e, title: t, changed: n = 0, children: r }) {
+function st({ label: e, title: t, changed: n = 0, children: r }) {
 	let i = M(), a = n ? `${e} (${n} changed)` : e;
 	return /* @__PURE__ */ x(O.Root, { children: [/* @__PURE__ */ x(O.Trigger, {
 		"aria-label": a,
 		title: a,
-		className: B({
+		className: Ae({
 			variant: "ghost",
 			size: "icon-sm",
 			className: "hc:relative"
@@ -856,7 +907,7 @@ function et({ label: e, title: t, changed: n = 0, children: r }) {
 			className: ge,
 			children: /* @__PURE__ */ x(O.Popup, {
 				"aria-label": e,
-				className: N(Je, "hc:w-[19em] hc:p-[1em] hc:flex hc:flex-col hc:gap-[.875em]"),
+				className: N(tt, "hc:w-[19em] hc:p-[1em] hc:flex hc:flex-col hc:gap-[.875em]"),
 				children: [/* @__PURE__ */ b("h4", {
 					className: "hc:font-semibold",
 					children: t
@@ -866,7 +917,7 @@ function et({ label: e, title: t, changed: n = 0, children: r }) {
 	})] });
 }
 // src/private/ui/select.tsx
-function tt({ label: e, value: t, onValueChange: n, options: r, describe: i }) {
+function ct({ label: e, value: t, onValueChange: n, options: r, describe: i }) {
 	let a = M();
 	return /* @__PURE__ */ x(k.Root, {
 		value: t,
@@ -888,10 +939,10 @@ function tt({ label: e, value: t, onValueChange: n, options: r, describe: i }) {
 				alignItemWithTrigger: !1,
 				className: ge,
 				children: /* @__PURE__ */ b(k.Popup, {
-					className: N(Je, "hc:p-1 hc:min-w-(--anchor-width) hc:max-h-(--available-height) hc:overflow-y-auto"),
+					className: N(tt, "hc:p-1 hc:min-w-(--anchor-width) hc:max-h-(--available-height) hc:overflow-y-auto"),
 					children: r.map((e) => /* @__PURE__ */ x(k.Item, {
 						value: e,
-						className: Ye,
+						className: nt,
 						children: [
 							/* @__PURE__ */ b("span", {
 								className: "hc:flex hc:w-[1em]",
@@ -916,7 +967,7 @@ function tt({ label: e, value: t, onValueChange: n, options: r, describe: i }) {
 	});
 }
 // src/private/ui/switch.tsx
-function nt({ label: e, checked: t, onCheckedChange: n, className: r, children: i }) {
+function U({ label: e, checked: t, onCheckedChange: n, className: r, children: i }) {
 	return /* @__PURE__ */ x("div", {
 		className: N("hc:flex hc:items-center hc:gap-[.5em] hc:min-h-[1.875em]", r),
 		children: [/* @__PURE__ */ x("label", {
@@ -931,11 +982,11 @@ function nt({ label: e, checked: t, onCheckedChange: n, className: r, children: 
 	});
 }
 // src/private/EditTheme.tsx
-var rt = "lab", it = {
+var lt = "lab", ut = {
 	onLight: .49,
 	onDark: .49
 };
-function G({ title: e, actions: t, children: n }) {
+function W({ title: e, actions: t, children: n }) {
 	return /* @__PURE__ */ x("section", {
 		className: "huet-border-10 hc:flex hc:flex-col hc:gap-[.75em] hc:px-[1.25em] hc:py-[1em] hc:border-t",
 		children: [/* @__PURE__ */ x("div", {
@@ -950,7 +1001,7 @@ function G({ title: e, actions: t, children: n }) {
 		}), n]
 	});
 }
-function K({ label: e, value: t, onChange: n, max: r = 1, allowOverMax: i }) {
+function G({ label: e, value: t, onChange: n, max: r = 1, allowOverMax: i }) {
 	let a = t > r + 1e-9;
 	return /* @__PURE__ */ x("div", {
 		className: "hc:flex hc:flex-col hc:gap-[.25em]",
@@ -966,7 +1017,7 @@ function K({ label: e, value: t, onChange: n, max: r = 1, allowOverMax: i }) {
 				value: Math.min(t, r) * 100,
 				onValueChange: (e) => n(e / 100),
 				invalid: a
-			}), /* @__PURE__ */ b(Le, {
+			}), /* @__PURE__ */ b(ze, {
 				label: e,
 				min: 0,
 				max: r * 100,
@@ -979,24 +1030,24 @@ function K({ label: e, value: t, onChange: n, max: r = 1, allowOverMax: i }) {
 		})]
 	});
 }
-function at({ theme: e, edit: t }) {
-	let n = e.colorModel ?? "oklab", r = e.contrast ?? 1, i = Number(n !== rt) + Number(r !== 1);
-	return /* @__PURE__ */ x(et, {
+function dt({ theme: e, edit: t }) {
+	let n = e.colorModel ?? "oklab", r = e.contrast ?? 1, i = Number(n !== lt) + Number(r !== 1);
+	return /* @__PURE__ */ x(st, {
 		label: "Blending and contrast",
 		title: "Blending and contrast",
 		changed: i,
 		children: [
 			/* @__PURE__ */ x("div", {
 				className: "hc:flex hc:flex-col hc:gap-[.25em]",
-				children: [/* @__PURE__ */ b("span", { children: "Blend base colors in" }), /* @__PURE__ */ b(tt, {
+				children: [/* @__PURE__ */ b("span", { children: "Blend base colors in" }), /* @__PURE__ */ b(ct, {
 					label: "Blend base colors in",
 					value: n,
 					onValueChange: (e) => t({ colorModel: e }),
 					options: p,
-					describe: (e) => e === rt ? "recommended" : void 0
+					describe: (e) => e === lt ? "recommended" : void 0
 				})]
 			}),
-			/* @__PURE__ */ b(K, {
+			/* @__PURE__ */ b(G, {
 				label: "Contrast",
 				value: r,
 				onChange: (e) => t({ contrast: e === 1 ? void 0 : e }),
@@ -1006,11 +1057,11 @@ function at({ theme: e, edit: t }) {
 				className: "huet-text-red-100 hc:text-[.875em]",
 				children: "Above 100%, contrast amounts reach full strength sooner, which can look harsh."
 			}),
-			i > 0 && /* @__PURE__ */ b(V, {
+			i > 0 && /* @__PURE__ */ b(B, {
 				variant: "outline",
 				size: "sm",
 				onClick: () => t({
-					colorModel: rt,
+					colorModel: lt,
 					contrast: void 0
 				}),
 				children: "Reset to defaults"
@@ -1018,9 +1069,9 @@ function at({ theme: e, edit: t }) {
 		]
 	});
 }
-function ot({ theme: e, edit: t }) {
-	let n = e.signalLightness ?? it;
-	return /* @__PURE__ */ x(et, {
+function ft({ theme: e, edit: t }) {
+	let n = e.signalLightness ?? ut;
+	return /* @__PURE__ */ x(st, {
 		label: "Signal lightness",
 		title: "Signal lightness",
 		children: [
@@ -1028,7 +1079,7 @@ function ot({ theme: e, edit: t }) {
 				className: "huet-text-60 hc:text-[.875em]",
 				children: "Where classes such as huet-text-red-100 land on each hue’s dark → hue → light ramp."
 			}),
-			/* @__PURE__ */ b(K, {
+			/* @__PURE__ */ b(G, {
 				label: "On light backgrounds",
 				value: n.onLight,
 				onChange: (e) => t({ signalLightness: {
@@ -1036,7 +1087,7 @@ function ot({ theme: e, edit: t }) {
 					onLight: e
 				} })
 			}),
-			/* @__PURE__ */ b(K, {
+			/* @__PURE__ */ b(G, {
 				label: "On dark backgrounds",
 				value: n.onDark,
 				onChange: (e) => t({ signalLightness: {
@@ -1047,31 +1098,31 @@ function ot({ theme: e, edit: t }) {
 		]
 	});
 }
-function st({ label: e, value: t, onChange: n }) {
+function pt({ label: e, value: t, onChange: n }) {
 	let r = {
 		strength: 1,
 		tint: 1,
 		...t
 	}, i = r.strength > 0, a = Number(r.tint !== 1) + Number(i && r.strength !== 1);
-	return /* @__PURE__ */ b(nt, {
+	return /* @__PURE__ */ b(U, {
 		label: e,
 		checked: i,
 		onCheckedChange: (e) => n({
 			...r,
 			strength: +!!e
 		}),
-		children: i && /* @__PURE__ */ x(et, {
+		children: i && /* @__PURE__ */ x(st, {
 			label: `${e} settings`,
 			title: e,
 			changed: a,
-			children: [/* @__PURE__ */ b(K, {
+			children: [/* @__PURE__ */ b(G, {
 				label: "Tint",
 				value: r.tint,
 				onChange: (e) => n({
 					...r,
 					tint: e
 				})
-			}), /* @__PURE__ */ b(K, {
+			}), /* @__PURE__ */ b(G, {
 				label: "Strength",
 				value: r.strength,
 				onChange: (e) => n({
@@ -1082,20 +1133,20 @@ function st({ label: e, value: t, onChange: n }) {
 		})
 	});
 }
-function ct() {
-	let { theme: e, setTheme: t, background: n, setBackground: r } = j(), i = (n) => {
+function mt() {
+	let { theme: e, setTheme: t, background: n, setBackground: r, pageColors: i } = j(), a = (n) => {
 		let r = {
 			...e,
 			...n
 		};
 		for (let e of Object.keys(n)) r[e] === void 0 && delete r[e];
 		t(r);
-	}, [a, o] = u();
+	}, [o, s] = u();
 	return /* @__PURE__ */ x("div", {
 		className: "hc:flex hc:flex-col hc:pb-[.5em]",
 		children: [
-			/* @__PURE__ */ b($e, {}),
-			r && /* @__PURE__ */ b(G, {
+			/* @__PURE__ */ b(ot, {}),
+			r && /* @__PURE__ */ b(W, {
 				title: "Background",
 				actions: /* @__PURE__ */ x("span", {
 					className: "huet-text-60 hc:tabular-nums",
@@ -1107,13 +1158,13 @@ function ct() {
 					onChange: r
 				})
 			}),
-			/* @__PURE__ */ x(G, {
+			/* @__PURE__ */ x(W, {
 				title: "Base colors",
-				actions: /* @__PURE__ */ b(at, {
+				actions: /* @__PURE__ */ b(dt, {
 					theme: e,
-					edit: i
+					edit: a
 				}),
-				children: [/* @__PURE__ */ b(Fe, {
+				children: [/* @__PURE__ */ b(Le, {
 					colors: e.neutral,
 					colorModel: e.colorModel,
 					onChange: (t) => {
@@ -1123,40 +1174,44 @@ function ct() {
 								neutral: t
 							});
 						} catch {
-							o(e.neutral);
+							s(e.neutral);
 							return;
 						}
-						o(void 0), i({ neutral: t });
+						s(void 0), a({ neutral: t });
 					}
-				}), a === e.neutral && /* @__PURE__ */ b("p", {
+				}), o === e.neutral && /* @__PURE__ */ b("p", {
 					role: "alert",
 					className: "huet-text-red-100",
 					children: "The lightest color has to be lighter than the darkest."
 				})]
 			}),
-			/* @__PURE__ */ b(G, {
+			/* @__PURE__ */ b(W, {
 				title: "Hues",
-				actions: /* @__PURE__ */ b(ot, {
+				actions: /* @__PURE__ */ b(ft, {
 					theme: e,
-					edit: i
+					edit: a
 				}),
-				children: /* @__PURE__ */ b(Ve, {
+				children: /* @__PURE__ */ b(We, {
 					theme: e,
-					onChange: (e) => i({ colors: e })
+					onChange: (e) => a({ colors: e })
 				})
 			}),
-			/* @__PURE__ */ b(G, {
+			Object.keys(i).length > 0 && /* @__PURE__ */ b(W, {
+				title: "Page colors",
+				children: /* @__PURE__ */ b(Je, {})
+			}),
+			/* @__PURE__ */ b(W, {
 				title: "Images",
 				children: /* @__PURE__ */ x("div", {
 					className: "hc:flex hc:flex-col hc:gap-[.25em]",
-					children: [/* @__PURE__ */ b(st, {
+					children: [/* @__PURE__ */ b(pt, {
 						label: "Theme images",
 						value: e.images,
-						onChange: (e) => i({ images: e })
-					}), /* @__PURE__ */ b(st, {
+						onChange: (e) => a({ images: e })
+					}), /* @__PURE__ */ b(pt, {
 						label: "Theme SVGs",
 						value: e.svgs,
-						onChange: (e) => i({ svgs: e })
+						onChange: (e) => a({ svgs: e })
 					})]
 				})
 			})
@@ -1164,22 +1219,22 @@ function ct() {
 	});
 }
 // src/private/persistentState.ts
-var q = "huet:", lt = "useBrowserState_huet_", ut = [
+var K = "huet:", ht = "useBrowserState_huet_", gt = [
 	"themer:showHelp",
 	"theme",
 	"themes"
-], dt = 500, ft = (e) => typeof e == "boolean" ? e : void 0, pt = (e) => typeof e == "string" ? e : void 0;
-function mt(e) {
+], _t = 500, vt = (e) => typeof e == "boolean" ? e : void 0, yt = (e) => typeof e == "string" ? e : void 0;
+function bt(e) {
 	return (t) => e.includes(t) ? t : void 0;
 }
-function J() {
+function q() {
 	try {
 		return typeof window > "u" ? null : window.localStorage;
 	} catch {
 		return null;
 	}
 }
-function ht(e) {
+function xt(e) {
 	let t = [];
 	for (let n = 0; n < e.length; n++) {
 		let r = e.key(n);
@@ -1187,74 +1242,74 @@ function ht(e) {
 	}
 	return t;
 }
-function gt(e, t, n) {
-	if (Y.has(e)) return n(Y.get(e)) ?? t;
-	let r = J();
+function St(e, t, n) {
+	if (J.has(e)) return n(J.get(e)) ?? t;
+	let r = q();
 	if (!r) return t;
 	try {
-		let i = r.getItem(q + e);
+		let i = r.getItem(K + e);
 		if (i === null) return t;
 		let a = n(JSON.parse(i));
 		if (a !== void 0) return a;
 	} catch {}
 	console.warn(`Huet: discarding invalid saved value for "${e}"`);
 	try {
-		r.removeItem(q + e);
+		r.removeItem(K + e);
 	} catch {}
 	return t;
 }
-var Y = /* @__PURE__ */ new Map(), _t = /* @__PURE__ */ new Set(), X;
-function vt() {
-	for (let e of _t) e();
+var J = /* @__PURE__ */ new Map(), Ct = /* @__PURE__ */ new Set(), Y;
+function wt() {
+	for (let e of Ct) e();
 }
-function yt(e, t) {
-	Y.set(e, t), clearTimeout(X), X = setTimeout(bt, dt), vt();
+function Tt(e, t) {
+	J.set(e, t), clearTimeout(Y), Y = setTimeout(Et, _t), wt();
 }
-function bt() {
-	if (clearTimeout(X), X = void 0, Y.size === 0) return;
-	let e = J();
-	for (let [t, n] of Y) try {
-		e?.setItem(q + t, JSON.stringify(n));
+function Et() {
+	if (clearTimeout(Y), Y = void 0, J.size === 0) return;
+	let e = q();
+	for (let [t, n] of J) try {
+		e?.setItem(K + t, JSON.stringify(n));
 	} catch (e) {
 		console.warn(`Huet: couldn't save "${t}"`, e);
 	}
-	Y.clear(), vt();
+	J.clear(), wt();
 }
-function xt() {
-	clearTimeout(X), X = void 0, Y.clear(), vt();
-	let e = J();
-	if (e) for (let t of ht(e)) (t.startsWith(q) || t.startsWith(lt)) && e.removeItem(t);
+function Dt() {
+	clearTimeout(Y), Y = void 0, J.clear(), wt();
+	let e = q();
+	if (e) for (let t of xt(e)) (t.startsWith(K) || t.startsWith(ht)) && e.removeItem(t);
 }
-function St() {
-	xt(), window.location.reload();
+function Ot() {
+	Dt(), window.location.reload();
 }
-function Ct() {
-	let e = J();
+function kt() {
+	let e = q();
 	if (e) try {
-		for (let t of ht(e)) t.startsWith(lt) && e.removeItem(t);
-		for (let t of ut) e.removeItem(q + t);
+		for (let t of xt(e)) t.startsWith(ht) && e.removeItem(t);
+		for (let t of gt) e.removeItem(K + t);
 	} catch {}
 }
-typeof window < "u" && (Ct(), window.addEventListener("pagehide", bt), document.addEventListener("visibilitychange", () => {
-	document.visibilityState === "hidden" && bt();
+typeof window < "u" && (kt(), window.addEventListener("pagehide", Et), document.addEventListener("visibilitychange", () => {
+	document.visibilityState === "hidden" && Et();
 }));
-function wt(e) {
-	return _t.add(e), () => {
-		_t.delete(e);
+function At(e) {
+	return Ct.add(e), () => {
+		Ct.delete(e);
 	};
 }
-function Tt() {
-	return d(wt, () => Y.size > 0, () => !1);
+function jt() {
+	return d(At, () => J.size > 0, () => !1);
 }
-function Z(e, t, n) {
-	let [i, o] = u(() => gt(e, t, n)), s = l(i);
+function X(e, t, n) {
+	let [i, o] = u(() => St(e, t, n)), s = l(i);
 	s.current = i;
 	let c = l(!1), d = l(void 0), f = l(void 0);
 	return a(() => {
-		c.current && i !== d.current?.value && (f.current = { raw: i }, d.current = void 0, yt(e, i));
-	}, [e, i]), a(() => wt(() => {
-		if (!Y.has(e)) return;
-		let t = Y.get(e);
+		c.current && i !== d.current?.value && (f.current = { raw: i }, d.current = void 0, Tt(e, i));
+	}, [e, i]), a(() => At(() => {
+		if (!J.has(e)) return;
+		let t = J.get(e);
 		if (t === s.current || t === f.current?.raw || t === d.current?.raw) return;
 		let r = n(t);
 		r !== void 0 && (f.current = void 0, d.current = {
@@ -1266,26 +1321,26 @@ function Z(e, t, n) {
 	}, [])];
 }
 // src/private/Tabs.tsx
-var Q = {
+var Z = {
 	THEMES: "THEMES",
 	EDIT_THEME: "EDIT_THEME"
-}, Et = mt(Object.values(Q)), Dt = [{
-	tab: Q.THEMES,
+}, Mt = bt(Object.values(Z)), Nt = [{
+	tab: Z.THEMES,
 	label: "Themes"
 }, {
-	tab: Q.EDIT_THEME,
+	tab: Z.EDIT_THEME,
 	label: "Edit Theme"
-}], Ot = "hc:[--tab-surface:var(--huet-background)] hc:[--tab-text:var(--huet-foreground)]";
-function kt({ currentTab: e, onTabChange: t, className: n, children: r }) {
+}], Pt = "hc:[--tab-surface:var(--huet-background)] hc:[--tab-text:var(--huet-foreground)]";
+function Ft({ currentTab: e, onTabChange: t, className: n, children: r }) {
 	return /* @__PURE__ */ x(A.Root, {
 		value: e,
 		onValueChange: (e) => t(e),
-		className: N("hc:flex hc:flex-col hc:flex-auto hc:min-w-0 hc:min-h-0", Ot, n),
+		className: N("hc:flex hc:flex-col hc:flex-auto hc:min-w-0 hc:min-h-0", Pt, n),
 		children: [/* @__PURE__ */ b("div", {
 			className: "huet-border-10 hc:shrink-0 hc:px-[.75em] hc:py-[.625em] hc:border-b",
 			children: /* @__PURE__ */ x(A.List, {
 				className: "huet-bg-10 hc:relative hc:z-0 hc:flex hc:p-[.1875em] hc:rounded-lg",
-				children: [Dt.map(({ tab: t, label: n }) => /* @__PURE__ */ b(A.Tab, {
+				children: [Nt.map(({ tab: t, label: n }) => /* @__PURE__ */ b(A.Tab, {
 					value: t,
 					className: N("hc:flex hc:grow hc:basis-0 hc:items-center hc:justify-center hc:h-[2em] hc:px-[.75em] hc:rounded-md", "hc:font-medium hc:whitespace-nowrap hc:cursor-pointer hc:select-none", e === t ? "hc:text-(--tab-text)" : "huet-text-70 hc:hover:opacity-80"),
 					children: n
@@ -1294,7 +1349,7 @@ function kt({ currentTab: e, onTabChange: t, className: n, children: r }) {
 		}), r]
 	});
 }
-function $({ tab: e, className: t, children: n }) {
+function Q({ tab: e, className: t, children: n }) {
 	return /* @__PURE__ */ b(A.Panel, {
 		value: e,
 		className: t,
@@ -1302,7 +1357,7 @@ function $({ tab: e, className: t, children: n }) {
 	});
 }
 // src/private/HuetLogo.tsx
-function At({ className: e }) {
+function It({ className: e }) {
 	return /* @__PURE__ */ b("svg", {
 		className: e,
 		viewBox: "0 0 2000 2000",
@@ -1312,14 +1367,14 @@ function At({ className: e }) {
 	});
 }
 // src/private/ThemerShell.tsx
-function jt() {
-	let e = Tt();
+function Lt() {
+	let e = jt();
 	return /* @__PURE__ */ b("span", {
 		className: N("huet-bg-green-20 huet-bg/text-green-100 hc:inline hc:rounded-lg hc:px-2 hc:font-normal", "hc:transition-opacity hc:duration-400 hc:ease-[ease]", e ? "hc:opacity-0" : "hc:opacity-100"),
 		children: "Saved"
 	});
 }
-function Mt({ isExpanded: e, onClick: t }) {
+function Rt({ isExpanded: e, onClick: t }) {
 	return /* @__PURE__ */ x("button", {
 		onClick: t,
 		"aria-expanded": e,
@@ -1328,9 +1383,9 @@ function Mt({ isExpanded: e, onClick: t }) {
 		children: [/* @__PURE__ */ x("span", {
 			className: "hc:py-2 hc:px-2 hc:font-bold hc:flex hc:items-center hc:gap-1.5",
 			children: [
-				/* @__PURE__ */ b(At, { className: "hc:size-[1.25em] hc:shrink-0" }),
+				/* @__PURE__ */ b(It, { className: "hc:size-[1.25em] hc:shrink-0" }),
 				"Huet Theme Configurator ",
-				e && /* @__PURE__ */ b(jt, {})
+				e && /* @__PURE__ */ b(Lt, {})
 			]
 		}), /* @__PURE__ */ b("span", {
 			className: "huet-bg-20 hc:flex hc:justify-center hc:items-center hc:px-4 hc:font-bold",
@@ -1338,71 +1393,71 @@ function Mt({ isExpanded: e, onClick: t }) {
 		})]
 	});
 }
-var Nt = N("huet-outline-20 hc:fixed hc:right-[1em] hc:bottom-[1em] hc:z-[999]", "hc:font-ui hc:text-[.8125rem] hc:outline", "hc:transition-[opacity,translate,height] hc:duration-200 hc:ease-[ease-out]"), Pt = {
+var zt = N("huet-outline-20 hc:fixed hc:right-[1em] hc:bottom-[1em] hc:z-[999]", "hc:font-ui hc:text-[.8125rem] hc:outline", "hc:transition-[opacity,translate,height] hc:duration-200 hc:ease-[ease-out]"), Bt = {
 	expanded: "hc:shadow-[0_5px_30px_color-mix(in_srgb,var(--huet-foreground)_calc(12.5%*var(--huet-configurator-contrast,1)),transparent)]",
 	collapsed: "hc:shadow-[0_5px_30px_color-mix(in_srgb,var(--huet-relative-text)_calc(12.5%*var(--huet-configurator-contrast,1)),transparent)]"
 };
-function Ft({ children: e }) {
-	let [t, n] = Z("themer:isExpanded", !0, ft), [r, i] = u(!1);
+function Vt({ children: e }) {
+	let [t, n] = X("themer:isExpanded", !0, vt), [r, i] = u(!1);
 	return a(() => i(!0), []), t ? /* @__PURE__ */ x("div", {
-		className: N(Nt, "huet-bg-0", Pt.expanded, "hc:flex hc:flex-col hc:h-[min(64em,100vh-2em)]", r ? "hc:translate-y-0 hc:opacity-100" : "hc:translate-y-[2em] hc:opacity-0"),
-		children: [/* @__PURE__ */ b(Mt, {
+		className: N(zt, "huet-bg-0", Bt.expanded, "hc:flex hc:flex-col hc:h-[min(64em,100vh-2em)]", r ? "hc:translate-y-0 hc:opacity-100" : "hc:translate-y-[2em] hc:opacity-0"),
+		children: [/* @__PURE__ */ b(Rt, {
 			isExpanded: !0,
 			onClick: () => n((e) => !e)
 		}), e]
 	}) : /* @__PURE__ */ b("div", {
-		className: N(Nt, "huet-text-100", Pt.collapsed),
-		children: /* @__PURE__ */ b(Mt, { onClick: () => n((e) => !e) })
+		className: N(zt, "huet-text-100", Bt.collapsed),
+		children: /* @__PURE__ */ b(Rt, { onClick: () => n((e) => !e) })
 	});
 }
 // src/private/AllExceptFirst.tsx
-var It = {
+var Ht = {
 	1: "hc:ml-1",
 	2: "hc:ml-2",
 	3: "hc:ml-4"
-}, Lt = {
+}, Ut = {
 	1: "hc:mt-1",
 	2: "hc:mt-2",
 	3: "hc:mt-4"
 };
-function Rt({ exceptFirst: e, each: n, children: r }) {
+function Wt({ exceptFirst: e, each: n, children: r }) {
 	return t.Children.map(r, (t, r) => /* @__PURE__ */ b("div", {
 		className: N(r > 0 && e, n) || void 0,
 		children: t
 	}));
 }
-function zt({ size: e = 1, growEach: t, children: n, className: r }) {
+function Gt({ size: e = 1, growEach: t, children: n, className: r }) {
 	return /* @__PURE__ */ b("div", {
 		className: N("hc:flex hc:flex-row", r),
-		children: /* @__PURE__ */ b(Rt, {
+		children: /* @__PURE__ */ b(Wt, {
 			each: t ? "hc:grow" : void 0,
-			exceptFirst: It[e],
+			exceptFirst: Ht[e],
 			children: n
 		})
 	});
 }
-function Bt({ size: e = 1, children: t, className: n }) {
+function Kt({ size: e = 1, children: t, className: n }) {
 	return /* @__PURE__ */ b("div", {
 		className: N("hc:flex hc:flex-col", n),
-		children: /* @__PURE__ */ b(Rt, {
-			exceptFirst: Lt[e],
+		children: /* @__PURE__ */ b(Wt, {
+			exceptFirst: Ut[e],
 			children: t
 		})
 	});
 }
 // src/private/Arrow.tsx
-var Vt = {
+var qt = {
 	".5em": "hc:border-x-[.5em] hc:border-b-[.5em]",
 	".75em": "hc:border-x-[.75em] hc:border-b-[.75em]"
 };
-function Ht({ size: e, className: t, style: n }) {
+function Jt({ size: e, className: t, style: n }) {
 	return /* @__PURE__ */ b("span", {
-		className: N("hc:inline-block hc:w-0 hc:h-0 hc:border-x-transparent hc:border-b-current", Vt[e], t),
+		className: N("hc:inline-block hc:w-0 hc:h-0 hc:border-x-transparent hc:border-b-current", qt[e], t),
 		style: n
 	});
 }
 // src/private/Themes.tsx
-var Ut = [
+var Yt = [
 	"gray",
 	"red",
 	"yellow",
@@ -1410,7 +1465,7 @@ var Ut = [
 	"blue",
 	"purple"
 ];
-function Wt({ preview: e, shadowAlpha: t, isSelected: n, children: r, onClick: i }) {
+function Xt({ preview: e, shadowAlpha: t, isSelected: n, children: r, onClick: i }) {
 	let { root: a, step: o } = e, s = "hc:w-full hc:h-full hc:border hc:rounded-sm hc:relative hc:overflow-hidden", c = {
 		backgroundColor: a.hex,
 		color: o(a, 100).hex,
@@ -1422,7 +1477,7 @@ function Wt({ preview: e, shadowAlpha: t, isSelected: n, children: r, onClick: i
 		children: n ? /* @__PURE__ */ x("div", {
 			className: s,
 			style: c,
-			children: [r, /* @__PURE__ */ b(Ht, {
+			children: [r, /* @__PURE__ */ b(Jt, {
 				size: ".75em",
 				className: "hc:absolute hc:bottom-0 hc:left-1/2 hc:-translate-x-1/2"
 			})]
@@ -1437,34 +1492,34 @@ function Wt({ preview: e, shadowAlpha: t, isSelected: n, children: r, onClick: i
 		})
 	});
 }
-function Gt(e) {
+function Zt(e) {
 	return e.length ? `linear-gradient(to right, ${e.map((t, n) => `${t} ${n / e.length * 100}% ${(n + 1) / e.length * 100}%`).join(", ")})` : "none";
 }
-function Kt({ theme: e }) {
+function Qt({ theme: e }) {
 	let t = [...e.neutral, ...Object.values(e.colors ?? {})];
 	return /* @__PURE__ */ b("div", {
 		"aria-hidden": "true",
 		className: "hc:h-[.5em]",
-		style: { background: Gt(t) }
+		style: { background: Zt(t) }
 	});
 }
-function qt({ children: e }) {
+function $t({ children: e }) {
 	return /* @__PURE__ */ b("h3", {
 		className: "hc:mx-2 hc:py-2 hc:flex hc:items-center hc:justify-between",
 		children: e
 	});
 }
-function Jt({ preview: e, bg: t }) {
+function en({ preview: e, bg: t }) {
 	return /* @__PURE__ */ b("div", {
 		className: "hc:-mt-2 hc:h-2",
 		style: { background: `linear-gradient(${t.hex}, ${e.step(t, 12).hex})` }
 	});
 }
-function Yt({ preview: e, bg: t }) {
-	return Ut.map((n) => /* @__PURE__ */ b("div", {
+function tn({ preview: e, bg: t }) {
+	return Yt.map((n) => /* @__PURE__ */ b("div", {
 		"aria-hidden": "true",
 		className: N("hc:mt-px", n === "gray" ? "hc:h-6" : "hc:h-2"),
-		style: { background: Gt([
+		style: { background: Zt([
 			100,
 			75,
 			50,
@@ -1472,7 +1527,7 @@ function Yt({ preview: e, bg: t }) {
 		].map((r) => e.step(t, r, n).hex)) }
 	}, n));
 }
-function Xt({ children: e }) {
+function nn({ children: e }) {
 	return /* @__PURE__ */ b("div", {
 		className: "hc:flex",
 		children: /* @__PURE__ */ b("div", {
@@ -1481,43 +1536,43 @@ function Xt({ children: e }) {
 		})
 	});
 }
-function Zt({ name: e, theme: t, isSelected: n, onClick: r }) {
+function rn({ name: e, theme: t, isSelected: n, onClick: r }) {
 	let { background: i, editedFrom: a, reset: s, list: c, themes: u } = j(), d = r === void 0 && !(e in u), f = c && n && !d && Object.keys(u).length > 1, p = _(t, { background: i }), m = l(null);
 	return o(() => {
 		n && m.current && m.current.scrollIntoView({ block: "center" });
 	}, []), /* @__PURE__ */ b("div", {
 		ref: m,
-		children: /* @__PURE__ */ x(Wt, {
+		children: /* @__PURE__ */ x(Xt, {
 			preview: p,
 			shadowAlpha: .2 * (t.contrast ?? 1),
 			isSelected: n,
 			onClick: r,
 			children: [
-				/* @__PURE__ */ b(Kt, { theme: t }),
-				/* @__PURE__ */ x(qt, { children: [e, /* @__PURE__ */ x("span", {
+				/* @__PURE__ */ b(Qt, { theme: t }),
+				/* @__PURE__ */ x($t, { children: [e, /* @__PURE__ */ x("span", {
 					className: "hc:flex hc:gap-[.75em]",
 					children: [
-						d && c && /* @__PURE__ */ b(qe, {
+						d && c && /* @__PURE__ */ b(et, {
 							onClick: c.saveAsNew,
 							children: "Save as new"
 						}),
-						d && a !== void 0 && /* @__PURE__ */ x(qe, {
+						d && a !== void 0 && /* @__PURE__ */ x(et, {
 							verify: `Discard your edits and go back to ${a}?`,
 							onClick: s,
 							children: ["Reset to ", a]
 						}),
-						f && /* @__PURE__ */ b(qe, {
+						f && /* @__PURE__ */ b(et, {
 							verify: `Remove ${e}?`,
 							onClick: () => c.remove(e),
 							children: "Remove"
 						})
 					]
 				})] }),
-				/* @__PURE__ */ b(Jt, {
+				/* @__PURE__ */ b(en, {
 					preview: p,
 					bg: p.root
 				}),
-				/* @__PURE__ */ b(Xt, { children: /* @__PURE__ */ b(Yt, {
+				/* @__PURE__ */ b(nn, { children: /* @__PURE__ */ b(tn, {
 					preview: p,
 					bg: p.root
 				}) })
@@ -1525,13 +1580,13 @@ function Zt({ name: e, theme: t, isSelected: n, onClick: r }) {
 		})
 	});
 }
-function Qt({ onCreate: t }) {
+function an({ onCreate: t }) {
 	let { theme: n, setTheme: r, themes: i, name: a, list: o } = j(), s = Object.entries(i);
-	return /* @__PURE__ */ x(Bt, {
+	return /* @__PURE__ */ x(Kt, {
 		size: 3,
 		className: "hc:p-4",
 		children: [
-			o && /* @__PURE__ */ x(V, {
+			o && /* @__PURE__ */ x(B, {
 				variant: "outline",
 				className: "hc:w-full hc:border-dashed",
 				onClick: () => {
@@ -1542,14 +1597,14 @@ function Qt({ onCreate: t }) {
 					stroke: 2
 				}), "New theme"]
 			}),
-			a === void 0 && /* @__PURE__ */ b(Zt, {
+			a === void 0 && /* @__PURE__ */ b(rn, {
 				name: "Custom",
 				theme: n,
 				isSelected: !0
 			}),
 			s.map(([t, i]) => {
 				let a = e(i, n);
-				return /* @__PURE__ */ b(Zt, {
+				return /* @__PURE__ */ b(rn, {
 					name: t,
 					theme: i,
 					isSelected: a,
@@ -1560,32 +1615,32 @@ function Qt({ onCreate: t }) {
 	});
 }
 // src/Themer.tsx
-function $t({ children: e }) {
+function on({ children: e }) {
 	return /* @__PURE__ */ b("div", {
 		className: "hc:overflow-y-scroll hc:overflow-x-hidden hc:w-[30em] hc:overscroll-contain hc:flex-auto hc:min-w-0 hc:min-h-0",
 		children: e
 	});
 }
-function en() {
-	let { theme: e, background: t } = j(), [n, r] = Z("themer:shouldThemeSelf", !0, ft), [i, a] = Z("themer:currentTab", Q.THEMES, Et);
+function sn() {
+	let { theme: e, background: t } = j(), [n, r] = X("themer:shouldThemeSelf", !0, vt), [i, a] = X("themer:currentTab", Z.THEMES, Mt);
 	return /* @__PURE__ */ b(ve, {
 		theme: n ? e : g.Base,
 		background: t,
-		children: /* @__PURE__ */ b(Ft, { children: /* @__PURE__ */ x("div", {
+		children: /* @__PURE__ */ b(Vt, { children: /* @__PURE__ */ x("div", {
 			className: "hc:flex hc:flex-col hc:flex-auto hc:min-w-0 hc:min-h-0 hc:overflow-hidden",
-			children: [/* @__PURE__ */ b(kt, {
+			children: [/* @__PURE__ */ b(Ft, {
 				currentTab: i,
 				onTabChange: a,
-				children: /* @__PURE__ */ x($t, { children: [/* @__PURE__ */ b($, {
-					tab: Q.THEMES,
-					children: /* @__PURE__ */ b(Qt, { onCreate: () => a(Q.EDIT_THEME) })
-				}), /* @__PURE__ */ b($, {
-					tab: Q.EDIT_THEME,
-					children: /* @__PURE__ */ b(ct, {})
+				children: /* @__PURE__ */ x(on, { children: [/* @__PURE__ */ b(Q, {
+					tab: Z.THEMES,
+					children: /* @__PURE__ */ b(an, { onCreate: () => a(Z.EDIT_THEME) })
+				}), /* @__PURE__ */ b(Q, {
+					tab: Z.EDIT_THEME,
+					children: /* @__PURE__ */ b(mt, {})
 				})] })
 			}), /* @__PURE__ */ b("div", {
 				className: "huet-bg-5 huet-border-10 hc:border-t hc:px-[1.25em] hc:py-[.5em]",
-				children: /* @__PURE__ */ b(nt, {
+				children: /* @__PURE__ */ b(U, {
 					label: "Theme the themer",
 					checked: n,
 					onCheckedChange: r
@@ -1595,7 +1650,7 @@ function en() {
 	});
 }
 // src/private/ErrorBoundary.tsx
-var tn = class extends t.Component {
+var cn = class extends t.Component {
 	constructor(...e) {
 		super(...e), this.state = { hasError: !1 };
 	}
@@ -1627,111 +1682,116 @@ var tn = class extends t.Component {
 					"Try clearing local storage:",
 					" ",
 					/* @__PURE__ */ b("button", {
-						onClick: St,
+						onClick: Ot,
 						children: "Reset this Page"
 					})
 				]
 			})]
 		}) : this.props.children;
 	}
-};
-// src/ThemeConfigurator.tsx
-function nn(e, t) {
+}, ln = Object.freeze({});
+function un(e, t) {
 	let n = t;
 	for (let r = 2; n in e; r++) n = `${t} ${r}`;
 	return n;
 }
-function rn({ value: t, onChange: n, themes: r = g, onThemesChange: i, background: o = 1, onBackgroundChange: c, children: u }) {
-	let d = l(n);
-	d.current = n;
-	let f = l({
+function dn({ value: t, onChange: n, themes: r = g, onThemesChange: i, background: o = 1, onBackgroundChange: c, pageColors: u = ln, onPageColorChange: d, children: f }) {
+	let p = l(n);
+	p.current = n;
+	let m = l({
 		onThemesChange: i,
-		onBackgroundChange: c
+		onBackgroundChange: c,
+		onPageColorChange: d
 	});
-	f.current = {
+	m.current = {
 		onThemesChange: i,
-		onBackgroundChange: c
+		onBackgroundChange: c,
+		onPageColorChange: d
 	};
-	let p = i !== void 0, m = c !== void 0, h = s(() => Object.entries(r).find(([, n]) => e(n, t))?.[0], [r, t]), [v, y] = Z("themer:editedFrom", "", pt);
+	let h = d !== void 0, v = i !== void 0, y = c !== void 0, x = s(() => Object.entries(r).find(([, n]) => e(n, t))?.[0], [r, t]), [S, C] = X("themer:editedFrom", "", yt);
 	a(() => {
-		h !== void 0 && y(h);
-	}, [h, y]);
-	let x = h === void 0 && v in r ? v : void 0, S = s(() => ({
+		x !== void 0 && C(x);
+	}, [x, C]);
+	let w = x === void 0 && S in r ? S : void 0, ee = s(() => ({
 		theme: t,
 		resolved: _(t, { background: o }),
-		setTheme: (e) => d.current(e),
+		setTheme: (e) => p.current(e),
 		themes: r,
 		background: o,
-		name: h,
-		editedFrom: x,
+		pageColors: u,
+		setPageColor: h ? (e, t) => m.current.onPageColorChange?.(e, t) : void 0,
+		name: x,
+		editedFrom: w,
 		reset: () => {
-			x !== void 0 && d.current(r[x]);
+			w !== void 0 && p.current(r[w]);
 		},
-		setBackground: m ? (e) => f.current.onBackgroundChange?.(e) : void 0,
-		list: p ? {
+		setBackground: y ? (e) => m.current.onBackgroundChange?.(e) : void 0,
+		list: v ? {
 			saveAsNew: () => {
-				let e = nn(r, `${x ?? "Custom"} Copy`);
-				f.current.onThemesChange?.({
+				let e = un(r, `${w ?? "Custom"} Copy`);
+				m.current.onThemesChange?.({
 					[e]: t,
 					...r
-				}), y(e);
+				}), C(e);
 			},
 			create: () => {
-				let e = nn(r, "New Theme");
-				f.current.onThemesChange?.({
+				let e = un(r, "New Theme");
+				m.current.onThemesChange?.({
 					[e]: t,
 					...r
-				}), y(e);
+				}), C(e);
 			},
 			update: (e, t) => {
-				f.current.onThemesChange?.({
+				m.current.onThemesChange?.({
 					...r,
 					[e]: t
-				}), y(e);
+				}), C(e);
 			},
 			remove: (e) => {
 				let { [e]: t, ...n } = r;
-				f.current.onThemesChange?.(n);
+				m.current.onThemesChange?.(n);
 				let [i] = Object.values(n);
-				e === h && i && d.current(i);
+				e === x && i && p.current(i);
 			},
 			rename: (e, t) => {
-				!t || t === e || t in r || (f.current.onThemesChange?.(Object.fromEntries(Object.entries(r).map(([n, r]) => [n === e ? t : n, r]))), y(t));
+				!t || t === e || t in r || (m.current.onThemesChange?.(Object.fromEntries(Object.entries(r).map(([n, r]) => [n === e ? t : n, r]))), C(t));
 			},
 			add: (e, t) => {
-				let n = nn(r, e);
-				f.current.onThemesChange?.({
+				let n = un(r, e);
+				m.current.onThemesChange?.({
 					[n]: t,
 					...r
-				}), d.current(t);
+				}), p.current(t);
 			}
 		} : void 0
 	}), [
 		t,
 		r,
 		o,
+		u,
 		h,
 		x,
-		p,
-		m,
-		y
+		w,
+		v,
+		y,
+		C
 	]);
 	return /* @__PURE__ */ b(pe.Provider, {
-		value: S,
-		children: u
+		value: ee,
+		children: f
 	});
 }
-function an(e) {
-	return /* @__PURE__ */ b(tn, {
+function fn(e) {
+	return /* @__PURE__ */ b(cn, {
 		componentName: "Theme Configurator",
-		children: /* @__PURE__ */ b(rn, {
+		children: /* @__PURE__ */ b(dn, {
 			...e,
-			children: /* @__PURE__ */ b(en, {})
+			children: /* @__PURE__ */ b(sn, {})
 		})
 	});
 }
 // src/private/ThemeMiniMap.tsx
-var on = [
+var pn = [
 	100,
 	87.5,
 	75,
@@ -1741,16 +1801,16 @@ var on = [
 	25,
 	12.5,
 	0
-], sn = [
+], mn = [
 	"red",
 	"yellow",
 	"green",
 	"blue",
 	"purple"
 ];
-function cn(e, t) {
+function hn(e, t) {
 	let n = (e) => C(e).get("lab.l");
-	return sn.map((r) => {
+	return mn.map((r) => {
 		let i = e.step(t, 100, r).hex;
 		return {
 			hue: r,
@@ -1759,35 +1819,35 @@ function cn(e, t) {
 		};
 	}).sort((e, t) => t.distance - e.distance);
 }
-function ln(e, t) {
-	return `linear-gradient(to right, ${on.map((n) => e.step(t, n).hex).join(", ")})`;
+function gn(e, t) {
+	return `linear-gradient(to right, ${pn.map((n) => e.step(t, n).hex).join(", ")})`;
 }
-function un({ theme: e, bg: t }) {
+function _n({ theme: e, bg: t }) {
 	return /* @__PURE__ */ x("span", {
 		"aria-hidden": !0,
 		className: "hc:flex hc:flex-col hc:gap-[.25em] hc:shrink-0",
 		children: [/* @__PURE__ */ b("span", {
 			className: "hc:flex hc:gap-[.25em]",
-			children: cn(e, t).map(({ hue: e, color: t }) => /* @__PURE__ */ b("span", {
+			children: hn(e, t).map(({ hue: e, color: t }) => /* @__PURE__ */ b("span", {
 				title: e,
 				className: "hc:size-[.625em] hc:rounded-full",
 				style: { backgroundColor: t }
 			}, e))
 		}), /* @__PURE__ */ b("span", {
 			className: "hc:h-[.375em] hc:rounded-full",
-			style: { backgroundImage: ln(e, t) }
+			style: { backgroundImage: gn(e, t) }
 		})]
 	});
 }
 // src/EmbeddedThemeConfigurator.tsx
-var dn = "hc:not-focus-visible:shadow-none!";
-function fn({ name: e, theme: t, isSelected: n, isEdited: r, onSelect: i }) {
+var $ = "hc:not-focus-visible:shadow-none!";
+function vn({ name: e, theme: t, isSelected: n, isEdited: r, onSelect: i }) {
 	let { background: a } = j(), o = _(t, { background: a }), { root: s, step: c } = o, l = c(s, 100), u = n ? l.hex : c(s, 15).hex, d = n ? l.hex : c(s, 40).hex;
 	return /* @__PURE__ */ x("button", {
 		type: "button",
 		"aria-pressed": n,
 		onClick: i,
-		className: N("hc:flex hc:items-center hc:gap-[.75em] hc:w-full hc:py-[.5em] hc:px-[.625em]", "hc:rounded-md hc:border hc:cursor-pointer hc:text-left", dn, "hc:border-(color:--item-border) hc:hover:border-(color:--item-border-hover)"),
+		className: N("hc:flex hc:items-center hc:gap-[.75em] hc:w-full hc:py-[.5em] hc:px-[.625em]", "hc:rounded-md hc:border hc:cursor-pointer hc:text-left", $, "hc:border-(color:--item-border) hc:hover:border-(color:--item-border-hover)"),
 		style: {
 			backgroundColor: s.hex,
 			color: l.hex,
@@ -1795,7 +1855,7 @@ function fn({ name: e, theme: t, isSelected: n, isEdited: r, onSelect: i }) {
 			"--item-border-hover": d
 		},
 		children: [
-			/* @__PURE__ */ b(un, {
+			/* @__PURE__ */ b(_n, {
 				theme: o,
 				bg: s
 			}),
@@ -1815,12 +1875,12 @@ function fn({ name: e, theme: t, isSelected: n, isEdited: r, onSelect: i }) {
 		]
 	});
 }
-function pn({ onCreate: e }) {
+function yn({ onCreate: e }) {
 	let { theme: t, setTheme: n, themes: r, name: i, editedFrom: a, reset: o, list: s } = j(), c = i !== void 0, l = s && c && Object.keys(r).length > 1;
 	return /* @__PURE__ */ x(y, { children: [/* @__PURE__ */ x("div", {
 		className: "hc:flex hc:flex-col hc:gap-[.375em] hc:p-2 hc:flex-auto hc:min-h-0 hc:overflow-y-auto hc:overscroll-contain",
 		children: [
-			!c && /* @__PURE__ */ b(fn, {
+			!c && /* @__PURE__ */ b(vn, {
 				name: a ?? "Custom",
 				theme: t,
 				isSelected: !0,
@@ -1829,7 +1889,7 @@ function pn({ onCreate: e }) {
 			}),
 			Object.entries(r).map(([e, t]) => {
 				let r = e === i;
-				return !c && e === a ? null : /* @__PURE__ */ b(fn, {
+				return !c && e === a ? null : /* @__PURE__ */ b(vn, {
 					name: e,
 					theme: t,
 					isSelected: r,
@@ -1841,31 +1901,31 @@ function pn({ onCreate: e }) {
 				onClick: () => {
 					s.create(), e();
 				},
-				className: N("huet-border-30 hc:flex hc:items-center hc:justify-center hc:gap-[.5em] hc:w-full hc:py-[.625em]", "hc:rounded-md hc:border hc:border-dashed hc:cursor-pointer hc:tint-hover huet-text-70", dn),
+				className: N("huet-border-30 hc:flex hc:items-center hc:justify-center hc:gap-[.5em] hc:w-full hc:py-[.625em]", "hc:rounded-md hc:border hc:border-dashed hc:cursor-pointer hc:tint-hover huet-text-70", $),
 				children: [/* @__PURE__ */ b(T, {
 					size: "1em",
 					stroke: 2
 				}), "New theme"]
 			})
 		]
-	}), /* @__PURE__ */ b(zt, {
+	}), /* @__PURE__ */ b(Gt, {
 		growEach: !0,
 		className: "hc:p-2 hc:border-t",
 		children: [
-			/* @__PURE__ */ b(Ge, {
+			/* @__PURE__ */ b(Qe, {
 				onUpload: (e, t) => s ? s.add(t, e) : n(e),
 				children: "Import"
 			}, "import"),
-			!c && s && /* @__PURE__ */ b(U, {
+			!c && s && /* @__PURE__ */ b(V, {
 				onClick: s.saveAsNew,
 				children: "Save as New"
 			}, "save"),
-			a !== void 0 && /* @__PURE__ */ b(U, {
+			a !== void 0 && /* @__PURE__ */ b(V, {
 				verify: `Discard your edits and go back to ${a}?`,
 				onClick: o,
 				children: "Reset"
 			}, "reset"),
-			l && /* @__PURE__ */ b(U, {
+			l && /* @__PURE__ */ b(V, {
 				verify: `Remove ${i}?`,
 				onClick: () => s.remove(i),
 				children: "Remove"
@@ -1873,38 +1933,38 @@ function pn({ onCreate: e }) {
 		].filter(Boolean)
 	})] });
 }
-function mn({ shouldThemeSelf: e, onShouldThemeSelfChange: t }) {
-	let [n, r] = Z("embedded:currentTab", Q.THEMES, Et);
-	return /* @__PURE__ */ x(y, { children: [/* @__PURE__ */ x(kt, {
+function bn({ shouldThemeSelf: e, onShouldThemeSelfChange: t }) {
+	let [n, r] = X("embedded:currentTab", Z.THEMES, Mt);
+	return /* @__PURE__ */ x(y, { children: [/* @__PURE__ */ x(Ft, {
 		currentTab: n,
 		onTabChange: r,
-		children: [/* @__PURE__ */ b($, {
-			tab: Q.THEMES,
+		children: [/* @__PURE__ */ b(Q, {
+			tab: Z.THEMES,
 			className: "hc:flex hc:flex-col hc:flex-auto hc:min-h-0",
-			children: /* @__PURE__ */ b(pn, { onCreate: () => r(Q.EDIT_THEME) })
-		}), /* @__PURE__ */ b($, {
-			tab: Q.EDIT_THEME,
+			children: /* @__PURE__ */ b(yn, { onCreate: () => r(Z.EDIT_THEME) })
+		}), /* @__PURE__ */ b(Q, {
+			tab: Z.EDIT_THEME,
 			className: "hc:flex-auto hc:min-h-0 hc:overflow-y-auto hc:overscroll-contain",
-			children: /* @__PURE__ */ b(ct, {})
+			children: /* @__PURE__ */ b(mt, {})
 		})]
 	}), /* @__PURE__ */ b("div", {
 		className: "huet-bg-5 huet-border-10 hc:border-t hc:px-[1.25em] hc:py-[.5em]",
-		children: /* @__PURE__ */ b(nt, {
+		children: /* @__PURE__ */ b(U, {
 			label: "Theme the themer",
 			checked: e,
 			onCheckedChange: t
 		})
 	})] });
 }
-function hn({ children: e }) {
+function xn({ children: e }) {
 	let t = M();
 	return /* @__PURE__ */ b(O.Portal, {
 		container: t,
 		children: e
 	});
 }
-function gn({ mode: e = "contrast", side: t = "bottom", align: n = "end", style: r }) {
-	let { theme: i, resolved: a, background: s, name: c = "Custom" } = j(), [l, d] = u(!1), [f, p] = Z("themer:shouldThemeSelf", !0, ft);
+function Sn({ mode: e = "contrast", side: t = "bottom", align: n = "end", style: r }) {
+	let { theme: i, resolved: a, background: s, name: c = "Custom" } = j(), [l, d] = u(!1), [f, p] = X("themer:shouldThemeSelf", !0, vt);
 	o(_e, []);
 	let { root: m, step: h } = a, _ = h(m, 100), v = e === "contrast" ? _ : m, y = {
 		color: h(v, 100).hex,
@@ -1924,9 +1984,9 @@ function gn({ mode: e = "contrast", side: t = "bottom", align: n = "end", style:
 			children: /* @__PURE__ */ x(O.Trigger, {
 				"aria-label": `Theme: ${c}`,
 				title: c,
-				className: N("hc:inline-flex hc:items-center hc:gap-[.5em] hc:py-[.375em] hc:pl-[.5em] hc:pr-[.375em]", "hc:rounded-md hc:border hc:cursor-pointer", dn, "hc:bg-(--trigger-bg) hc:hover:bg-(--trigger-hover)"),
+				className: N("hc:inline-flex hc:items-center hc:gap-[.5em] hc:py-[.375em] hc:pl-[.5em] hc:pr-[.375em]", "hc:rounded-md hc:border hc:cursor-pointer", $, "hc:bg-(--trigger-bg) hc:hover:bg-(--trigger-hover)"),
 				style: y,
-				children: [/* @__PURE__ */ b(un, {
+				children: [/* @__PURE__ */ b(_n, {
 					theme: a,
 					bg: v
 				}), /* @__PURE__ */ b(ee, {
@@ -1938,7 +1998,7 @@ function gn({ mode: e = "contrast", side: t = "bottom", align: n = "end", style:
 		}), /* @__PURE__ */ b(ve, {
 			theme: f ? i : g.Base,
 			background: s,
-			children: /* @__PURE__ */ b(hn, { children: /* @__PURE__ */ b(O.Positioner, {
+			children: /* @__PURE__ */ b(xn, { children: /* @__PURE__ */ b(O.Positioner, {
 				side: t,
 				align: n,
 				sideOffset: 6,
@@ -1947,7 +2007,7 @@ function gn({ mode: e = "contrast", side: t = "bottom", align: n = "end", style:
 				children: /* @__PURE__ */ b(O.Popup, {
 					"aria-label": "Theme Configurator",
 					className: N("huet-bg-0 huet-border-100 hc:border hc:rounded-lg hc:outline-none hc:font-ui hc:text-[.875rem]", "hc:shadow-[0_6px_24px_color-mix(in_srgb,var(--huet-foreground)_calc(16%*var(--huet-configurator-contrast,1)),transparent)]", "hc:overflow-hidden hc:flex hc:flex-col hc:w-[30em] hc:max-w-(--available-width)", "hc:h-[min(52em,var(--available-height))]"),
-					children: /* @__PURE__ */ b(mn, {
+					children: /* @__PURE__ */ b(bn, {
 						shouldThemeSelf: f,
 						onShouldThemeSelfChange: p
 					})
@@ -1956,12 +2016,12 @@ function gn({ mode: e = "contrast", side: t = "bottom", align: n = "end", style:
 		})]
 	});
 }
-function _n({ mode: e, side: t, align: n, style: r, ...i }) {
-	return /* @__PURE__ */ b(tn, {
+function Cn({ mode: e, side: t, align: n, style: r, ...i }) {
+	return /* @__PURE__ */ b(cn, {
 		componentName: "Embedded Theme Configurator",
-		children: /* @__PURE__ */ b(rn, {
+		children: /* @__PURE__ */ b(dn, {
 			...i,
-			children: /* @__PURE__ */ b(gn, {
+			children: /* @__PURE__ */ b(Sn, {
 				mode: e,
 				side: t,
 				align: n,
@@ -1970,6 +2030,6 @@ function _n({ mode: e, side: t, align: n, style: r, ...i }) {
 		})
 	});
 }
-export { _n as EmbeddedThemeConfigurator, an as ThemeConfigurator };
+export { Cn as EmbeddedThemeConfigurator, fn as ThemeConfigurator };
 
 //# sourceMappingURL=index.js.map
