@@ -25,3 +25,27 @@ Leave `layout.tsx` and `theme-provider.tsx` out of it, since `setup.mjs` edits t
 ## Code blocks
 
 Every highlighter on the site wraps shadcn's own Shiki themes (vesper and GitHub) in `huetShikiTheme({ from })`, so tokens keep shadcn's hues and take their lightness from Huet's CSS variables (see [code blocks](../../docs/code-blocks.md#keeping-another-themes-hues)). The site doesn't mount Huet, so `huet-configurator.tsx` writes those variables itself: solved against shadcn's `--code` fill inside `[data-rehype-pretty-code-figure]`, and against the page everywhere else, such as the registry's `CodeBlock`. It also logs a `console.error` for any code block whose tokens still carry fixed colors (hex or `rgb()`), for example after a submodule update adds a highlighter: wrap its theme in `huetShikiTheme({ from })` too.
+
+## Deploying
+
+The demo is live at https://shadcn-huet.vercel.app, from the Vercel project `shadcn-huet`. It isn't connected to Git, so nothing deploys on push. Deploys are manual: you build locally and upload the output. A Vercel build can't do it, because `setup.mjs` installs Huet from tarballs that only exist on your machine.
+
+Build from current `master`, then run `vercel` from `vendor/shadcn-ui`, the pnpm root, not from `apps/v4`:
+
+```sh
+git switch master && git pull
+pnpm shadcn:setup
+cd vendor/shadcn-ui
+vercel link --yes --project shadcn-huet   # only if vendor/shadcn-ui/.vercel is missing
+vercel pull --yes --environment=production
+vercel build --prod
+vercel deploy --prebuilt --prod --archive=tgz
+```
+
+- `shadcn:setup` only builds the registry when `apps/v4/styles/base-nova/ui` is missing. After a patch changes files under `apps/v4/registry/`, rebuild it from `vendor/shadcn-ui/apps/v4` with `bun run ./scripts/build-registry.mts --style all`.
+- If `setup` reports a conflict with `integration.patch` after you pull, the submodule still has the old patch applied. Discard it with `git -C vendor/shadcn-ui checkout -- .` and rerun setup.
+- The project's Root Directory is `apps/v4`. The built functions point into the root `node_modules`, so deploying from `apps/v4` fails with `File does not exist: node_modules/.pnpm/…`.
+- The build has about 39,000 files, more than Vercel's 15,000-file upload limit, so `--archive=tgz` is required.
+- The project uses Node 24.x. `vercel build` rejected 26.x.
+- Production sets `NEXT_PUBLIC_APP_URL=https://shadcn-huet.vercel.app` and `NEXT_PUBLIC_V0_URL=https://v0.dev`.
+- `vendor/shadcn-ui/.vercel` holds the link and the build output. Upstream ignores it, so it never shows up in the submodule's diff.
