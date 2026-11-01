@@ -33,7 +33,9 @@ On `/create`, the Theme (accent) and Chart Color pickers work with Huet. The pre
 - **Primary** (and the sidebar's) is the step on the accent's ramp nearest the picked color where text in the page color reads at Lc 75. A gray theme keeps primary as the max-contrast invert. Menu Accent: Bold uses the same color for menus.
 - **`--chart-1` to `--chart-5`** spread evenly in contrast with the page, from Lc 90 to Lc 45, on the chart palette's ramp. A gray chart color takes the theme's own steps, from the text color to muted.
 
-The iframe sends both ramps to the top page, where the Huet panel's Edit Theme tab shows them under Color ramps as Accent and Chart. Elsewhere on the site, the ramps are the site's own colors (the blue chart palette), and `.theme-*` classes place their primary on the same kind of ramp. `tests/shadcn/create.spec.ts` covers it.
+The iframe sends both picks up to the top page. The Huet panel's Edit Theme tab shows them under **Page colors** as Accent and Chart, and you can edit them there with the same hue and saturation sliders as the hues. An edit to the chart palette turns and saturates all five colors together, so amber's yellow-to-brown shape survives. Edits are saved with the Huet theme in `localStorage` (`huet-shadcn`, under `pageColors`). Each one keeps the colors it was made from, so a new pick on `/create` replaces it, and Default goes back to the pick.
+
+Elsewhere on the site, the page colors are the site's own: a gray accent, so primary stays the invert until you give it a color, and the blue chart palette. `.theme-*` classes place their primary on the accent's kind of ramp too. `tests/shadcn/create.spec.ts` covers all of this.
 
 ## Deploying
 

@@ -13,9 +13,8 @@ const lerp = (a: number, b: number, t: number) => a + (b - a) * t;
  * Huet's steps on a colored surface. Colors that don't fit in sRGB lose chroma
  * and keep their hue and lightness.
  *
- * The configurator draws each hue's ramp this way, and pages that place their
- * own colors on a theme (an accent, a chart palette) use the same ramp, so the
- * configurator shows what the page paints.
+ * Pages place their own colors on a theme with it: an accent, or a chart
+ * palette, keeping their hues while Huet picks the lightness.
  */
 export function rampThrough(dark: string, light: string, colors: readonly string[] = []) {
   [dark, light] = [chroma(dark).hex(), chroma(light).hex()];

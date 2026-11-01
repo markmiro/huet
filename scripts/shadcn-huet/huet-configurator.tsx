@@ -2,7 +2,7 @@
 
 import chroma from "chroma-js"
 import { usePathname } from "next/navigation"
-import { useEffect, useLayoutEffect, useState } from "react"
+import { useEffect, useLayoutEffect, useMemo, useState } from "react"
 import { checkTheme, themes as presets, type Theme } from "huet"
 import { mountImages, mountSvgs } from "huet/images"
 // shadcn's tokens need amounts and ramp positions that no class has, so this
@@ -14,7 +14,7 @@ import {
   themeVariables,
   type ResolvedTheme,
 } from "huet/internal"
-import { ThemeConfigurator } from "huet-react"
+import { ThemeConfigurator, type PageColor } from "huet-react"
 
 /**
  * Neutrals (background, text, borders, fills) come from Huet. Every Tailwind
@@ -30,7 +30,8 @@ type Swatch = { key: string; l: number; c: number; h: number }
 let palette: Swatch[] | null = null
 let ring: Swatch | null = null
 
-function applyHuet(picked: Theme, pageBackground: number) {
+function applyHuet(picked: Theme, pageBackground: number, pageEdits: Edits = {}) {
+  edits = pageEdits
   const theme = resolveTheme(picked, { background: pageBackground })
   const tokens = theme.tokens()
   // Match the configurator: primary and foreground use the full contrast range.
@@ -135,12 +136,32 @@ let painted: {
 
 /** The page's own color picks: shadcn's theme (accent) color and chart color. */
 type Brand = {
-  /** The theme color primary takes, unless it's a gray. */
-  accent?: string
+  /** The theme color primary takes. A gray one leaves primary the invert. */
+  accent: string
   /** Menu Accent: Bold, where menus highlight with the accent too. */
   boldMenus: boolean
   /** The chart palette, chart-1 first. */
   chart: string[]
+}
+
+/** The page's own colors by name, as the Huet panel shows them. */
+type PageColors = Record<string, string[]>
+/** Edits made in the Huet panel, each with the page's own colors it replaces. */
+type Edits = Record<string, { own: string[]; colors: string[] }>
+
+/** The Huet panel's edits to the page's colors, from the saved state. */
+let edits: Edits = {}
+
+const sameColors = (a: readonly string[] | undefined, b: readonly string[] | undefined) =>
+  JSON.stringify(a) === JSON.stringify(b)
+
+/**
+ * An edit replaces the page's own colors it was made from. When the page's
+ * own change, such as a new pick on /create, the edit no longer applies.
+ */
+function edited(name: string, own: string[]) {
+  const edit = edits[name]
+  return edit && sameColors(edit.own, own) ? edit.colors : own
 }
 
 /** Where /create's preview writes the picked base color, theme and chart color. */
@@ -172,6 +193,9 @@ function designSystemVars() {
 const hexOf = (swatch: Swatch) => chroma.oklch(swatch.l, swatch.c, swatch.h).hex()
 const isGray = (color: string) => !(chroma(color).oklch()[1] >= 0.02)
 
+/** What the site's gray primary stands for: a mid gray, so a saturation edit has room to show. */
+const GRAY_ACCENT = "#737373"
+
 /**
  * On /create, the theme and chart color picked there. Huet keeps their hue
  * and chroma and picks their lightness. Elsewhere, the site's own: a gray
@@ -187,11 +211,15 @@ function readBrand(): Brand {
     const blue = [300, 500, 600, 700, 800].map((step) =>
       palette?.find((swatch) => swatch.key === `--color-blue-${step}`),
     )
-    return { boldMenus: false, chart: blue.flatMap((swatch) => (swatch ? [hexOf(swatch)] : [])) }
+    return {
+      accent: GRAY_ACCENT,
+      boldMenus: false,
+      chart: blue.flatMap((swatch) => (swatch ? [hexOf(swatch)] : [])),
+    }
   }
-  const [primary] = color("--primary")
+  const [primary = GRAY_ACCENT] = color("--primary")
   return {
-    accent: primary && !isGray(primary) ? primary : undefined,
+    accent: primary,
     // shadcn's Bold menu accent copies primary into accent.
     boldMenus: Boolean(vars.get("--accent")) && vars.get("--accent") === vars.get("--primary"),
     chart: [1, 2, 3, 4, 5].flatMap((i) => color(`--chart-${i}`)),
@@ -225,7 +253,7 @@ function accentFill(theme: ResolvedTheme, color: string, text: string, foregroun
 /**
  * Five chart series from a palette, chart-1 first. A gray palette takes the
  * theme's own readable steps (text color to muted). A colored one sits on
- * its ramp, the one the Huet panel shows, keeping the palette's hue and
+ * its ramp (rampThrough), keeping the palette's hue and
  * chroma: the series spread evenly in contrast with the page, from Lc 90
  * (text) to Lc 45 (large graphics), scaled down on themes that can't reach
  * Lc 90.
@@ -250,16 +278,18 @@ function chartSeries(colors: string[]) {
 }
 
 /**
- * Primary, menu accents and charts from the page's picks (readBrand). /create
- * changes them without a reload, so this repaints whenever its picks do.
+ * Primary, menu accents and charts from the page's picks (readBrand), or the
+ * Huet panel's edits of them. /create changes its picks without a reload, so
+ * this repaints whenever they change.
  */
 function paintBrand() {
   if (!painted) return
   const { theme, foreground, background, menuAccent, chartSteps } = painted
   const brand = readBrand()
-  // A gray theme keeps primary as the max-contrast invert of the background.
-  const primary = brand.accent ? accentFill(theme, brand.accent, background, foreground) : foreground
-  const chart = chartSeries(brand.chart)
+  const [accent] = edited("Accent", [brand.accent])
+  // A gray accent keeps primary as the max-contrast invert of the background.
+  const primary = isGray(accent) ? foreground : accentFill(theme, accent, background, foreground)
+  const chart = chartSeries(edited("Chart", brand.chart))
   const vars: Record<string, string> = {
     "--primary": primary,
     "--primary-foreground": background,
@@ -272,7 +302,7 @@ function paintBrand() {
   const root = document.documentElement
   for (const [name, value] of Object.entries(vars)) root.style.setProperty(name, value)
   paintCharts(chartSteps, chart)
-  publishRamps({ Accent: brand.accent ? [brand.accent] : [], Chart: brand.chart })
+  publishPageColors({ Accent: [brand.accent], Chart: brand.chart })
   watchBrand()
 }
 
@@ -293,26 +323,25 @@ function watchBrand() {
   brandWatch.observe(document.head, { subtree: true, childList: true, characterData: true })
 }
 
-/** Ramps by name, for the Huet panel's Color ramps. */
-type Ramps = Record<string, string[]>
-const RAMPS_MESSAGE = "huet-shadcn-ramps"
-let ownRamps: Ramps | undefined
-let showOwnRamps: ((ramps: Ramps) => void) | null = null
+const PAGE_COLORS_MESSAGE = "huet-shadcn-page-colors"
+let ownColors: PageColors | undefined
+let showOwnColors: ((colors: PageColors) => void) | null = null
 
 /**
- * Show the accent and chart ramps in the Huet panel. The /create preview
- * paints in an iframe, so it sends its ramps up to the top page's panel.
+ * Show the page's own accent and chart colors in the Huet panel. The /create
+ * preview paints in an iframe, so it sends its colors up to the top page's
+ * panel.
  */
-function publishRamps(ramps: Ramps) {
+function publishPageColors(colors: PageColors) {
   if (embedded) {
-    if (designSystemVars()) window.parent.postMessage({ type: RAMPS_MESSAGE, ramps }, location.origin)
+    if (designSystemVars()) window.parent.postMessage({ type: PAGE_COLORS_MESSAGE, colors }, location.origin)
     return
   }
-  ownRamps = ramps
-  showOwnRamps?.(ramps)
+  ownColors = colors
+  showOwnColors?.(colors)
 }
 
-const sameRamps = (a: Ramps | undefined, b: Ramps | undefined) =>
+const samePageColors = (a: PageColors | undefined, b: PageColors | undefined) =>
   JSON.stringify(a) === JSON.stringify(b)
 
 /** Read each Tailwind swatch once, before inline overrides replace it. */
@@ -863,9 +892,26 @@ function paintSvgs(theme: Theme) {
   else svgMount.update(theme)
 }
 
-type Saved = { theme: Theme; background: number; themes: Record<string, Theme> }
+type Saved = {
+  theme: Theme
+  background: number
+  themes: Record<string, Theme>
+  /** The Huet panel's edits to the page's accent and chart colors. */
+  pageColors?: Edits
+}
 const storageKey = "huet-shadcn"
 const fallback: Saved = { theme: presets.Base, background: 1, themes: presets }
+
+/** Saved edits to the page's colors, without any that aren't lists of colors. */
+function validEdits(value: unknown): Edits {
+  const colors = (list: unknown): list is string[] =>
+    Array.isArray(list) && list.length > 0 && list.every((color) => typeof color === "string" && chroma.valid(color))
+  return Object.fromEntries(
+    Object.entries(typeof value === "object" && value !== null ? value : {}).filter(
+      ([, edit]) => colors(edit?.own) && colors(edit?.colors),
+    ),
+  )
+}
 
 /** The saved theme, background and theme list, or the defaults if there are none or they're invalid. */
 function load(): Saved {
@@ -874,7 +920,7 @@ function load(): Saved {
     if (!saved) return fallback
     checkTheme(saved.theme)
     for (const listed of Object.values(saved.themes ?? {})) checkTheme(listed)
-    return { ...fallback, ...saved }
+    return { ...fallback, ...saved, pageColors: validEdits(saved.pageColors) }
   } catch (error) {
     console.error("Huet: the saved theme is invalid, so it was reset.", error)
     return fallback
@@ -889,29 +935,29 @@ function load(): Saved {
 const embedded = typeof window !== "undefined" && window.self !== window.top
 
 /**
- * The accent and chart ramps the Huet panel shows: this page's own, or on
- * /create, the ones its preview iframe sends up for the picked theme and
- * chart color.
+ * The page's own accent and chart colors, for the Huet panel: this page's,
+ * or on /create, the ones its preview iframe sends up for the picked theme
+ * and chart color.
  */
-function useRamps() {
-  const [own, setOwn] = useState(ownRamps)
-  const [preview, setPreview] = useState<Ramps>()
+function useOwnColors() {
+  const [own, setOwn] = useState(ownColors)
+  const [preview, setPreview] = useState<PageColors>()
   const pathname = usePathname()
   // A preview from another page doesn't belong to this one.
   useEffect(() => setPreview(undefined), [pathname])
   useEffect(() => {
     if (embedded) return
-    const keep = (next: Ramps) => (current: Ramps | undefined) =>
-      sameRamps(current, next) ? current : next
-    showOwnRamps = (next) => setOwn(keep(next))
-    if (ownRamps) setOwn(keep(ownRamps))
+    const keep = (next: PageColors) => (current: PageColors | undefined) =>
+      samePageColors(current, next) ? current : next
+    showOwnColors = (next) => setOwn(keep(next))
+    if (ownColors) setOwn(keep(ownColors))
     const receive = (event: MessageEvent) => {
-      if (event.origin !== location.origin || event.data?.type !== RAMPS_MESSAGE) return
-      setPreview(keep(event.data.ramps))
+      if (event.origin !== location.origin || event.data?.type !== PAGE_COLORS_MESSAGE) return
+      setPreview(keep(event.data.colors))
     }
     window.addEventListener("message", receive)
     return () => {
-      showOwnRamps = null
+      showOwnColors = null
       window.removeEventListener("message", receive)
     }
   }, [])
@@ -934,11 +980,30 @@ export function HuetConfigurator() {
   }, [])
   const change = (changes: Partial<Saved>) =>
     setSaved((current) => current && { ...current, ...changes })
-  const ramps = useRamps()
+  const own = useOwnColors()
+  // Each color as the panel shows it: the page's own, or an edit made from them.
+  const pageColors = useMemo(() => {
+    const shown: Record<string, PageColor> = {}
+    for (const [name, colors] of Object.entries(own ?? {})) {
+      const edit = saved?.pageColors?.[name]
+      shown[name] = edit && sameColors(edit.own, colors) ? { colors: edit.colors, own: colors } : { colors }
+    }
+    return shown
+  }, [own, saved?.pageColors])
+  const editPageColor = (name: string, colors: string[] | undefined) =>
+    setSaved((current) => {
+      if (!current) return current
+      const { [name]: _, ...rest } = current.pageColors ?? {}
+      const pageOwn = own?.[name]
+      return {
+        ...current,
+        pageColors: colors && pageOwn ? { ...rest, [name]: { own: pageOwn, colors } } : rest,
+      }
+    })
   useLayoutEffect(() => {
     if (!saved) return
     try {
-      applyHuet(saved.theme, saved.background)
+      applyHuet(saved.theme, saved.background, saved.pageColors)
     } catch (error) {
       // A throw here takes down the whole Next page. Keep the colors already
       // painted, and don't save a theme that can't render.
@@ -956,7 +1021,8 @@ export function HuetConfigurator() {
       onThemesChange={(themes) => change({ themes })}
       background={saved.background}
       onBackgroundChange={(background) => change({ background })}
-      ramps={ramps}
+      pageColors={pageColors}
+      onPageColorChange={editPageColor}
     />
   )
 }

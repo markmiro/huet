@@ -4,9 +4,9 @@
   the background, and `step(surface, amount, ramp)` is the color a class such
   as `huet-bg-blue-25` gets on that surface. The configurator's previews draw
   with it, since previews of themes that aren't mounted can't use classes.
-  `rampThrough` is the ramp the configurator draws for each hue, and
-  `contrast` is the solver's APCA Lc, for pages that place their own colors
-  on a theme.
+  `rampThrough` and `contrast` (the solver's APCA Lc) are for pages that
+  place their own colors on a theme, such as the shadcn demo's accent and
+  chart palette.
 */
 export { resolveTheme, themeVariables } from "./core/theme";
 export { rampThrough } from "./core/ramp";

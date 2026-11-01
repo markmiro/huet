@@ -108,20 +108,60 @@ test("a gray chart color takes the theme's own steps", async ({ page }) => {
   }).toBe(true);
 });
 
-test("the Huet panel shows the picked accent and chart ramps", async ({ page }) => {
-  await openCreate(page, themes.Base, 1, { Theme: "Violet", "Chart Color": "Amber" });
+/** Opens the Huet panel's Edit Theme tab. */
+async function editTheme(page: Page) {
   const toggle = page.getByRole("button", { name: /Huet Theme Configurator/ });
   if ((await toggle.getAttribute("aria-expanded")) !== "true") await toggle.click();
-  await page.getByRole("button", { name: "Edit Theme", exact: true }).click();
-  const accent = page.locator("[data-ramp=Accent]");
-  const chart = page.locator("[data-ramp=Chart]");
+  await page.getByRole("tab", { name: "Edit Theme" }).click();
+}
+
+test("the Huet panel shows the picked accent and chart colors", async ({ page }) => {
+  await openCreate(page, themes.Base, 1, { Theme: "Violet", "Chart Color": "Amber" });
+  await editTheme(page);
+  const accent = page.getByRole("button", { name: /^Edit accent, / });
+  const chart = page.getByRole("button", { name: /^Edit chart, / });
   await expect(accent).toBeVisible();
-  // The theme's two ends and the picked colors: one accent, five chart colors
-  await expect(accent.locator("[style*='left: calc']")).toHaveCount(3);
-  await expect(chart.locator("[style*='left: calc']")).toHaveCount(7);
-  // Picking another theme color moves the accent ramp's marker
-  const marker = () => accent.locator("[style*='left: calc']").nth(1).evaluate((el) => getComputedStyle(el).backgroundColor);
-  const violet = await marker();
+  // The whole palette, five colors
+  await expect.poll(async () => (await chart.getAttribute("aria-label"))!.split(",").length).toBe(6);
+  const violet = await accent.getAttribute("aria-label");
   await pick(page, "Theme", "Emerald");
-  await expect.poll(marker).not.toBe(violet);
+  await expect(accent).not.toHaveAttribute("aria-label", violet!);
+});
+
+test("editing the chart color in the Huet panel repaints the preview, and Default goes back", async ({ page }) => {
+  const frame = await openCreate(page, themes.Base, 1, { "Chart Color": "Amber" });
+  await editTheme(page);
+  await page.getByRole("button", { name: /^Edit chart, / }).click();
+  const hue = page.getByRole("textbox", { name: "Chart hue" });
+  await hue.fill("250");
+  await hue.press("Enter");
+  // The palette turns as a whole: every series blue, at the same strengths
+  await expect.poll(async () => near((await vars(frame, ["--chart-3"]))["--chart-3"], 250, 25)).toBe(true);
+  const blue = await vars(frame, charts);
+  for (const name of charts) expect(near(blue[name], 250, 35), `${name} ${blue[name]} is blue`).toBe(true);
+
+  // The edit survives a reload
+  await page.reload();
+  const reloaded = page.frameLocator("iframe").first();
+  await expect.poll(async () => near((await vars(reloaded, ["--chart-3"]))["--chart-3"], 250, 25)).toBe(true);
+
+  await editTheme(page);
+  await page.getByRole("button", { name: /^Edit chart, / }).click();
+  await page.getByRole("button", { name: "Default", exact: true }).click();
+  await expect.poll(async () => near((await vars(reloaded, ["--chart-3"]))["--chart-3"], 60, 30)).toBe(true);
+});
+
+test("giving a gray accent a color in the Huet panel makes primary that color", async ({ page }) => {
+  const frame = await openCreate(page, themes.Base, 1, { Theme: "Neutral" });
+  await editTheme(page);
+  await page.getByRole("button", { name: /^Edit accent, / }).click();
+  const hex = page.getByRole("textbox", { name: "Accent hex" });
+  await hex.fill("#e11d48");
+  await expect.poll(async () => near((await vars(frame, ["--primary"]))["--primary"], 15, 30)).toBe(true);
+  const v = await vars(frame, ["--primary", "--primary-foreground"]);
+  expect(contrast(chroma(v["--primary"]).hex(), chroma(v["--primary-foreground"]).hex())).toBeGreaterThanOrEqual(74);
+
+  // A new pick on /create replaces the edit
+  await pick(page, "Theme", "Blue");
+  await expect.poll(async () => near((await vars(frame, ["--primary"]))["--primary"], 264, 25)).toBe(true);
 });

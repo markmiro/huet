@@ -1,5 +1,6 @@
 import React, { useContext } from "react";
 import type { Theme } from "huet";
+import type { PageColor } from "./ThemeConfigurator";
 import type { ResolvedTheme } from "huet/internal";
 
 export interface ConfiguratorState {
@@ -12,8 +13,10 @@ export interface ConfiguratorState {
   themes: Readonly<Record<string, Theme>>;
   /** Where the page's background sits on the neutral ramp. */
   background: number;
-  /** The page's own colors by name, each shown as a ramp. */
-  ramps: Readonly<Record<string, readonly string[]>>;
+  /** The page's own colors by name, such as an accent and a chart palette. */
+  pageColors: Readonly<Record<string, PageColor>>;
+  /** Edits one of `pageColors`, or with `undefined` goes back to the page's own, when the page allows it. */
+  setPageColor?: (name: string, colors: string[] | undefined) => void;
   /** Moves the page's background, when the page lets the configurator. */
   setBackground?: (background: number) => void;
   /** The listed theme `theme` matches, if any. */
