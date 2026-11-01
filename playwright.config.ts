@@ -1,6 +1,8 @@
 import { defineConfig } from "@playwright/test";
 export default defineConfig({
   testDir: "./tests",
+  // The shadcn demo has its own server: pnpm test:shadcn.
+  testIgnore: "shadcn/**",
   use: {
     baseURL: "http://localhost:8733",
     viewport: { width: 1280, height: 1100 },

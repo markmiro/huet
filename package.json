@@ -23,6 +23,7 @@
     "typecheck": "tsc --noEmit",
     "lint": "tsc --noEmit",
     "test:browser": "playwright test",
+    "test:shadcn": "playwright test -c playwright.shadcn.config.ts",
     "shadcn:setup": "node scripts/shadcn-huet/setup.mjs",
     "shadcn:dev": "pnpm --dir vendor/shadcn-ui --config.package-manager-strict=false v4:dev"
   },

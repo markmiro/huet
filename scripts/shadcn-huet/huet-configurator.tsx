@@ -114,6 +114,7 @@ function applyHuet(picked: Theme, pageBackground: number) {
   root.style.backgroundColor = background
   paintThemeHues(theme.ramp, foreground, background, tokens.red, ink(fill("red")))
   paintCharts(chartSteps)
+  paintChartConfigs(foreground, mutedForeground)
   paintTopNav(background)
   paintCode(theme, background, surface)
   paintImages(picked)
@@ -330,6 +331,89 @@ function collectChartRules() {
     }
   }
   return rules
+}
+
+let chartConfigColor: ((swatch: Swatch, t: number) => string) | null = null
+let chartConfigWatch: MutationObserver | null = null
+const reportedChartColors = new Set<string>()
+
+/** Paints that already follow the theme through CSS. */
+const followsCss = /var\(|currentcolor|inherit/i
+
+const isChartStyle = (node: Node) =>
+  node instanceof HTMLStyleElement && (node.textContent ?? "").includes("[data-chart=")
+const holdsChartStyle = (node: Node) =>
+  isChartStyle(node) ||
+  (node instanceof Element && [...node.querySelectorAll("style")].some(isChartStyle))
+
+/**
+ * ChartContainer writes each chart's config into its own <style>, as
+ * `[data-chart=…] { --color-desktop: … }`. A config color given as a CSS
+ * variable already follows the theme. Literal ones, such as the docs'
+ * `#2563eb` and `#60a5fa`, spread over the same readable scale as
+ * --chart-N, darkest at the text color and lightest at muted, so the
+ * series stay apart. Each keeps its hue.
+ */
+function paintChartConfigs(foreground: string, muted: string) {
+  chartConfigColor = (swatch, t) => tintChart(mixOklch(foreground, muted, t), swatch)
+  if (!chartConfigWatch) {
+    // Charts mount, unmount and change config after the theme is applied.
+    chartConfigWatch = new MutationObserver((records) => {
+      const touched = records.some(
+        (record) =>
+          isChartStyle(record.target) ||
+          (record.target.parentNode !== null && isChartStyle(record.target.parentNode)) ||
+          [...record.addedNodes, ...record.removedNodes].some(holdsChartStyle),
+      )
+      if (touched) writeChartConfigs()
+    })
+    chartConfigWatch.observe(document.body, { subtree: true, childList: true, characterData: true })
+  }
+  writeChartConfigs()
+}
+
+function writeChartConfigs() {
+  const color = chartConfigColor
+  if (!color) return
+  let css = ""
+  for (const element of document.querySelectorAll("style")) {
+    if (!isChartStyle(element) || !element.sheet) continue
+    for (const rule of element.sheet.cssRules) {
+      if (!(rule instanceof CSSStyleRule)) continue
+      const literal: Swatch[] = []
+      for (let i = 0; i < rule.style.length; i++) {
+        const prop = rule.style.item(i)
+        if (!prop.startsWith("--color-")) continue
+        const raw = rule.style.getPropertyValue(prop).trim()
+        if (!raw || followsCss.test(raw)) continue
+        const swatch = readSwatch(prop, raw)
+        if (!swatch) {
+          const report = `${rule.selectorText} ${prop}: ${raw}`
+          if (!reportedChartColors.has(report)) {
+            reportedChartColors.add(report)
+            console.error(
+              `Huet can't theme the chart color ${prop}: ${raw} (${rule.selectorText}). ` +
+                "Give the chart config a CSS color or a var(), such as var(--chart-1).",
+            )
+          }
+          continue
+        }
+        literal.push(swatch)
+      }
+      if (!literal.length) continue
+      literal.sort((a, b) => a.l - b.l)
+      const last = Math.max(1, literal.length - 1)
+      const decls = literal.map((swatch, i) => `${swatch.key}: ${color(swatch, i / last)} !important`)
+      css += `${rule.selectorText}{${decls.join(";")}}`
+    }
+  }
+  let style = document.getElementById("huet-chart-configs")
+  if (!style) {
+    style = document.createElement("style")
+    style.id = "huet-chart-configs"
+    document.head.append(style)
+  }
+  if (style.textContent !== css) style.textContent = css
 }
 
 /** The site header stays on the theme background instead of a hardcoded white. */

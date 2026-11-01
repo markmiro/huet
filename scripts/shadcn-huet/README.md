@@ -20,6 +20,8 @@ git -C vendor/shadcn-ui diff --abbrev=7 -- apps/v4/app/globals.css 'apps/v4/app/
 
 Leave `layout.tsx` and `theme-provider.tsx` out of it, since `setup.mjs` edits those itself.
 
+`pnpm test:shadcn` checks the result in the browser: every chart's paints must change with the theme, in light and dark mode. It starts `pnpm shadcn:dev` on port 4000, or set `SHADCN_URL` to use a server that's already running.
+
 ## Code blocks
 
 Every highlighter on the site wraps shadcn's own Shiki themes (vesper and GitHub) in `huetShikiTheme({ from })`, so tokens keep shadcn's hues and take their lightness from Huet's CSS variables (see [code blocks](../../docs/code-blocks.md#keeping-another-themes-hues)). The site doesn't mount Huet, so `huet-configurator.tsx` writes those variables itself: solved against shadcn's `--code` fill inside `[data-rehype-pretty-code-figure]`, and against the page everywhere else, such as the registry's `CodeBlock`. It also logs a `console.error` for any code block whose tokens still carry fixed colors (hex or `rgb()`), for example after a submodule update adds a highlighter: wrap its theme in `huetShikiTheme({ from })` too.
