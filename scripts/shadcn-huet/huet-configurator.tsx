@@ -696,7 +696,14 @@ export function HuetConfigurator() {
     setSaved((current) => current && { ...current, ...changes })
   useLayoutEffect(() => {
     if (!saved) return
-    applyHuet(saved.theme, saved.background)
+    try {
+      applyHuet(saved.theme, saved.background)
+    } catch (error) {
+      // A throw here takes down the whole Next page. Keep the colors already
+      // painted, and don't save a theme that can't render.
+      console.error("Huet: couldn't apply this theme, so the page keeps the last one.", error)
+      return
+    }
     if (!embedded) localStorage.setItem(storageKey, JSON.stringify(saved))
   }, [saved])
   if (!saved || embedded) return null

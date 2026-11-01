@@ -94,6 +94,11 @@ export function checkTheme(value: unknown): asserts value is Theme {
     fail(`neutral must be an array of two or more colors, darkest first, got ${JSON.stringify(neutral)}`);
   for (const color of neutral as unknown[])
     if (!isColor(color)) fail(`neutral has ${JSON.stringify(color)}, which isn't a color`);
+  const stops = neutral as string[];
+  const [darkest, lightest] = [stops[0], stops[stops.length - 1]];
+  // Same measure as the solver, which can't build a ramp that runs backwards
+  if (luminance(chroma(darkest).hex("rgb")) > luminance(chroma(lightest).hex("rgb")))
+    fail(`neutral runs darkest first, but its first color ${darkest} is lighter than its last color ${lightest}`);
   if (colorModel !== undefined && !colorModels.includes(colorModel as ColorModel))
     fail(`colorModel must be one of ${colorModels.join(", ")}, got ${JSON.stringify(colorModel)}`);
   if (colors !== undefined) {
