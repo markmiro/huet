@@ -6,5 +6,5 @@ export type { ThemeCssOptions } from "./css";
 export { mountTheme } from "./dom";
 export { amounts, classes, isHuetClass, validateClasses } from "./classes";
 export type { HuetClass, RelativeClass, Amount, RampName, Surface } from "./classes";
-export { huetShikiTheme, huetShikiTransformer, codeRoles, defaultLineSurfaces } from "./shiki";
-export type { HuetShikiTheme, CodeRole, SurfaceClass, HuetShikiTransformerOptions } from "./shiki";
+export { huetShikiTheme, huetShikiTransformer, codeRoles, ansiColors, defaultLineSurfaces } from "./shiki";
+export type { HuetShikiTheme, HuetShikiThemeOptions, ShikiThemeSource, CodeRole, AnsiColor, SurfaceClass, HuetShikiTransformerOptions } from "./shiki";

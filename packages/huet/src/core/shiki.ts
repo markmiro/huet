@@ -1,4 +1,5 @@
 import { parseColorClass, type RelativeClass } from "./classes";
+import { contrast, maxLchChroma, toLch, toOklab } from "./color";
 
 /*
   A Shiki theme whose colors are Huet's per-surface CSS variables instead of
@@ -35,6 +36,49 @@ export const codeRoles = {
 export type CodeRole = keyof typeof codeRoles;
 
 const color = (role: CodeRole) => `var(--huet-code-${role}, ${codeRoles[role]})`;
+
+/**
+ * Terminal colors for `ansi` blocks, each emitted as
+ * `var(--huet-code-ansi-<name>, <default>)`. Without them Shiki falls back to
+ * its own fixed palette, which ignores the theme. Huet has one color per hue
+ * on a surface, so bright variants share their base color, and black and
+ * white become muted and foreground text: readable in either polarity.
+ */
+export const ansiColors = {
+  black: "var(--huet-muted)",
+  red: "var(--huet-red)",
+  green: "var(--huet-green)",
+  yellow: "var(--huet-yellow)",
+  blue: "var(--huet-blue)",
+  magenta: "var(--huet-purple)",
+  cyan: "color-mix(in oklab, var(--huet-blue), var(--huet-green))",
+  white: "var(--huet-foreground)",
+} as const;
+export type AnsiColor = keyof typeof ansiColors;
+
+/*
+  Shiki accepts only hex for terminal colors. It swaps other values for
+  placeholders by mutating the theme's `colors`, so a theme object highlighted
+  twice (as Shiki's `codeToHtml` shorthand does) loses the mapping and renders the
+  placeholders. Fixed hex sentinels, mapped back through the theme's own
+  `colorReplacements` (which Shiki copies), survive any number of passes.
+*/
+const ansiKeys = Object.keys(ansiColors).flatMap((name) => {
+  const key = name[0].toUpperCase() + name.slice(1);
+  return [`terminal.ansi${key}`, `terminal.ansiBright${key}`];
+});
+function terminal(value: (key: string, name: AnsiColor) => string) {
+  const colors: Record<string, string> = {};
+  const colorReplacements: Record<string, string> = {};
+  ansiKeys.forEach((key, i) => {
+    const name = key.replace(/^terminal\.ansi(Bright)?/, "").toLowerCase() as AnsiColor;
+    const sentinel = `#ffff${(i + 1).toString(16).padStart(4, "0")}`;
+    colorReplacements[sentinel] = value(key, name);
+    colors[key] = sentinel;
+  });
+  return { colors, colorReplacements };
+}
+const ansiRole = (name: AnsiColor) => `var(--huet-code-ansi-${name}, ${ansiColors[name]})`;
 
 type FontStyle = "italic" | "bold" | "underline" | "strikethrough";
 // In GitHub's order: equally specific scopes resolve to the later rule.
@@ -77,35 +121,176 @@ const rules: [scope: string[], role?: CodeRole, fontStyle?: FontStyle][] = [
   [["constant.other.reference.link", "string.other.link"], "string", "underline"],
 ];
 
+type TokenSettings = { foreground?: string; background?: string; fontStyle?: string };
+type TokenColor = { name?: string; scope?: string | string[]; settings: TokenSettings };
+// Some published themes leave a rule's settings out.
+type SourceTokenColor = Omit<TokenColor, "settings"> & { settings?: TokenSettings };
+
 /** Structurally compatible with Shiki's `ThemeRegistration`; Huet doesn't depend on Shiki. */
 export interface HuetShikiTheme {
   name: string;
   type: "light" | "dark";
   colors: Record<string, string>;
+  /** Maps the hex sentinels in `colors` back to Huet's variables. */
+  colorReplacements: Record<string, string>;
   fg: string;
   bg: string;
-  tokenColors: { scope: string[]; settings: { foreground?: string; fontStyle?: string } }[];
+  tokenColors: TokenColor[];
 }
 
-export function huetShikiTheme({ name = "huet" }: { name?: string } = {}): HuetShikiTheme {
+/** A Shiki theme to take scopes and hues from, such as `shiki/themes/vesper.mjs`. */
+export interface ShikiThemeSource {
+  name?: string;
+  type?: string;
+  fg?: string;
+  bg?: string;
+  colors?: Record<string, string>;
+  tokenColors?: SourceTokenColor[];
+  settings?: SourceTokenColor[];
+}
+
+export interface HuetShikiThemeOptions {
+  /** Shiki's theme name. Defaults to `"huet"`, or the `from` theme's name. */
+  name?: string;
+  /**
+   * Keep this theme's scopes and the hue and chroma of each of its colors.
+   * Huet only sets their lightness: each colored token takes the CIE
+   * lightness, and so the luminance and contrast, of `--huet-muted` (override
+   * with `--huet-code-lightness`), which the hue tokens match on the block.
+   * Grays become `foreground` or `comment`.
+   * Without it, tokens use Huet's own hues through the roles in `codeRoles`.
+   */
+  from?: ShikiThemeSource;
+}
+
+export function huetShikiTheme({ name, from }: HuetShikiThemeOptions = {}): HuetShikiTheme {
+  const term = from ? terminal((key, ansi) => {
+    const value = from.colors?.[key];
+    return value ? keepHue(value, from, `colors["${key}"]`) : ansiRole(ansi);
+  }) : terminal((_, ansi) => ansiRole(ansi));
   return {
-    name,
+    name: name ?? from?.name ?? "huet",
     // Shiki only uses `type` to pick a default `color-scheme`; Huet sets polarity per surface.
-    type: "light",
+    type: from?.type === "dark" ? "dark" : "light",
     fg: color("foreground"),
     bg: color("background"),
     colors: {
       "editor.foreground": color("foreground"),
       "editor.background": color("background"),
+      ...term.colors,
     },
-    tokenColors: rules.map(([scope, role, fontStyle]) => ({
-      scope,
-      settings: {
-        ...(role && { foreground: color(role) }),
-        ...(fontStyle && { fontStyle }),
-      },
-    })),
+    colorReplacements: term.colorReplacements,
+    tokenColors: from
+      ? (from.tokenColors ?? from.settings ?? []).map(({ settings = {}, ...rule }, i) => ({
+          ...rule,
+          settings: {
+            ...settings,
+            ...(settings.foreground && { foreground: keepHue(settings.foreground, from, `tokenColors[${i}].foreground`) }),
+            ...(settings.background && { background: keepBackgroundHue(settings.background, from, `tokenColors[${i}].background`) }),
+          },
+        }))
+      : rules.map(([scope, role, fontStyle]) => ({
+          scope,
+          settings: {
+            ...(role && { foreground: color(role) }),
+            ...(fontStyle && { fontStyle }),
+          },
+        })),
   };
+}
+
+/** Below this OKLCH chroma a color reads as gray, so it becomes a neutral role. */
+const grayChroma = 0.03;
+
+function oklchOf(value: string, where: string) {
+  const match = /^#(?:([\da-f]{3})([\da-f])?|([\da-f]{6})([\da-f]{2})?)$/i.exec(value);
+  if (!match)
+    throw new TypeError(`huetShikiTheme: from.${where} is "${value}"; only hex colors (#rgb, #rgba, #rrggbb, #rrggbbaa) can keep their hue`);
+  const hex = `#${match[1] ?? match[3]}`;
+  const [, a, b] = toOklab(hex);
+  const [, C, H] = toLch(hex);
+  const alphaHex = match[2] ? match[2] + match[2] : match[4];
+  const alpha = alphaHex ? parseInt(alphaHex, 16) / 255 : 1;
+  return { hex, gray: Math.hypot(a, b) < grayChroma, C, H, alpha };
+}
+/** CIE chroma and hue, and alpha, for `lch(from … l <these>)`. */
+const hueOf = ({ C, H, alpha }: { C: number; H: number; alpha: number }) =>
+  `${chromaAt(C, H)} ${+H.toFixed(2)}${alpha < 1 ? ` / ${+alpha.toFixed(3)}` : ""}`;
+
+/*
+  A token keeps its chroma only where sRGB can show it at the lightness Huet
+  picks. Past that edge browsers clip channels, which changes luminance and so
+  contrast (GitHub's ANSI red loses a fifth of it on a dark block). The edge
+  for a hue, as lines through samples of it, goes in a min() with the
+  token's chroma, keeping the lines that bind for text lightness (L* 15–85).
+  Where the edge isn't concave the lines can cut a little inside it: chroma
+  gives way, hue and lightness don't.
+*/
+const textLightness = [15, 85] as const;
+const edgeSamples = [15, 30, 45, 60, 75, 90];
+const edges = new Map<number, [slope: number, intercept: number][]>();
+function gamutEdge(H: number) {
+  const key = Math.round(H * 100);
+  let lines = edges.get(key);
+  if (lines) return lines;
+  let cusp = 50, peak = 0;
+  for (let L = 1; L < 100; L++) {
+    const C = maxLchChroma(L, H);
+    if (C > peak) [cusp, peak] = [L, C];
+  }
+  const points = [...new Set([0, ...edgeSamples, cusp, 100])]
+    .sort((a, b) => a - b)
+    .map((L) => [L, L === 0 || L === 100 ? 0 : maxLchChroma(L, H)]);
+  lines = points.slice(1).map(([L2, C2], i) => {
+    const [L1, C1] = points[i];
+    const slope = (C2 - C1) / (L2 - L1);
+    return [+slope.toFixed(3), +(C1 - slope * L1).toFixed(2)];
+  });
+  edges.set(key, lines);
+  return lines;
+}
+function chromaAt(C: number, H: number) {
+  const chroma = +C.toFixed(2);
+  const binding = gamutEdge(H).filter(([slope, intercept]) =>
+    textLightness.some((L) => slope * L + intercept < chroma),
+  );
+  if (!binding.length) return `${chroma}`;
+  const line = ([slope, intercept]: [number, number]) =>
+    `l * ${slope} ${intercept < 0 ? "-" : "+"} ${Math.abs(intercept)}`;
+  return `min(${chroma}, ${binding.map(line).join(", ")})`;
+}
+
+// Values that don't fix a color, which Shiki writes through as they are.
+const passThrough = /^(?:inherit|initial|unset|currentcolor|transparent|var\(.+\))$/i;
+
+function keepHue(value: string, from: ShikiThemeSource, where: string) {
+  if (passThrough.test(value)) return value;
+  const token = oklchOf(value, where);
+  // CIE L* follows luminance alone, so the token reads exactly as strong as
+  // muted text (which hue tokens match); OKLab L would dim saturated colors.
+  if (!token.gray) return `lch(from var(--huet-code-lightness, var(--huet-muted)) l ${hueOf(token)})`;
+  // Grays keep their place: text as strong as the theme's own is foreground, the rest muted.
+  const { fg, bg } = editorColors(from);
+  const back = oklchOf(bg, "editor.background").hex;
+  return contrast(back, token.hex) >= 0.8 * contrast(back, oklchOf(fg, "editor.foreground").hex)
+    ? color("foreground")
+    : color("comment");
+}
+
+/** The theme's text and background, found the way Shiki finds them. */
+function editorColors(from: ShikiThemeSource) {
+  const global = (from.tokenColors ?? from.settings ?? []).find((rule) => !rule.scope && !rule.name)?.settings;
+  const light = from.type === "light";
+  return {
+    fg: from.fg ?? global?.foreground ?? from.colors?.["editor.foreground"] ?? (light ? "#333333" : "#bbbbbb"),
+    bg: from.bg ?? global?.background ?? from.colors?.["editor.background"] ?? (light ? "#fffffe" : "#1e1e1e"),
+  };
+}
+
+/** Token backgrounds (diff rows) keep their hue at the block's own lightness, like a highlighter. */
+function keepBackgroundHue(value: string, from: ShikiThemeSource, where: string) {
+  if (passThrough.test(value)) return value;
+  return `lch(from ${color("background")} l ${hueOf(oklchOf(value, where))})`;
 }
 
 interface HastNode {

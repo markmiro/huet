@@ -11,42 +11,10 @@ index 28e1b65..90e6a62 100644
              className="size-40 text-black"
              role="img"
 diff --git a/apps/v4/app/globals.css b/apps/v4/app/globals.css
-index 00c2223..d6a3760 100644
+index 00c2223..92a3e9c 100644
 --- a/apps/v4/app/globals.css
 +++ b/apps/v4/app/globals.css
-@@ -424,6 +424,31 @@
-     }
-   }
- 
-+  /*
-+    Shiki paints plain text as #fff (dark) or #24292e (light). The theme
-+    foreground can be dimmer than that. Keep syntax hues; only the plain
-+    foreground tokens follow --foreground.
-+  */
-+  pre[data-language],
-+  [data-rehype-pretty-code-figure] pre {
-+    --shiki-light: var(--foreground) !important;
-+    --shiki-dark: var(--foreground) !important;
-+  }
-+
-+  :is(pre, code, [data-line]) span[style*="#FFF"],
-+  :is(pre, code, [data-line]) span[style*="#fff"],
-+  :is(pre, code, [data-line]) span[style*="#E1E4E8"],
-+  :is(pre, code, [data-line]) span[style*="#e1e4e8"] {
-+    --shiki-dark: var(--foreground) !important;
-+  }
-+
-+  :is(pre, code, [data-line]) span[style*="#1F2328"],
-+  :is(pre, code, [data-line]) span[style*="#1f2328"],
-+  :is(pre, code, [data-line]) span[style*="#24292E"],
-+  :is(pre, code, [data-line]) span[style*="#24292e"] {
-+    --shiki-light: var(--foreground) !important;
-+  }
-+
-   [data-highlighted-line],
-   [data-highlighted-chars] {
-     position: relative;
-@@ -460,3 +485,21 @@
+@@ -460,3 +460,21 @@
      @apply rounded-xl border-none bg-clip-padding shadow-2xl ring-4 ring-neutral-200/80 dark:bg-neutral-900 dark:ring-neutral-800;
    }
  }
@@ -93,6 +61,154 @@ index 7897e95..215c54b 100644
        <div className="container-wrapper px-6 group-has-data-[slot=designer]/layout:max-w-none 3xl:fixed:px-0">
          <div className="flex h-(--header-height) items-center **:data-[slot=separator]:h-4! group-has-data-[slot=designer]/layout:fixed:max-w-none 3xl:fixed:container">
            <MobileNav
+diff --git a/apps/v4/lib/highlight-code.ts b/apps/v4/lib/highlight-code.ts
+index 6ea08f6..8710165 100644
+--- a/apps/v4/lib/highlight-code.ts
++++ b/apps/v4/lib/highlight-code.ts
+@@ -1,7 +1,10 @@
+ import { createHash } from "crypto"
++import { huetShikiTheme } from "huet"
+ import { LRUCache } from "lru-cache"
+ import { codeToHtml } from "shiki"
+ import type { ShikiTransformer } from "shiki"
++import githubDark from "shiki/themes/github-dark.mjs"
++import githubLight from "shiki/themes/github-light.mjs"
+ 
+ // LRU cache for cross-request caching of highlighted code.
+ // Shiki highlighting is CPU-intensive and deterministic, so caching is safe.
+@@ -81,9 +84,10 @@ export async function highlightCode(code: string, language: string = "tsx") {
+ 
+   const html = await codeToHtml(code, {
+     lang: language,
++    // Huet keeps each theme's hues and sets their lightness.
+     themes: {
+-      dark: "github-dark",
+-      light: "github-light",
++      dark: huetShikiTheme({ from: githubDark }),
++      light: huetShikiTheme({ from: githubLight }),
+     },
+     transformers: [
+       {
+diff --git a/apps/v4/registry/bases/aria/hooks/_registry.ts b/apps/v4/registry/bases/aria/hooks/_registry.ts
+index b9e58b9..91ba91f 100644
+--- a/apps/v4/registry/bases/aria/hooks/_registry.ts
++++ b/apps/v4/registry/bases/aria/hooks/_registry.ts
+@@ -14,7 +14,7 @@ export const hooks: Registry["items"] = [
+   {
+     name: "use-highlighted-code",
+     type: "registry:hook",
+-    dependencies: ["shiki"],
++    dependencies: ["shiki", "huet"],
+     files: [
+       {
+         path: "hooks/use-highlighted-code.ts",
+diff --git a/apps/v4/registry/bases/aria/lib/highlighter.tsx b/apps/v4/registry/bases/aria/lib/highlighter.tsx
+index 4765dcd..d69c611 100644
+--- a/apps/v4/registry/bases/aria/lib/highlighter.tsx
++++ b/apps/v4/registry/bases/aria/lib/highlighter.tsx
+@@ -1,4 +1,5 @@
+ import * as React from "react"
++import { huetShikiTheme } from "huet"
+ import {
+   createHighlighterCore,
+   type GrammarState,
+@@ -39,9 +40,14 @@ let highlighter: Promise<HighlighterCore> | undefined
+ 
+ function getHighlighter() {
+   highlighter ??= createHighlighterCore({
++    // Huet keeps each theme's hues and sets their lightness.
+     themes: [
+-      import("shiki/themes/github-light.mjs"),
+-      import("shiki/themes/github-dark.mjs"),
++      import("shiki/themes/github-light.mjs").then((theme) =>
++        huetShikiTheme({ from: theme.default })
++      ),
++      import("shiki/themes/github-dark.mjs").then((theme) =>
++        huetShikiTheme({ from: theme.default })
++      ),
+     ],
+     langs: [],
+     engine: createJavaScriptRegexEngine({ forgiving: true }),
+diff --git a/apps/v4/registry/bases/base/hooks/_registry.ts b/apps/v4/registry/bases/base/hooks/_registry.ts
+index b9e58b9..91ba91f 100644
+--- a/apps/v4/registry/bases/base/hooks/_registry.ts
++++ b/apps/v4/registry/bases/base/hooks/_registry.ts
+@@ -14,7 +14,7 @@ export const hooks: Registry["items"] = [
+   {
+     name: "use-highlighted-code",
+     type: "registry:hook",
+-    dependencies: ["shiki"],
++    dependencies: ["shiki", "huet"],
+     files: [
+       {
+         path: "hooks/use-highlighted-code.ts",
+diff --git a/apps/v4/registry/bases/base/lib/highlighter.tsx b/apps/v4/registry/bases/base/lib/highlighter.tsx
+index 4765dcd..d69c611 100644
+--- a/apps/v4/registry/bases/base/lib/highlighter.tsx
++++ b/apps/v4/registry/bases/base/lib/highlighter.tsx
+@@ -1,4 +1,5 @@
+ import * as React from "react"
++import { huetShikiTheme } from "huet"
+ import {
+   createHighlighterCore,
+   type GrammarState,
+@@ -39,9 +40,14 @@ let highlighter: Promise<HighlighterCore> | undefined
+ 
+ function getHighlighter() {
+   highlighter ??= createHighlighterCore({
++    // Huet keeps each theme's hues and sets their lightness.
+     themes: [
+-      import("shiki/themes/github-light.mjs"),
+-      import("shiki/themes/github-dark.mjs"),
++      import("shiki/themes/github-light.mjs").then((theme) =>
++        huetShikiTheme({ from: theme.default })
++      ),
++      import("shiki/themes/github-dark.mjs").then((theme) =>
++        huetShikiTheme({ from: theme.default })
++      ),
+     ],
+     langs: [],
+     engine: createJavaScriptRegexEngine({ forgiving: true }),
+diff --git a/apps/v4/registry/bases/radix/hooks/_registry.ts b/apps/v4/registry/bases/radix/hooks/_registry.ts
+index b9e58b9..91ba91f 100644
+--- a/apps/v4/registry/bases/radix/hooks/_registry.ts
++++ b/apps/v4/registry/bases/radix/hooks/_registry.ts
+@@ -14,7 +14,7 @@ export const hooks: Registry["items"] = [
+   {
+     name: "use-highlighted-code",
+     type: "registry:hook",
+-    dependencies: ["shiki"],
++    dependencies: ["shiki", "huet"],
+     files: [
+       {
+         path: "hooks/use-highlighted-code.ts",
+diff --git a/apps/v4/registry/bases/radix/lib/highlighter.tsx b/apps/v4/registry/bases/radix/lib/highlighter.tsx
+index 4765dcd..d69c611 100644
+--- a/apps/v4/registry/bases/radix/lib/highlighter.tsx
++++ b/apps/v4/registry/bases/radix/lib/highlighter.tsx
+@@ -1,4 +1,5 @@
+ import * as React from "react"
++import { huetShikiTheme } from "huet"
+ import {
+   createHighlighterCore,
+   type GrammarState,
+@@ -39,9 +40,14 @@ let highlighter: Promise<HighlighterCore> | undefined
+ 
+ function getHighlighter() {
+   highlighter ??= createHighlighterCore({
++    // Huet keeps each theme's hues and sets their lightness.
+     themes: [
+-      import("shiki/themes/github-light.mjs"),
+-      import("shiki/themes/github-dark.mjs"),
++      import("shiki/themes/github-light.mjs").then((theme) =>
++        huetShikiTheme({ from: theme.default })
++      ),
++      import("shiki/themes/github-dark.mjs").then((theme) =>
++        huetShikiTheme({ from: theme.default })
++      ),
+     ],
+     langs: [],
+     engine: createJavaScriptRegexEngine({ forgiving: true }),
 diff --git a/apps/v4/registry/new-york-v4/charts/chart-line-dots-custom.tsx b/apps/v4/registry/new-york-v4/charts/chart-line-dots-custom.tsx
 index 355f23a..61c10e1 100644
 --- a/apps/v4/registry/new-york-v4/charts/chart-line-dots-custom.tsx
@@ -223,3 +339,29 @@ index 9f03b3c..e933573 100644
    }
  
    .cn-bubble-variant-outline {
+diff --git a/apps/v4/source.config.ts b/apps/v4/source.config.ts
+index d668a1f..d7e594f 100644
+--- a/apps/v4/source.config.ts
++++ b/apps/v4/source.config.ts
+@@ -1,5 +1,8 @@
+ import { defineConfig, defineDocs } from "fumadocs-mdx/config"
++import { huetShikiTheme } from "huet"
+ import rehypePrettyCode from "rehype-pretty-code"
++import githubLightDefault from "shiki/themes/github-light-default.mjs"
++import vesper from "shiki/themes/vesper.mjs"
+ 
+ import { transformers } from "@/lib/highlight-code"
+ 
+@@ -10,9 +13,10 @@ export default defineConfig({
+       plugins.push([
+         rehypePrettyCode,
+         {
++          // Huet keeps each theme's hues and sets their lightness.
+           theme: {
+-            dark: "vesper",
+-            light: "github-light-default",
++            dark: huetShikiTheme({ from: vesper }),
++            light: huetShikiTheme({ from: githubLightDefault }),
+           },
+           transformers,
+         },
