@@ -82,6 +82,9 @@ describe("themes", () => {
     expect(() => themeCss({ ...base, mode: "dark" } as never)).toThrow(/unknown field mode/);
     expect(() => themeCss({ neutral: ["#000000"] })).toThrow(/two or more colors/);
     expect(() => themeCss({ neutral: ["#000000", "nope"] })).toThrow(/"nope", which isn't a color/);
+    expect(() => checkTheme({ neutral: ["#69707f", "#808080", "#000000"] })).toThrow(
+      /first color #69707f is lighter than its last color #000000/,
+    );
     expect(() => themeCss({ ...base, colorModel: "cmyk" } as never)).toThrow(/colorModel must be one of/);
     expect(() => themeCss({ ...base, colors: { teal: "#00ffff" } } as never)).toThrow(/colors.teal isn't a hue/);
     expect(() => themeCss({ ...base, contrast: 3 })).toThrow(/contrast must be a number from 0 to 2/);

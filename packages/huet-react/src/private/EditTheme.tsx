@@ -1,7 +1,7 @@
 import chroma from "chroma-js";
 import saveAs from "file-saver";
-import React, { useCallback } from "react";
-import { colorModels, hues, themes as presets, type ColorModel, type RecolorSettings, type Theme } from "huet";
+import React, { useCallback, useState } from "react";
+import { checkTheme, colorModels, hues, themes as presets, type ColorModel, type RecolorSettings, type Theme } from "huet";
 
 import { useThemeConfigurator } from "../context";
 import { HSpace, VSpace } from "./AllExceptFirst";
@@ -110,6 +110,21 @@ export default function EditTheme() {
   const { theme, setTheme, name, editedFrom, reset, background, setBackground, list } = useThemeConfigurator();
   const edit = (changes: Partial<Theme>) => setTheme({ ...theme, ...changes });
   const signal = theme.signalLightness ?? defaultSignalLightness;
+  // The neutral colors last refused for running backwards. The message stays
+  // until the theme's neutral colors change, by a valid pick or another theme.
+  const [refusedOn, setRefusedOn] = useState<readonly string[]>();
+  const editNeutral = (neutral: string[]) => {
+    try {
+      checkTheme({ ...theme, neutral });
+    } catch {
+      // A lightest color darker than the darkest has no ramp. Keep the last
+      // valid theme, so the page and the panel keep rendering.
+      setRefusedOn(theme.neutral);
+      return;
+    }
+    setRefusedOn(undefined);
+    edit({ neutral });
+  };
 
   const exportTheme = useCallback(() => {
     const blob = new Blob([JSON.stringify(theme, null, 2)], {
@@ -157,8 +172,13 @@ export default function EditTheme() {
         </div>
       )}
       <Labeled label="Neutral colors">
-        <NeutralColors colors={theme.neutral} onChange={(neutral) => edit({ neutral })} />
+        <NeutralColors colors={theme.neutral} onChange={editNeutral} />
       </Labeled>
+      {refusedOn === theme.neutral && (
+        <p role="alert" className="huet-text-red-100">
+          The lightest color has to be lighter than the darkest.
+        </p>
+      )}
       <Labeled label="Blend the neutral colors in">
         <Select
           value={theme.colorModel ?? "oklab"}
