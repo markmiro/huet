@@ -525,19 +525,35 @@ function load(): Saved {
   }
 }
 
-/** Floating Huet editor. Edits repaint every shadcn color token. */
+/**
+ * Block, chart and component previews load the site in iframes, and each one
+ * mounts this layout. Only the top page shows the panel. An iframe paints the
+ * same saved theme and repaints when the top page saves an edit.
+ */
+const embedded = typeof window !== "undefined" && window.self !== window.top
+
+/** Floating Huet editor. Edits repaint every shadcn color token, in this page and its preview iframes. */
 export function HuetConfigurator() {
   // Loaded in the browser: the server has no localStorage
   const [saved, setSaved] = useState<Saved>()
-  useLayoutEffect(() => setSaved(load()), [])
+  useLayoutEffect(() => {
+    setSaved(load())
+    if (!embedded) return
+    // Same origin, so every save by the top page arrives here as a storage event.
+    const follow = (event: StorageEvent) => {
+      if (event.key === storageKey || event.key === null) setSaved(load())
+    }
+    window.addEventListener("storage", follow)
+    return () => window.removeEventListener("storage", follow)
+  }, [])
   const change = (changes: Partial<Saved>) =>
     setSaved((current) => current && { ...current, ...changes })
   useLayoutEffect(() => {
     if (!saved) return
     applyHuet(saved.theme, saved.background)
-    localStorage.setItem(storageKey, JSON.stringify(saved))
+    if (!embedded) localStorage.setItem(storageKey, JSON.stringify(saved))
   }, [saved])
-  if (!saved) return null
+  if (!saved || embedded) return null
   return (
     <ThemeConfigurator
       value={saved.theme}
