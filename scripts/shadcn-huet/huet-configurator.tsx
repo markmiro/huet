@@ -344,8 +344,9 @@ function paintTopNav(background: string) {
 }
 
 /**
- * Every highlighter on the site uses huetShikiTheme() (integration.patch), so
- * token colors are Huet's variables, which no mount sets here. Write them for
+ * Every highlighter on the site wraps its Shiki themes in huetShikiTheme()
+ * (integration.patch): tokens keep shadcn's hues and take their lightness from
+ * Huet's variables, which no mount sets here. Write them for
  * the surfaces code sits on: shadcn's --code fill under rehype-pretty-code
  * figures (docs, install commands, component, block and chart source), and the
  * page everywhere else, such as the registry's CodeBlock.
@@ -365,8 +366,10 @@ function paintCode(theme: ResolvedTheme, page: string, code: string) {
   watchCode()
 }
 
-// Shiki's inline token colors: a fixed theme writes hex or --shiki-light/dark.
+// Shiki's inline token colors. A fixed theme writes hex, which React and the
+// browser may turn into rgb(); Huet's are oklch(from var(--huet-…)) or var().
 const tokenSelector = "pre span[style], [data-slot=code-block-content] span[style]"
+const fixedColor = /#[\da-f]{3,8}\b|rgba?\(/i
 const reported = new WeakSet<Element>()
 let codeWatch: MutationObserver | null = null
 
@@ -379,13 +382,13 @@ function checkCode(root: Element | Document) {
   if (root instanceof HTMLElement && root.matches(tokenSelector)) tokens.push(root)
   for (const token of tokens) {
     const style = token.getAttribute("style") ?? ""
-    if (!/--shiki-/.test(style) && (!token.style.color || token.style.color.includes("--huet-code-"))) continue
+    if (!fixedColor.test(style)) continue
     const block = token.closest("pre, [data-slot=code-block]") ?? token
     if (reported.has(block)) continue
     reported.add(block)
     console.error(
       `Huet: this code block was highlighted with a fixed Shiki theme ("${style}"), so it won't follow the Huet theme. ` +
-        "Highlight it with huetShikiTheme() from \"huet\" (see scripts/shadcn-huet/integration.patch and docs/code-blocks.md).",
+        "Wrap its theme in huetShikiTheme({ from }) from \"huet\" (see scripts/shadcn-huet/integration.patch and docs/code-blocks.md).",
       block,
     )
   }

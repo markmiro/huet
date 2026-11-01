@@ -144,6 +144,26 @@ GitHub's strings are a deeper (light theme) or paler (dark theme) blue than its 
 
 Override any role with `--huet-code-<role>` on the block or an ancestor, e.g. `pre { --huet-code-string: var(--huet-green); }`. Values like `var(--huet-green)` resolve where they're declared, so set overrides on the surface (the `<pre>`) when they reference Huet's variables.
 
+## Keeping another theme's hues
+
+`huetShikiTheme({ from })` wraps an existing Shiki theme instead of using Huet's roles. Tokens keep that theme's scopes and the hue and chroma of each color; Huet only sets their lightness, so they stay readable on any block in either polarity:
+
+```js
+import vesper from "shiki/themes/vesper.mjs";
+import githubLight from "shiki/themes/github-light.mjs";
+
+// Shiki's dual themes: --shiki-light and --shiki-dark on each token, picked in CSS.
+const themes = { dark: huetShikiTheme({ from: vesper }), light: huetShikiTheme({ from: githubLight }) };
+```
+
+- A colored token becomes `lch(from var(--huet-code-lightness, var(--huet-muted)) l <chroma> <hue>)`: the CIE lightness of the block's muted text. CIE L* depends only on luminance, so the token has the muted text's contrast, the same contrast the hue tokens aim for. (OKLab lightness would leave saturated colors short of it.)
+- The chroma is capped at the edge of sRGB for that hue, as a `min()` of lines in `l`, so the browser never clips a channel, which would change the token's luminance. Very saturated colors (GitHub's ANSI palette) lose chroma, not hue.
+- Grays become `foreground` or `comment`, depending on whether they're about as strong as the theme's own text. Token backgrounds (diff rows) keep their hue at the block's lightness. Terminal colors the theme sets keep their hue; the rest use `ansiColors`.
+- Colors must be hex (`#rgb`, `#rgba`, `#rrggbb`, `#rrggbbaa`); anything else that would fix a color throws. `inherit`, `currentColor`, `transparent` and `var()` pass through.
+- The `--huet-code-<role>` overrides only reach the grays.
+
+Every theme bundled with Shiki converts. The shadcn demo uses this to keep shadcn's vesper and GitHub hues ([scripts/shadcn-huet](../scripts/shadcn-huet/README.md)).
+
 ## Limits
 
 - All five hue tokens target the same contrast (APCA Lc 60 against the block, scaled down for narrow ramps), so the roles differ by hue, not by lightness. GitHub's themes also vary lightness.

@@ -92,6 +92,44 @@ export function oklabFromRgb(r: number, g: number, b: number): Triple {
 export function toOklab(hex: string): Triple {
   return oklabFromRgb(...rgb(hex));
 }
+/**
+ * CIE LCH of an sRGB hex, as CSS `lch()` reads it: D50 white, Bradford-adapted
+ * from sRGB's D65. Returns [L* (0–100), C*, h (degrees)]. L* depends only on
+ * luminance, so colors that share it share their APCA contrast.
+ */
+export function toLch(hex: string): Triple {
+  const [r, g, b] = rgb(hex).map(linear);
+  const x = (0.4360747 * r + 0.3850649 * g + 0.1430804 * b) / 0.96422;
+  const y = 0.2225045 * r + 0.7168786 * g + 0.0606169 * b;
+  const z = (0.0139322 * r + 0.0971045 * g + 0.7141733 * b) / 0.82521;
+  const f = (t: number) => (t > 216 / 24389 ? Math.cbrt(t) : ((24389 / 27) * t + 16) / 116);
+  const [fx, fy, fz] = [f(x), f(y), f(z)];
+  const A = 500 * (fx - fy), B = 200 * (fy - fz);
+  return [116 * fy - 16, Math.hypot(A, B), ((Math.atan2(B, A) * 180) / Math.PI + 360) % 360];
+}
+/** Linear sRGB channels of a CIE LCH color (D50), unclipped: out of gamut, some fall outside 0–1. */
+export function linearRgbFromLch(L: number, C: number, H: number): Triple {
+  const fy = (L + 16) / 116;
+  const fx = fy + (C * Math.cos((H * Math.PI) / 180)) / 500;
+  const fz = fy - (C * Math.sin((H * Math.PI) / 180)) / 200;
+  const inverse = (t: number) => (t ** 3 > 216 / 24389 ? t ** 3 : (116 * t - 16) / (24389 / 27));
+  const x = inverse(fx) * 0.96422, y = L > 8 ? fy ** 3 : L / (24389 / 27), z = inverse(fz) * 0.82521;
+  return [
+    3.1338561 * x - 1.6168667 * y - 0.4906146 * z,
+    -0.9787684 * x + 1.9161415 * y + 0.033454 * z,
+    0.0719453 * x - 0.2289914 * y + 1.4052427 * z,
+  ];
+}
+/** The most CIE chroma an sRGB color of lightness `L` and hue `H` can have. */
+export function maxLchChroma(L: number, H: number): number {
+  let lo = 0, hi = 200;
+  for (let i = 0; i < 30; i++) {
+    const mid = (lo + hi) / 2;
+    if (linearRgbFromLch(L, mid, H).every((v) => v >= 0 && v <= 1)) lo = mid;
+    else hi = mid;
+  }
+  return lo;
+}
 function fromLab([L, a, b]: Triple): number[] {
   const l = (L + 0.3963377774 * a + 0.2158037573 * b) ** 3;
   const m = (L - 0.1055613458 * a - 0.0638541728 * b) ** 3;

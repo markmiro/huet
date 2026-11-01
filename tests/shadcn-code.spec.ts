@@ -1,5 +1,5 @@
 import { test, expect, type Page } from "@playwright/test";
-import { contrast } from "../packages/huet/src/core/color";
+import { contrast, toLch } from "../packages/huet/src/core/color";
 import { themes } from "../packages/huet/src/core/themes";
 
 /*
@@ -57,6 +57,12 @@ const tokens = (page: Page) =>
           text: block.textContent!.trim().slice(0, 40),
           styles: spans.map((s) => s.getAttribute("style")!),
           colors: [...new Set(spans.map((s) => hex(getComputedStyle(s).color)))].filter((c): c is string => c !== null),
+          // Hue-kept tokens compute to lch(L C H).
+          lch: spans.flatMap((s) => {
+            const match = /^lch\(([\d.]+) ([\d.]+) ([\d.]+)/.exec(getComputedStyle(s).color);
+            return match ? [match.slice(1).map(Number)] : [];
+          }),
+          muted: getComputedStyle(spans[0] ?? block).getPropertyValue("--huet-muted").trim(),
           background: backdrop(block.querySelector("pre") ?? block),
         };
       });
@@ -65,7 +71,7 @@ const tokens = (page: Page) =>
 for (const path of pages) {
   test(`every code block on ${path} follows the Huet theme, in both modes`, async ({ browser }) => {
     for (const background of [1, 0]) {
-      const seen: Record<string, string[]> = {};
+      const hues: Record<string, number[]> = {};
       for (const theme of ["Terminal", "Paperback"] as const) {
         const context = await browser.newContext();
         const page = await context.newPage();
@@ -75,20 +81,22 @@ for (const path of pages) {
         const found = await tokens(page);
         expect(found.length, "code blocks on the page").toBeGreaterThan(0);
         for (const block of found) {
-          // Highlighted with huetShikiTheme(): variables only, no fixed Shiki colors.
-          for (const style of block.styles) expect(style).toMatch(/--huet-code-|^background-color/);
+          // Highlighted through huetShikiTheme(): Huet variables, no fixed Shiki colors.
+          for (const style of block.styles) expect(style).not.toMatch(/#[\da-f]{3,8}\b|rgba?\(/i);
           // Solved for the block's own background, so every token stays readable.
           // Paperback's ramp is narrow, so its targets scale down with it.
           const lowest = Math.min(...block.colors.map((c) => contrast(block.background, c)));
           expect(lowest, `${theme} tokens on ${block.background} in "${block.text}": ${block.colors}`).toBeGreaterThanOrEqual(35);
+          // Their lightness is Huet's: the CIE lightness of muted text on this block.
+          for (const [L] of block.lch) expect(L, block.text).toBeCloseTo(toLch(block.muted)[0], 0);
         }
-        seen[theme] = found.flatMap((b) => b.colors);
+        hues[theme] = [...new Set(found.flatMap((b) => b.lch.filter(([, C]) => C > 0).map(([, , H]) => Math.round(H))))].sort((a, b) => a - b);
         expect(errors).toEqual([]);
         await context.close();
       }
-      // Switching themes changes the syntax colors, not just the text color.
-      const shared = seen.Terminal.filter((c) => seen.Paperback.includes(c));
-      expect(shared, "token colors both themes share").toEqual([]);
+      // Tokens keep shadcn's hues in any theme.
+      expect(hues.Terminal.length, "hue-kept tokens").toBeGreaterThan(1);
+      expect(hues.Paperback).toEqual(hues.Terminal);
     }
   });
 }
