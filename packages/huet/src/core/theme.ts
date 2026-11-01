@@ -192,7 +192,7 @@ export const defaultColors: Readonly<Record<Hue, string>> = {
 };
 /** A color with its APCA luminance, for Lc. */
 type Step = { color: string; y: number };
-/** A step with its WCAG luminance too, for polarity. */
+/** A step with its sRGB relative luminance too, for polarity. */
 type Candidate = Step & { luminance: number };
 const step = (color: string): Step => ({ color, y: apcaY(color) });
 const candidate = (color: string): Candidate => ({

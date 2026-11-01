@@ -89,28 +89,29 @@ for (const mode of ["contrast", "outlined"]) {
     await page.getByLabel("Theme button").selectOption(mode);
     await page.mouse.move(0, 0);
 
-    const ratios = await trigger.evaluate((button) => {
-      const luminance = (rgb: string) => {
+    // The mini map sorts by CIE L* distance, Huet's measure for strengths
+    const distances = await trigger.evaluate((button) => {
+      const lightness = (rgb: string) => {
         const [r, g, b] = rgb.match(/\d+/g)!.slice(0, 3).map((v) => {
           const c = Number(v) / 255;
           return c <= 0.04045 ? c / 12.92 : ((c + 0.055) / 1.055) ** 2.4;
         });
-        return 0.2126 * r + 0.7152 * g + 0.0722 * b;
+        const y = 0.2126 * r + 0.7152 * g + 0.0722 * b;
+        return y > 216 / 24389 ? 116 * Math.cbrt(y) - 16 : (24389 / 27) * y;
       };
       // The mini map is drawn for the button's fill, or else the theme's page
       const own = getComputedStyle(button).backgroundColor;
-      const surface = luminance(
+      const surface = lightness(
         own === "rgba(0, 0, 0, 0)"
           ? getComputedStyle(document.querySelector("#page")!).backgroundColor
           : own
       );
-      return [...button.querySelectorAll("[title]")].map((dot) => {
-        const l = luminance(getComputedStyle(dot).backgroundColor);
-        return (Math.max(l, surface) + 0.05) / (Math.min(l, surface) + 0.05);
-      });
+      return [...button.querySelectorAll("[title]")].map((dot) =>
+        Math.abs(lightness(getComputedStyle(dot).backgroundColor) - surface)
+      );
     });
 
-    expect(ratios.length).toBeGreaterThan(1);
-    expect(ratios).toEqual([...ratios].sort((a, b) => b - a));
+    expect(distances.length).toBeGreaterThan(1);
+    expect(distances).toEqual([...distances].sort((a, b) => b - a));
   });
 }
