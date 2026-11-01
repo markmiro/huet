@@ -11,10 +11,33 @@ index 28e1b65..90e6a62 100644
              className="size-40 text-black"
              role="img"
 diff --git a/apps/v4/app/globals.css b/apps/v4/app/globals.css
-index 00c2223..92a3e9c 100644
+index 00c2223..b201caf 100644
 --- a/apps/v4/app/globals.css
 +++ b/apps/v4/app/globals.css
-@@ -460,3 +460,21 @@
+@@ -424,6 +424,22 @@
+     }
+   }
+ 
++  /*
++    Recharts 3 moved axis tick text out of .recharts-cartesian-axis-tick, so
++    ChartContainer's fill-muted-foreground no longer reaches it, and polar
++    axis labels never had a rule. Without this, tick labels keep Recharts'
++    #666 and #808080 in every theme. :where() keeps a chart's own tick
++    classes in charge.
++  */
++  :where([data-slot="chart"])
++    :where(
++      .recharts-cartesian-axis-tick-value,
++      .recharts-polar-angle-axis-tick-value,
++      .recharts-polar-radius-axis-tick-value
++    ) {
++    fill: var(--muted-foreground);
++  }
++
+   [data-highlighted-line],
+   [data-highlighted-chars] {
+     position: relative;
+@@ -460,3 +476,21 @@
      @apply rounded-xl border-none bg-clip-padding shadow-2xl ring-4 ring-neutral-200/80 dark:bg-neutral-900 dark:ring-neutral-800;
    }
  }
@@ -222,6 +245,31 @@ index 355f23a..61c10e1 100644
                      stroke="var(--color-desktop)"
                    />
                  )
+diff --git a/apps/v4/registry/new-york-v4/charts/chart-radar-label-custom.tsx b/apps/v4/registry/new-york-v4/charts/chart-radar-label-custom.tsx
+index bf16fa7..56e5de3 100644
+--- a/apps/v4/registry/new-york-v4/charts/chart-radar-label-custom.tsx
++++ b/apps/v4/registry/new-york-v4/charts/chart-radar-label-custom.tsx
+@@ -81,6 +81,7 @@ export function ChartRadarLabelCustom() {
+                     fontSize={13}
+                     fontWeight={500}
+                     {...props}
++                    fill="var(--foreground)"
+                   >
+                     <tspan>{data.desktop}</tspan>
+                     <tspan className="fill-muted-foreground">/</tspan>
+diff --git a/apps/v4/registry/new-york-v4/examples/drawer-demo.tsx b/apps/v4/registry/new-york-v4/examples/drawer-demo.tsx
+index cc54734..704fd22 100644
+--- a/apps/v4/registry/new-york-v4/examples/drawer-demo.tsx
++++ b/apps/v4/registry/new-york-v4/examples/drawer-demo.tsx
+@@ -114,7 +114,7 @@ export default function DrawerDemo() {
+                     dataKey="goal"
+                     style={
+                       {
+-                        fill: "hsl(var(--foreground))",
++                        fill: "var(--foreground)",
+                         opacity: 0.9,
+                       } as React.CSSProperties
+                     }
 diff --git a/apps/v4/registry/new-york-v4/ui/bubble.tsx b/apps/v4/registry/new-york-v4/ui/bubble.tsx
 index da2c990..34b4a3e 100644
 --- a/apps/v4/registry/new-york-v4/ui/bubble.tsx
