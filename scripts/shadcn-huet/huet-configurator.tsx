@@ -32,12 +32,12 @@ function applyHuet(picked: Theme, pageBackground: number) {
   const fill = (amount: Parameters<typeof theme.surface>[1]) => theme.surface(background, amount)
   // Match the configurator: primary and foreground use the full contrast range.
   const foreground = theme.step(theme.root, 100).hex
+  const mutedForeground = theme.step(theme.root, isDark ? 66 : 51.5).hex
   const ink = (surface: string) => theme.surface(surface, 100)
   stealPalette()
 
   const card = fill(isDark ? 5 : 0)
-  const muted = fill(isDark ? 13 : 3.5)
-  const mutedForeground = mutedText(theme, muted, foreground, isDark ? 66 : 51.5)
+  const muted = standOut(theme, background, card, isDark ? 13 : 3.5)
   const accent = fill(isDark ? 25 : 3.5)
   const secondary = muted
   const sidebar = fill(isDark ? 5 : 1.75)
@@ -124,24 +124,42 @@ function applyHuet(picked: Theme, pageBackground: number) {
   root.style.colorScheme = dark ? "dark" : "light"
 }
 
-/** WCAG AA for body text. */
-const READABLE = 4.5
+/**
+ * How far muted fills (secondary buttons, tab lists, muted Items) sit from the
+ * card. Upstream shadcn's gray is 1.09:1 in light mode, and a fixed ramp
+ * amount gave narrow themes even less: Radioactive's 1.04:1, and half that for
+ * a `bg-muted/50` Item such as the Danger Zone.
+ */
+const MUTED_FILL = 1.25
 
 /**
- * Muted text, such as card descriptions and an Item's description on its muted
- * fill. It starts at `amount` on the ramp, which matches shadcn's gray on Base.
- * On a narrower ramp that position reads at 2:1, so it moves toward the text
- * end until it reaches 4.5:1 on `muted`, the lightest fill it sits on. A theme
- * that can't reach 4.5:1 gets 80% of the foreground's contrast (on a log
- * scale), so muted text stays dimmer than the foreground.
+ * The fill `amount` along the neutral ramp from `from` toward the text, or
+ * further until it reaches MUTED_FILL against `card`. It walks the ramp
+ * directly: theme.surface() moves fills out of a ramp's unreadable middle, so
+ * on Radioactive and Paperback it skips from about 1.1:1 to 3.5:1 or more.
  */
-function mutedText(theme: ResolvedTheme, muted: string, foreground: string, amount: number) {
-  const target = Math.min(READABLE, chroma.contrast(foreground, muted) ** 0.8)
-  for (let step = amount; step < 100; step += 0.5) {
-    const { hex } = theme.step(theme.root, step)
-    if (chroma.contrast(hex, muted) >= target) return hex
+function standOut(theme: ResolvedTheme, from: string, card: string, amount: number) {
+  const base = theme.surface(from, amount)
+  if (chroma.contrast(base, card) >= MUTED_FILL) return base
+  // The ramp runs darkest first, so the text end is 1 on a dark page.
+  const end = luminance(theme.surface(from, 100)) > luminance(from) ? 1 : 0
+  const start = rampPosition(theme.ramp, from)
+  for (let step = amount; step <= 100; step += 0.25) {
+    const color = theme.ramp(start + ((end - start) * step) / 100)
+    if (chroma.contrast(color, card) >= MUTED_FILL) return color
   }
-  return foreground
+  return base
+}
+
+/** Where `color` sits on the neutral ramp, to the nearest 1/256. */
+function rampPosition(ramp: (amount: number) => string, color: string) {
+  let best = 0
+  let distance = Infinity
+  for (let i = 0; i <= 256; i++) {
+    const d = chroma.distance(ramp(i / 256), color, "oklab")
+    if (d < distance) [best, distance] = [i / 256, d]
+  }
+  return best
 }
 
 /** Read each Tailwind swatch once, before inline overrides replace it. */
