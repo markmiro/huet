@@ -3,8 +3,8 @@
 import chroma from "chroma-js"
 import { usePathname } from "next/navigation"
 import { useEffect, useLayoutEffect, useMemo, useState } from "react"
-import { checkTheme, themes as presets, type Theme } from "huet"
-import { mountImages, mountSvgs } from "huet/images"
+import { checkTheme, themes as presets, type Hue, type Theme } from "huet"
+import { coordinatesOf, mountImages, mountSvgs, recolorer } from "huet/images"
 // shadcn's tokens need amounts and ramp positions that no class has, so this
 // adapter uses Huet's solver directly.
 import {
@@ -18,9 +18,10 @@ import { ThemeConfigurator, type PageColor } from "huet-react"
 
 /**
  * Neutrals (background, text, borders, fills) come from Huet. Every Tailwind
- * swatch keeps the hue and chroma it shipped with; only its lightness moves,
- * onto the same position of the theme's neutral ramp. Shade 50 stays the
- * light step, 950 the dark one, so `dark:` variants still pick the dark end.
+ * swatch moves onto the same position of the theme's neutral ramp, and a
+ * colored one onto the theme's hues: `fill-green-500` becomes the theme's
+ * green. Shade 50 stays the light step, 950 the dark one, so `dark:` variants
+ * still pick the dark end.
  */
 
 const STEPS = new Set(["50", "100", "200", "300", "400", "500", "600", "700", "800", "900", "950"])
@@ -32,12 +33,55 @@ let ring: Swatch | null = null
 
 function applyHuet(picked: Theme, pageBackground: number, pageEdits: Edits = {}) {
   edits = pageEdits
+  stealPalette()
   const theme = resolveTheme(picked, { background: pageBackground })
+  const page = roleColors(theme)
+  const { isDark, background, foreground, mutedForeground, surface, accent, tokens, ink, fill } = page
+  // A copy: the dark-island rule below takes only the role colors.
+  const vars = { ...page.vars }
+  // Tailwind swatches move onto the theme's ramp and hues (see swatchPlacer).
+  const place = swatchPlacer(picked, theme.ramp)
+  for (const swatch of palette ?? []) vars[swatch.key] = place(swatch)
+  // Plain white and black are not on the radioactive ramp. Use the ramp ends,
+  // hue included, so `bg-white` becomes the theme's light color.
+  vars["--color-white"] = theme.ramp(1)
+  vars["--color-black"] = theme.ramp(0)
+  // Chart steps stay on the readable side of this background: the text color
+  // down to muted. A copied gray or blue ramp puts the dark steps on a dark
+  // page and the light steps on a light page, so part of the series vanishes.
+  const chartSteps = chartScale(foreground, mutedForeground)
+
+  const root = document.documentElement
+  for (const [name, value] of Object.entries(vars)) root.style.setProperty(name, value)
+  root.style.backgroundColor = background
+  painted = { theme, foreground, background, menuAccent: accent, chartSteps }
+  paintBrand()
+  paintDarkIslands(isDark ? null : roleColors(darkIsland(picked, pageBackground)), Object.keys(page.vars))
+  paintThemeHues(theme, place, foreground, background, tokens.red, ink(fill("red")))
+  paintChartConfigs(foreground, mutedForeground)
+  paintTopNav(background)
+  paintCode(theme, background, surface)
+  paintImages(picked)
+  paintSvgs(picked)
+  root.classList.toggle("dark", isDark)
+  root.style.colorScheme = isDark ? "dark" : "light"
+}
+
+/** Dark mode follows Huet's own polarity: the page is dark when its text is lighter. */
+function isDarkTheme(theme: ResolvedTheme) {
+  return luminance(theme.step(theme.root, 100).hex) > luminance(theme.tokens().background)
+}
+
+/**
+ * shadcn's color roles (background, card, muted, sidebar…) on one of the
+ * theme's backgrounds, plus the pieces the page builds on. Primary, accent
+ * and charts come from the page's picks (paintBrand).
+ */
+function roleColors(theme: ResolvedTheme) {
   const tokens = theme.tokens()
   // Match the configurator: primary and foreground use the full contrast range.
   const foreground = theme.step(theme.root, 100).hex
-  // Dark mode follows Huet's own polarity: the page is dark when its text is lighter.
-  const isDark = luminance(foreground) > luminance(tokens.background)
+  const isDark = isDarkTheme(theme)
   // shadcn's dark page is near-black; its light page is the ramp endpoint.
   const background = isDark ? theme.step(theme.root, 2.75).hex : tokens.background
   const page = theme.surfaceOf(background)
@@ -46,7 +90,6 @@ function applyHuet(picked: Theme, pageBackground: number, pageEdits: Edits = {})
     typeof amount === "number" ? theme.step(page, amount).hex : theme.surface(background, amount)
   const mutedForeground = theme.step(theme.root, isDark ? 66 : 51.5).hex
   const ink = (surface: string) => theme.surface(surface, 100)
-  stealPalette()
 
   const card = fill(isDark ? 5 : 0)
   const muted = fill(isDark ? 13 : 3.5)
@@ -57,7 +100,7 @@ function applyHuet(picked: Theme, pageBackground: number, pageEdits: Edits = {})
   const border = isDark
     ? `color-mix(in srgb, ${theme.ramp(1)} 10%, transparent)`
     : fill(9)
-  const adapt = (swatch: Swatch) => placeOnRamp(theme.ramp, swatch)
+  const themedRing = ring ? theme.ramp(clamp01(ring.l)) : tokens.border
 
   const vars: Record<string, string> = {
     "--background": background,
@@ -74,13 +117,13 @@ function applyHuet(picked: Theme, pageBackground: number, pageEdits: Edits = {})
     "--destructive-foreground": ink(fill("red")),
     "--border": border,
     "--input": isDark ? `color-mix(in srgb, ${theme.ramp(1)} 15%, transparent)` : border,
-    "--ring": ring ? adapt(ring) : tokens.border,
+    "--ring": themedRing,
     "--sidebar": sidebar,
     "--sidebar-foreground": ink(sidebar),
     "--sidebar-accent": accent,
     "--sidebar-accent-foreground": ink(accent),
     "--sidebar-border": border,
-    "--sidebar-ring": ring ? adapt(ring) : tokens.border,
+    "--sidebar-ring": themedRing,
     "--surface": surface,
     // Light surfaces keep the page's text color. Muted gray made the card
     // title as dim as the body copy.
@@ -97,30 +140,60 @@ function applyHuet(picked: Theme, pageBackground: number, pageEdits: Edits = {})
     "--huet-bubble-tint-dark": rampLightness(theme.ramp, 0.3),
     "--huet-bubble-tint-dark-hover": rampLightness(theme.ramp, 0.35),
   }
+  return { vars, isDark, background, foreground, mutedForeground, surface, accent, tokens, ink, fill }
+}
 
-  for (const swatch of palette ?? []) vars[swatch.key] = adapt(swatch)
-  // Plain white and black are not on the radioactive ramp. Use the ramp ends,
-  // hue included, so `bg-white` becomes the theme's light color.
-  vars["--color-white"] = theme.ramp(1)
-  vars["--color-black"] = theme.ramp(0)
-  // Chart steps stay on the readable side of this background: the text color
-  // down to muted. A copied gray or blue ramp puts the dark steps on a dark
-  // page and the light steps on a light page, so part of the series vanishes.
-  const chartSteps = chartScale(foreground, mutedForeground)
+/**
+ * The theme on a dark background, for the parts of a light page that shadcn
+ * keeps dark (`className="dark"`): the /create and /typeset side menus, the
+ * bottom toolbars, and dialogs. The same distance from the dark end as the
+ * page is from the light one, and at least as dark as shadcn's own.
+ */
+function darkIsland(picked: Theme, pageBackground: number) {
+  const position = Math.min(1 - pageBackground, 0.25)
+  const island = resolveTheme(picked, { background: position })
+  if (isDarkTheme(island)) return island
+  // A ramp that runs light to dark has its dark end at the other side.
+  return resolveTheme(picked, { background: 1 - position })
+}
 
-  const root = document.documentElement
-  for (const [name, value] of Object.entries(vars)) root.style.setProperty(name, value)
-  root.style.backgroundColor = background
-  painted = { theme, foreground, background, menuAccent: accent, chartSteps }
-  paintBrand()
-  paintThemeHues(theme, foreground, background, tokens.red, ink(fill("red")))
-  paintChartConfigs(foreground, mutedForeground)
-  paintTopNav(background)
-  paintCode(theme, background, surface)
-  paintImages(picked)
-  paintSvgs(picked)
-  root.classList.toggle("dark", isDark)
-  root.style.colorScheme = isDark ? "dark" : "light"
+/** The roles paintBrand sets on <html>, which globals.css's .dark rule also overrides. */
+const BRAND_ROLES = [
+  "--primary",
+  "--primary-foreground",
+  "--sidebar-primary",
+  "--sidebar-primary-foreground",
+  "--accent",
+  "--accent-foreground",
+]
+
+/**
+ * globals.css gives every `.dark` element shadcn's own near-black grays, which
+ * beat the Huet colors inherited from <html>. On a light page they get the
+ * theme's dark roles (`island`), with primary as their max-contrast invert.
+ * On a dark page they inherit the page's, picked accent included.
+ */
+function paintDarkIslands(island: ReturnType<typeof roleColors> | null, roles: string[]) {
+  let style = document.getElementById("huet-dark")
+  if (!style) {
+    style = document.createElement("style")
+    style.id = "huet-dark"
+    document.head.append(style)
+  }
+  const vars: Record<string, string> = island
+    ? {
+        ...island.vars,
+        "--primary": island.foreground,
+        "--primary-foreground": island.background,
+        "--sidebar-primary": island.foreground,
+        "--sidebar-primary-foreground": island.background,
+        "--accent": island.accent,
+        "--accent-foreground": island.ink(island.accent),
+      }
+    : Object.fromEntries([...roles, ...BRAND_ROLES].map((name) => [name, "inherit"]))
+  const decls = Object.entries(vars).map(([name, value]) => `${name}:${value}!important`)
+  // <html> takes the page's colors inline; only the elements inside it are islands.
+  style.textContent = `.dark:not(html){${decls.join(";")}}`
 }
 
 /** What applyHuet painted last: the picked theme and chart colors are placed against it. */
@@ -406,17 +479,93 @@ function readSwatch(key: string, raw: string): Swatch | undefined {
   }
 }
 
+type Place = (swatch: Swatch) => string
+
+const clamp01 = (value: number) => Math.min(1, Math.max(0, value))
+const lightnessOf = (color: string) => clamp01(chroma(color).oklch()[0] || 0)
+
+/** Gamma-encoded sRGB channels (0–1) of an OKLCH swatch. */
+function channels({ l, c, h }: Swatch) {
+  const [r, g, b] = chroma.oklch(l, c, h).rgb(false)
+  return [r / 255, g / 255, b / 255] as const
+}
+
 /**
- * Same position on the theme's neutral ramp. A chromatic swatch keeps its
- * hue. A gray or white one takes the ramp's own color, so a theme like
- * Radioactive does not collapse back to plain white.
+ * Where a Tailwind swatch lands in the theme. A gray or white one takes the
+ * ramp color at the same position, so a theme like Radioactive does not
+ * collapse back to plain white.
+ *
+ * A colored one moves onto the theme's hues the way Huet recolors SVGs (a
+ * green onto the theme's green, a sky blue between its green and blue), and
+ * its shade scale is pinned to the theme's own color: the 500 of the nearest
+ * Tailwind hue takes that color's lightness, lighter shades run up to the
+ * ramp's light end and darker ones down to its dark end. So
+ * `fill-green-500` is the theme's green, not Tailwind's bright one at the
+ * theme's lightness.
  */
-function placeOnRamp(ramp: (amount: number) => string, swatch: Swatch) {
-  const position = Math.min(1, Math.max(0, swatch.l))
-  const themed = ramp(position)
-  if (swatch.c < 0.02) return themed
-  const [lightness] = chroma(themed).oklch()
-  return chroma.oklch(Math.min(1, Math.max(0, lightness)), swatch.c, swatch.h).hex()
+function swatchPlacer(picked: Theme, ramp: (amount: number) => string): Place {
+  // Tint 0 keeps the neutral ramp's cast out of saturated colors.
+  const toTheme = recolorer({ ...picked, svgs: { strength: 1, tint: 0 } }, {}, "svgs")
+  // Base's colors are Huet's defaults, which a theme without its own uses.
+  const colors: Partial<Record<Hue, string>> = { ...presets.Base.colors, ...picked.colors }
+  const [dark, light] = [lightnessOf(ramp(0)), lightnessOf(ramp(1))].sort((a, b) => a - b)
+  const fives = (palette ?? []).filter((swatch) => swatch.key.endsWith("-500") && swatch.c >= 0.02)
+  const anchorCache = new Map<Swatch, number>()
+  /** Lightness of the theme's color at this 500 shade's hue, between the ramp ends. */
+  const anchorOf = (five: Swatch) => {
+    let cached = anchorCache.get(five)
+    if (cached !== undefined) return cached
+    const { weights } = coordinatesOf(channels(five) as [number, number, number])
+    let sum = 0
+    let total = 0
+    for (const [hue, weight] of Object.entries(weights) as [Hue, number][]) {
+      const color = colors[hue]
+      if (!color || !weight) continue
+      sum += weight * lightnessOf(color)
+      total += weight
+    }
+    cached = Math.min(light, Math.max(dark, total ? sum / total : five.l))
+    anchorCache.set(five, cached)
+    return cached
+  }
+  return (swatch) => {
+    if (swatch.c < 0.02) return ramp(clamp01(swatch.l))
+    const [, mappedC, mappedH] = chroma.gl(...toTheme(...channels(swatch)), 1).oklch()
+    const [c, h] =
+      Number.isFinite(mappedH) && mappedC >= 0.02 ? [mappedC, mappedH] : [swatch.c, swatch.h]
+    const five = nearestHue(fives, swatch.h)
+    if (!five || five.l <= 0 || five.l >= 1) return inGamut(lightnessOf(ramp(clamp01(swatch.l))), c, h)
+    const anchor = anchorOf(five)
+    const lightness =
+      swatch.l <= five.l
+        ? dark + (swatch.l / five.l) * (anchor - dark)
+        : anchor + ((swatch.l - five.l) / (1 - five.l)) * (light - anchor)
+    return inGamut(lightness, c, h)
+  }
+}
+
+function nearestHue(swatches: Swatch[], hue: number) {
+  let best: Swatch | undefined
+  let bestDistance = Infinity
+  for (const swatch of swatches) {
+    const distance = Math.abs(((swatch.h - hue + 540) % 360) - 180)
+    if (distance < bestDistance) [best, bestDistance] = [swatch, distance]
+  }
+  return best
+}
+
+/** An OKLCH color, with chroma reduced until it fits sRGB so its hue holds. */
+function inGamut(lightness: number, c: number, h: number) {
+  const l = Math.min(1, Math.max(0, lightness))
+  if (!chroma.oklch(l, c, h).clipped()) return chroma.oklch(l, c, h).hex()
+  let low = 0
+  let high = c
+  for (let i = 0; i < 16; i++) {
+    const mid = (low + high) / 2
+    if (chroma.oklch(l, mid, h).clipped()) high = mid
+    else low = mid
+  }
+  return chroma.oklch(l, low, h).hex()
 }
 
 function rampLightness(ramp: (amount: number) => string, position: number) {
@@ -726,17 +875,17 @@ function watchCode() {
 /**
  * Theme classes such as theme-blue paint a fixed blue primary over Huet.
  * Primary keeps its hue on the accent ramp, as /create's picks do, and a
- * gray primary becomes the max-contrast invert. Other hues keep their hue,
- * with lightness from the ramp. Neutrals fall back to Huet.
+ * gray primary becomes the max-contrast invert. Other hues move onto the
+ * theme's hues (swatchPlacer). Neutrals fall back to Huet.
  */
 function paintThemeHues(
   theme: ResolvedTheme,
+  place: Place,
   foreground: string,
   background: string,
   destructiveColor: string,
   destructiveText: string,
 ) {
-  const ramp = theme.ramp
   if (!themeRules) themeRules = collectThemeRules()
   let css = ""
   for (const [selector, props] of themeRules) {
@@ -756,7 +905,7 @@ function paintThemeHues(
               ? destructiveText
               : NEUTRALS.has(prop) || swatch.c < 0.02
                 ? "inherit"
-                : placeOnRamp(ramp, swatch)
+                : place(swatch)
       decls.push(`${prop}: ${value} !important`)
     }
     if (decls.length) css += `${selector}{${decls.join(";")}}`

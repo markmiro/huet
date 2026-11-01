@@ -8,7 +8,7 @@ pnpm shadcn:dev
 
 `shadcn:setup` can be rerun. It:
 
-- applies `integration.patch` to the submodule, unless it's already applied: surface and chart fixes, `data-huet-recolor` opt-ins on the home page's QR code SVG and on the registry directory's logos, and `huetShikiTheme({ from })` around every highlighter's themes (docs MDX, component, block and chart source, and the registry's CodeBlock)
+- applies `integration.patch` to the submodule, unless it's already applied: surface and chart fixes, the /create preview's Live Audio Waveform drawn in `text-muted-foreground` instead of a fixed gray, `data-huet-recolor` opt-ins on the home page's QR code SVG and on the registry directory's logos, and `huetShikiTheme({ from })` around every highlighter's themes (docs MDX, component, block and chart source, and the registry's CodeBlock)
 - copies `huet-configurator.tsx` into `apps/v4/components/huet/` and mounts it in the root layout
 - builds and packs the local `huet` and `huet-react` packages, installs them in the app, and builds the registry
 
@@ -20,7 +20,15 @@ git -C vendor/shadcn-ui diff --abbrev=7 -- apps/v4/app/globals.css 'apps/v4/app/
 
 Leave `layout.tsx` and `theme-provider.tsx` out of it, since `setup.mjs` edits those itself.
 
-`pnpm test:shadcn` checks the result in the browser: every chart's paints must change with the theme, in light and dark mode. It starts `pnpm shadcn:dev` on port 4000, or set `SHADCN_URL` to use a server that's already running.
+`pnpm test:shadcn` checks the result in the browser: every chart's paints must change with the theme, in light and dark mode, and the parts below follow it too. It starts `pnpm shadcn:dev` on port 4000, or set `SHADCN_URL` to use a server that's already running.
+
+## Colors
+
+`huet-configurator.tsx` writes shadcn's color roles (`--background`, `--card`, `--muted`…) on `<html>`, and moves every Tailwind swatch onto the theme:
+
+- Grays and white take the neutral ramp's color at the same position.
+- Colored swatches take the theme's hues the way Huet recolors SVGs, and their shade scale is pinned to the theme's own color: `fill-green-500` (dashboard-01's "Done" check) is the theme's green, lighter shades run to the ramp's light end and darker ones to its dark end.
+- Elements shadcn keeps dark on a light page with `className="dark"` (the /create and /typeset side menus, their bottom toolbars, dialogs) get the theme's dark roles from a `.dark` rule, with primary as their max-contrast invert, since globals.css would give them shadcn's own grays. On a dark page they inherit the page's colors, picked accent included.
 
 ## Code blocks
 
