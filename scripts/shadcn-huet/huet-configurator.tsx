@@ -26,12 +26,16 @@ let ring: Swatch | null = null
 function applyHuet(picked: Theme, pageBackground: number) {
   const theme = resolveTheme(picked, { background: pageBackground })
   const tokens = theme.tokens()
-  const isDark = luminance(tokens.background) < 0.4
-  // shadcn's dark page is near-black; its light page is the ramp endpoint.
-  const background = isDark ? theme.surface(tokens.background, 2.75) : tokens.background
-  const fill = (amount: Parameters<typeof theme.surface>[1]) => theme.surface(background, amount)
   // Match the configurator: primary and foreground use the full contrast range.
   const foreground = theme.step(theme.root, 100).hex
+  // Dark mode follows Huet's own polarity: the page is dark when its text is lighter.
+  const isDark = luminance(foreground) > luminance(tokens.background)
+  // shadcn's dark page is near-black; its light page is the ramp endpoint.
+  const background = isDark ? theme.step(theme.root, 2.75).hex : tokens.background
+  const page = theme.surfaceOf(background)
+  // Steps, not theme.surface(): its readability nudge jumps far off mid-tone pages.
+  const fill = (amount: Parameters<typeof theme.surface>[1]) =>
+    typeof amount === "number" ? theme.step(page, amount).hex : theme.surface(background, amount)
   const mutedForeground = theme.step(theme.root, isDark ? 66 : 51.5).hex
   const ink = (surface: string) => theme.surface(surface, 100)
   stealPalette()
@@ -119,9 +123,8 @@ function applyHuet(picked: Theme, pageBackground: number) {
   paintCode(theme, background, surface)
   paintImages(picked)
   paintSvgs(picked)
-  const dark = luminance(background) < 0.4
-  root.classList.toggle("dark", dark)
-  root.style.colorScheme = dark ? "dark" : "light"
+  root.classList.toggle("dark", isDark)
+  root.style.colorScheme = isDark ? "dark" : "light"
 }
 
 /** Read each Tailwind swatch once, before inline overrides replace it. */
