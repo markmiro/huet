@@ -1,6 +1,6 @@
 import { test, expect, type Page } from "@playwright/test";
 
-import { configurator, openConfigurator } from "./helpers/configurator";
+import { configurator, openConfigurator, setPercent } from "./helpers/configurator";
 
 async function size(page: Page) {
   const box = await configurator(page).boundingBox();
@@ -25,7 +25,7 @@ for (const viewport of [
     await page.setViewportSize(viewport);
     const dialog = await open(page);
     const themes = await size(page);
-    await dialog.getByRole("button", { name: "Edit Theme" }).click();
+    await dialog.getByRole("tab", { name: "Edit Theme" }).click();
     expect(await size(page)).toEqual(themes);
 
     // Inside the viewport
@@ -38,26 +38,28 @@ for (const viewport of [
 test("edits show in the theme list until saved or reset", async ({ page }) => {
   page.on("dialog", (dialog) => void dialog.accept());
   const dialog = await open(page);
-  const edit = async (contrast: string) => {
+  const edit = async (contrast: number) => {
     await openConfigurator(page, "Edit Theme");
-    await dialog.getByRole("slider", { name: "Contrast" }).fill(contrast);
+    await setPercent(page, "Blending and contrast", "Contrast", contrast);
+    await page.keyboard.press("Escape");
     await openConfigurator(page, "Themes");
   };
 
   // An edit stands in for the theme it came from, marked as edited
-  await edit("0.5");
+  await edit(50);
   await expect(dialog.getByRole("button", { name: "Base Edited" })).toHaveAttribute("aria-pressed", "true");
   await dialog.getByRole("button", { name: "Reset" }).click();
   await expect(dialog.getByRole("button", { name: "Base", exact: true })).toHaveAttribute("aria-pressed", "true");
 
   // Saved as a new theme, then renamed
-  await edit("0.7");
+  await edit(70);
   await dialog.getByRole("button", { name: "Save as New" }).click();
   await expect(dialog.getByRole("button", { name: "Base Copy", exact: true })).toHaveAttribute("aria-pressed", "true");
   await expect(dialog.getByRole("button", { name: "Base", exact: true })).toHaveCount(1);
   await openConfigurator(page, "Edit Theme");
-  await dialog.getByLabel("Theme Name").fill("Mine");
-  await dialog.getByLabel("Theme Name").press("Enter");
+  await dialog.getByRole("button", { name: "Rename theme" }).click();
+  await dialog.getByRole("textbox", { name: "Theme name" }).fill("Mine");
+  await dialog.getByRole("textbox", { name: "Theme name" }).press("Enter");
   await openConfigurator(page, "Themes");
   const saved = dialog.getByRole("button", { name: "Mine", exact: true });
   await expect(saved).toHaveAttribute("aria-pressed", "true");
@@ -75,8 +77,8 @@ test("host page CSS doesn't leak into the configurator", async ({ page }) => {
   await page.setViewportSize({ width: 1280, height: 1400 });
   const dialog = await open(page);
 
-  const styles = (name: string) =>
-    dialog.getByRole("button", { name, exact: true }).evaluate((el) => {
+  const styles = (name: string, role: "button" | "tab" = "button") =>
+    dialog.getByRole(role, { name, exact: true }).evaluate((el) => {
       const s = getComputedStyle(el);
       const { width, height } = el.getBoundingClientRect();
       return {
@@ -94,16 +96,16 @@ test("host page CSS doesn't leak into the configurator", async ({ page }) => {
   const measure = async () => ({
     // The popover follows its trigger, which the host's CSS may move
     size: await size(page),
-    activeTab: await styles("Themes"),
-    inactiveTab: await styles("Edit Theme"),
+    activeTab: await styles("Themes", "tab"),
+    inactiveTab: await styles("Edit Theme", "tab"),
     theme: await styles("Blueprint"),
     importButton: await dialog
       .getByText("Import", { exact: true })
       .evaluate((el) => getComputedStyle(el).backgroundColor),
   });
   const before = await measure();
-  // Sanity: the active tab is a filled Huet surface
-  expect(before.activeTab.background).not.toBe("rgba(0, 0, 0, 0)");
+  // Sanity: the tabs take Huet colors, active and inactive apart
+  expect(before.activeTab.color).not.toBe(before.inactiveTab.color);
 
   await page.addStyleTag({
     content: `

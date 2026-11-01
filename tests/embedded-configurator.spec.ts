@@ -1,6 +1,6 @@
 import { test, expect, type Page } from "@playwright/test";
 
-import { configurator } from "./helpers/configurator";
+import { configurator, setPercent } from "./helpers/configurator";
 
 async function open(page: Page) {
   await page.goto("/");
@@ -37,13 +37,13 @@ test("the Edit Theme tab edits the current theme and the page's background", asy
   const trigger = await open(page);
   await trigger.click();
   const popover = configurator(page);
-  await popover.getByRole("button", { name: "Edit Theme" }).click();
+  await popover.getByRole("tab", { name: "Edit Theme" }).click();
   // The background picker moves the page's background, not the theme
-  await popover.getByRole("button", { name: "0%", exact: true }).click();
+  await popover.getByRole("slider", { name: "Background" }).fill("0");
   await expect(page.locator("#page")).toHaveCSS("background-color", "rgb(0, 0, 0)");
   await expect(trigger).toHaveAccessibleName("Theme: Base");
   // Editing a color does change the theme
-  await popover.getByRole("slider", { name: "Contrast" }).fill("0.5");
+  await setPercent(page, "Blending and contrast", "Contrast", 50);
   await expect(trigger).toHaveAccessibleName("Theme: Custom");
 });
 

@@ -2,14 +2,13 @@ import React from "react";
 import { themes as presets } from "huet";
 
 import { useThemeConfigurator } from "./context";
-import { VSpace } from "./private/AllExceptFirst";
-import Checkbox from "./private/Checkbox";
 import ConfiguratorPortal from "./private/ConfiguratorPortal";
 import EditTheme from "./private/EditTheme";
-import Tabs, { asTab, tabEnum, type Tab } from "./private/Tabs";
+import Tabs, { asTab, TabPanel, tabEnum, type Tab } from "./private/Tabs";
 import ThemerShell from "./private/ThemerShell";
 import Themes from "./private/Themes";
 import usePersistentState, { asBoolean } from "./private/persistentState";
+import { Switch } from "./private/ui/switch";
 
 function ScrollPanel({ children }: { children?: React.ReactNode }) {
   return (
@@ -36,18 +35,18 @@ export default function Themer() {
     <ConfiguratorPortal theme={shouldThemeSelf ? theme : presets.Base} background={background}>
       <ThemerShell>
         <div className="hc:flex hc:flex-col hc:flex-auto hc:min-w-0 hc:min-h-0 hc:overflow-hidden">
-          <Tabs currentTab={currentTab} onTabChange={setCurrentTab} />
-          <ScrollPanel>
-            {currentTab === tabEnum.EDIT_THEME ? <EditTheme /> : <Themes />}
-          </ScrollPanel>
-          <div className="huet-bg-10">
-            <VSpace className="hc:p-4">
-              <Checkbox
-                label="Theme the themer"
-                value={shouldThemeSelf}
-                onChange={setShouldThemeSelf}
-              />
-            </VSpace>
+          <Tabs currentTab={currentTab} onTabChange={setCurrentTab}>
+            <ScrollPanel>
+              <TabPanel tab={tabEnum.THEMES}>
+                <Themes onCreate={() => setCurrentTab(tabEnum.EDIT_THEME)} />
+              </TabPanel>
+              <TabPanel tab={tabEnum.EDIT_THEME}>
+                <EditTheme />
+              </TabPanel>
+            </ScrollPanel>
+          </Tabs>
+          <div className="huet-bg-5 huet-border-10 hc:border-t hc:px-[1.25em] hc:py-[.5em]">
+            <Switch label="Theme the themer" checked={shouldThemeSelf} onCheckedChange={setShouldThemeSelf} />
           </div>
         </div>
       </ThemerShell>

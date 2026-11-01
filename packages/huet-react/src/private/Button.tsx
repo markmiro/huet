@@ -5,6 +5,33 @@ import cx from "./cx";
 import displayError from "./displayError";
 import { inputClass } from "./inputClass";
 
+/**
+ * Reads a theme from a JSON file and hands it to `onUpload` with a name from
+ * the file's name: `Sunset Huet Theme.json` is `Sunset`. Shows an error for
+ * anything that isn't a valid theme.
+ */
+export function readThemeFile(file: File, onUpload: (theme: Theme, name: string) => void) {
+  const name = file.name.replace(/\.json$/i, "").replace(/ Huet Theme$/, "").trim() || "Imported";
+  // Some browsers and OSes report an empty type for .json files, so the
+  // extension counts too.
+  const isJson = file.type === "application/json" || file.name.toLowerCase().endsWith(".json");
+  if (!isJson) {
+    displayError("Only JSON files are accepted.");
+    return;
+  }
+  file.text().then((text) => {
+    let parsed: unknown;
+    try {
+      parsed = JSON.parse(text);
+      checkTheme(parsed);
+    } catch (error) {
+      displayError(`That file isn't a valid Huet theme. ${(error as Error).message}`);
+      return;
+    }
+    onUpload(parsed, name);
+  });
+}
+
 export function JsonUploadButton({
   children,
   className,
@@ -24,40 +51,14 @@ export function JsonUploadButton({
       {children}
       <input
         type="file"
+        accept=".json,application/json"
         className="hc:absolute hc:w-full hc:h-full hc:left-0 hc:top-0 hc:opacity-0"
         onChange={(event) => {
-          const reader = new FileReader();
-          const eventListener = () => {
-            reader.removeEventListener("load", eventListener);
-            if (typeof reader.result !== "string") return;
-            let parsed: unknown;
-            try {
-              parsed = JSON.parse(reader.result);
-              checkTheme(parsed);
-            } catch (error) {
-              displayError(`That file isn't a valid Huet theme. ${(error as Error).message}`);
-              return;
-            }
-            onUpload(parsed, name);
-          };
-          reader.addEventListener("load", eventListener);
-
           const file = event.target.files?.[0];
-          const name = (file?.name ?? "").replace(/\.json$/i, "").replace(/ Huet Theme$/, "").trim() || "Imported";
           // Clear the selection so picking the same file again (say, after
           // fixing it) still fires `onChange`.
           event.target.value = "";
-          if (!file) return;
-          // Some browsers and OSes report an empty type for .json files, so
-          // the extension counts too.
-          const isJson =
-            file.type === "application/json" ||
-            file.name.toLowerCase().endsWith(".json");
-          if (isJson) {
-            reader.readAsText(file);
-          } else {
-            displayError("Only JSON files are accepted.");
-          }
+          if (file) readThemeFile(file, onUpload);
         }}
       />
     </Button>

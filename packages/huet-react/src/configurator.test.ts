@@ -24,6 +24,9 @@ const sources = [
   ...readdirSync(join(src, "private"))
     .filter((name) => /\.tsx?$/.test(name) && !name.includes(".test."))
     .map((name) => join("private", name)),
+  ...readdirSync(join(src, "private", "ui"))
+    .filter((name) => /\.tsx?$/.test(name))
+    .map((name) => join("private", "ui", name)),
 ];
 const candidates = [
   ...new Set(

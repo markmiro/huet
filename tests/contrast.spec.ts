@@ -1,5 +1,5 @@
 import { test, expect, type Page } from "@playwright/test";
-import { openConfigurator } from "./helpers/configurator";
+import { openConfigurator, setPercent } from "./helpers/configurator";
 import { toOklab, contrast, lightness, luminance } from "../packages/huet/src/core/color";
 /** Distance in CIE L* (0–1) between two colors. */
 const distance = (a: string, b: string) => Math.abs(lightness(a) - lightness(b));
@@ -53,19 +53,12 @@ test("both existing signal-lightness sliders affect the rendered form", async ({
   await page.goto("/color-contrast");
   await openConfigurator(page, "Edit Theme");
   const form = page.locator("[data-form-example]");
-  for (const [label, index] of [["Signal lightness on light backgrounds", 0], ["Signal lightness on dark backgrounds", 3]] as const) {
+  for (const [label, index] of [["On light backgrounds", 0], ["On dark backgrounds", 3]] as const) {
     const red = form.locator(":scope > div").nth(index).locator("input").nth(1);
-    const slider = page.getByRole("slider", { name: label, exact: true });
-    const set = async (value: string) => {
-      await slider.evaluate((element, value) => {
-        Object.getOwnPropertyDescriptor(HTMLInputElement.prototype, "value")!.set!.call(element, value);
-        element.dispatchEvent(new Event("input", { bubbles: true }));
-      }, value);
-      await expect(slider).toHaveValue(value);
-    };
-    await set("0.3");
+    const set = (percent: number) => setPercent(page, "Signal lightness", label, percent);
+    await set(30);
     const first = await red.evaluate(el => getComputedStyle(el).borderColor);
-    await set("0.7");
+    await set(70);
     await expect.poll(() => red.evaluate(el => getComputedStyle(el).borderColor)).not.toBe(first);
   }
 });
@@ -132,14 +125,11 @@ test("matching gray and blue ramps keep distinct evenly spaced steps in middle r
 test("contrast slider fades nested form colors without polarity flips", async ({ page }) => {
   await page.goto("/color-contrast");
   await openConfigurator(page, "Edit Theme");
-  const slider = page.getByRole("slider", { name: "Contrast", exact: true });
   const form = page.locator("[data-form-example]");
   const set = async (amount: number) => {
-    await slider.evaluate((el, value) => {
-      Object.getOwnPropertyDescriptor(HTMLInputElement.prototype, "value")!.set!.call(el, value);
-      el.dispatchEvent(new Event("input", { bubbles: true }));
-    }, String(amount));
-    await expect(slider).toHaveValue(String(amount));
+    await setPercent(page, "Blending and contrast", "Contrast", Math.round(amount * 100));
+    const field = page.getByRole("dialog", { name: "Blending and contrast" }).getByRole("textbox", { name: "Contrast", exact: true });
+    await expect(field).toHaveValue(String(Math.round(amount * 100)));
   };
   const read = () => form.evaluate(el => {
     const hex = (value: string) => "#" + value.match(/[\d.]+/g)!.slice(0, 3)

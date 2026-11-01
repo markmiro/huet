@@ -28,7 +28,7 @@ export default defineConfig({
     rollupOptions: {
       // Dependencies and peers are installed alongside, not bundled.
       external: (id) =>
-        /^(react|react-dom|huet|chroma-js|file-saver|lodash-es|@radix-ui\/react-popover|@tabler\/icons-react)(\/|$)/.test(
+        /^(react|react-dom|huet|chroma-js|file-saver|lodash-es|@base-ui\/react|@tabler\/icons-react)(\/|$)/.test(
           id,
         ),
     },
