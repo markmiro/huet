@@ -303,31 +303,32 @@ var F = [
 	"bgRampValue",
 	"contrastMultiplier"
 ], z = (t) => typeof t == "string" && e.valid(t);
-function B(e) {
-	let t = (e) => {
+function B(t) {
+	let n = (e) => {
 		throw TypeError(`Invalid Huet theme: ${e}`);
 	};
-	(typeof e != "object" || !e || Array.isArray(e)) && t(`expected an object like { neutral: ["#000000", "#ffffff"] }, got ${JSON.stringify(e)}`);
-	let n = e, r = Object.keys(n);
-	r.some((e) => R.includes(e)) && t("this is the old ThemeConfig format (pallet, ramps, bgRampValue, ...). Themes are now { neutral, colorModel, colors, contrast }, and the background is passed when rendering.");
-	let i = r.filter((e) => !L.includes(e));
-	i.length && t(`unknown field${i.length > 1 ? "s" : ""} ${i.join(", ")}. Themes have ${L.join(", ")}.`);
-	let { neutral: a, colorModel: o, colors: s, contrast: c } = n;
-	(!Array.isArray(a) || a.length < 2) && t(`neutral must be an array of two or more colors, darkest first, got ${JSON.stringify(a)}`);
-	for (let e of a) z(e) || t(`neutral has ${JSON.stringify(e)}, which isn't a color`);
-	if (o !== void 0 && !I.includes(o) && t(`colorModel must be one of ${I.join(", ")}, got ${JSON.stringify(o)}`), s !== void 0) {
-		(typeof s != "object" || !s || Array.isArray(s)) && t(`colors must be an object like { red: "#d14457" }, got ${JSON.stringify(s)}`);
-		for (let [e, n] of Object.entries(s)) F.includes(e) || t(`colors.${e} isn't a hue. Hues are ${F.join(", ")}.`), z(n) || t(`colors.${e} is ${JSON.stringify(n)}, which isn't a color`);
+	(typeof t != "object" || !t || Array.isArray(t)) && n(`expected an object like { neutral: ["#000000", "#ffffff"] }, got ${JSON.stringify(t)}`);
+	let r = t, i = Object.keys(r);
+	i.some((e) => R.includes(e)) && n("this is the old ThemeConfig format (pallet, ramps, bgRampValue, ...). Themes are now { neutral, colorModel, colors, contrast }, and the background is passed when rendering.");
+	let o = i.filter((e) => !L.includes(e));
+	o.length && n(`unknown field${o.length > 1 ? "s" : ""} ${o.join(", ")}. Themes have ${L.join(", ")}.`);
+	let { neutral: s, colorModel: c, colors: l, contrast: u } = r;
+	(!Array.isArray(s) || s.length < 2) && n(`neutral must be an array of two or more colors, darkest first, got ${JSON.stringify(s)}`);
+	for (let e of s) z(e) || n(`neutral has ${JSON.stringify(e)}, which isn't a color`);
+	let d = s, [f, p] = [d[0], d[d.length - 1]];
+	if (a(e(f).hex("rgb")) > a(e(p).hex("rgb")) && n(`neutral runs darkest first, but its first color ${f} is lighter than its last color ${p}`), c !== void 0 && !I.includes(c) && n(`colorModel must be one of ${I.join(", ")}, got ${JSON.stringify(c)}`), l !== void 0) {
+		(typeof l != "object" || !l || Array.isArray(l)) && n(`colors must be an object like { red: "#d14457" }, got ${JSON.stringify(l)}`);
+		for (let [e, t] of Object.entries(l)) F.includes(e) || n(`colors.${e} isn't a hue. Hues are ${F.join(", ")}.`), z(t) || n(`colors.${e} is ${JSON.stringify(t)}, which isn't a color`);
 	}
-	c !== void 0 && !(typeof c == "number" && c >= 0 && c <= 2) && t(`contrast must be a number from 0 to 2, got ${JSON.stringify(c)}`);
-	let l = (e) => typeof e == "number" && e >= 0 && e <= 1, { signalLightness: u } = n;
-	if (u !== void 0) {
-		let e = Object.keys(u ?? {});
-		typeof u == "object" && u && e.sort().join() === "onDark,onLight" && l(u.onLight) && l(u.onDark) || t(`signalLightness must be { onLight, onDark }, each from 0 to 1, got ${JSON.stringify(u)}`);
+	u !== void 0 && !(typeof u == "number" && u >= 0 && u <= 2) && n(`contrast must be a number from 0 to 2, got ${JSON.stringify(u)}`);
+	let m = (e) => typeof e == "number" && e >= 0 && e <= 1, { signalLightness: h } = r;
+	if (h !== void 0) {
+		let e = Object.keys(h ?? {});
+		typeof h == "object" && h && e.sort().join() === "onDark,onLight" && m(h.onLight) && m(h.onDark) || n(`signalLightness must be { onLight, onDark }, each from 0 to 1, got ${JSON.stringify(h)}`);
 	}
 	for (let e of ["images", "svgs"]) {
-		let r = n[e];
-		r !== void 0 && (typeof r != "object" || !r || Object.keys(r).some((e) => e !== "strength" && e !== "tint") || r.strength !== void 0 && !l(r.strength) || r.tint !== void 0 && !l(r.tint)) && t(`${e} must be { strength, tint }, each from 0 to 1, got ${JSON.stringify(r)}`);
+		let t = r[e];
+		t !== void 0 && (typeof t != "object" || !t || Object.keys(t).some((e) => e !== "strength" && e !== "tint") || t.strength !== void 0 && !m(t.strength) || t.tint !== void 0 && !m(t.tint)) && n(`${e} must be { strength, tint }, each from 0 to 1, got ${JSON.stringify(t)}`);
 	}
 }
 function V({ neutral: e, colorModel: t = "oklab" }) {
@@ -542,4 +543,4 @@ function re(e) {
 }
 export { v as _, $ as a, re as c, s as d, o as f, h as g, C as h, F as i, m as l, g as m, I as n, V as o, b as p, U as r, H as s, B as t, c as u, _ as v };
 
-//# sourceMappingURL=theme-CZOtr1TP.js.map
+//# sourceMappingURL=theme-vm1F2k3o.js.map
