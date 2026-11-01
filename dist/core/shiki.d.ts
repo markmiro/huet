@@ -17,24 +17,72 @@ export declare const codeRoles: {
     readonly changed: "var(--huet-yellow)";
 };
 export type CodeRole = keyof typeof codeRoles;
+/**
+ * Terminal colors for `ansi` blocks, each emitted as
+ * `var(--huet-code-ansi-<name>, <default>)`. Without them Shiki falls back to
+ * its own fixed palette, which ignores the theme. Huet has one color per hue
+ * on a surface, so bright variants share their base color, and black and
+ * white become muted and foreground text: readable in either polarity.
+ */
+export declare const ansiColors: {
+    readonly black: "var(--huet-muted)";
+    readonly red: "var(--huet-red)";
+    readonly green: "var(--huet-green)";
+    readonly yellow: "var(--huet-yellow)";
+    readonly blue: "var(--huet-blue)";
+    readonly magenta: "var(--huet-purple)";
+    readonly cyan: "color-mix(in oklab, var(--huet-blue), var(--huet-green))";
+    readonly white: "var(--huet-foreground)";
+};
+export type AnsiColor = keyof typeof ansiColors;
+type TokenSettings = {
+    foreground?: string;
+    background?: string;
+    fontStyle?: string;
+};
+type TokenColor = {
+    name?: string;
+    scope?: string | string[];
+    settings: TokenSettings;
+};
+type SourceTokenColor = Omit<TokenColor, "settings"> & {
+    settings?: TokenSettings;
+};
 /** Structurally compatible with Shiki's `ThemeRegistration`; Huet doesn't depend on Shiki. */
 export interface HuetShikiTheme {
     name: string;
     type: "light" | "dark";
     colors: Record<string, string>;
+    /** Maps the hex sentinels in `colors` back to Huet's variables. */
+    colorReplacements: Record<string, string>;
     fg: string;
     bg: string;
-    tokenColors: {
-        scope: string[];
-        settings: {
-            foreground?: string;
-            fontStyle?: string;
-        };
-    }[];
+    tokenColors: TokenColor[];
 }
-export declare function huetShikiTheme({ name }?: {
+/** A Shiki theme to take scopes and hues from, such as `shiki/themes/vesper.mjs`. */
+export interface ShikiThemeSource {
     name?: string;
-}): HuetShikiTheme;
+    type?: string;
+    fg?: string;
+    bg?: string;
+    colors?: Record<string, string>;
+    tokenColors?: SourceTokenColor[];
+    settings?: SourceTokenColor[];
+}
+export interface HuetShikiThemeOptions {
+    /** Shiki's theme name. Defaults to `"huet"`, or the `from` theme's name. */
+    name?: string;
+    /**
+     * Keep this theme's scopes and the hue and chroma of each of its colors.
+     * Huet only sets their lightness: each colored token takes the CIE
+     * lightness, and so the luminance and contrast, of `--huet-muted` (override
+     * with `--huet-code-lightness`), which the hue tokens match on the block.
+     * Grays become `foreground` or `comment`.
+     * Without it, tokens use Huet's own hues through the roles in `codeRoles`.
+     */
+    from?: ShikiThemeSource;
+}
+export declare function huetShikiTheme({ name, from }?: HuetShikiThemeOptions): HuetShikiTheme;
 interface HastNode {
     type: string;
     properties?: Record<string, unknown>;

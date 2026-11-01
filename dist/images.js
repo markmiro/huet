@@ -1,4 +1,4 @@
-import { a as e, d as t, f as n, h as r, i, l as a, o, p as s, r as c, t as l, u } from "./theme-DneS7YmB.js";
+import { a as e, d as t, f as n, h as r, i, m as a, o, r as s, t as c, u as l, v as u } from "./theme-CZOtr1TP.js";
 // src/core/filters.ts
 var d = (e) => Math.min(1, Math.max(0, e)), f = (e) => (t) => {
 	let [n, r, i] = t;
@@ -230,15 +230,15 @@ var O = "#version 300 es\nin vec2 position;\nout vec2 uv;\nvoid main() {\n  uv =
 		let e = /* @__PURE__ */ new Uint8Array(4);
 		this.gl.readPixels(0, 0, 1, 1, this.gl.RGBA, this.gl.UNSIGNED_BYTE, e);
 	}
-}, j = { neutral: ["#000000", "#ffffff"] }, M = (e) => e < .20689655172413793 ? (e / t) ** 2 : 1, N = /* @__PURE__ */ new Map();
-function P(t) {
-	let n = JSON.stringify(t), a = N.get(n);
+}, j = { neutral: ["#000000", "#ffffff"] }, M = (e) => e < .20689655172413793 ? (e / n) ** 2 : 1, N = /* @__PURE__ */ new Map();
+function P(n) {
+	let r = JSON.stringify(n), a = N.get(r);
 	if (a) return a;
-	l(t);
-	let { colors: s } = t, { ramp: d } = e(o(t)), f = /* @__PURE__ */ new Float64Array(257), p = /* @__PURE__ */ new Float64Array(257), m = /* @__PURE__ */ new Float64Array(257);
+	c(n);
+	let { colors: l } = n, { ramp: d } = e(o(n)), f = /* @__PURE__ */ new Float64Array(257), p = /* @__PURE__ */ new Float64Array(257), m = /* @__PURE__ */ new Float64Array(257);
 	for (let e = 0; e < 257; e++) {
-		let [t, n, i] = r(d(e / 256));
-		f[e] = Math.max(u(t), e ? f[e - 1] : 0), p[e] = n, m[e] = i;
+		let [n, r, i] = u(d(e / 256));
+		f[e] = Math.max(t(n), e ? f[e - 1] : 0), p[e] = r, m[e] = i;
 	}
 	let h = f[0], g = f[256], _ = [0, 0], v = (e) => {
 		let t = h + e * (g - h), n = 0, r = 256;
@@ -250,26 +250,26 @@ function P(t) {
 		}
 		let i = f[r] > f[n] ? (t - f[n]) / (f[r] - f[n]) : 0;
 		return _[0] = p[n] + i * (p[r] - p[n]), _[1] = m[n] + i * (m[r] - m[n]), _;
-	}, y = i.map((e) => r(s?.[e] ?? c[e]));
+	}, y = i.map((e) => u(l?.[e] ?? s[e]));
 	return a = {
 		low: h,
 		high: g,
 		neutralAt: v,
 		a: Float64Array.from(y, (e) => e[1]),
 		b: Float64Array.from(y, (e) => e[2])
-	}, N.size >= 64 && N.clear(), N.set(n, a), a;
+	}, N.size >= 64 && N.clear(), N.set(r, a), a;
 }
 function F(e) {
-	let t = i.length, n = (t) => Math.atan2(e.b[t], e.a[t]), r = Array.from({ length: t }, (e, t) => t).sort((e, t) => n(e) - n(t)), a = r.map((n, i) => {
-		let a = r[(i + 1) % t], [o, s, c, l] = [
-			e.a[n],
-			e.b[n],
-			e.a[a],
-			e.b[a]
+	let n = i.length, r = (t) => Math.atan2(e.b[t], e.a[t]), a = Array.from({ length: n }, (e, t) => t).sort((e, t) => r(e) - r(t)), o = a.map((t, r) => {
+		let i = a[(r + 1) % n], [o, s, c, l] = [
+			e.a[t],
+			e.b[t],
+			e.a[i],
+			e.b[i]
 		], u = o * l - c * s;
 		return {
-			i0: n,
-			i1: a,
+			i0: t,
+			i1: i,
 			det: u,
 			m: [
 				l / u,
@@ -278,66 +278,66 @@ function F(e) {
 				o / u
 			]
 		};
-	}), { low: o, high: s } = e, c = s - o || 1, l = {
+	}), { low: s, high: c } = e, l = c - s || 1, u = {
 		t: 0,
 		i0: 0,
 		i1: 0,
 		w0: 0,
 		w1: 0
 	};
-	return ([n, r, i]) => {
-		let s = (u(n) - o) / c, [d, f] = e.neutralAt(s), p = M(n), m = (r - d) * p, h = (i - f) * p;
-		if (l.t = s, l.w0 = l.w1 = 0, m * m + h * h < 1e-10) return l;
-		for (let { i0: e, i1: t, det: n, m: r } of a) {
+	return ([r, i, a]) => {
+		let c = (t(r) - s) / l, [d, f] = e.neutralAt(c), p = M(r), m = (i - d) * p, h = (a - f) * p;
+		if (u.t = c, u.w0 = u.w1 = 0, m * m + h * h < 1e-10) return u;
+		for (let { i0: e, i1: t, det: n, m: r } of o) {
 			if (n <= 1e-12) continue;
 			let i = r[0] * m + r[1] * h, a = r[2] * m + r[3] * h;
-			if (i >= -1e-9 && a >= -1e-9) return Object.assign(l, {
+			if (i >= -1e-9 && a >= -1e-9) return Object.assign(u, {
 				i0: e,
 				i1: t,
 				w0: Math.max(0, i),
 				w1: Math.max(0, a)
-			}), l;
+			}), u;
 		}
 		let g = -Infinity;
-		for (let n = 0; n < t; n++) {
-			let t = e.a[n] ** 2 + e.b[n] ** 2, r = (m * e.a[n] + h * e.b[n]) / (t || 1), i = r * Math.sqrt(t);
-			i > g && (Object.assign(l, {
-				i0: n,
-				i1: n,
+		for (let t = 0; t < n; t++) {
+			let n = e.a[t] ** 2 + e.b[t] ** 2, r = (m * e.a[t] + h * e.b[t]) / (n || 1), i = r * Math.sqrt(n);
+			i > g && (Object.assign(u, {
+				i0: t,
+				i1: t,
 				w0: Math.max(0, r),
 				w1: 0
 			}), g = i);
 		}
-		return l;
+		return u;
 	};
 }
-function I([e, t, r], a = j) {
-	let { t: o, i0: s, i1: c, w0: l, w1: u } = F(P(a))(n(e, t, r)), d = {};
+function I([e, t, n], r = j) {
+	let { t: o, i0: s, i1: c, w0: l, w1: u } = F(P(r))(a(e, t, n)), d = {};
 	return l > 1e-6 && (d[i[s]] = l), u > 1e-6 && (d[i[c]] = (d[i[c]] ?? 0) + u), {
 		t: o,
 		weights: d
 	};
 }
-function L(e, t = {}, r = "images") {
-	let i = P(e), o = e[r]?.strength ?? 1, c = e[r]?.tint ?? 1;
+function L(e, t = {}, n = "images") {
+	let i = P(e), o = e[n]?.strength ?? 1, s = e[n]?.tint ?? 1;
 	if (!(o >= 0 && o <= 1)) throw RangeError("strength must be between 0 and 1");
-	if (!(c >= 0 && c <= 1)) throw RangeError("tint must be between 0 and 1");
-	let l = F(P(t.source ?? j)), u = t.filter ? y(t.filter).apply : null, { low: d, high: f } = i;
-	return (e, r, p) => {
-		u && ([e, r, p] = u(e, r, p));
-		let m = n(e, r, p), { t: h, i0: g, i1: _, w0: v, w1: y } = l(m), b = t.invert ? 1 - h : h, x = c + (1 - c) * Math.max(0, 1 - v - y), S = a(d + b * (f - d)), C = 1 / Math.max(M(S), 1e-6), [w, T] = i.neutralAt(b), E = [
+	if (!(s >= 0 && s <= 1)) throw RangeError("tint must be between 0 and 1");
+	let c = F(P(t.source ?? j)), u = t.filter ? y(t.filter).apply : null, { low: d, high: f } = i;
+	return (e, n, p) => {
+		u && ([e, n, p] = u(e, n, p));
+		let m = a(e, n, p), { t: h, i0: g, i1: _, w0: v, w1: y } = c(m), b = t.invert ? 1 - h : h, x = s + (1 - s) * Math.max(0, 1 - v - y), S = l(d + b * (f - d)), C = 1 / Math.max(M(S), 1e-6), [w, T] = i.neutralAt(b), E = [
 			S,
 			x * w + C * (v * i.a[g] + y * i.a[_]),
 			x * T + C * (v * i.b[g] + y * i.b[_])
 		];
-		return s(o === 1 ? E : m.map((e, t) => e + (E[t] - e) * o));
+		return r(o === 1 ? E : m.map((e, t) => e + (E[t] - e) * o));
 	};
 }
 function R(e, t, n) {
-	let { low: r, high: o, neutralAt: c, a: l, b: u } = P(e), d = n ? i.indexOf(n) : -1, [f, p] = c(t);
-	return s([
-		a(r + t * (o - r)),
-		f + (d >= 0 ? l[d] : 0),
+	let { low: a, high: o, neutralAt: s, a: c, b: u } = P(e), d = n ? i.indexOf(n) : -1, [f, p] = s(t);
+	return r([
+		l(a + t * (o - a)),
+		f + (d >= 0 ? c[d] : 0),
 		p + (d >= 0 ? u[d] : 0)
 	]);
 }

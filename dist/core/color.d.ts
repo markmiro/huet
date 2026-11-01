@@ -32,6 +32,16 @@ export declare function textEnd(background: string, dark: string, light: string)
 /** Gamma-encoded sRGB channels (0–1) to OKLab. */
 export declare function oklabFromRgb(r: number, g: number, b: number): Triple;
 export declare function toOklab(hex: string): Triple;
+/**
+ * CIE LCH of an sRGB hex, as CSS `lch()` reads it: D50 white, Bradford-adapted
+ * from sRGB's D65. Returns [L* (0–100), C*, h (degrees)]. L* depends only on
+ * luminance, so colors that share it share their APCA contrast.
+ */
+export declare function toLch(hex: string): Triple;
+/** Linear sRGB channels of a CIE LCH color (D50), unclipped: out of gamut, some fall outside 0–1. */
+export declare function linearRgbFromLch(L: number, C: number, H: number): Triple;
+/** The most CIE chroma an sRGB color of lightness `L` and hue `H` can have. */
+export declare function maxLchChroma(L: number, H: number): number;
 export declare function rgbFromOklab([L, a, b]: Triple): Triple;
 export declare function fromOklab(lab: Triple): string;
 export declare function mix(a: string, b: string, amount: number): string;

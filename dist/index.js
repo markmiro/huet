@@ -1,6 +1,6 @@
-import { c as e, i as t, m as n, n as r, s as i, t as a } from "./theme-DneS7YmB.js";
+import { _ as e, c as t, g as n, i as r, l as i, n as a, p as o, s, t as c, v as l } from "./theme-CZOtr1TP.js";
 // src/core/themes.ts
-var o = {
+var u = {
 	Base: {
 		neutral: ["#000000", "#ffffff"],
 		colorModel: "lab",
@@ -182,7 +182,7 @@ var o = {
 			onDark: .58
 		}
 	}
-}, s = Object.freeze([
+}, d = Object.freeze([
 	...[
 		0,
 		5,
@@ -192,13 +192,13 @@ var o = {
 		75,
 		100
 	].map((e) => `huet-surface-${e}`),
-	...t.map((e) => `huet-surface-${e}`),
+	...r.map((e) => `huet-surface-${e}`),
 	"huet-text",
 	"huet-muted",
 	"huet-border",
 	"huet-focus",
-	...t.map((e) => `huet-text-${e}`)
-]), c = [
+	...r.map((e) => `huet-text-${e}`)
+]), f = [
 	0,
 	5,
 	10,
@@ -212,7 +212,7 @@ var o = {
 	90,
 	95,
 	100
-], l = [
+], p = [
 	"gray",
 	"red",
 	"yellow",
@@ -221,22 +221,22 @@ var o = {
 	"purple",
 	"white"
 ];
-function u(e) {
+function m(e) {
 	let t = /^huet-(bg\/)?(bg|text|border|outline)-(?:(gray|red|yellow|green|blue|purple|white)-)?(0|[1-9]\d?|100)$/.exec(e);
-	if (!(!t || t[1] && t[2] === "bg" || !c.includes(Number(t[4])))) return {
+	if (!(!t || t[1] && t[2] === "bg" || !f.includes(Number(t[4])))) return {
 		property: t[2],
 		ownBackground: !!t[1],
 		ramp: t[3],
 		amount: Number(t[4])
 	};
 }
-function d({ ramp: e, amount: t }) {
-	return (e ? l.indexOf(e) + 1 : 0) * 101 + t;
+function h({ ramp: e, amount: t }) {
+	return (e ? p.indexOf(e) + 1 : 0) * 101 + t;
 }
-function f(e) {
+function ee(e) {
 	return "--" + e.replace("/", "-");
 }
-var p = [];
+var g = [];
 for (let e of [
 	"bg",
 	"text",
@@ -245,9 +245,9 @@ for (let e of [
 	"bg/text",
 	"bg/border",
 	"bg/outline"
-]) for (let t of [void 0, ...l]) for (let n of c) p.push(`huet-${e}-${t ? t + "-" : ""}${n}`);
-var m = Object.freeze([...s, ...p]), h = new Set(m), g = new Set(s);
-function _(e) {
+]) for (let t of [void 0, ...p]) for (let n of f) g.push(`huet-${e}-${t ? t + "-" : ""}${n}`);
+var _ = Object.freeze([...d, ...g]), v = new Set(_), y = new Set(d);
+function b(e) {
 	let t = 0, n = 0;
 	for (let r = 0; r < e.length; r++) e[r] === "[" || e[r] === "(" ? t++ : e[r] === "]" || e[r] === ")" ? t-- : e[r] === ":" && !t && (n = r + 1);
 	let r = e.slice(n), i = /^!|!$/.test(r);
@@ -257,51 +257,51 @@ function _(e) {
 		important: i
 	};
 }
-function v(e) {
-	if (h.has(e)) return !0;
-	let { variants: t, base: n, important: r } = _(e);
-	return !r && !!t && !g.has(n) && h.has(n) && T(e) === void 0;
+function x(e) {
+	if (v.has(e)) return !0;
+	let { variants: t, base: n, important: r } = b(e);
+	return !r && !!t && !y.has(n) && v.has(n) && O(e) === void 0;
 }
-var y = (e) => u(e)?.property ?? (h.has(e) ? e.startsWith("huet-surface-") ? "bg" : e === "huet-border" ? "border" : e === "huet-focus" ? "outline" : "text" : void 0);
-function b(e) {
+var S = (e) => m(e)?.property ?? (v.has(e) ? e.startsWith("huet-surface-") ? "bg" : e === "huet-border" ? "border" : e === "huet-focus" ? "outline" : "text" : void 0);
+function C(e) {
 	let t = [], n = 0, r = 0;
 	for (let i = 0; i < e.length; i++) e[i] === "[" || e[i] === "(" ? n++ : e[i] === "]" || e[i] === ")" ? n-- : e[i] === ":" && !n && (t.push(e.slice(r, i)), r = i + 1);
 	return t;
 }
-var x = /^(?:\*|\*\*|before|after|placeholder|file|marker|selection|first-line|first-letter|backdrop|details-content)$|^\[.*&(?:\s|_|>|\+|~|::)/, S = {
+var w = /^(?:\*|\*\*|before|after|placeholder|file|marker|selection|first-line|first-letter|backdrop|details-content)$|^\[.*&(?:\s|_|>|\+|~|::)/, T = {
 	"huet-text": "text-huet-fg",
 	"huet-muted": "text-huet-muted",
 	"huet-border": "border-huet-border",
-	...Object.fromEntries(t.map((e) => [`huet-text-${e}`, `text-huet-${e}`]))
-}, C = (e) => c.reduce((t, n) => Math.abs(n - e) < Math.abs(t - e) ? n : t), w = /^bg-(?:huet-([\w-]+?)|\((?:color:)?--huet-([\w-]+)\)|\[(?:color:)?var\(--huet-([\w-]+)\)\])(?:\/.*)?$/;
-function T(e) {
-	if (h.has(e)) return;
-	let { variants: n, base: r } = _(e), i = w.exec(r);
+	...Object.fromEntries(r.map((e) => [`huet-text-${e}`, `text-huet-${e}`]))
+}, E = (e) => f.reduce((t, n) => Math.abs(n - e) < Math.abs(t - e) ? n : t), D = /^bg-(?:huet-([\w-]+?)|\((?:color:)?--huet-([\w-]+)\)|\[(?:color:)?var\(--huet-([\w-]+)\)\])(?:\/.*)?$/;
+function O(e) {
+	if (v.has(e)) return;
+	let { variants: t, base: n } = b(e), i = D.exec(n);
 	if (i) {
-		let r = i[1] ?? i[2] ?? i[3];
-		return `Tailwind background utilities paint colors Huet can't track, so colors inside would be solved against the wrong background: ${e}. Use a Huet background class, e.g. "${n}${t.includes(r) ? `huet-bg-${r}-20` : r === "fg" || r === "foreground" ? "huet-bg-100" : r === "background" ? "huet-bg-0" : "huet-bg-20"}".`;
+		let n = i[1] ?? i[2] ?? i[3];
+		return `Tailwind background utilities paint colors Huet can't track, so colors inside would be solved against the wrong background: ${e}. Use a Huet background class, e.g. "${t}${r.includes(n) ? `huet-bg-${n}-20` : n === "fg" || n === "foreground" ? "huet-bg-100" : n === "background" ? "huet-bg-0" : "huet-bg-20"}".`;
 	}
 	if (!/(?:^|:|!)huet-/.test(e)) return;
-	let a = /^(.+)\/(?:\d+|\[[^\]]*\]|\([^)]*\))$/.exec(r);
-	if (a && h.has(a[1])) return `Huet classes don't take opacity modifiers: ${e}. A see-through color no longer has the contrast Huet chose for it. Use a lower amount instead, e.g. "${n}${a[1].replace(/\d+$/, "10")}".`;
-	let o = /^(huet-(?:bg\/)?(?:bg|text|border|outline)-(?:[a-z]+-)?)(\d+)$/.exec(r);
-	if (o && !h.has(r) && Number(o[2]) <= 100 && h.has(o[1] + C(Number(o[2])))) {
-		let t = Number(o[2]), r = [...c].reverse().find((e) => e < t), i = c.find((e) => e > t);
-		return `Huet amounts are ${c.join(", ")}: ${e}. Use "${n}${o[1]}${r}" or "${n}${o[1]}${i}".`;
+	let a = /^(.+)\/(?:\d+|\[[^\]]*\]|\([^)]*\))$/.exec(n);
+	if (a && v.has(a[1])) return `Huet classes don't take opacity modifiers: ${e}. A see-through color no longer has the contrast Huet chose for it. Use a lower amount instead, e.g. "${t}${a[1].replace(/\d+$/, "10")}".`;
+	let o = /^(huet-(?:bg\/)?(?:bg|text|border|outline)-(?:[a-z]+-)?)(\d+)$/.exec(n);
+	if (o && !v.has(n) && Number(o[2]) <= 100 && v.has(o[1] + E(Number(o[2])))) {
+		let n = Number(o[2]), r = [...f].reverse().find((e) => e < n), i = f.find((e) => e > n);
+		return `Huet amounts are ${f.join(", ")}: ${e}. Use "${t}${o[1]}${r}" or "${t}${o[1]}${i}".`;
 	}
-	if (!h.has(r)) return `Unknown Huet class: ${e}`;
-	if (!n) return;
-	if (b(n).some((e) => !e)) return `Empty Tailwind variant in ${e}`;
-	if (r === "huet-focus") return `Use "huet-focus" alone: it already applies only on :focus-visible. For another outline with a variant, use "${n}huet-outline-100".`;
-	if (r.startsWith("huet-surface-")) return `Tailwind variants work on huet-bg-AMOUNT classes, not huet-surface-*: ${e}. Use an amount, e.g. "${n}huet-bg-${/\d+$/.test(r) ? C(Number(r.slice(13))) : `${r.slice(13)}-20`}".`;
-	if (g.has(r)) return `Tailwind variants work on explicit-amount classes, not ${r}: ${e}. Use "${n}huet-text-60" or the token utility "${n}${S[r]}".`;
-	let s = b(n).find((e) => x.test(e));
-	if (y(r) === "bg" && s) return `Background variants must style the element with the class: ${e}. "${s}:" styles a child or pseudo-element, whose background Huet can't track. Put "${r}" on that element instead.`;
+	if (!v.has(n)) return `Unknown Huet class: ${e}`;
+	if (!t) return;
+	if (C(t).some((e) => !e)) return `Empty Tailwind variant in ${e}`;
+	if (n === "huet-focus") return `Use "huet-focus" alone: it already applies only on :focus-visible. For another outline with a variant, use "${t}huet-outline-100".`;
+	if (n.startsWith("huet-surface-")) return `Tailwind variants work on huet-bg-AMOUNT classes, not huet-surface-*: ${e}. Use an amount, e.g. "${t}huet-bg-${/\d+$/.test(n) ? E(Number(n.slice(13))) : `${n.slice(13)}-20`}".`;
+	if (y.has(n)) return `Tailwind variants work on explicit-amount classes, not ${n}: ${e}. Use "${t}huet-text-60" or the token utility "${t}${T[n]}".`;
+	let s = C(t).find((e) => w.test(e));
+	if (S(n) === "bg" && s) return `Background variants must style the element with the class: ${e}. "${s}:" styles a child or pseudo-element, whose background Huet can't track. Put "${n}" on that element instead.`;
 }
-function E(e) {
-	let t = e.trim().split(/\s+/), n = t.map(T).filter((e) => e !== void 0), r = /* @__PURE__ */ new Map();
+function k(e) {
+	let t = e.trim().split(/\s+/), n = t.map(O).filter((e) => e !== void 0), r = /* @__PURE__ */ new Map();
 	for (let e of t) {
-		let { variants: t, base: i } = _(e), a = y(i);
+		let { variants: t, base: i } = b(e), a = S(i);
 		if (!a) continue;
 		let o = t + a, s = r.get(o), c = a === "bg" ? "background" : a;
 		s ? n.push(t ? `Use one Huet ${c} class per variant: ${s} and ${e} both apply on "${t}"` : `Use one Huet ${c} class per element: ${s} and ${e} conflict`) : r.set(o, e);
@@ -309,145 +309,145 @@ function E(e) {
 	return n;
 }
 // src/core/css.ts
-var D = c;
-function O(e, t) {
-	return Object.fromEntries(D.map((n) => [`--huet-${n}`, e.step(t, n).hex]));
+var te = f;
+function A(e, t) {
+	return Object.fromEntries(te.map((n) => [`--huet-${n}`, e.step(t, n).hex]));
 }
-function k(t, { selector: r = ":root", ...a } = {}) {
-	let o = i(t, a), s = {
-		"color-scheme": n(o.background, o.dark, o.light) === o.light ? "dark" : "light",
-		...e(o.tokensOn(o.root)),
-		...O(o, o.root)
+function ne(e, { selector: r = ":root", ...i } = {}) {
+	let a = s(e, i), o = {
+		"color-scheme": n(a.background, a.dark, a.light) === a.light ? "dark" : "light",
+		...t(a.tokensOn(a.root)),
+		...A(a, a.root)
 	};
-	return `${r} {\n${Object.entries(s).map(([e, t]) => `  ${e}: ${t};`).join("\n")}\n}\n`;
+	return `${r} {\n${Object.entries(o).map(([e, t]) => `  ${e}: ${t};`).join("\n")}\n}\n`;
 }
 // src/core/dom.ts
-var A = "[class*=\"huet-\"]", j = /* @__PURE__ */ new WeakSet(), M = /* @__PURE__ */ new WeakMap(), N = [
+var j = "[class*=\"huet-\"]", M = /* @__PURE__ */ new WeakSet(), N = /* @__PURE__ */ new WeakMap(), P = [
 	"data-huet-color-bg",
 	"data-huet-color-text",
 	"data-huet-color-border",
 	"data-huet-color-outline",
 	"data-huet-state"
-], P = 256, F = (e, t, n) => e.step(t, n.amount, n.ramp), I = (e) => `max(0%, (1 - max(var(--huet-state) - ${e}, ${e} - var(--huet-state))) * 100%)`;
-function L(e, t) {
+], F = 256, I = (e, t, n) => e.step(t, n.amount, n.ramp), re = (e) => `max(0%, (1 - max(var(--huet-state) - ${e}, ${e} - var(--huet-state))) * 100%)`;
+function ie(e, t) {
 	let n = t[0];
-	for (let r = 1; r < t.length; r++) t[r] !== t[0] && (n = `color-mix(in srgb, ${t[r]} ${I(e.keys[r])}, ${n})`);
+	for (let r = 1; r < t.length; r++) t[r] !== t[0] && (n = `color-mix(in srgb, ${t[r]} ${re(e.keys[r])}, ${n})`);
 	return n;
 }
-function R(t, n, r = {}) {
-	let a = r.background ?? 1, o = i(n, { background: a });
-	if (j.has(t) || t.parentElement?.closest("[data-huet-root]") || t.querySelector("[data-huet-root]")) throw Error("Huet theme roots must be independent, non-overlapping trees");
-	j.add(t);
-	let s = t.getAttribute("data-huet-root");
-	t.setAttribute("data-huet-root", "");
-	let c = !1, l = /* @__PURE__ */ new Map(), p = /* @__PURE__ */ new Map(), m = (e, { values: t, markers: n }) => {
+function ae(e, n, r = {}) {
+	let i = r.background ?? 1, a = s(n, { background: i });
+	if (M.has(e) || e.parentElement?.closest("[data-huet-root]") || e.querySelector("[data-huet-root]")) throw Error("Huet theme roots must be independent, non-overlapping trees");
+	M.add(e);
+	let o = e.getAttribute("data-huet-root");
+	e.setAttribute("data-huet-root", "");
+	let c = !1, l = /* @__PURE__ */ new Map(), u = /* @__PURE__ */ new Map(), d = (e, { values: t, markers: n }) => {
 		let r = l.get(e);
-		r || (M.get(e)?.(), r = /* @__PURE__ */ new Map(), l.set(e, r), M.set(e, () => h(e)));
+		r || (N.get(e)?.(), r = /* @__PURE__ */ new Map(), l.set(e, r), N.set(e, () => f(e)));
 		for (let [n, [i, a]] of r) n in t || (i ? e.style.setProperty(n, i, a) : e.style.removeProperty(n), r.delete(n));
-		let i = p.get(e);
-		i || p.set(e, i = /* @__PURE__ */ new Map());
-		for (let t of N) if (n.has(t)) i.has(t) || i.set(t, e.getAttribute(t)), e.setAttribute(t, "");
+		let i = u.get(e);
+		i || u.set(e, i = /* @__PURE__ */ new Map());
+		for (let t of P) if (n.has(t)) i.has(t) || i.set(t, e.getAttribute(t)), e.setAttribute(t, "");
 		else if (i.has(t)) {
 			let n = i.get(t);
 			n === null ? e.removeAttribute(t) : e.setAttribute(t, n), i.delete(t);
 		}
 		for (let [n, i] of Object.entries(t)) r.has(n) || r.set(n, [e.style.getPropertyValue(n), e.style.getPropertyPriority(n)]), e.style.getPropertyValue(n) !== i && e.style.setProperty(n, i);
-	}, h = (e) => {
+	}, f = (e) => {
 		if (l.has(e)) {
 			for (let [t, [n, r]] of l.get(e) ?? []) n ? e.style.setProperty(t, n, r) : e.style.removeProperty(t);
-			for (let [t, n] of p.get(e) ?? []) n === null ? e.removeAttribute(t) : e.setAttribute(t, n);
-			p.delete(e), l.delete(e), M.delete(e);
+			for (let [t, n] of u.get(e) ?? []) n === null ? e.removeAttribute(t) : e.setAttribute(t, n);
+			u.delete(e), l.delete(e), N.delete(e);
 		}
-	}, g = (t, n) => {
-		let r = u(n), i = n.slice(13), a = r ? F(o, t, r) : o.derive(t, o.surface(t.full.hex, /^\d+$/.test(i) ? Number(i) : i)), s = {
-			...e(o.tokensOn(a, t)),
-			...O(o, a)
+	}, p = (e, n) => {
+		let r = m(n), i = n.slice(13), o = r ? I(a, e, r) : a.derive(e, a.surface(e.full.hex, /^\d+$/.test(i) ? Number(i) : i)), s = {
+			...t(a.tokensOn(o, e)),
+			...A(a, o)
 		};
 		return {
-			bg: a,
+			bg: o,
 			tokens: r ? {
 				...s,
-				"--huet-foreground": o.step(a, 100).hex
+				"--huet-foreground": a.step(o, 100).hex
 			} : s
 		};
-	}, v = (e) => {
-		throw t.setAttribute("data-huet-error", e), Error(e);
-	}, y = () => {
+	}, g = (t) => {
+		throw e.setAttribute("data-huet-error", t), Error(t);
+	}, _ = () => {
 		if (c) return;
-		let n = [t, ...t.querySelectorAll(A)], r = [...new Set(n.flatMap((e) => E(e.getAttribute("class") ?? "")))];
-		r.length && v(r.join("\n"));
-		let i = /* @__PURE__ */ new Map(), a = (e) => {
+		let n = [e, ...e.querySelectorAll(j)], r = [...new Set(n.flatMap((e) => k(e.getAttribute("class") ?? "")))];
+		r.length && g(r.join("\n"));
+		let i = /* @__PURE__ */ new Map(), o = (e) => {
 			let t = i.get(e);
 			return t || i.set(e, t = {
 				values: {},
 				markers: /* @__PURE__ */ new Set()
 			}), t;
-		}, s = 0, p = (e, t, n) => (e.forEach((r, i) => {
-			let o = r.keys.length, c = t.length / o;
+		}, s = 0, u = (e, t, n) => (e.forEach((r, i) => {
+			let a = r.keys.length, c = t.length / a;
 			t = Array.from({ length: c }, (l, u) => {
-				let d = Array.from({ length: o }, (e, n) => t[n * c + u]), f = L(r, d);
+				let d = Array.from({ length: a }, (e, n) => t[n * c + u]), f = ie(r, d);
 				if (f === d[0] || r.el === n && i === e.length - 1) return f;
 				let p = `--huet-s${s++}`;
-				return a(r.el).values[p] = f, `var(${p})`;
+				return o(r.el).values[p] = f, `var(${p})`;
 			});
-		}), t[0]), y = o.root, b = {
+		}), t[0]), _ = a.root, v = {
 			dims: [],
-			bg: [y],
+			bg: [_],
 			tokens: [{
-				...e(o.tokensOn(y)),
-				...O(o, y)
+				...t(a.tokensOn(_)),
+				...A(a, _)
 			}]
-		}, x = /* @__PURE__ */ new Map();
-		for (let e of n) {
-			let n = [...e.classList].map(_), r = n.filter((e) => e.base.startsWith("huet-surface-") || u(e.base)?.property === "bg"), i = n.flatMap((e) => {
-				let t = u(e.base);
+		}, y = /* @__PURE__ */ new Map();
+		for (let t of n) {
+			let n = [...t.classList].map(b), r = n.filter((e) => e.base.startsWith("huet-surface-") || m(e.base)?.property === "bg"), i = n.flatMap((e) => {
+				let t = m(e.base);
 				return t && t.property !== "bg" ? [{
 					...e,
 					spec: t
 				}] : [];
 			});
-			if (e !== t && !r.length && !i.length) continue;
-			let s = e.parentElement;
-			for (; s && !x.has(s);) s = s.parentElement;
-			let c = e !== t && s && x.get(s) || b, l = c;
-			if (e === t || r.length) {
-				let t = r.find((e) => !e.variants)?.base, n = [t, ...new Set(r.filter((e) => e.variants && e.base !== t).map((e) => e.base))], i = n.length > 1 ? {
-					el: e,
-					keys: [-1, ...n.slice(1).map((e) => d(u(e)))]
-				} : void 0, o = [], s = [];
+			if (t !== e && !r.length && !i.length) continue;
+			let s = t.parentElement;
+			for (; s && !y.has(s);) s = s.parentElement;
+			let c = t !== e && s && y.get(s) || v, l = c;
+			if (t === e || r.length) {
+				let e = r.find((e) => !e.variants)?.base, n = [e, ...new Set(r.filter((t) => t.variants && t.base !== e).map((e) => e.base))], i = n.length > 1 ? {
+					el: t,
+					keys: [-1, ...n.slice(1).map((e) => h(m(e)))]
+				} : void 0, a = [], s = [];
 				c.bg.forEach((e, t) => {
 					for (let r of n) {
-						let n = r ? g(e, r) : {
+						let n = r ? p(e, r) : {
 							bg: e,
 							tokens: c.tokens[t]
 						};
-						o.push(n.bg), s.push(n.tokens);
+						a.push(n.bg), s.push(n.tokens);
 					}
-				}), o.length > P && v(`Too many background states above "${e.getAttribute("class")}": ${o.length} combinations, at most ${P}. Each enclosing element with Tailwind variants on its Huet background multiplies them. Remove variants from some of those backgrounds.`), l = {
+				}), a.length > F && g(`Too many background states above "${t.getAttribute("class")}": ${a.length} combinations, at most ${F}. Each enclosing element with Tailwind variants on its Huet background multiplies them. Remove variants from some of those backgrounds.`), l = {
 					dims: i ? [...c.dims, i] : c.dims,
-					bg: o,
+					bg: a,
 					tokens: s
-				}, x.set(e, l);
-				let f = a(e);
-				f.markers.add("data-huet-color-bg"), i && f.markers.add("data-huet-state");
-				for (let t of Object.keys(s[0])) f.values[t] = p(l.dims, s.map((e) => e[t]), e);
+				}, y.set(t, l);
+				let d = o(t);
+				d.markers.add("data-huet-color-bg"), i && d.markers.add("data-huet-state");
+				for (let e of Object.keys(s[0])) d.values[e] = u(l.dims, s.map((t) => t[e]), t);
 			}
-			for (let { variants: t, base: n, spec: r } of i) {
-				let i = a(e), s = r.ownBackground ? l : c, u = i.values[f(n)] ??= p(s.dims, s.bg.map((e) => F(o, e, r).hex), e);
-				t || (i.values[`--huet-relative-${r.property}`] = u, i.markers.add(`data-huet-color-${r.property}`));
+			for (let { variants: e, base: n, spec: r } of i) {
+				let i = o(t), s = r.ownBackground ? l : c, d = i.values[ee(n)] ??= u(s.dims, s.bg.map((e) => I(a, e, r).hex), t);
+				e || (i.values[`--huet-relative-${r.property}`] = d, i.markers.add(`data-huet-color-${r.property}`));
 			}
 		}
-		t.removeAttribute("data-huet-error");
-		for (let [e, t] of i) m(e, t);
-		for (let e of l.keys()) i.has(e) || h(e);
-	}, b = t.ownerDocument.defaultView.MutationObserver, x = new b(y);
+		e.removeAttribute("data-huet-error");
+		for (let [e, t] of i) d(e, t);
+		for (let e of l.keys()) i.has(e) || f(e);
+	}, v = e.ownerDocument.defaultView.MutationObserver, y = new v(_);
 	try {
-		y();
-	} catch (e) {
-		for (let e of l.keys()) h(e);
-		throw t.removeAttribute("data-huet-error"), s === null ? t.removeAttribute("data-huet-root") : t.setAttribute("data-huet-root", s), j.delete(t), e;
+		_();
+	} catch (t) {
+		for (let e of l.keys()) f(e);
+		throw e.removeAttribute("data-huet-error"), o === null ? e.removeAttribute("data-huet-root") : e.setAttribute("data-huet-root", o), M.delete(e), t;
 	}
-	return x.observe(t, {
+	return y.observe(e, {
 		subtree: !0,
 		childList: !0,
 		attributes: !0,
@@ -455,20 +455,20 @@ function R(t, n, r = {}) {
 	}), {
 		update(e, t = {}) {
 			if (c) throw Error("Cannot update a destroyed Huet mount");
-			let n = t.background ?? a;
-			o = i(e, { background: n }), a = n, y();
+			let n = t.background ?? i;
+			a = s(e, { background: n }), i = n, _();
 		},
 		destroy() {
 			if (!c) {
-				c = !0, x.disconnect();
-				for (let e of l.keys()) h(e);
-				t.removeAttribute("data-huet-error"), s === null ? t.removeAttribute("data-huet-root") : t.setAttribute("data-huet-root", s), j.delete(t);
+				c = !0, y.disconnect();
+				for (let e of l.keys()) f(e);
+				e.removeAttribute("data-huet-error"), o === null ? e.removeAttribute("data-huet-root") : e.setAttribute("data-huet-root", o), M.delete(e);
 			}
 		}
 	};
 }
 // src/core/shiki.ts
-var z = {
+var L = {
 	foreground: "var(--huet-foreground)",
 	background: "var(--huet-background)",
 	comment: "var(--huet-muted)",
@@ -483,7 +483,30 @@ var z = {
 	inserted: "var(--huet-green)",
 	deleted: "var(--huet-red)",
 	changed: "var(--huet-yellow)"
-}, B = (e) => `var(--huet-code-${e}, ${z[e]})`, V = [
+}, R = (e) => `var(--huet-code-${e}, ${L[e]})`, z = {
+	black: "var(--huet-muted)",
+	red: "var(--huet-red)",
+	green: "var(--huet-green)",
+	yellow: "var(--huet-yellow)",
+	blue: "var(--huet-blue)",
+	magenta: "var(--huet-purple)",
+	cyan: "color-mix(in oklab, var(--huet-blue), var(--huet-green))",
+	white: "var(--huet-foreground)"
+}, B = Object.keys(z).flatMap((e) => {
+	let t = e[0].toUpperCase() + e.slice(1);
+	return [`terminal.ansi${t}`, `terminal.ansiBright${t}`];
+});
+function V(e) {
+	let t = {}, n = {};
+	return B.forEach((r, i) => {
+		let a = r.replace(/^terminal\.ansi(Bright)?/, "").toLowerCase(), o = `#ffff${(i + 1).toString(16).padStart(4, "0")}`;
+		n[o] = e(r, a), t[r] = o;
+	}), {
+		colors: t,
+		colorReplacements: n
+	};
+}
+var H = (e) => `var(--huet-code-ansi-${e}, ${z[e]})`, U = [
 	[[
 		"comment",
 		"punctuation.definition.comment",
@@ -614,44 +637,119 @@ var z = {
 		"underline"
 	]
 ];
-function H({ name: e = "huet" } = {}) {
+function W({ name: e, from: t } = {}) {
+	let n = V(t ? (e, n) => {
+		let r = t.colors?.[e];
+		return r ? X(r, t, `colors["${e}"]`) : H(n);
+	} : (e, t) => H(t));
 	return {
-		name: e,
-		type: "light",
-		fg: B("foreground"),
-		bg: B("background"),
+		name: e ?? t?.name ?? "huet",
+		type: t?.type === "dark" ? "dark" : "light",
+		fg: R("foreground"),
+		bg: R("background"),
 		colors: {
-			"editor.foreground": B("foreground"),
-			"editor.background": B("background")
+			"editor.foreground": R("foreground"),
+			"editor.background": R("background"),
+			...n.colors
 		},
-		tokenColors: V.map(([e, t, n]) => ({
+		colorReplacements: n.colorReplacements,
+		tokenColors: t ? (t.tokenColors ?? t.settings ?? []).map(({ settings: e = {}, ...n }, r) => ({
+			...n,
+			settings: {
+				...e,
+				...e.foreground && { foreground: X(e.foreground, t, `tokenColors[${r}].foreground`) },
+				...e.background && { background: de(e.background, t, `tokenColors[${r}].background`) }
+			}
+		})) : U.map(([e, t, n]) => ({
 			scope: e,
 			settings: {
-				...t && { foreground: B(t) },
+				...t && { foreground: R(t) },
 				...n && { fontStyle: n }
 			}
 		}))
 	};
 }
-var U = {
+var G = .03;
+function K(t, n) {
+	let r = /^#(?:([\da-f]{3})([\da-f])?|([\da-f]{6})([\da-f]{2})?)$/i.exec(t);
+	if (!r) throw TypeError(`huetShikiTheme: from.${n} is "${t}"; only hex colors (#rgb, #rgba, #rrggbb, #rrggbbaa) can keep their hue`);
+	let i = `#${r[1] ?? r[3]}`, [, a, o] = l(i), [, s, c] = e(i), u = r[2] ? r[2] + r[2] : r[4], d = u ? parseInt(u, 16) / 255 : 1;
+	return {
+		hex: i,
+		gray: Math.hypot(a, o) < G,
+		C: s,
+		H: c,
+		alpha: d
+	};
+}
+var q = ({ C: e, H: t, alpha: n }) => `${le(e, t)} ${+t.toFixed(2)}${n < 1 ? ` / ${+n.toFixed(3)}` : ""}`, oe = [15, 85], se = [
+	15,
+	30,
+	45,
+	60,
+	75,
+	90
+], J = /* @__PURE__ */ new Map();
+function ce(e) {
+	let t = Math.round(e * 100), n = J.get(t);
+	if (n) return n;
+	let r = 50, i = 0;
+	for (let t = 1; t < 100; t++) {
+		let n = o(t, e);
+		n > i && ([r, i] = [t, n]);
+	}
+	let a = [.../* @__PURE__ */ new Set([
+		0,
+		...se,
+		r,
+		100
+	])].sort((e, t) => e - t).map((t) => [t, t === 0 || t === 100 ? 0 : o(t, e)]);
+	return n = a.slice(1).map(([e, t], n) => {
+		let [r, i] = a[n], o = (t - i) / (e - r);
+		return [+o.toFixed(3), +(i - o * r).toFixed(2)];
+	}), J.set(t, n), n;
+}
+function le(e, t) {
+	let n = +e.toFixed(2), r = ce(t).filter(([e, t]) => oe.some((r) => e * r + t < n));
+	return r.length ? `min(${n}, ${r.map(([e, t]) => `l * ${e} ${t < 0 ? "-" : "+"} ${Math.abs(t)}`).join(", ")})` : `${n}`;
+}
+var Y = /^(?:inherit|initial|unset|currentcolor|transparent|var\(.+\))$/i;
+function X(e, t, n) {
+	if (Y.test(e)) return e;
+	let r = K(e, n);
+	if (!r.gray) return `lch(from var(--huet-code-lightness, var(--huet-muted)) l ${q(r)})`;
+	let { fg: a, bg: o } = ue(t), s = K(o, "editor.background").hex;
+	return i(s, r.hex) >= .8 * i(s, K(a, "editor.foreground").hex) ? R("foreground") : R("comment");
+}
+function ue(e) {
+	let t = (e.tokenColors ?? e.settings ?? []).find((e) => !e.scope && !e.name)?.settings, n = e.type === "light";
+	return {
+		fg: e.fg ?? t?.foreground ?? e.colors?.["editor.foreground"] ?? (n ? "#333333" : "#bbbbbb"),
+		bg: e.bg ?? t?.background ?? e.colors?.["editor.background"] ?? (n ? "#fffffe" : "#1e1e1e")
+	};
+}
+function de(e, t, n) {
+	return Y.test(e) ? e : `lch(from ${R("background")} l ${q(K(e, n))})`;
+}
+var Z = {
 	add: "huet-bg-green-20",
 	remove: "huet-bg-red-20"
-}, W = (e) => {
+}, Q = (e) => {
 	let t = e.properties?.class;
 	return Array.isArray(t) ? t.map(String) : typeof t == "string" ? t.split(/\s+/).filter(Boolean) : [];
 };
-function G(e, t) {
-	if (u(t)?.property !== "bg") throw TypeError(`huetShikiTransformer: ${e} must be a plain Huet background class like "huet-bg-5" or "huet-bg-green-10", got "${t}"`);
+function $(e, t) {
+	if (m(t)?.property !== "bg") throw TypeError(`huetShikiTransformer: ${e} must be a plain Huet background class like "huet-bg-5" or "huet-bg-green-10", got "${t}"`);
 }
-function K({ surface: e = "huet-bg-5", lines: t = {} } = {}) {
-	G("surface", e);
+function fe({ surface: e = "huet-bg-5", lines: t = {} } = {}) {
+	$("surface", e);
 	let n = t === !1 ? {} : {
-		...U,
+		...Z,
 		...t
 	};
-	for (let [e, t] of Object.entries(n)) G(`lines.${e}`, t);
+	for (let [e, t] of Object.entries(n)) $(`lines.${e}`, t);
 	let r = (e) => {
-		let t = W(e);
+		let t = Q(e);
 		if (t.includes("line")) {
 			let r = [...new Set(t.flatMap((e) => n[e] ? [n[e]] : []))];
 			if (r.length > 1) throw Error(`huetShikiTransformer: a line has classes for more than one row background (${r.join(", ")}); remove one notation`);
@@ -661,13 +759,13 @@ function K({ surface: e = "huet-bg-5", lines: t = {} } = {}) {
 	return {
 		name: "huet",
 		pre(t) {
-			t.properties.class = [...W(t), e].join(" ");
+			t.properties.class = [...Q(t), e].join(" ");
 		},
 		root(e) {
 			Object.keys(n).length && r(e);
 		}
 	};
 }
-export { c as amounts, a as checkTheme, m as classes, z as codeRoles, r as colorModels, U as defaultLineSurfaces, t as hues, H as huetShikiTheme, K as huetShikiTransformer, v as isHuetClass, R as mountTheme, k as themeCss, o as themes, E as validateClasses };
+export { f as amounts, z as ansiColors, c as checkTheme, _ as classes, L as codeRoles, a as colorModels, Z as defaultLineSurfaces, r as hues, W as huetShikiTheme, fe as huetShikiTransformer, x as isHuetClass, ae as mountTheme, ne as themeCss, u as themes, k as validateClasses };
 
 //# sourceMappingURL=index.js.map
