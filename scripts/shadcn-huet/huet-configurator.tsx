@@ -32,12 +32,12 @@ function applyHuet(picked: Theme, pageBackground: number) {
   const fill = (amount: Parameters<typeof theme.surface>[1]) => theme.surface(background, amount)
   // Match the configurator: primary and foreground use the full contrast range.
   const foreground = theme.step(theme.root, 100).hex
-  const mutedForeground = theme.step(theme.root, isDark ? 66 : 51.5).hex
   const ink = (surface: string) => theme.surface(surface, 100)
   stealPalette()
 
   const card = fill(isDark ? 5 : 0)
   const muted = fill(isDark ? 13 : 3.5)
+  const mutedForeground = mutedText(theme, muted, foreground, isDark ? 66 : 51.5)
   const accent = fill(isDark ? 25 : 3.5)
   const secondary = muted
   const sidebar = fill(isDark ? 5 : 1.75)
@@ -122,6 +122,26 @@ function applyHuet(picked: Theme, pageBackground: number) {
   const dark = luminance(background) < 0.4
   root.classList.toggle("dark", dark)
   root.style.colorScheme = dark ? "dark" : "light"
+}
+
+/** WCAG AA for body text. */
+const READABLE = 4.5
+
+/**
+ * Muted text, such as card descriptions and an Item's description on its muted
+ * fill. It starts at `amount` on the ramp, which matches shadcn's gray on Base.
+ * On a narrower ramp that position reads at 2:1, so it moves toward the text
+ * end until it reaches 4.5:1 on `muted`, the lightest fill it sits on. A theme
+ * that can't reach 4.5:1 gets 80% of the foreground's contrast (on a log
+ * scale), so muted text stays dimmer than the foreground.
+ */
+function mutedText(theme: ResolvedTheme, muted: string, foreground: string, amount: number) {
+  const target = Math.min(READABLE, chroma.contrast(foreground, muted) ** 0.8)
+  for (let step = amount; step < 100; step += 0.5) {
+    const { hex } = theme.step(theme.root, step)
+    if (chroma.contrast(hex, muted) >= target) return hex
+  }
+  return foreground
 }
 
 /** Read each Tailwind swatch once, before inline overrides replace it. */
