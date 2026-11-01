@@ -1,5 +1,5 @@
 diff --git a/apps/v4/app/(app)/(root)/cards/qr-connect.tsx b/apps/v4/app/(app)/(root)/cards/qr-connect.tsx
-index 28e1b65c2..90e6a62f2 100644
+index 28e1b65..90e6a62 100644
 --- a/apps/v4/app/(app)/(root)/cards/qr-connect.tsx
 +++ b/apps/v4/app/(app)/(root)/cards/qr-connect.tsx
 @@ -36,6 +36,7 @@ export function QrConnect() {
@@ -11,7 +11,7 @@ index 28e1b65c2..90e6a62f2 100644
              className="size-40 text-black"
              role="img"
 diff --git a/apps/v4/app/globals.css b/apps/v4/app/globals.css
-index 00c2223f0..92a3e9c95 100644
+index 00c2223..92a3e9c 100644
 --- a/apps/v4/app/globals.css
 +++ b/apps/v4/app/globals.css
 @@ -460,3 +460,21 @@
@@ -49,7 +49,7 @@ index 05fe74b..c424b7e 100644
                  dangerouslySetInnerHTML={{ __html: registry.logo }}
                  className="grayscale *:[svg]:size-8 *:[svg]:fill-foreground"
 diff --git a/apps/v4/components/site-header.tsx b/apps/v4/components/site-header.tsx
-index 7897e95f0..215c54bb0 100644
+index 7897e95..215c54b 100644
 --- a/apps/v4/components/site-header.tsx
 +++ b/apps/v4/components/site-header.tsx
 @@ -19,7 +19,7 @@ export function SiteHeader() {
@@ -62,7 +62,7 @@ index 7897e95f0..215c54bb0 100644
          <div className="flex h-(--header-height) items-center **:data-[slot=separator]:h-4! group-has-data-[slot=designer]/layout:fixed:max-w-none 3xl:fixed:container">
            <MobileNav
 diff --git a/apps/v4/lib/highlight-code.ts b/apps/v4/lib/highlight-code.ts
-index 6ea08f6a3..871016567 100644
+index 6ea08f6..8710165 100644
 --- a/apps/v4/lib/highlight-code.ts
 +++ b/apps/v4/lib/highlight-code.ts
 @@ -1,7 +1,10 @@
@@ -90,7 +90,7 @@ index 6ea08f6a3..871016567 100644
      transformers: [
        {
 diff --git a/apps/v4/registry/bases/aria/hooks/_registry.ts b/apps/v4/registry/bases/aria/hooks/_registry.ts
-index b9e58b940..91ba91ffe 100644
+index b9e58b9..91ba91f 100644
 --- a/apps/v4/registry/bases/aria/hooks/_registry.ts
 +++ b/apps/v4/registry/bases/aria/hooks/_registry.ts
 @@ -14,7 +14,7 @@ export const hooks: Registry["items"] = [
@@ -103,7 +103,7 @@ index b9e58b940..91ba91ffe 100644
        {
          path: "hooks/use-highlighted-code.ts",
 diff --git a/apps/v4/registry/bases/aria/lib/highlighter.tsx b/apps/v4/registry/bases/aria/lib/highlighter.tsx
-index 4765dcd1a..d69c6112e 100644
+index 4765dcd..d69c611 100644
 --- a/apps/v4/registry/bases/aria/lib/highlighter.tsx
 +++ b/apps/v4/registry/bases/aria/lib/highlighter.tsx
 @@ -1,4 +1,5 @@
@@ -130,7 +130,7 @@ index 4765dcd1a..d69c6112e 100644
      langs: [],
      engine: createJavaScriptRegexEngine({ forgiving: true }),
 diff --git a/apps/v4/registry/bases/base/hooks/_registry.ts b/apps/v4/registry/bases/base/hooks/_registry.ts
-index b9e58b940..91ba91ffe 100644
+index b9e58b9..91ba91f 100644
 --- a/apps/v4/registry/bases/base/hooks/_registry.ts
 +++ b/apps/v4/registry/bases/base/hooks/_registry.ts
 @@ -14,7 +14,7 @@ export const hooks: Registry["items"] = [
@@ -143,7 +143,7 @@ index b9e58b940..91ba91ffe 100644
        {
          path: "hooks/use-highlighted-code.ts",
 diff --git a/apps/v4/registry/bases/base/lib/highlighter.tsx b/apps/v4/registry/bases/base/lib/highlighter.tsx
-index 4765dcd1a..d69c6112e 100644
+index 4765dcd..d69c611 100644
 --- a/apps/v4/registry/bases/base/lib/highlighter.tsx
 +++ b/apps/v4/registry/bases/base/lib/highlighter.tsx
 @@ -1,4 +1,5 @@
@@ -170,7 +170,7 @@ index 4765dcd1a..d69c6112e 100644
      langs: [],
      engine: createJavaScriptRegexEngine({ forgiving: true }),
 diff --git a/apps/v4/registry/bases/radix/hooks/_registry.ts b/apps/v4/registry/bases/radix/hooks/_registry.ts
-index b9e58b940..91ba91ffe 100644
+index b9e58b9..91ba91f 100644
 --- a/apps/v4/registry/bases/radix/hooks/_registry.ts
 +++ b/apps/v4/registry/bases/radix/hooks/_registry.ts
 @@ -14,7 +14,7 @@ export const hooks: Registry["items"] = [
@@ -183,7 +183,7 @@ index b9e58b940..91ba91ffe 100644
        {
          path: "hooks/use-highlighted-code.ts",
 diff --git a/apps/v4/registry/bases/radix/lib/highlighter.tsx b/apps/v4/registry/bases/radix/lib/highlighter.tsx
-index 4765dcd1a..d69c6112e 100644
+index 4765dcd..d69c611 100644
 --- a/apps/v4/registry/bases/radix/lib/highlighter.tsx
 +++ b/apps/v4/registry/bases/radix/lib/highlighter.tsx
 @@ -1,4 +1,5 @@
@@ -210,7 +210,7 @@ index 4765dcd1a..d69c6112e 100644
      langs: [],
      engine: createJavaScriptRegexEngine({ forgiving: true }),
 diff --git a/apps/v4/registry/new-york-v4/charts/chart-line-dots-custom.tsx b/apps/v4/registry/new-york-v4/charts/chart-line-dots-custom.tsx
-index 355f23a10..61c10e1f9 100644
+index 355f23a..61c10e1 100644
 --- a/apps/v4/registry/new-york-v4/charts/chart-line-dots-custom.tsx
 +++ b/apps/v4/registry/new-york-v4/charts/chart-line-dots-custom.tsx
 @@ -88,7 +88,7 @@ export function ChartLineDotsCustom() {
@@ -223,7 +223,7 @@ index 355f23a10..61c10e1f9 100644
                    />
                  )
 diff --git a/apps/v4/registry/new-york-v4/ui/bubble.tsx b/apps/v4/registry/new-york-v4/ui/bubble.tsx
-index da2c99035..34b4a3eca 100644
+index da2c990..34b4a3e 100644
 --- a/apps/v4/registry/new-york-v4/ui/bubble.tsx
 +++ b/apps/v4/registry/new-york-v4/ui/bubble.tsx
 @@ -25,7 +25,7 @@ const bubbleVariants = cva(
@@ -236,7 +236,7 @@ index da2c99035..34b4a3eca 100644
            "*:data-[slot=bubble-content]:border-border *:data-[slot=bubble-content]:bg-background [&>[data-slot=bubble-content]:is(button,a):hover]:bg-muted [&>[data-slot=bubble-content]:is(button,a):hover]:text-foreground dark:[&>[data-slot=bubble-content]:is(button,a):hover]:bg-input/30",
          ghost:
 diff --git a/apps/v4/registry/styles/style-luma.css b/apps/v4/registry/styles/style-luma.css
-index 891fbb6e2..923b58bca 100644
+index 891fbb6..923b58b 100644
 --- a/apps/v4/registry/styles/style-luma.css
 +++ b/apps/v4/registry/styles/style-luma.css
 @@ -1473,7 +1473,7 @@
@@ -249,7 +249,7 @@ index 891fbb6e2..923b58bca 100644
  
    .cn-bubble-variant-outline {
 diff --git a/apps/v4/registry/styles/style-lyra.css b/apps/v4/registry/styles/style-lyra.css
-index 05342f268..b206ac661 100644
+index 05342f2..b206ac6 100644
 --- a/apps/v4/registry/styles/style-lyra.css
 +++ b/apps/v4/registry/styles/style-lyra.css
 @@ -1452,7 +1452,7 @@
@@ -262,7 +262,7 @@ index 05342f268..b206ac661 100644
  
    .cn-bubble-variant-outline {
 diff --git a/apps/v4/registry/styles/style-maia.css b/apps/v4/registry/styles/style-maia.css
-index ed13c6871..7635e5190 100644
+index ed13c68..7635e51 100644
 --- a/apps/v4/registry/styles/style-maia.css
 +++ b/apps/v4/registry/styles/style-maia.css
 @@ -1474,7 +1474,7 @@
@@ -275,7 +275,7 @@ index ed13c6871..7635e5190 100644
  
    .cn-bubble-variant-outline {
 diff --git a/apps/v4/registry/styles/style-mira.css b/apps/v4/registry/styles/style-mira.css
-index 1f6b9efe3..02fdca7a9 100644
+index 1f6b9ef..02fdca7 100644
 --- a/apps/v4/registry/styles/style-mira.css
 +++ b/apps/v4/registry/styles/style-mira.css
 @@ -1479,7 +1479,7 @@
@@ -288,7 +288,7 @@ index 1f6b9efe3..02fdca7a9 100644
  
    .cn-bubble-variant-outline {
 diff --git a/apps/v4/registry/styles/style-nova.css b/apps/v4/registry/styles/style-nova.css
-index 293204b2b..181d0f77c 100644
+index 293204b..181d0f7 100644
 --- a/apps/v4/registry/styles/style-nova.css
 +++ b/apps/v4/registry/styles/style-nova.css
 @@ -1477,7 +1477,7 @@
@@ -301,7 +301,7 @@ index 293204b2b..181d0f77c 100644
  
    .cn-bubble-variant-outline {
 diff --git a/apps/v4/registry/styles/style-rhea.css b/apps/v4/registry/styles/style-rhea.css
-index 94bbca2a7..64b18d418 100644
+index 94bbca2..64b18d4 100644
 --- a/apps/v4/registry/styles/style-rhea.css
 +++ b/apps/v4/registry/styles/style-rhea.css
 @@ -1473,7 +1473,7 @@
@@ -314,7 +314,7 @@ index 94bbca2a7..64b18d418 100644
  
    .cn-bubble-variant-outline {
 diff --git a/apps/v4/registry/styles/style-sera.css b/apps/v4/registry/styles/style-sera.css
-index 6fb2c1289..390d01432 100644
+index 6fb2c12..390d014 100644
 --- a/apps/v4/registry/styles/style-sera.css
 +++ b/apps/v4/registry/styles/style-sera.css
 @@ -1464,7 +1464,7 @@
@@ -327,7 +327,7 @@ index 6fb2c1289..390d01432 100644
  
    .cn-bubble-variant-outline {
 diff --git a/apps/v4/registry/styles/style-vega.css b/apps/v4/registry/styles/style-vega.css
-index 9f03b3c6d..e9335737e 100644
+index 9f03b3c..e933573 100644
 --- a/apps/v4/registry/styles/style-vega.css
 +++ b/apps/v4/registry/styles/style-vega.css
 @@ -1477,7 +1477,7 @@
@@ -340,7 +340,7 @@ index 9f03b3c6d..e9335737e 100644
  
    .cn-bubble-variant-outline {
 diff --git a/apps/v4/source.config.ts b/apps/v4/source.config.ts
-index d668a1f88..d7e594fac 100644
+index d668a1f..d7e594f 100644
 --- a/apps/v4/source.config.ts
 +++ b/apps/v4/source.config.ts
 @@ -1,5 +1,8 @@
