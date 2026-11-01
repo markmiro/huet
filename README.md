@@ -9,7 +9,7 @@
 
 Relative UI colors and themed images from one theme. Choose a theme, then give each element a ramp and a contrast amount in its class name, such as `huet-bg-blue-20`. Huet works out the actual colors from the element's parent background, and recolors images to match.
 
-[Demo](https://markmiro.github.io/huet/)
+[Demo](https://markmiro.github.io/huet/) · [shadcn site themed with Huet](https://shadcn-huet.vercel.app)
 
 | Package | What it is |
 | --- | --- |
@@ -76,6 +76,7 @@ The [`huet` README](packages/huet/README.md) covers class syntax, Tailwind, mult
 | `src/demo` | The demo site, built with Astro, Tailwind and Huet classes. It imports the packages like an app would. |
 | `tests` | Browser tests (Playwright) against the demo site |
 | `docs` | Design notes and screenshots |
+| `vendor/shadcn-ui`, `scripts/shadcn-huet` | The shadcn site themed with Huet: setup, dev and deploy instructions in [its README](scripts/shadcn-huet/README.md) |
 
 In the workspace, each package's `exports` point at its TypeScript source, so the demo and tests run without a build. `publishConfig` swaps in the built `dist/` files when a package is packed or published.
 
