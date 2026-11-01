@@ -26,6 +26,15 @@ Leave `layout.tsx` and `theme-provider.tsx` out of it, since `setup.mjs` edits t
 
 Every highlighter on the site wraps shadcn's own Shiki themes (vesper and GitHub) in `huetShikiTheme({ from })`, so tokens keep shadcn's hues and take their lightness from Huet's CSS variables (see [code blocks](../../docs/code-blocks.md#keeping-another-themes-hues)). The site doesn't mount Huet, so `huet-configurator.tsx` writes those variables itself: solved against shadcn's `--code` fill inside `[data-rehype-pretty-code-figure]`, and against the page everywhere else, such as the registry's `CodeBlock`. It also logs a `console.error` for any code block whose tokens still carry fixed colors (hex or `rgb()`), for example after a submodule update adds a highlighter: wrap its theme in `huetShikiTheme({ from })` too.
 
+## Theme and chart colors
+
+On `/create`, the Theme (accent) and Chart Color pickers work with Huet. The preview iframe reads shadcn's picks from `#design-system-theme-vars`, keeps each one's hue and chroma, and lets Huet choose the lightness, on ramps from the Huet theme's dark end through the picked colors to its light end (`rampThrough` in `huet/internal`):
+
+- **Primary** (and the sidebar's) is the step on the accent's ramp nearest the picked color where text in the page color reads at Lc 75. A gray theme keeps primary as the max-contrast invert. Menu Accent: Bold uses the same color for menus.
+- **`--chart-1` to `--chart-5`** spread evenly in contrast with the page, from Lc 90 to Lc 45, on the chart palette's ramp. A gray chart color takes the theme's own steps, from the text color to muted.
+
+The iframe sends both ramps to the top page, where the Huet panel's Edit Theme tab shows them under Color ramps as Accent and Chart. Elsewhere on the site, the ramps are the site's own colors (the blue chart palette), and `.theme-*` classes place their primary on the same kind of ramp. `tests/shadcn/create.spec.ts` covers it.
+
 ## Deploying
 
 The demo is live at https://shadcn-huet.vercel.app, from the Vercel project `shadcn-huet`. It isn't connected to Git, so nothing deploys on push. Deploys are manual: you build locally and upload the output. A Vercel build can't do it, because `setup.mjs` installs Huet from tarballs that only exist on your machine.

@@ -12,6 +12,8 @@ export interface ConfiguratorState {
   themes: Readonly<Record<string, Theme>>;
   /** Where the page's background sits on the neutral ramp. */
   background: number;
+  /** The page's own colors by name, each shown as a ramp. */
+  ramps: Readonly<Record<string, readonly string[]>>;
   /** Moves the page's background, when the page lets the configurator. */
   setBackground?: (background: number) => void;
   /** The listed theme `theme` matches, if any. */

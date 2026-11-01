@@ -31,7 +31,16 @@ export interface ThemeConfiguratorProps {
   background?: number;
   /** Called when someone picks a background in the configurator. Leave it out to hide the picker. */
   onBackgroundChange?: (background: number) => void;
+  /**
+   * Your page's own colors by name, such as a brand accent or a chart
+   * palette. Each shows under Color ramps as a ramp from the theme's dark end
+   * through its colors to its light end: `rampThrough` from `huet/internal`,
+   * which is how the page should place those colors on the theme.
+   */
+  ramps?: Readonly<Record<string, readonly string[]>>;
 }
+
+const noRamps = Object.freeze({});
 
 /** `base`, or `base 2`, `base 3`, … whichever isn't in `themes` yet. */
 function freeName(themes: Readonly<Record<string, Theme>>, base: string) {
@@ -48,6 +57,7 @@ export function ConfiguratorRoot({
   onThemesChange,
   background = 1,
   onBackgroundChange,
+  ramps = noRamps,
   children,
 }: ThemeConfiguratorProps & { children?: React.ReactNode }) {
   const onChangeRef = useRef(onChange);
@@ -75,6 +85,7 @@ export function ConfiguratorRoot({
       setTheme: (theme: Theme) => onChangeRef.current(theme),
       themes,
       background,
+      ramps,
       name,
       editedFrom,
       reset: () => {
@@ -123,7 +134,7 @@ export function ConfiguratorRoot({
           }
         : undefined,
     }),
-    [value, themes, background, name, editedFrom, canEditList, canSetBackground, setLastPicked],
+    [value, themes, background, ramps, name, editedFrom, canEditList, canSetBackground, setLastPicked],
   );
   return (
     <ThemeConfiguratorContext.Provider value={state}>{children}</ThemeConfiguratorContext.Provider>

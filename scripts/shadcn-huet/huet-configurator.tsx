@@ -1,12 +1,19 @@
 "use client"
 
 import chroma from "chroma-js"
-import { useLayoutEffect, useState } from "react"
+import { usePathname } from "next/navigation"
+import { useEffect, useLayoutEffect, useState } from "react"
 import { checkTheme, themes as presets, type Theme } from "huet"
 import { mountImages, mountSvgs } from "huet/images"
 // shadcn's tokens need amounts and ramp positions that no class has, so this
 // adapter uses Huet's solver directly.
-import { resolveTheme, themeVariables, type ResolvedTheme } from "huet/internal"
+import {
+  contrast,
+  rampThrough,
+  resolveTheme,
+  themeVariables,
+  type ResolvedTheme,
+} from "huet/internal"
 import { ThemeConfigurator } from "huet-react"
 
 /**
@@ -58,15 +65,10 @@ function applyHuet(picked: Theme, pageBackground: number) {
     "--card-foreground": ink(card),
     "--popover": card,
     "--popover-foreground": foreground,
-    // Primary is the max-contrast invert of the background, not the theme blue.
-    "--primary": foreground,
-    "--primary-foreground": background,
     "--secondary": secondary,
     "--secondary-foreground": ink(secondary),
     "--muted": muted,
     "--muted-foreground": mutedForeground,
-    "--accent": accent,
-    "--accent-foreground": ink(accent),
     "--destructive": tokens.red,
     "--destructive-foreground": ink(fill("red")),
     "--border": border,
@@ -74,8 +76,6 @@ function applyHuet(picked: Theme, pageBackground: number) {
     "--ring": ring ? adapt(ring) : tokens.border,
     "--sidebar": sidebar,
     "--sidebar-foreground": ink(sidebar),
-    "--sidebar-primary": foreground,
-    "--sidebar-primary-foreground": background,
     "--sidebar-accent": accent,
     "--sidebar-accent-foreground": ink(accent),
     "--sidebar-border": border,
@@ -106,18 +106,13 @@ function applyHuet(picked: Theme, pageBackground: number) {
   // down to muted. A copied gray or blue ramp puts the dark steps on a dark
   // page and the light steps on a light page, so part of the series vanishes.
   const chartSteps = chartScale(foreground, mutedForeground)
-  const blue = [300, 500, 600, 700, 800].map((step) =>
-    palette?.find((swatch) => swatch.key === `--color-blue-${step}`),
-  )
-  chartSteps.forEach((neutral, index) => {
-    vars[`--chart-${index + 1}`] = tintChart(neutral, blue[index])
-  })
 
   const root = document.documentElement
   for (const [name, value] of Object.entries(vars)) root.style.setProperty(name, value)
   root.style.backgroundColor = background
-  paintThemeHues(theme.ramp, foreground, background, tokens.red, ink(fill("red")))
-  paintCharts(chartSteps)
+  painted = { theme, foreground, background, menuAccent: accent, chartSteps }
+  paintBrand()
+  paintThemeHues(theme, foreground, background, tokens.red, ink(fill("red")))
   paintChartConfigs(foreground, mutedForeground)
   paintTopNav(background)
   paintCode(theme, background, surface)
@@ -126,6 +121,199 @@ function applyHuet(picked: Theme, pageBackground: number) {
   root.classList.toggle("dark", isDark)
   root.style.colorScheme = isDark ? "dark" : "light"
 }
+
+/** What applyHuet painted last: the picked theme and chart colors are placed against it. */
+let painted: {
+  theme: ResolvedTheme
+  foreground: string
+  background: string
+  /** The neutral fill menus highlight with, unless they use the accent. */
+  menuAccent: string
+  /** The readable chart steps, from the text color to muted. */
+  chartSteps: string[]
+} | null = null
+
+/** The page's own color picks: shadcn's theme (accent) color and chart color. */
+type Brand = {
+  /** The theme color primary takes, unless it's a gray. */
+  accent?: string
+  /** Menu Accent: Bold, where menus highlight with the accent too. */
+  boldMenus: boolean
+  /** The chart palette, chart-1 first. */
+  chart: string[]
+}
+
+/** Where /create's preview writes the picked base color, theme and chart color. */
+const DESIGN_SYSTEM = "design-system-theme-vars"
+
+/** Stylesheets the site ships, without /create's picks or this adapter's own repaints. */
+function pageSheets() {
+  return Array.from(document.styleSheets).filter((sheet: CSSStyleSheet) => {
+    const id = sheet.ownerNode instanceof Element ? sheet.ownerNode.id : ""
+    return id !== DESIGN_SYSTEM && !id.startsWith("huet-")
+  })
+}
+
+/** The light-mode variables /create's preview picked, if this is that preview. */
+function designSystemVars() {
+  const element = document.getElementById(DESIGN_SYSTEM)
+  const sheet = element instanceof HTMLStyleElement ? element.sheet : null
+  for (const rule of sheet?.cssRules ?? []) {
+    if (!(rule instanceof CSSStyleRule) || rule.selectorText !== ":root") continue
+    const vars = new Map<string, string>()
+    for (let i = 0; i < rule.style.length; i++) {
+      const prop = rule.style.item(i)
+      vars.set(prop, rule.style.getPropertyValue(prop).trim())
+    }
+    return vars
+  }
+}
+
+const hexOf = (swatch: Swatch) => chroma.oklch(swatch.l, swatch.c, swatch.h).hex()
+const isGray = (color: string) => !(chroma(color).oklch()[1] >= 0.02)
+
+/**
+ * On /create, the theme and chart color picked there. Huet keeps their hue
+ * and chroma and picks their lightness. Elsewhere, the site's own: a gray
+ * primary, so primary stays the invert, and the blue chart palette.
+ */
+function readBrand(): Brand {
+  const vars = designSystemVars()
+  const color = (prop: string, raw = vars?.get(prop)) => {
+    const swatch = raw ? readSwatch(prop, raw) : undefined
+    return swatch ? [hexOf(swatch)] : []
+  }
+  if (!vars) {
+    const blue = [300, 500, 600, 700, 800].map((step) =>
+      palette?.find((swatch) => swatch.key === `--color-blue-${step}`),
+    )
+    return { boldMenus: false, chart: blue.flatMap((swatch) => (swatch ? [hexOf(swatch)] : [])) }
+  }
+  const [primary] = color("--primary")
+  return {
+    accent: primary && !isGray(primary) ? primary : undefined,
+    // shadcn's Bold menu accent copies primary into accent.
+    boldMenus: Boolean(vars.get("--accent")) && vars.get("--accent") === vars.get("--primary"),
+    chart: [1, 2, 3, 4, 5].flatMap((i) => color(`--chart-${i}`)),
+  }
+}
+
+/**
+ * The accent as a fill (primary) under text in the page color
+ * (primary-foreground). Of the steps on its ramp where that text reads at
+ * Lc 75, or as close as the theme's range allows, the one nearest the
+ * picked color's own lightness.
+ */
+function accentFill(theme: ResolvedTheme, color: string, text: string, foreground: string) {
+  const ramp = rampThrough(theme.dark, theme.light, [color])
+  const target = Math.min(75, (contrast(text, foreground) * 75) / 90)
+  const [picked] = chroma(color).oklch()
+  let nearest: string | undefined
+  let gap = Infinity
+  let strongest = color
+  let strongestLc = -1
+  for (let i = 0; i <= 256; i++) {
+    const step = ramp(i / 256)
+    const lc = contrast(step, text)
+    if (lc > strongestLc) [strongest, strongestLc] = [step, lc]
+    const distance = Math.abs(chroma(step).oklch()[0] - picked)
+    if (lc >= target && distance < gap) [nearest, gap] = [step, distance]
+  }
+  return nearest ?? strongest
+}
+
+/**
+ * Five chart series from a palette, chart-1 first. A gray palette takes the
+ * theme's own readable steps (text color to muted). A colored one sits on
+ * its ramp, the one the Huet panel shows, keeping the palette's hue and
+ * chroma: the series spread evenly in contrast with the page, from Lc 90
+ * (text) to Lc 45 (large graphics), scaled down on themes that can't reach
+ * Lc 90.
+ * The steps themselves start at the theme's end color, which has no hue.
+ */
+function chartSeries(colors: string[]) {
+  if (!painted) return []
+  const { theme, background, foreground, chartSteps } = painted
+  if (colors.every(isGray)) return chartSteps
+  const ramp = rampThrough(theme.dark, theme.light, colors)
+  // Just short of the text on narrow themes, where only the gray end color reaches it.
+  const strongest = Math.min(90, contrast(background, foreground) * 0.9)
+  const weakest = Math.min(45, strongest / 2)
+  // Walk from the page's lightness toward the text: the first step that reaches each target.
+  const [from] = chroma(background).oklch()
+  const [to] = chroma(foreground).oklch()
+  const path = Array.from({ length: 257 }, (_, i) => ramp.at(from + ((to - from) * i) / 256))
+  return [0, 0.25, 0.5, 0.75, 1].map((t) => {
+    const target = strongest + (weakest - strongest) * t
+    return path.find((color) => contrast(background, color) >= target) ?? path[path.length - 1]
+  })
+}
+
+/**
+ * Primary, menu accents and charts from the page's picks (readBrand). /create
+ * changes them without a reload, so this repaints whenever its picks do.
+ */
+function paintBrand() {
+  if (!painted) return
+  const { theme, foreground, background, menuAccent, chartSteps } = painted
+  const brand = readBrand()
+  // A gray theme keeps primary as the max-contrast invert of the background.
+  const primary = brand.accent ? accentFill(theme, brand.accent, background, foreground) : foreground
+  const chart = chartSeries(brand.chart)
+  const vars: Record<string, string> = {
+    "--primary": primary,
+    "--primary-foreground": background,
+    "--sidebar-primary": primary,
+    "--sidebar-primary-foreground": background,
+    "--accent": brand.boldMenus ? primary : menuAccent,
+    "--accent-foreground": brand.boldMenus ? background : theme.surface(menuAccent, 100),
+  }
+  chart.forEach((color, index) => (vars[`--chart-${index + 1}`] = color))
+  const root = document.documentElement
+  for (const [name, value] of Object.entries(vars)) root.style.setProperty(name, value)
+  paintCharts(chartSteps, chart)
+  publishRamps({ Accent: brand.accent ? [brand.accent] : [], Chart: brand.chart })
+  watchBrand()
+}
+
+let brandWatch: MutationObserver | null = null
+const isDesignSystem = (node: Node) =>
+  (node instanceof Element ? node : node.parentElement)?.id === DESIGN_SYSTEM
+
+function watchBrand() {
+  if (brandWatch) return
+  brandWatch = new MutationObserver((records) => {
+    const changed = records.some(
+      (record) =>
+        isDesignSystem(record.target) ||
+        [...record.addedNodes, ...record.removedNodes].some(isDesignSystem),
+    )
+    if (changed) paintBrand()
+  })
+  brandWatch.observe(document.head, { subtree: true, childList: true, characterData: true })
+}
+
+/** Ramps by name, for the Huet panel's Color ramps. */
+type Ramps = Record<string, string[]>
+const RAMPS_MESSAGE = "huet-shadcn-ramps"
+let ownRamps: Ramps | undefined
+let showOwnRamps: ((ramps: Ramps) => void) | null = null
+
+/**
+ * Show the accent and chart ramps in the Huet panel. The /create preview
+ * paints in an iframe, so it sends its ramps up to the top page's panel.
+ */
+function publishRamps(ramps: Ramps) {
+  if (embedded) {
+    if (designSystemVars()) window.parent.postMessage({ type: RAMPS_MESSAGE, ramps }, location.origin)
+    return
+  }
+  ownRamps = ramps
+  showOwnRamps?.(ramps)
+}
+
+const sameRamps = (a: Ramps | undefined, b: Ramps | undefined) =>
+  JSON.stringify(a) === JSON.stringify(b)
 
 /** Read each Tailwind swatch once, before inline overrides replace it. */
 function stealPalette() {
@@ -157,7 +345,7 @@ function stealPalette() {
       }
     }
   }
-  for (const sheet of document.styleSheets) {
+  for (const sheet of pageSheets()) {
     try {
       visit(sheet.cssRules)
     } catch {
@@ -260,14 +448,6 @@ function mixOklch(from: string, to: string, t: number) {
     .hex()
 }
 
-/** A gray series takes the theme color. A chromatic series keeps its hue. */
-function tintChart(neutral: string, swatch?: Swatch) {
-  if (!swatch || swatch.c < 0.02) return neutral
-  const [lightness] = chroma(neutral).oklch()
-  if (!Number.isFinite(lightness)) return neutral
-  return chroma.oklch(Math.min(1, Math.max(0, lightness)), swatch.c, swatch.h).hex()
-}
-
 function resolveChartSwatch(raw: string) {
   const ref = raw.match(/^var\(\s*(--[\w-]+)\s*\)$/)
   if (ref) return palette?.find((swatch) => swatch.key === ref[1])
@@ -276,20 +456,33 @@ function resolveChartSwatch(raw: string) {
 
 let chartRules: Map<string, Map<string, string>> | null = null
 
+/** Rules for the whole page, which the picked chart color (readBrand) decides. */
+const pageWide = /^(?::root|html|\.dark|:root\.dark|html\.dark)$/
+
 /**
  * Home-page cards and chart pages restamp --chart-* with a gray or blue
- * ramp. Repaint each series on the readable theme scale, keeping its hue.
+ * palette. Repaint each rule's series from its own palette (chartSeries),
+ * so they stay readable on the theme. The page-wide rules take `chart`, the
+ * picked palette, as the root does.
  */
-function paintCharts(steps: string[]) {
+function paintCharts(steps: string[], chart: string[]) {
   if (!chartRules) chartRules = collectChartRules()
   let css = ""
   for (const [selector, props] of chartRules) {
+    const own = pageWide.test(selector)
+      ? chart
+      : chartSeries(
+          [...props.values()].flatMap((raw) => {
+            const swatch = resolveChartSwatch(raw)
+            return swatch ? [hexOf(swatch)] : []
+          }),
+        )
     const decls: string[] = []
-    for (const [prop, raw] of props) {
+    for (const prop of props.keys()) {
       const index = Number(prop.slice("--chart-".length)) - 1
-      const neutral = steps[index] ?? steps[steps.length - 1]
-      if (!neutral) continue
-      decls.push(`${prop}: ${tintChart(neutral, resolveChartSwatch(raw))} !important`)
+      const color = own[index] ?? own[own.length - 1] ?? steps[index]
+      if (!color) continue
+      decls.push(`${prop}: ${color} !important`)
     }
     if (decls.length) css += `${selector}{${decls.join(";")}}`
   }
@@ -326,7 +519,7 @@ function collectChartRules() {
       }
     }
   }
-  for (const sheet of document.styleSheets) {
+  for (const sheet of pageSheets()) {
     try {
       visit(sheet.cssRules)
     } catch {
@@ -334,6 +527,14 @@ function collectChartRules() {
     }
   }
   return rules
+}
+
+/** A series' hue and chroma at a readable step's lightness. A gray series takes the step. */
+function tintChart(step: string, swatch: Swatch) {
+  if (swatch.c < 0.02) return step
+  const [lightness] = chroma(step).oklch()
+  if (!Number.isFinite(lightness)) return step
+  return chroma.oklch(Math.min(1, Math.max(0, lightness)), swatch.c, swatch.h).hex()
 }
 
 let chartConfigColor: ((swatch: Swatch, t: number) => string) | null = null
@@ -358,6 +559,8 @@ const holdsChartStyle = (node: Node) =>
  * series stay apart. Each keeps its hue.
  */
 function paintChartConfigs(foreground: string, muted: string) {
+  // Unlike a --chart-N palette, a config's colors can be unrelated hues, such
+  // as red and green series, so each keeps its own hue instead of a shared ramp.
   chartConfigColor = (swatch, t) => tintChart(mixOklch(foreground, muted, t), swatch)
   if (!chartConfigWatch) {
     // Charts mount, unmount and change config after the theme is applied.
@@ -493,16 +696,18 @@ function watchCode() {
 
 /**
  * Theme classes such as theme-blue paint a fixed blue primary over Huet.
- * Primary becomes the max-contrast invert instead. Other hues keep their
- * hue, with lightness from the ramp. Neutrals fall back to Huet.
+ * Primary keeps its hue on the accent ramp, as /create's picks do, and a
+ * gray primary becomes the max-contrast invert. Other hues keep their hue,
+ * with lightness from the ramp. Neutrals fall back to Huet.
  */
 function paintThemeHues(
-  ramp: (amount: number) => string,
-  invert: string,
-  invertText: string,
+  theme: ResolvedTheme,
+  foreground: string,
+  background: string,
   destructiveColor: string,
   destructiveText: string,
 ) {
+  const ramp = theme.ramp
   if (!themeRules) themeRules = collectThemeRules()
   let css = ""
   for (const [selector, props] of themeRules) {
@@ -511,9 +716,11 @@ function paintThemeHues(
       const swatch = readSwatch(prop, raw)
       if (!swatch || prop.startsWith("--chart-")) continue
       const value = INVERT.has(prop)
-        ? invert
+        ? isGray(hexOf(swatch))
+          ? foreground
+          : accentFill(theme, hexOf(swatch), background, foreground)
         : INVERT_TEXT.has(prop)
-          ? invertText
+          ? background
           : prop === "--destructive"
             ? destructiveColor
             : prop === "--destructive-foreground"
@@ -559,7 +766,7 @@ function collectThemeRules() {
       }
     }
   }
-  for (const sheet of document.styleSheets) {
+  for (const sheet of pageSheets()) {
     try {
       visit(sheet.cssRules)
     } catch {
@@ -681,6 +888,36 @@ function load(): Saved {
  */
 const embedded = typeof window !== "undefined" && window.self !== window.top
 
+/**
+ * The accent and chart ramps the Huet panel shows: this page's own, or on
+ * /create, the ones its preview iframe sends up for the picked theme and
+ * chart color.
+ */
+function useRamps() {
+  const [own, setOwn] = useState(ownRamps)
+  const [preview, setPreview] = useState<Ramps>()
+  const pathname = usePathname()
+  // A preview from another page doesn't belong to this one.
+  useEffect(() => setPreview(undefined), [pathname])
+  useEffect(() => {
+    if (embedded) return
+    const keep = (next: Ramps) => (current: Ramps | undefined) =>
+      sameRamps(current, next) ? current : next
+    showOwnRamps = (next) => setOwn(keep(next))
+    if (ownRamps) setOwn(keep(ownRamps))
+    const receive = (event: MessageEvent) => {
+      if (event.origin !== location.origin || event.data?.type !== RAMPS_MESSAGE) return
+      setPreview(keep(event.data.ramps))
+    }
+    window.addEventListener("message", receive)
+    return () => {
+      showOwnRamps = null
+      window.removeEventListener("message", receive)
+    }
+  }, [])
+  return preview ?? own
+}
+
 /** Floating Huet editor. Edits repaint every shadcn color token, in this page and its preview iframes. */
 export function HuetConfigurator() {
   // Loaded in the browser: the server has no localStorage
@@ -697,6 +934,7 @@ export function HuetConfigurator() {
   }, [])
   const change = (changes: Partial<Saved>) =>
     setSaved((current) => current && { ...current, ...changes })
+  const ramps = useRamps()
   useLayoutEffect(() => {
     if (!saved) return
     try {
@@ -718,6 +956,7 @@ export function HuetConfigurator() {
       onThemesChange={(themes) => change({ themes })}
       background={saved.background}
       onBackgroundChange={(background) => change({ background })}
+      ramps={ramps}
     />
   )
 }
