@@ -31,7 +31,30 @@ export interface ThemeConfiguratorProps {
   background?: number;
   /** Called when someone picks a background in the configurator. Leave it out to hide the picker. */
   onBackgroundChange?: (background: number) => void;
+  /**
+   * Your page's own colors by name, such as a brand accent or a chart
+   * palette. Edit Theme shows them in a row of swatches under the hues. Place
+   * them on the theme yourself, for example on `rampThrough` from
+   * `huet/internal`.
+   */
+  pageColors?: Readonly<Record<string, PageColor>>;
+  /**
+   * Called when someone edits one of `pageColors`, with its new colors, or
+   * with `undefined` to go back to the page's own. Leave it out to show them
+   * without editing.
+   */
+  onPageColorChange?: (name: string, colors: string[] | undefined) => void;
 }
+
+/** One of a page's own colors: a single color, or a palette such as a chart's. */
+export interface PageColor {
+  /** The colors in use. */
+  colors: readonly string[];
+  /** The page's own colors, when `colors` is an edit of them. Default goes back to these. */
+  own?: readonly string[];
+}
+
+const noPageColors = Object.freeze({});
 
 /** `base`, or `base 2`, `base 3`, … whichever isn't in `themes` yet. */
 function freeName(themes: Readonly<Record<string, Theme>>, base: string) {
@@ -48,12 +71,15 @@ export function ConfiguratorRoot({
   onThemesChange,
   background = 1,
   onBackgroundChange,
+  pageColors = noPageColors,
+  onPageColorChange,
   children,
 }: ThemeConfiguratorProps & { children?: React.ReactNode }) {
   const onChangeRef = useRef(onChange);
   onChangeRef.current = onChange;
-  const callbacks = useRef({ onThemesChange, onBackgroundChange });
-  callbacks.current = { onThemesChange, onBackgroundChange };
+  const callbacks = useRef({ onThemesChange, onBackgroundChange, onPageColorChange });
+  callbacks.current = { onThemesChange, onBackgroundChange, onPageColorChange };
+  const canEditPageColors = onPageColorChange !== undefined;
   const canEditList = onThemesChange !== undefined;
   const canSetBackground = onBackgroundChange !== undefined;
   const name = useMemo(
@@ -75,6 +101,10 @@ export function ConfiguratorRoot({
       setTheme: (theme: Theme) => onChangeRef.current(theme),
       themes,
       background,
+      pageColors,
+      setPageColor: canEditPageColors
+        ? (name: string, colors: string[] | undefined) => callbacks.current.onPageColorChange?.(name, colors)
+        : undefined,
       name,
       editedFrom,
       reset: () => {
@@ -123,7 +153,7 @@ export function ConfiguratorRoot({
           }
         : undefined,
     }),
-    [value, themes, background, name, editedFrom, canEditList, canSetBackground, setLastPicked],
+    [value, themes, background, pageColors, canEditPageColors, name, editedFrom, canEditList, canSetBackground, setLastPicked],
   );
   return (
     <ThemeConfiguratorContext.Provider value={state}>{children}</ThemeConfiguratorContext.Provider>

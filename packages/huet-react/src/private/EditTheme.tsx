@@ -6,6 +6,7 @@ import BackgroundSlider from "./BackgroundSlider";
 import BaseColors from "./BaseColors";
 import cx from "./cx";
 import Hues from "./Hues";
+import PageColors from "./PageColors";
 import ThemeHeader from "./ThemeHeader";
 import { Button } from "./ui/button";
 import { NumberField } from "./ui/number-field";
@@ -180,7 +181,7 @@ function Recoloring({
 
 /** Edits every part of the theme, and the page's background when the page allows it. */
 export default function EditTheme() {
-  const { theme, setTheme, background, setBackground } = useThemeConfigurator();
+  const { theme, setTheme, background, setBackground, pageColors } = useThemeConfigurator();
   const edit = (changes: Partial<Theme>) => {
     const next = { ...theme, ...changes };
     // Settings back at their defaults are left out, so the theme still matches its preset
@@ -225,6 +226,11 @@ export default function EditTheme() {
       <Section title="Hues" actions={<SignalSettings theme={theme} edit={edit} />}>
         <Hues theme={theme} onChange={(colors) => edit({ colors })} />
       </Section>
+      {Object.keys(pageColors).length > 0 && (
+        <Section title="Page colors">
+          <PageColors />
+        </Section>
+      )}
       <Section title="Images">
         <div className="hc:flex hc:flex-col hc:gap-[.25em]">
           <Recoloring label="Theme images" value={theme.images} onChange={(images) => edit({ images })} />
