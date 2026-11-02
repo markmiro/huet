@@ -1,5 +1,6 @@
 import { expect, test, type Page } from "@playwright/test";
 import { contrast as apcaContrast } from "../packages/huet/src/core/color";
+import { openConfigurator } from "./helpers/configurator";
 
 async function open(page: Page) {
   await page.goto("/forms");
@@ -46,7 +47,7 @@ test("controls take their colors from the theme and the surface they're on", asy
   await expect(inverted.getByLabel("Starred")).toHaveCSS("background-color", "rgb(255, 255, 255)");
 
   // On a dark page background
-  await page.getByRole("combobox", { name: "Background", exact: true }).selectOption("0");
+  await (await openConfigurator(page, "Edit Theme")).getByRole("slider", { name: "Background" }).fill("0");
   await expect(page.getByLabel("Checked", { exact: true })).toHaveCSS("background-color", "rgb(255, 255, 255)");
   await expect(inverted.getByLabel("Starred")).toHaveCSS("background-color", "rgb(0, 0, 0)");
 });
