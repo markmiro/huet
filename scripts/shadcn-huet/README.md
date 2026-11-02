@@ -20,7 +20,7 @@ git -C vendor/shadcn-ui diff --abbrev=7 -- apps/v4/app/globals.css 'apps/v4/app/
 
 Leave `layout.tsx` and `theme-provider.tsx` out of it, since `setup.mjs` edits those itself.
 
-`pnpm test:shadcn` checks the result in the browser: every chart's paints must change with the theme, in light and dark mode, and the parts below follow it too. It starts `pnpm shadcn:dev` on port 4000, or set `SHADCN_URL` to use a server that's already running.
+`pnpm test:shadcn` checks the result in the browser: every chart's paints must change with the theme, in light and dark mode, the Bubble docs' tinted bubbles must keep `theme-blue`'s hue, and the parts below follow it too. It starts `pnpm shadcn:dev` on port 4000, or set `SHADCN_URL` to use a server that's already running.
 
 ## Colors
 
