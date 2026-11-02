@@ -208,9 +208,9 @@ const lc = (bgY: number, { y }: Step) => Math.abs(apcaFromY(y, bgY));
 /**
  * APCA lightness contrast (Lc) the preset roles aim for. Signal hues aim for the
  * muted level, and colored fills for the border level against their parent.
- * Disabled text and lines keep half of the foreground's and the border's Lc.
- * A fixed color-mix can't: in any color space, fading by one amount keeps much
- * more Lc on light backgrounds than on dark ones.
+ * Disabled text and lines keep half of the foreground's and the border's Lc,
+ * on light and dark backgrounds alike. (A fixed color-mix keeps much more Lc
+ * on light backgrounds than on dark ones.)
  */
 const roles = { foreground: 90, muted: 60, disabled: 45, border: 30, disabledBorder: 15 } as const;
 /** The candidate nearest the target without falling short, or the strongest one. */
