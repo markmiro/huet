@@ -1,5 +1,6 @@
 // @vitest-environment happy-dom
 import { compile, optimize } from "@tailwindcss/node";
+import chroma from "chroma-js";
 import { readFileSync, readdirSync } from "node:fs";
 import { dirname, join } from "node:path";
 import { fileURLToPath } from "node:url";
@@ -9,7 +10,7 @@ import { describe, expect, it } from "vitest";
 
 import inlineCss from "./configurator.css?inline";
 import { themes, type Theme } from "huet";
-import { ThemeConfigurator } from "./index";
+import { EmbeddedThemeConfigurator, ThemeConfigurator, type EmbeddedThemeConfiguratorMode } from "./index";
 
 (globalThis as { IS_REACT_ACT_ENVIRONMENT?: boolean }).IS_REACT_ACT_ENVIRONMENT =
   true;
@@ -242,5 +243,68 @@ describe("ThemeConfigurator reset", () => {
     window.confirm = confirm;
     expect(changes).toEqual([themes.Sunset]);
     await act(async () => root.unmount());
+  });
+});
+
+// The demo only shows the outlined button, so the browser tests only cover that one
+describe("EmbeddedThemeConfigurator modes", () => {
+  async function trigger(mode: EmbeddedThemeConfiguratorMode, background = 1) {
+    localStorage.clear();
+    const host = document.createElement("div");
+    document.body.append(host);
+    const root = createRoot(host);
+    await act(async () =>
+      root.render(
+        React.createElement(EmbeddedThemeConfigurator, { value: themes.Base, onChange: () => {}, mode, background }),
+      ),
+    );
+    const button = host.querySelector<HTMLButtonElement>("button[aria-label^='Theme:']")!;
+    const style = (name: string) => button.style.getPropertyValue(name);
+    return { button, style, unmount: () => act(async () => root.unmount()) };
+  }
+  const black = /^(#000000|rgb\(0, 0, 0\))$/;
+  const white = /^(#ffffff|rgb\(255, 255, 255\))$/;
+
+  it("contrast inverts the page colors", async () => {
+    const light = await trigger("contrast");
+    expect(light.style("--trigger-bg")).toMatch(black);
+    expect(light.style("color")).toMatch(white);
+    expect(light.style("border-color")).toBe("transparent");
+    await light.unmount();
+
+    const dark = await trigger("contrast", 0);
+    expect(dark.style("--trigger-bg")).toMatch(white);
+    expect(dark.style("color")).toMatch(black);
+    await dark.unmount();
+  });
+
+  it("outlined has a full-contrast border on the page", async () => {
+    const { style, unmount } = await trigger("outlined");
+    expect(style("--trigger-bg")).toBe("transparent");
+    expect(style("border-color")).toMatch(black);
+    await unmount();
+  });
+
+  it("blended only shows its border while open", async () => {
+    const { button, style, unmount } = await trigger("blended");
+    expect(style("--trigger-bg")).toBe("transparent");
+    expect(style("border-color")).toBe("transparent");
+    await act(async () => button.click());
+    expect(button.getAttribute("aria-expanded")).toBe("true");
+    expect(style("border-color")).toMatch(black);
+    await unmount();
+  });
+
+  it("contrast's mini map lists colors by contrast with the button's fill", async () => {
+    const { button, style, unmount } = await trigger("contrast");
+    // Distance in CIE L*, as the mini map sorts by
+    const lightness = (color: string) => chroma(color).get("lab.l");
+    const fill = lightness(style("--trigger-bg"));
+    const distances = [...button.querySelectorAll<HTMLElement>("[title]")].map((dot) =>
+      Math.abs(lightness(dot.style.backgroundColor) - fill),
+    );
+    expect(distances.length).toBeGreaterThan(1);
+    expect(distances).toEqual([...distances].sort((a, b) => b - a));
+    await unmount();
   });
 });

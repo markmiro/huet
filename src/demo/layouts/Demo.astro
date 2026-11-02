@@ -2,20 +2,32 @@
 import "../styles/demo.css";
 import ThemeButton from "../components/ThemeButton";
 import Logo from "../components/Logo.astro";
+import Icon from "../components/Icon.astro";
+import { ic_arrow_back } from "react-icons-kit/md/ic_arrow_back";
+import { ic_chevron_right } from "react-icons-kit/md/ic_chevron_right";
 
 const { title } = Astro.props;
 const base = import.meta.env.BASE_URL.replace(/\/?$/, "/");
-const pages = [
-  { name: "Basic", href: base },
+// Demos of real sites, listed in their own row of the nav
+const websites = [
   { name: "GitHub", href: `${base}github` },
   { name: "YouTube", href: `${base}youtube` },
+];
+const pages = [
+  { name: "Basic", href: base },
+  "websites",
   { name: "Color Contrast", href: `${base}color-contrast` },
   { name: "Images", href: `${base}images` },
   { name: "Code", href: `${base}code` },
   { name: "Forms", href: `${base}forms` },
-];
+] as const;
 const current = Astro.url.pathname.replace(/(\.html|\/)$/, "") || "/";
 const isCurrent = (href: string) => (href.replace(/\/$/, "") || "/") === current;
+const onWebsite = websites.some((page) => isCurrent(page.href));
+const item = (isActive: boolean) => [
+  "rounded px-3 py-1 no-underline",
+  isActive ? "huet-bg-100" : "hover:underline",
+];
 ---
 <!doctype html>
 <html lang="en">
@@ -28,25 +40,47 @@ const isCurrent = (href: string) => (href.replace(/\/$/, "") || "/") === current
   </head>
   <body>
     <div id="page" class="huet-text-100 flex min-h-screen flex-col">
-      <header class="huet-bg-10 huet-border-100 relative z-10 flex flex-wrap items-center border-b">
+      <!-- Sticky, so the configurator stays in reach while the page scrolls -->
+      <header class="huet-bg-10 huet-border-100 sticky top-0 z-10 flex flex-wrap items-center border-b">
         <a href={base} class="flex items-center gap-2 py-2 pr-2 pl-4 font-bold no-underline">
           <Logo size={24} />
           Huet
         </a>
-        <nav aria-label="Example demos" class="flex flex-wrap items-center gap-1 px-2 py-2">
-          <span class="mr-2 text-sm font-bold">Example Demos</span>
-          {pages.map((page) => (
-            <a
-              href={page.href}
-              aria-current={isCurrent(page.href) ? "page" : undefined}
-              class:list={[
-                "rounded px-3 py-1 no-underline",
-                isCurrent(page.href) ? "huet-bg-100" : "hover:underline",
-              ]}
+        <nav aria-label="Demos" class="px-2 py-2">
+          <div data-nav-row="main" hidden={onWebsite} class="flex flex-wrap items-center gap-1">
+            {pages.map((page) =>
+              page === "websites" ? (
+                <button
+                  type="button"
+                  data-nav-show="websites"
+                  class:list={[item(onWebsite), "flex cursor-pointer items-center gap-0.5 pr-1.5"]}
+                >
+                  Website Examples
+                  <Icon icon={ic_chevron_right} size="1.25em" />
+                </button>
+              ) : (
+                <a href={page.href} aria-current={isCurrent(page.href) ? "page" : undefined} class:list={item(isCurrent(page.href))}>
+                  {page.name}
+                </a>
+              ),
+            )}
+          </div>
+          <div data-nav-row="websites" hidden={!onWebsite} class="flex flex-wrap items-center gap-1">
+            <button
+              type="button"
+              data-nav-show="main"
+              class:list={[item(false), "flex cursor-pointer items-center gap-1 pl-2"]}
             >
-              {page.name}
-            </a>
-          ))}
+              <Icon icon={ic_arrow_back} size="1.125em" />
+              Back
+            </button>
+            <span class="huet-border-30 mx-1 h-5 border-l" aria-hidden="true"></span>
+            {websites.map((page) => (
+              <a href={page.href} aria-current={isCurrent(page.href) ? "page" : undefined} class:list={item(isCurrent(page.href))}>
+                {page.name}
+              </a>
+            ))}
+          </div>
         </nav>
         <ThemeButton client:only="react" />
       </header>
@@ -54,5 +88,17 @@ const isCurrent = (href: string) => (href.replace(/\/$/, "") || "/") === current
         <slot />
       </main>
     </div>
+    <script>
+      // "Website Examples" swaps the nav's row for the list of sites, and
+      // "Back" swaps it back. Focus moves to the button that swaps it back.
+      for (const button of document.querySelectorAll<HTMLButtonElement>("[data-nav-show]")) {
+        button.addEventListener("click", () => {
+          const show = button.dataset.navShow;
+          for (const row of document.querySelectorAll<HTMLElement>("[data-nav-row]"))
+            row.hidden = row.dataset.navRow !== show;
+          document.querySelector<HTMLButtonElement>(`[data-nav-row="${show}"] [data-nav-show]`)!.focus();
+        });
+      }
+    </script>
   </body>
 </html>

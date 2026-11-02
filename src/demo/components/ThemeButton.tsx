@@ -1,27 +1,8 @@
-import { useLayoutEffect, useRef, useState } from "react";
+import { useLayoutEffect, useRef } from "react";
 import { mountTheme } from "huet";
 import { mountImages, mountSvgs } from "huet/images";
-import {
-  EmbeddedThemeConfigurator,
-  type EmbeddedThemeConfiguratorMode,
-} from "huet-react";
+import { EmbeddedThemeConfigurator } from "huet-react";
 import { setDemoTheme, themeApplied, themeName, useDemoTheme } from "./themeStore";
-
-const modes: EmbeddedThemeConfiguratorMode[] = ["contrast", "outlined", "blended"];
-// The stops the configurator's Background slider snaps to
-const backgrounds = [0, 0.05, 0.1, 0.15, 0.2, 0.25, 0.49, 0.51, 0.75, 0.8, 0.85, 0.9, 0.95, 1];
-const storageKey = "huet-demo:themeButton";
-
-function savedMode(): EmbeddedThemeConfiguratorMode {
-  const saved = localStorage.getItem(storageKey);
-  return modes.find((mode) => mode === saved) ?? "contrast";
-}
-
-// huet/forms.css draws the chevron and, where browsers allow, the dropdown
-// list. Customizable selects lay the chevron out inline, so they need less
-// room on the right than the background-image chevron does.
-const selectClass =
-  "huet-bg-0 huet-border-30 rounded border py-0.5 pr-[1.75em] pl-1 supports-[appearance:base-select]:pr-1";
 
 /**
  * Themes `#page` and recolors its `img[data-huet-recolor]` and
@@ -58,49 +39,17 @@ function usePageTheme() {
 }
 
 /**
- * The page's background, the embedded theme configurator, and a switch for
- * its button style. It themes the page with whatever the configurator picks.
+ * The embedded theme configurator, at the right end of the header. It themes
+ * the page with whatever the configurator picks, including the page's
+ * background from its Edit Theme tab.
  */
 export default function ThemeButton() {
-  const [mode, setMode] = useState(savedMode);
   const { theme, background, themes } = useDemoTheme();
   usePageTheme();
   return (
-    <div className="flex items-center gap-2 px-2 py-1 text-sm">
-      <label data-huet-forms className="flex items-center gap-1.5">
-        Background
-        <select
-          value={background}
-          onChange={(event) => setDemoTheme({ background: Number(event.target.value) })}
-          className={selectClass}
-        >
-          {backgrounds.map((value) => (
-            <option key={value} value={value}>
-              {Math.round(value * 100)}%
-            </option>
-          ))}
-        </select>
-      </label>
-      <label data-huet-forms className="flex items-center gap-1.5">
-        Theme button
-        <select
-          value={mode}
-          onChange={(event) => {
-            const next = event.target.value as EmbeddedThemeConfiguratorMode;
-            localStorage.setItem(storageKey, next);
-            setMode(next);
-          }}
-          className={selectClass}
-        >
-          {modes.map((option) => (
-            <option key={option} value={option}>
-              {option[0].toUpperCase() + option.slice(1)}
-            </option>
-          ))}
-        </select>
-      </label>
+    <div className="ml-auto px-2 py-1 text-sm">
       <EmbeddedThemeConfigurator
-        mode={mode}
+        mode="outlined"
         value={theme}
         onChange={(next) => setDemoTheme({ theme: next })}
         themes={themes}
