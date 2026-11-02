@@ -7,7 +7,7 @@ In high contrast, some fills may fade and others must stay. A fill's **role** de
 | Role | Example | `contrast` above 1 | Forced colors |
 | --- | --- | --- | --- |
 | **Grouping** (default) | Sidebar, card, zebra row, toolbar | Fades; a line takes over | `Canvas` + `CanvasText` line |
-| **Control** | `input`, `button` | Keeps its fill; edge at least 3:1 | `Field` / `ButtonFace` + outline |
+| **Control** | `input`, `button` | Keeps its fill; edge at least Lc 30 | `Field` / `ButtonFace` + outline |
 | **State** | Selected row, current page | Keeps its fill; strong outline | `SelectedItem` / `Highlight` |
 | **Data** | Status tags, chart colors | Keeps its exact hue | Solved inside the user's palette |
 

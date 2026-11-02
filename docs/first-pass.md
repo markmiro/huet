@@ -1,11 +1,11 @@
 # Framework-independent Huet: first pass
 
-> Huet no longer measures contrast with WCAG 2 ratios. The ratio targets below (3:1, 4.5:1, 7:1) describe this first pass; see [APCA roles and L* strengths](color-contrast.md#apca-roles-and-l-strengths) for the current model.
+> This first pass used fixed contrast targets that Huet has since replaced. Measurements below are APCA Lc, recomputed from the recorded colors. See [APCA roles and L* strengths](color-contrast.md#apca-roles-and-l-strengths) for the current model.
 
 ## Assumptions made
 
 1. “49% / 51%” means the old LAB ramp position around its midpoint. I reproduced those exact backgrounds (`#747474`, `#797979`) and also tested OKLab 49/51% and sRGB 49/51% so the fix is not tied to that interpretation.
-2. Readability takes priority over exact color choice. Text roles use contrast ratios; numeric surface requests use OKLab interpolation and may move to a nearby readable point. Explicit root backgrounds are respected.
+2. Readability takes priority over exact color choice. Text roles use fixed contrast targets; numeric surface requests use OKLab interpolation and may move to a nearby readable point. Explicit root backgrounds are respected.
 3. Endpoints are intentional constraints. A narrow range can remain low contrast. The solver does not escape a blue/white or muted ramp by secretly adding black.
 4. Preserve the existing React API while introducing `huet/core` as an independent opt-in entry point. This makes the first pass reviewable without rewriting every old example.
 5. Use typed JavaScript configuration as a single source of truth and emit CSS variables for all frameworks, CSS/Tailwind, and canvas/chart consumers. A CSS configuration parser is deferred.
@@ -17,12 +17,12 @@
 
 The legacy neutral algorithm used a LAB midpoint to choose direction, then rescaled the requested lightness distance according to the background's position. This is not the same as measuring contrast between the actual rendered sRGB colors. At the midpoint, secondary labels and borders could have very little contrast even with a black-to-white ramp.
 
-The corrected legacy neutral path samples the existing ramp and measures its final sRGB luminance. Its familiar amounts now have useful anchors: 25 → 3:1, 50 → 4.5:1, 100 → strongest endpoint. Unattainable requests use the best ramp sample. The subsequent semantic correction also updates signal ramps; direct ramp logic is retained. Samples/luminances are cached per ramp, so each color does not repeat gamut conversion work.
+The corrected legacy neutral path samples the existing ramp and measures its final sRGB luminance. Its familiar amounts now have useful anchors: 25 and 50 each get a fixed contrast target, and 100 is the strongest endpoint. Unattainable requests use the best ramp sample. The subsequent semantic correction also updates signal ramps; direct ramp logic is retained. Samples/luminances are cached per ramp, so each color does not repeat gamut conversion work.
 
 | Legacy gray background | Secondary before | Secondary after | Border before | Border after |
 | ---------------------- | ---------------: | --------------: | ------------: | -----------: |
-| 49%, `#747474`         |           2.33:1 |          4.56:1 |        1.56:1 |       3.00:1 |
-| 51%, `#797979`         |           2.53:1 |          4.52:1 |        1.58:1 |       3.02:1 |
+| 49%, `#747474`         |          Lc 33.5 |         Lc 75.9 |       Lc 15.2 |      Lc 47.5 |
+| 51%, `#797979`         |          Lc 23.4 |         Lc 33.7 |       Lc 11.7 |      Lc 50.1 |
 
 These values measure `Color.contrast(50)` and `Color.contrast(25)` against the original background, not an accessibility audit of every legacy component. Raw values are in [measurements.json](screenshots/measurements.json).
 
@@ -49,7 +49,7 @@ Ordinary browser-test runs write to ignored `test-results/screenshots` instead.
 
 The first pass solved each semantic hue independently. Because each ramp reaches a given contrast at different positions, this could put some hues above and others below the same background. Both semantic text and fills now use a single polarity derived from the contrast of that background against the configured endpoints. Ties choose dark. Every hue is restricted to that side, including fallback candidates; degenerate ranges can return the background rather than reverse direction. The group can still flip as the slider crosses the shared threshold.
 
-The initial shared-polarity correction still forced legacy semantic text toward 4.5:1 and ignored the signal-lightness controls. The subsequent [Color Contrast investigation](color-contrast.md) replaces that legacy signal solver with relative OKLab interpolation, restores both controls, and scales saturation with strength. This deliberately trades the legacy semantic ratio guarantee for visible hue near middle gray. The standalone core retains its earlier contrast-target policy; that is a separate policy choice from this focused legacy-demo correction.
+The initial shared-polarity correction still forced legacy semantic text toward a fixed contrast target and ignored the signal-lightness controls. The subsequent [Color Contrast investigation](color-contrast.md) replaces that legacy signal solver with relative OKLab interpolation, restores both controls, and scales saturation with strength. This deliberately trades the legacy semantic contrast guarantee for visible hue near middle gray. The standalone core retains its earlier contrast-target policy; that is a separate policy choice from this focused legacy-demo correction.
 
 No backgrounds, padding, or other UI changes were retained as a workaround; the original form markup is unchanged.
 
@@ -57,7 +57,7 @@ Regression coverage includes 1,001 background positions for five core palettes, 
 
 ## New engine
 
-The core uses OKLab for interpolation and OKLCH hue-preserving chroma reduction to fit sRGB. Contrast is measured after rounding to the actual emitted opaque hex value. Text targets 7:1 (primary) and 4.5:1 (secondary/signals); borders target 3:1 against both adjacent surfaces. A candidate that cannot reach a target falls back to the best available contrast within the permitted ramp.
+The core uses OKLab for interpolation and OKLCH hue-preserving chroma reduction to fit sRGB. Contrast is measured after rounding to the actual emitted opaque hex value. Text has fixed contrast targets for primary and for secondary/signal colors; borders have one against both adjacent surfaces. A candidate that cannot reach a target falls back to the best available contrast within the permitted ramp.
 
 A branded ramp can have an unreadable middle even if its two endpoints contrast well with each other. For example, a blue endpoint may be too light for dark text on a medium-blue fill, while white is also insufficient. Generated numeric surfaces are nudged to the nearest readable position on their original path; colored fills are filtered for readable foregrounds before selecting their contrast against the parent. This intentionally sacrifices some continuous surface freedom. Explicit root backgrounds and zero-change surfaces are not moved. Narrow ramps remain intentionally low contrast.
 
