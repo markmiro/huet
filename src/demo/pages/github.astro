@@ -1,69 +1,597 @@
 ---
-import Icon from "../components/Icon.astro";
-import { github } from "react-icons-kit/icomoon/github";
+import { transformerNotationDiff } from "@shikijs/transformers";
+import { Code } from "astro:components";
+import { huetShikiTheme, huetShikiTransformer } from "huet";
 
+import TablerIcon from "../components/TablerIcon.astro";
+import Logo from "../components/Logo.astro";
 import Demo from "../layouts/Demo.astro";
+import { images } from "../recolor/data";
+import markmiroAvatar from "../assets/markmiro-avatar.png?url";
 
-const ramps = ["gray", "white", "red", "yellow", "green", "blue", "purple"];
-const gradients = [100, 70, 50, 20];
-// The legacy page used 12.5; classes take whole amounts.
-const rampRows = [100, 50, 20, 10];
+const photo = (title: string) => images.find((image) => image.title === title)!.url;
+
+// Code blocks are highlighted once, at build time, with Huet variables for colors.
+const theme = huetShikiTheme();
+const transformers = [transformerNotationDiff(), huetShikiTransformer()];
+const install = `pnpm add huet               # theming, any framework
+pnpm add huet-react         # optional: the React theme configurator`;
+const quickStart = `import { mountTheme, themes, type Theme } from "huet";
+import { mountImages } from "huet/images";
+import "huet/styles.css";
+
+const theme: Theme = { neutral: ["#233b91", "#ffffff"] };
+const root = document.querySelector<HTMLElement>("#app")!;
+const colors = mountTheme(root, theme);
+const images = mountImages(root, theme); // recolors <img data-huet-recolor>
+
+// Later: dark mode, then another theme, without rerendering
+colors.update(theme, { background: 0 });
+colors.update(themes.Paperback);`;
+const migrate = `<section class="bg-slate-100 dark:bg-slate-800"> <!-- [!code --] -->
+<section class="huet-bg-10"> <!-- [!code ++] -->
+  <p class="text-slate-500 dark:text-slate-400">Manage your profile.</p> <!-- [!code --] -->
+  <p class="huet-text-60">Manage your profile.</p> <!-- [!code ++] -->
+  <button class="bg-blue-600 text-white">Save</button> <!-- [!code --] -->
+  <button class="huet-bg-blue-20">Save</button> <!-- [!code ++] -->
+</section>`;
+
+const tabs = [
+  { name: "Code", icon: "code", current: true },
+  { name: "Issues", icon: "circle-dot", count: 22 },
+  { name: "Pull requests", icon: "git-pull-request", count: 4 },
+  { name: "Discussions", icon: "messages" },
+  { name: "Actions", icon: "player-play" },
+  { name: "Projects", icon: "layout-kanban" },
+  { name: "Security", icon: "shield" },
+  { name: "Insights", icon: "chart-line" },
+  { name: "Settings", icon: "settings" },
+];
+
+const files = [
+  { name: ".github", dir: true, message: "Build the packages into dist branches on every push", when: "3 weeks ago" },
+  { name: "docs", dir: true, message: "Remove WCAG contrast from docs and tests, and add agent rules against it", when: "2 days ago" },
+  { name: "packages", dir: true, message: "Theme text that has no color class on the shadcn site", when: "2 hours ago" },
+  { name: "public", dir: true, message: "Draw the logo in currentColor", when: "2 months ago" },
+  { name: "scripts", dir: true, message: "Add pnpm shadcn:deploy to build and deploy the shadcn demo", when: "last week" },
+  { name: "src/demo", dir: true, message: "Fix the configurator's CSS rule type errors in the shadcn app", when: "yesterday" },
+  { name: "tests", dir: true, message: "Theme shadcn's dark menus, the waveform and Tailwind's colors", when: "last week" },
+  { name: "AGENTS.md", message: "Remove WCAG contrast from docs and tests, and add agent rules against it", when: "2 days ago" },
+  { name: "LICENSE", message: "Initial commit", when: "6 years ago" },
+  { name: "README.md", message: "Add pnpm shadcn:deploy to build and deploy the shadcn demo", when: "last week" },
+  { name: "astro.config.mjs", message: "Build the example demos with Astro, Tailwind and Huet classes", when: "4 months ago" },
+  { name: "package.json", message: "Add pnpm shadcn:deploy to build and deploy the shadcn demo", when: "last week" },
+];
+
+// Shields-style badges with fixed colors. mountSvgs recolors them as vectors.
+const badges = [
+  { label: "build", value: "passing", color: "#44cc11" },
+  { label: "npm", value: "v0.9.0", color: "#007ec6" },
+  { label: "license", value: "MIT", color: "#97ca00" },
+  { label: "readability", value: "APCA Lc 90", color: "#8957e5" },
+  { label: "gzip", value: "11.8 kB", color: "#fe7d37" },
+].map((badge, i) => {
+  const left = Math.round(badge.label.length * 6.2 + 12);
+  const right = Math.round(badge.value.length * 6.2 + 12);
+  return { ...badge, left, right, width: left + right, id: `badge-${i}` };
+});
+
+const topics = ["color", "theming", "design-tokens", "dark-mode", "tailwindcss", "apca", "oklab", "image-processing"];
+
+// Pixel identicons, mirrored like GitHub's default avatars.
+const identicon = (seed: number) =>
+  Array.from({ length: 5 }, (_, row) => {
+    const half = Array.from({ length: 3 }, (_, col) => ((seed * (row * 3 + col + 7) * 2654435761) >>> 0) % 7 < 3);
+    return [...half, half[1], half[0]];
+  });
+const identicons = [
+  { seed: 3, fill: "huet-bg-purple-60" },
+  { seed: 11, fill: "huet-bg-green-60" },
+  { seed: 5, fill: "huet-bg-red-60" },
+  { seed: 8, fill: "huet-bg-blue-60" },
+].map((icon) => ({ ...icon, cells: identicon(icon.seed) }));
+const contributors = [
+  { name: "ada-ok", photo: photo("Woman, white background") },
+  { name: "jbrennan", photo: photo("Man, grey wall") },
+  { name: "mira-s", photo: photo("Woman, grey backdrop") },
+];
+
+const languages = [
+  { name: "TypeScript", percent: 71.4, bar: "huet-bg-blue-100", dot: "huet-bg-blue-100" },
+  { name: "Astro", percent: 12.9, bar: "huet-bg-red-100", dot: "huet-bg-red-100" },
+  { name: "CSS", percent: 8.2, bar: "huet-bg-purple-100", dot: "huet-bg-purple-100" },
+  { name: "JavaScript", percent: 5.6, bar: "huet-bg-yellow-100", dot: "huet-bg-yellow-100" },
+  { name: "Other", percent: 1.9, bar: "huet-bg-40", dot: "huet-bg-40" },
+];
+
+// Commit activity, 20 weeks of days. Each level is a step on the green ramp.
+const levels = ["huet-bg-10", "huet-bg-green-20", "huet-bg-green-40", "huet-bg-green-70", "huet-bg-green-100"];
+const activity = Array.from({ length: 20 }, (_, week) =>
+  Array.from({ length: 7 }, (_, day) => {
+    const n = Math.sin(week * 12.9898 + day * 78.233) * 43758.5453;
+    const r = n - Math.floor(n);
+    const weekend = day === 0 || day === 6;
+    return levels[Math.min(4, Math.floor(r * (weekend ? 2.2 : 5.2) + week / 18))];
+  }),
+);
+
+const amounts = [0, 5, 10, 20, 30, 40, 50, 60, 70, 80, 90, 95, 100];
+const swatches = [
+  "huet-bg-0", "huet-bg-5", "huet-bg-10", "huet-bg-20", "huet-bg-30", "huet-bg-40", "huet-bg-50",
+  "huet-bg-60", "huet-bg-70", "huet-bg-80", "huet-bg-90", "huet-bg-95", "huet-bg-100",
+];
+
+const inline = "huet-bg-10 rounded-md px-1.5 py-0.5 font-mono text-[85%]";
+const kbd = "huet-bg-5 huet-bg/border-30 inline-flex h-5 items-center rounded border px-1.5 font-mono text-xs leading-none";
+const button =
+  "huet-bg-5 hover:huet-bg-10 huet-bg/border-20 inline-flex items-center gap-1.5 rounded-md border px-3 py-1 font-medium";
+// No display class here, so each use can pick inline-flex or hidden sm:inline-flex
+const iconButton =
+  "huet-bg/border-20 hover:huet-bg-10 size-8 shrink-0 items-center justify-center rounded-md border";
+const sideHeading = "mb-3 text-base font-semibold";
+const sideRow = "huet-text-60 hover:huet-text-blue-100 flex items-center gap-2 py-1";
+const alerts = [
+  { kind: "Note", icon: "info-circle", border: "huet-border-blue-60", text: "huet-text-blue-100", body: "Every color is solved against the background it sits on, so the same class reads well on a light page, a dark page or a colored card." },
+  { kind: "Tip", icon: "bulb", border: "huet-border-green-60", text: "huet-text-green-100", body: "Tailwind variants work on every explicit amount: hover:huet-bg-10 recomputes the text and borders inside the element for its hover background, without JavaScript." },
+  { kind: "Important", icon: "message-report", border: "huet-border-purple-60", text: "huet-text-purple-100", body: "Backgrounds must be managed by Huet for its relative colors to track them. Use huet-bg-* instead of bg-[…] for surfaces." },
+  { kind: "Warning", icon: "alert-triangle", border: "huet-border-yellow-60", text: "huet-text-yellow-100", body: "Cross-origin images need CORS headers and a crossorigin attribute to be recolored. Images Huet can't read are shown as they are." },
+  { kind: "Caution", icon: "alert-octagon", border: "huet-border-red-60", text: "huet-text-red-100", body: "Low amounts on a narrow ramp stay low contrast. Lc values are design targets, not a conformance claim." },
+];
 ---
 <Demo title="GitHub">
-  <!-- The legacy demo inherited line-height 1.15 from Tachyons. Font-size
-       utilities set their own line-height, so they carry /[1.15] too. -->
-  <div class="leading-[1.15]">
-    <div class="huet-bg-5">
-      <div class="huet-bg-70 flex items-center p-4">
-        <Icon icon={github} size="2em" class="mr-4" />
-        Pull requests &nbsp; Issues &nbsp; Marketplace &nbsp; Explore
-      </div>
-      <div class="px-2 py-4 sm:px-16">loremperson/some-crazy-project</div>
-    </div>
-    <!-- The Code tab shows the page background, which a class can't reach from
-         inside huet-bg-5. So the tab row isn't nested in huet-bg-5: a sibling
-         layer paints the band, and the other tabs carry their own huet-bg-5. -->
-    <div class="huet-border-20 relative flex border-b px-2 sm:px-16">
-      <div class="huet-bg-5 absolute inset-0"></div>
-      <div class="huet-bg-0 huet-border-yellow-60 relative mr-1 translate-y-px rounded-t-[.2em] border-t-[.2em]">
-        <div class="huet-border-20 border-x p-2">Code</div>
-      </div>
-      <div class="huet-bg-5 huet-bg/text-50 relative mr-1 p-2">
-        Issues
-        <div class="huet-bg-10 huet-bg/text-60 ml-2 inline-flex items-center justify-center rounded-[1em] px-[6px] py-[2px] text-[.7em]">
-          22
+  <div class="text-sm/normal">
+    <!-- Global header -->
+    <header class="huet-bg-5 huet-border-20 border-b px-4">
+      <div class="flex h-16 items-center gap-3">
+        <button aria-label="Open menu" class={`${iconButton} inline-flex`}><TablerIcon name="menu-2" size={16} /></button>
+        <nav aria-label="Repository" class="flex min-w-0 items-center gap-0.5 font-semibold">
+          <a href="#" class="hover:huet-bg-10 flex h-8 min-w-0 items-center gap-2 rounded-md px-1.5">
+            <span class="hidden truncate sm:inline">markmiro</span>
+          </a>
+          <span class="huet-text-40 hidden sm:inline">/</span>
+          <a href="#" class="hover:huet-bg-10 flex h-8 items-center rounded-md px-1.5">huet</a>
+        </nav>
+        <div class="ml-auto flex items-center gap-2">
+          <label class="huet-bg/border-30 huet-text-50 hidden h-8 w-[22em] items-center gap-2 rounded-md border px-2 md:flex">
+            <TablerIcon name="search" size={16} />
+            <span class="flex flex-auto items-center gap-1">Type <kbd class={kbd}>/</kbd> to search</span>
+          </label>
+          <span class="huet-bg-20 hidden h-5 w-px sm:block"></span>
+          <button aria-label="Create new" class={`${iconButton} hidden w-auto gap-1 px-2 sm:inline-flex`}>
+            <TablerIcon name="plus" size={16} /><TablerIcon name="chevron-down" size={14} />
+          </button>
+          <button aria-label="Issues" class={`${iconButton} hidden sm:inline-flex`}><TablerIcon name="circle-dot" size={16} /></button>
+          <button aria-label="Pull requests" class={`${iconButton} hidden sm:inline-flex`}><TablerIcon name="git-pull-request" size={16} /></button>
+          <button aria-label="Inbox, unread notifications" class={`${iconButton} relative inline-flex`}>
+            <TablerIcon name="inbox" size={16} />
+            <span class="huet-bg-blue-100 huet-border-5 absolute -top-1 -right-1 size-2.5 rounded-full border-2"></span>
+          </button>
+          <img data-huet-recolor src={photo("Woman, grey backdrop")} alt="Your account" class="size-8 shrink-0 rounded-full object-cover object-top" />
         </div>
       </div>
-      <div class="huet-bg-5 huet-bg/text-50 relative mr-1 p-2">Pull requests</div>
-    </div>
 
-    <div class="min-h-screen px-2 py-4 sm:px-16">
-      <div class="huet-bg-100 max-w-full rounded-lg px-4 py-2 text-center text-2xl/[1.15]">Button</div>
-
-      <div class="mt-2">
-        {gradients.map((contrast) => (
-          <div class={`huet-text-${contrast} bg-[linear-gradient(to_right,transparent,currentColor)] p-1 text-xs/[1.15]`}>
-            <span class="huet-text-100">{contrast}%</span>
-          </div>
+      <!-- Repository tabs -->
+      <nav aria-label="Repository sections" class="flex gap-1 overflow-x-auto">
+        {tabs.map((t) => (
+          <a
+            href="#"
+            aria-current={t.current ? "page" : undefined}
+            class:list={[
+              "relative flex shrink-0 items-center gap-2 px-2 pt-1 pb-3",
+              t.current ? "font-semibold" : "huet-text-60",
+            ]}
+          >
+            <span class="hover:huet-bg-10 flex items-center gap-2 rounded-md px-2 py-1">
+              <TablerIcon name={t.icon} size={16} class="huet-text-50" />
+              {t.name}
+              {t.count && <span class="huet-bg-10 rounded-full px-1.5 text-xs font-medium">{t.count}</span>}
+            </span>
+            {t.current && <span class="huet-bg-red-60 absolute inset-x-2 bottom-0 h-0.5 rounded-full"></span>}
+          </a>
         ))}
+      </nav>
+    </header>
 
-        <div class="huet-bg-30 mt-2 h-8 shadow-[0_5px_10px_rgb(0_0_0/0.2)]"></div>
-
-        <button class="huet-border-20 huet-text-70 relative mt-4 w-full max-w-full overflow-hidden rounded border p-2 text-center text-xl/[1.15] shadow-[0_1px_2px_rgb(0_0_0/0.15)]">
-          <span class="huet-text-5 absolute inset-0 bg-[linear-gradient(transparent,currentColor)]"></span>
-          <span class="relative">Button</span>
-        </button>
-
-        {rampRows.map((amount, i) => (
-          <div class:list={["flex", i === 0 && "mt-4"]}>
-            {ramps.map((ramp) => (
-              <div class={`huet-bg-${ramp}-${amount} huet-bg/text-white-100 mr-1 w-full p-1 text-center text-xl/[1.15]`}>
-                {ramp}
-              </div>
-            ))}
-          </div>
-        ))}
+    <main class="mx-auto max-w-[1280px] px-4 py-6 md:px-6 lg:px-8">
+      <!-- Repository title and actions -->
+      <div class="huet-border-20 flex flex-wrap items-center justify-between gap-3 border-b pb-4">
+        <div class="flex items-center gap-2">
+          <img data-huet-recolor src={markmiroAvatar} alt="markmiro" class="size-6 shrink-0 rounded-full object-cover" />
+          <h1 class="text-xl font-semibold">huet</h1>
+          <span class="huet-border-20 huet-text-60 rounded-full border px-2 text-xs font-medium">Public</span>
+        </div>
+        <div class="flex flex-wrap gap-2">
+          <button class={button}><TablerIcon name="pin" size={16} class="huet-text-50" />Pin</button>
+          <button class={button}>
+            <TablerIcon name="eye" size={16} class="huet-text-50" />Watch
+            <span class="huet-bg-20 rounded-full px-1.5 text-xs">12</span>
+            <TablerIcon name="chevron-down" size={14} />
+          </button>
+          <span class="huet-border-20 flex overflow-hidden rounded-md border">
+            <button class="huet-bg-5 hover:huet-bg-10 inline-flex items-center gap-1.5 px-3 py-1 font-medium">
+              <TablerIcon name="git-fork" size={16} class="huet-text-50" />Fork
+              <span class="huet-bg-20 rounded-full px-1.5 text-xs">31</span>
+            </button>
+            <button aria-label="See your forks" class="huet-bg-5 hover:huet-bg-10 huet-bg/border-20 border-l px-2"><TablerIcon name="chevron-down" size={14} /></button>
+          </span>
+          <span class="huet-border-20 flex overflow-hidden rounded-md border">
+            <button class="huet-bg-5 hover:huet-bg-10 inline-flex items-center gap-1.5 px-3 py-1 font-medium">
+              <TablerIcon name="star" filled size={16} class="huet-text-yellow-100" />Starred
+              <span class="huet-bg-20 rounded-full px-1.5 text-xs">1.2k</span>
+            </button>
+            <button aria-label="Add this repository to a list" class="huet-bg-5 hover:huet-bg-10 huet-bg/border-20 border-l px-2"><TablerIcon name="chevron-down" size={14} /></button>
+          </span>
+        </div>
       </div>
-    </div>
+
+      <div class="mt-6 grid gap-6 lg:grid-cols-[minmax(0,1fr)_296px]">
+        <div class="min-w-0">
+          <!-- Branch and file actions -->
+          <div class="flex flex-wrap items-center gap-2">
+            <button class={button}>
+              <TablerIcon name="git-branch" size={16} class="huet-text-50" />master
+              <TablerIcon name="chevron-down" size={14} />
+            </button>
+            <a href="#" class="huet-text-60 hover:huet-text-blue-100 hidden items-center gap-1 px-2 sm:flex">
+              <TablerIcon name="git-branch" size={16} /><b class="huet-text-100">3</b> Branches
+            </a>
+            <a href="#" class="huet-text-60 hover:huet-text-blue-100 hidden items-center gap-1 px-2 sm:flex">
+              <TablerIcon name="tag" size={16} /><b class="huet-text-100">12</b> Tags
+            </a>
+            <div data-huet-forms class="ml-auto flex items-center gap-2">
+              <input type="search" placeholder="Go to file" aria-label="Go to file" class="hidden w-[14em] rounded-md px-2 py-1 md:block" />
+              <button class={button}>Add file <TablerIcon name="chevron-down" size={14} /></button>
+              <button class="huet-bg-green-100 hover:huet-bg-green-90 inline-flex items-center gap-1.5 rounded-md px-3 py-1 font-semibold">
+                <TablerIcon name="code" size={16} />Code<TablerIcon name="chevron-down" size={14} />
+              </button>
+            </div>
+          </div>
+
+          <!-- File list -->
+          <div class="huet-border-20 mt-4 overflow-hidden rounded-md border">
+            <div class="huet-bg-5 flex items-center gap-2 px-4 py-3">
+              <img data-huet-recolor src={markmiroAvatar} alt="markmiro" class="size-5 shrink-0 rounded-full object-cover" />
+              <a href="#" class="font-semibold hover:underline">markmiro</a>
+              <a href="#" class="huet-text-60 hover:huet-text-blue-100 min-w-0 truncate hover:underline">
+                Theme text that has no color class on the shadcn site (<span class="huet-text-blue-100">#73</span>)
+              </a>
+              <TablerIcon name="circle-check" filled size={16} class="huet-text-green-100" />
+              <span class="huet-text-60 ml-auto hidden shrink-0 font-mono text-xs sm:inline">412cead</span>
+              <span class="huet-text-60 hidden shrink-0 sm:inline">· 2 hours ago</span>
+              <a href="#" class="hover:huet-bg-10 ml-2 flex shrink-0 items-center gap-1 rounded-md px-2 py-0.5 font-semibold">
+                <TablerIcon name="history" size={16} class="huet-text-50" />418 Commits
+              </a>
+            </div>
+            <table class="w-full table-fixed">
+              <tbody>
+                {files.map((f) => (
+                  <tr class="hover:huet-bg-5 huet-border-20 border-t">
+                    <td class="px-4 py-2 sm:w-[30%]">
+                      <a href="#" class="flex items-center gap-2 hover:underline">
+                        {f.dir
+                          ? <TablerIcon name="folder" filled size={16} class="huet-text-blue-60" />
+                          : <TablerIcon name="file" size={16} class="huet-text-50" />}
+                        <span class="truncate">{f.name}</span>
+                      </a>
+                    </td>
+                    <td class="huet-text-60 hidden truncate px-2 py-2 sm:table-cell">
+                      <a href="#" class="hover:huet-text-blue-100 hover:underline">{f.message}</a>
+                    </td>
+                    <td class="huet-text-60 w-[9.5em] px-4 py-2 text-right whitespace-nowrap">{f.when}</td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+
+          <!-- README -->
+          <article class="huet-border-20 mt-4 rounded-md border">
+            <div class="huet-border-20 flex items-center gap-1 border-b px-2">
+              <a href="#" class="relative flex items-center gap-2 px-2 py-3 font-semibold">
+                <TablerIcon name="book" size={16} class="huet-text-50" />README
+                <span class="huet-bg-red-60 absolute inset-x-2 bottom-0 h-0.5 rounded-full"></span>
+              </a>
+              <a href="#" class="huet-text-60 hover:huet-bg-10 flex items-center gap-2 rounded-md px-2 py-1">
+                <TablerIcon name="scale" size={16} />MIT license
+              </a>
+              <button aria-label="Outline" class="huet-text-60 hover:huet-bg-10 ml-auto rounded-md p-1.5"><TablerIcon name="list" size={16} /></button>
+            </div>
+
+            <div class="readme space-y-4 px-6 py-6 text-base/relaxed md:px-8">
+              <p class="flex justify-center pt-2"><Logo size={96} /></p>
+              <h2 class="huet-border-20 border-b pb-2 text-center text-[2em] font-semibold">Huet</h2>
+
+              <p class="flex flex-wrap justify-center gap-1">
+                {badges.map((b) => (
+                  <a href="#">
+                    <svg data-huet-recolor width={b.width} height="20" viewBox={`0 0 ${b.width} 20`} role="img" aria-label={`${b.label}: ${b.value}`} class="block">
+                      <linearGradient id={`${b.id}-s`} x2="0" y2="100%">
+                        <stop offset="0" stop-color="#bbbbbb" stop-opacity=".1" />
+                        <stop offset="1" stop-color="#000000" stop-opacity=".1" />
+                      </linearGradient>
+                      <clipPath id={`${b.id}-r`}><rect width={b.width} height="20" rx="3" /></clipPath>
+                      <g clip-path={`url(#${b.id}-r)`}>
+                        <rect width={b.left} height="20" fill="#555555" />
+                        <rect x={b.left} width={b.right} height="20" fill={b.color} />
+                        <rect width={b.width} height="20" fill={`url(#${b.id}-s)`} />
+                      </g>
+                      <g fill="#ffffff" text-anchor="middle" font-family="Verdana,Geneva,DejaVu Sans,sans-serif" font-size="11">
+                        <text x={b.left / 2} y="14">{b.label}</text>
+                        <text x={b.left + b.right / 2} y="14">{b.value}</text>
+                      </g>
+                    </svg>
+                  </a>
+                ))}
+              </p>
+
+              <p class="text-center">
+                Relative UI colors and themed images from one theme. Choose a theme, then give each element
+                a ramp and a contrast amount in its class name, such as <code class={inline}>huet-bg-blue-20</code>.
+                Huet works out the actual colors from the element's parent background, and recolors images to match.
+              </p>
+              <p class="text-center">
+                <a href="#" class="huet-text-blue-100 hover:underline">Demo</a>{" · "}<a href="#" class="huet-text-blue-100 hover:underline">shadcn site themed with Huet</a>{" · "}<a href="#" class="huet-text-blue-100 hover:underline">Docs</a>
+              </p>
+
+              <figure>
+                <img data-huet-recolor src={photo("Honeybee on an aster")} alt="A honeybee on an aster" class="aspect-[3/2] w-full rounded-md object-cover" />
+                <figcaption class="huet-text-60 mt-2 text-center text-sm">
+                  This photo is recolored into the theme you picked. Hover it to see the original.
+                </figcaption>
+              </figure>
+
+              <h3 class="huet-border-20 border-b pt-4 pb-2 text-[1.5em] font-semibold">Quick start</h3>
+              <div class="group relative">
+                <Code code={install} lang="sh" theme={theme} transformers={transformers} />
+                <button aria-label="Copy" class="huet-text-50 hover:huet-text-100 absolute top-2.5 right-2.5 rounded-md p-1 opacity-0 transition-opacity group-hover:opacity-100 focus-visible:opacity-100"><TablerIcon name="copy" size={16} /></button>
+              </div>
+              <div class="group relative">
+                <Code code={quickStart} lang="ts" theme={theme} transformers={transformers} />
+                <button aria-label="Copy" class="huet-text-50 hover:huet-text-100 absolute top-2.5 right-2.5 rounded-md p-1 opacity-0 transition-opacity group-hover:opacity-100 focus-visible:opacity-100"><TablerIcon name="copy" size={16} /></button>
+              </div>
+
+              <div class={`${alerts[1].border} border-l-4 py-1 pl-4`}>
+                <p class={`${alerts[1].text} flex items-center gap-2 font-semibold`}><TablerIcon name={alerts[1].icon} size={16} />{alerts[1].kind}</p>
+                <p class="mt-1">
+                  Open the theme configurator from the header and drag its background slider. Every surface
+                  on this page, and every color inside it, is solved again for the new background.
+                </p>
+              </div>
+
+              <h3 class="huet-border-20 border-b pt-4 pb-2 text-[1.5em] font-semibold">Class syntax</h3>
+              <p><code class={inline}>huet-PROPERTY-[RAMP-]AMOUNT</code></p>
+              <div class="overflow-x-auto">
+                <table class="w-full border-collapse text-sm">
+                  <thead>
+                    <tr>
+                      <th class="huet-border-30 border px-3 py-1.5 text-left font-semibold">Part</th>
+                      <th class="huet-border-30 border px-3 py-1.5 text-left font-semibold">Values</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    <tr>
+                      <td class="huet-border-30 border px-3 py-1.5">Property</td>
+                      <td class="huet-border-30 border px-3 py-1.5"><code class={inline}>bg</code>, <code class={inline}>text</code>, <code class={inline}>border</code>, <code class={inline}>outline</code></td>
+                    </tr>
+                    <tr class="huet-bg-5">
+                      <td class="huet-border-30 border px-3 py-1.5">Ramp (optional)</td>
+                      <td class="huet-border-30 border px-3 py-1.5">
+                        <span class="huet-text-red-100">red</span>, <span class="huet-text-yellow-100">yellow</span>, <span class="huet-text-green-100">green</span>, <span class="huet-text-blue-100">blue</span>, <span class="huet-text-purple-100">purple</span>, gray, white
+                      </td>
+                    </tr>
+                    <tr>
+                      <td class="huet-border-30 border px-3 py-1.5">Amount</td>
+                      <td class="huet-border-30 border px-3 py-1.5 font-mono text-xs">{amounts.join(", ")}</td>
+                    </tr>
+                  </tbody>
+                </table>
+              </div>
+
+              <p>
+                Amounts measure distance from the parent's background, not a fixed lightness. The same
+                thirteen classes, on the page and nested in a <code class={inline}>huet-bg-80</code> card:
+              </p>
+              <div class="huet-border-20 overflow-hidden rounded-md border">
+                <div class="grid grid-cols-13">
+                  {swatches.map((s, i) => (
+                    <div class={`${s} flex h-12 items-end justify-center pb-1 font-mono text-[10px]`}>{amounts[i]}</div>
+                  ))}
+                </div>
+                <div class="huet-bg-80 p-3">
+                  <div class="grid grid-cols-13 overflow-hidden rounded">
+                    {swatches.map((s, i) => (
+                      <div class={`${s} flex h-12 items-end justify-center pb-1 font-mono text-[10px]`}>{amounts[i]}</div>
+                    ))}
+                  </div>
+                </div>
+              </div>
+
+              <h3 class="huet-border-20 border-b pt-4 pb-2 text-[1.5em] font-semibold">Migrating from Tailwind colors</h3>
+              <p>One class per surface replaces each light and dark pair:</p>
+              <Code code={migrate} lang="html" theme={theme} transformers={transformers} />
+
+              <h3 class="huet-border-20 border-b pt-4 pb-2 text-[1.5em] font-semibold">Themed images</h3>
+              <p>
+                <code class={inline}>huet/images</code> reads each pixel as a position on Huet's default ramps
+                and writes it back at the same position in your theme. Grays follow your neutral ramp, and
+                greens become your green. Screenshots work too:
+              </p>
+              <img data-huet-recolor src={photo("Github theme red")} alt="A GitHub theme for VS Code, in red" class="huet-border-20 w-full rounded-md border" />
+              <div class="grid grid-cols-3 gap-2">
+                <img data-huet-recolor src={photo("Nautilus shell")} alt="Nautilus shell" class="aspect-square w-full rounded-md object-cover" />
+                <img data-huet-recolor src={photo("Feather")} alt="Feather" class="aspect-square w-full rounded-md object-cover" />
+                <img data-huet-recolor src={photo("Mountain lake")} alt="Mountain lake" class="aspect-square w-full rounded-md object-cover" />
+              </div>
+
+              <h3 class="huet-border-20 border-b pt-4 pb-2 text-[1.5em] font-semibold">Things to know</h3>
+              {alerts.filter((_, i) => i !== 1).map((a) => (
+                <div class={`${a.border} border-l-4 py-1 pl-4`}>
+                  <p class={`${a.text} flex items-center gap-2 font-semibold`}><TablerIcon name={a.icon} size={16} />{a.kind}</p>
+                  <p class="mt-1">{a.body}</p>
+                </div>
+              ))}
+
+              <blockquote class="huet-border-30 huet-text-60 border-l-4 pl-4">
+                Grays follow the theme's neutral ramp and colors follow its hues. That's the whole idea.
+              </blockquote>
+
+              <h3 class="huet-border-20 border-b pt-4 pb-2 text-[1.5em] font-semibold">Roadmap</h3>
+              <ul data-huet-forms class="space-y-1">
+                <li><label class="flex items-center gap-2"><input type="checkbox" checked /> Relative classes with Tailwind variants</label></li>
+                <li><label class="flex items-center gap-2"><input type="checkbox" checked /> Recolor images on the GPU</label></li>
+                <li><label class="flex items-center gap-2"><input type="checkbox" checked /> Shiki theme from Huet variables</label></li>
+                <li><label class="flex items-center gap-2"><input type="checkbox" /> Publish to npm</label></li>
+                <li><label class="flex items-center gap-2"><input type="checkbox" /> Vue and Svelte configurators</label></li>
+              </ul>
+
+              <details class="huet-border-20 rounded-md border">
+                <summary class="hover:huet-bg-5 cursor-pointer rounded-md px-3 py-2 font-semibold">Repository layout</summary>
+                <ul class="list-disc space-y-1 px-8 pb-3">
+                  <li><code class={inline}>packages/huet</code>: the theming library</li>
+                  <li><code class={inline}>packages/huet-react</code>: the React theme configurator</li>
+                  <li><code class={inline}>src/demo</code>: the demo site, built with Astro, Tailwind and Huet classes</li>
+                </ul>
+              </details>
+            </div>
+          </article>
+        </div>
+
+        <!-- Sidebar -->
+        <aside class="space-y-6 text-sm">
+          <section class="huet-border-20 border-b pb-6">
+            <h2 class={sideHeading}>About</h2>
+            <p class="text-base">Relative UI colors and themed images from one theme.</p>
+            <a href="#" class="huet-text-blue-100 mt-3 flex items-center gap-2 font-semibold hover:underline">
+              <TablerIcon name="link" size={16} />markmiro.github.io/huet
+            </a>
+            <div class="mt-3 flex flex-wrap gap-1">
+              {topics.map((t) => (
+                <a href="#" class="huet-bg-blue-10 hover:huet-bg-blue-20 huet-bg/text-blue-100 rounded-full px-2.5 py-0.5 text-xs font-medium">{t}</a>
+              ))}
+            </div>
+            <div class="mt-4 space-y-0.5">
+              <a href="#" class={sideRow}><TablerIcon name="book" size={16} />Readme</a>
+              <a href="#" class={sideRow}><TablerIcon name="scale" size={16} />MIT license</a>
+              <a href="#" class={sideRow}><TablerIcon name="activity" size={16} />Activity</a>
+              <a href="#" class={sideRow}><TablerIcon name="star" size={16} /><b class="huet-text-100">1.2k</b> stars</a>
+              <a href="#" class={sideRow}><TablerIcon name="eye" size={16} /><b class="huet-text-100">12</b> watching</a>
+              <a href="#" class={sideRow}><TablerIcon name="git-fork" size={16} /><b class="huet-text-100">31</b> forks</a>
+            </div>
+          </section>
+
+          <section class="huet-border-20 border-b pb-6">
+            <h2 class={sideHeading}>Releases <span class="huet-bg-10 ml-1 rounded-full px-1.5 text-xs">12</span></h2>
+            <a href="#" class="flex items-start gap-2">
+              <TablerIcon name="tag" size={16} class="huet-text-green-100 mt-0.5" />
+              <span>
+                <span class="font-semibold hover:underline">v0.9.0</span>
+                <span class="huet-border-green-60 huet-text-green-100 ml-1 rounded-full border px-2 text-xs font-medium">Latest</span>
+                <span class="huet-text-60 block text-xs">Oct 28, 2026</span>
+              </span>
+            </a>
+            <a href="#" class="huet-text-blue-100 mt-2 block text-xs hover:underline">+ 11 releases</a>
+          </section>
+
+          <section class="huet-border-20 border-b pb-6">
+            <h2 class={sideHeading}>Commit activity</h2>
+            <div class="flex gap-[3px]" role="img" aria-label="Commits per day over the last 20 weeks">
+              {activity.map((week) => (
+                <div class="flex flex-col gap-[3px]">
+                  {week.map((cell) => <span class={`${cell} block size-[10px] rounded-[2px]`}></span>)}
+                </div>
+              ))}
+            </div>
+            <div class="huet-text-60 mt-2 flex items-center justify-end gap-[3px] text-xs">
+              Less
+              {levels.map((l) => <span class={`${l} mx-px block size-[10px] rounded-[2px]`}></span>)}
+              More
+            </div>
+          </section>
+
+          <section class="huet-border-20 border-b pb-6">
+            <h2 class={sideHeading}>Contributors <span class="huet-bg-10 ml-1 rounded-full px-1.5 text-xs">7</span></h2>
+            <div class="flex flex-wrap gap-1">
+              {contributors.map((c) => (
+                <a href="#" title={c.name}>
+                  <img data-huet-recolor src={c.photo} alt={c.name} class="size-8 rounded-full object-cover object-top" />
+                </a>
+              ))}
+              {identicons.map((icon) => (
+                <a href="#" title="Contributor" class="huet-bg-5 huet-border-10 grid size-8 grid-cols-5 overflow-hidden rounded-full border p-1.5">
+                  {icon.cells.flat().map((on) => <span class:list={["block", on && icon.fill]}></span>)}
+                </a>
+              ))}
+            </div>
+          </section>
+
+          <section class="huet-border-20 border-b pb-6">
+            <h2 class={sideHeading}>Deployments <span class="huet-bg-10 ml-1 rounded-full px-1.5 text-xs">214</span></h2>
+            <a href="#" class="flex items-center gap-2">
+              <TablerIcon name="rocket" size={16} class="huet-text-green-100" />
+              <span class="font-semibold hover:underline">github-pages</span>
+              <span class="huet-text-60 ml-auto text-xs">1 hour ago</span>
+            </a>
+            <a href="#" class="mt-1 flex items-center gap-2">
+              <TablerIcon name="rocket" size={16} class="huet-text-60" />
+              <span class="hover:underline">shadcn-huet</span>
+              <span class="huet-text-60 ml-auto text-xs">yesterday</span>
+            </a>
+          </section>
+
+          <section>
+            <h2 class={sideHeading}>Languages</h2>
+            <div class="flex h-2 gap-0.5 overflow-hidden rounded-full">
+              {languages.map((l) => <span class={`${l.bar} block`} style={`width: ${l.percent}%`}></span>)}
+            </div>
+            <ul class="mt-3 flex flex-wrap gap-x-4 gap-y-1 text-xs">
+              {languages.map((l) => (
+                <li class="flex items-center gap-1.5">
+                  <span class={`${l.dot} block size-2 rounded-full`}></span>
+                  <span class="font-semibold">{l.name}</span>
+                  <span class="huet-text-60">{l.percent}%</span>
+                </li>
+              ))}
+            </ul>
+          </section>
+        </aside>
+      </div>
+    </main>
+
+    <footer class="huet-text-60 mx-auto flex max-w-[1280px] flex-wrap items-center gap-x-4 gap-y-2 px-4 py-10 text-xs md:px-6 lg:px-8">
+      <span>© 2026 GitHub, Inc.</span>
+      {["Terms", "Privacy", "Security", "Status", "Docs", "Contact", "Manage cookies"].map((l) => (
+        <a href="#" class="hover:huet-text-blue-100 hover:underline">{l}</a>
+      ))}
+    </footer>
   </div>
 </Demo>
+
+<style>
+  /* Shiki's <pre> blocks, styled like GitHub's rendered Markdown */
+  .readme :global(pre) {
+    border-radius: 0.375rem;
+    padding: 1rem;
+    overflow-x: auto;
+    font-size: 85%;
+    line-height: 1.45;
+  }
+  /* Diff rows span the block, edge to edge, with markers in the row's own solved colors */
+  .readme :global(pre .line) {
+    display: inline-block;
+    box-sizing: border-box;
+    min-width: calc(100% + 2rem);
+    margin-inline: -1rem;
+    padding-inline: 1rem;
+  }
+  .readme :global(pre.has-diff .line::before) {
+    content: "  ";
+  }
+  .readme :global(pre.has-diff .line.add::before) {
+    content: "+ ";
+    color: var(--huet-green);
+  }
+  .readme :global(pre.has-diff .line.remove::before) {
+    content: "- ";
+    color: var(--huet-red);
+  }
+</style>
