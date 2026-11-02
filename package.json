@@ -25,7 +25,8 @@
     "test:browser": "playwright test",
     "test:shadcn": "playwright test -c playwright.shadcn.config.ts",
     "shadcn:setup": "node scripts/shadcn-huet/setup.mjs",
-    "shadcn:dev": "pnpm --dir vendor/shadcn-ui --config.package-manager-strict=false v4:dev"
+    "shadcn:dev": "pnpm --dir vendor/shadcn-ui --config.package-manager-strict=false v4:dev",
+    "shadcn:deploy": "node scripts/shadcn-huet/deploy.mjs"
   },
   "devDependencies": {
     "@astrojs/react": "^7.1.2",
