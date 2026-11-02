@@ -438,12 +438,8 @@ function stealPalette() {
           if (!value || value.includes("var(")) continue
           specified.set(prop, value)
         }
-      } else if ("cssRules" in rule && rule.cssRules) {
-        try {
-          visit(rule.cssRules)
-        } catch {
-          // A cross-origin sheet has no rules to read.
-        }
+      } else if (rule instanceof CSSGroupingRule) {
+        visit(rule.cssRules)
       }
     }
   }
@@ -688,12 +684,8 @@ function collectChartRules() {
           if (!props) rules.set(rule.selectorText, (props = new Map()))
           props.set(prop, value)
         }
-      } else if ("cssRules" in rule && rule.cssRules) {
-        try {
-          visit(rule.cssRules)
-        } catch {
-          // Ignore sheets the browser will not expose.
-        }
+      } else if (rule instanceof CSSGroupingRule) {
+        visit(rule.cssRules)
       }
     }
   }
@@ -935,12 +927,8 @@ function collectThemeRules() {
             if (value && !value.includes("var(")) props.set(prop, value)
           }
         }
-      } else if ("cssRules" in rule && rule.cssRules) {
-        try {
-          visit(rule.cssRules)
-        } catch {
-          // Ignore sheets the browser will not expose.
-        }
+      } else if (rule instanceof CSSGroupingRule) {
+        visit(rule.cssRules)
       }
     }
   }
