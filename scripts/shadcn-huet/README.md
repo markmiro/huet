@@ -49,17 +49,23 @@ Elsewhere on the site, the page colors are the site's own: a gray accent, so pri
 
 The demo is live at https://shadcn-huet.vercel.app, from the Vercel project `shadcn-huet`. It isn't connected to Git, so nothing deploys on push. Deploys are manual: you build locally and upload the output. A Vercel build can't do it, because `setup.mjs` installs Huet from tarballs that only exist on your machine.
 
-Build from current `master`, then run `vercel` from `vendor/shadcn-ui`, the pnpm root, not from `apps/v4`:
+From a checkout of current `master`, run:
 
 ```sh
-git switch master && git pull
-pnpm shadcn:setup
+pnpm shadcn:deploy
+```
+
+It needs Node 24.x and the Vercel CLI. It stops unless HEAD is `origin/master` with no uncommitted changes; pass `--any-commit` to deploy the checkout as it is. Then it runs `shadcn:setup` (retrying once, since the first run in a fresh worktree can fail in apps/v4's postinstall), links the project if needed, and runs `vercel` from `vendor/shadcn-ui`, the pnpm root, not from `apps/v4`:
+
+```sh
 cd vendor/shadcn-ui
 vercel link --yes --project shadcn-huet   # only if vendor/shadcn-ui/.vercel is missing
 vercel pull --yes --environment=production
 vercel build --prod
 vercel deploy --prebuilt --prod --archive=tgz
 ```
+
+`vercel link` appends `.env*` to the submodule's `.gitignore`; the script undoes that, since upstream already ignores `.env.local`.
 
 - `shadcn:setup` only builds the registry when `apps/v4/styles/base-nova/ui` is missing. After a patch changes files under `apps/v4/registry/`, rebuild it from `vendor/shadcn-ui/apps/v4` with `bun run ./scripts/build-registry.mts --style all`.
 - If `setup` reports a conflict with `integration.patch` after you pull, the submodule still has the old patch applied. Discard it with `git -C vendor/shadcn-ui checkout -- .` and rerun setup.
