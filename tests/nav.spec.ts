@@ -1,7 +1,7 @@
 import { test, expect } from "@playwright/test";
 
 test("Website Examples swaps the nav's row for the sites, and Back swaps it back", async ({ page }) => {
-  await page.goto("/");
+  await page.goto("/basic");
   const nav = page.getByRole("navigation", { name: "Demos" });
   await expect(page.locator("header")).not.toContainText("Example Demos");
   await expect(nav.getByRole("link", { name: "Basic" })).toHaveAttribute("aria-current", "page");

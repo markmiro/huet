@@ -1,0 +1,10 @@
+---
+const { id, title, description } = Astro.props;
+---
+<section id={id} class="flex scroll-mt-[calc(var(--header-height)+1.5rem)] flex-col gap-6">
+  <div class="flex flex-col gap-1">
+    <h2 class="text-2xl font-semibold tracking-tight"><a href={`#${id}`}>{title}</a></h2>
+    <p class="max-w-3xl text-muted-foreground">{description}</p>
+  </div>
+  <slot />
+</section>

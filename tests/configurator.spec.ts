@@ -9,7 +9,7 @@ async function size(page: Page) {
 }
 
 async function open(page: Page) {
-  await page.goto("/");
+  await page.goto("/basic");
   await page.evaluate(() => localStorage.clear());
   await page.reload();
   return openConfigurator(page);

@@ -21,7 +21,7 @@ async function openThemes(page: Page) {
     alerts.push(dialog.message());
     void dialog.dismiss();
   });
-  await page.goto("/");
+  await page.goto("/basic");
   await page.evaluate(() => localStorage.clear());
   await page.reload();
   await openConfigurator(page);

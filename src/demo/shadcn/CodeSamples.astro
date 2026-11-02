@@ -1,0 +1,85 @@
+---
+import { Code } from "astro:components";
+import { huetShikiTheme, huetShikiTransformer } from "huet";
+import CodeCard from "./CodeCard.astro";
+
+const samples = [
+  {
+    title: "theme.ts",
+    language: "ts",
+    code: `import { mountTheme, themes, type Theme } from "huet"
+import { mountImages } from "huet/images"
+import "huet/styles.css"
+
+const theme: Theme = { neutral: ["#233b91", "#ffffff"] }
+const root = document.querySelector<HTMLElement>("#app")!
+const colors = mountTheme(root, theme)
+const images = mountImages(root, theme) // recolors <img data-huet-recolor>
+
+// Later: dark mode, then another theme, without rerendering
+colors.update(theme, { background: 0 })
+colors.update(themes.Paperback)
+images.update(themes.Paperback)`,
+  },
+  {
+    title: "profile.html",
+    language: "html",
+    code: `<section class="huet-bg-20 rounded-lg p-6">
+  <p class="huet-text-60 mb-4">Manage your profile.</p>
+  <input class="huet-bg-10 huet-bg/border-60 border rounded px-3 py-2" />
+  <button class="huet-bg-blue-20 hover:huet-bg-blue-30 rounded px-4 py-2">
+    Save
+  </button>
+</section>`,
+  },
+  {
+    title: "paperback.json",
+    language: "json",
+    code: `{
+  "neutral": ["#3d3531", "#e2c1b1"],
+  "colorModel": "lab",
+  "colors": {
+    "red": "#e13639",
+    "yellow": "#c89455",
+    "green": "#238e5d",
+    "blue": "#366caa",
+    "purple": "#8e65bf"
+  },
+  "signalLightness": { "onLight": 0.36, "onDark": 0.55 },
+  "images": { "strength": 1, "tint": 0.6 }
+}`,
+  },
+  {
+    title: "globals.css",
+    language: "css",
+    code: `@import "tailwindcss";
+@import "huet/tailwind.css";
+@import "huet/forms.css";
+
+.toolbar {
+  display: flex;
+  gap: 0.5rem;
+  border-radius: var(--radius);
+}`,
+  },
+  {
+    title: "Terminal",
+    language: "bash",
+    code: `npx shadcn@latest init
+npx shadcn@latest add card badge chart
+pnpm add huet huet-react`,
+  },
+]
+
+const theme = huetShikiTheme();
+const transformers = [huetShikiTransformer()];
+---
+<div class="grid gap-4 lg:grid-cols-2">
+  <CodeCard />
+  {samples.map(({ title, language, code }) => (
+    <figure class="flex flex-col overflow-hidden rounded-xl border [&_pre]:flex-1">
+      <figcaption class="huet-bg-5 border-b px-4 py-2.5 font-mono text-sm">{title}</figcaption>
+      <Code code={code} lang={language as "tsx"} theme={theme} transformers={transformers} />
+    </figure>
+  ))}
+</div>

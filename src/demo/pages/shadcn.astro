@@ -1,0 +1,55 @@
+---
+import Showcase from "../layouts/Showcase.astro";
+import { Badges } from "../shadcn/Badges";
+import { ShowcaseCharts } from "../shadcn/Charts";
+import CodeSamples from "../shadcn/CodeSamples.astro";
+import { FormStates } from "../shadcn/FormStates";
+import Section from "../shadcn/Section.astro";
+import { ThemeSamples } from "../shadcn/ThemeSamples";
+---
+<Showcase title="shadcn integration">
+  <div class="flex flex-col gap-16 px-6 pt-5 pb-24">
+    <div class="flex flex-col gap-1">
+      <h1 class="text-xl font-semibold tracking-tight">shadcn integration</h1>
+      <p class="max-w-3xl text-sm text-muted-foreground">
+        shadcn's components on their own CSS variables. Huet's shadcn adapter paints those variables from the
+        theme you pick, and moves Tailwind's palette onto the theme's hues.
+      </p>
+    </div>
+    <Section
+      id="forms"
+      title="Form states"
+      description="Error, warning, success and disabled states for inputs, selects, textareas and checkboxes, and matching alerts."
+    >
+      <FormStates client:load />
+    </Section>
+    <Section
+      id="badges"
+      title="Badges"
+      description="shadcn's badge variants, status badges, and every Tailwind hue as solid, soft and outline badges."
+    >
+      <Badges client:load />
+    </Section>
+    <Section
+      id="charts"
+      title="Charts"
+      description="Recharts through shadcn's ChartContainer: the --chart-1 to --chart-5 palette, and series colored with Tailwind's green, amber and red."
+    >
+      <ShowcaseCharts client:load />
+    </Section>
+    <Section
+      id="themes"
+      title="Themes"
+      description="shadcn's accent classes. Huet keeps each accent's hue and picks a lightness that reads on the theme."
+    >
+      <ThemeSamples client:load />
+    </Section>
+    <Section
+      id="code"
+      title="Code"
+      description="Shiki with huetShikiTheme and huetShikiTransformer: each block, and each changed row, is a Huet surface."
+    >
+      <CodeSamples />
+    </Section>
+  </div>
+</Showcase>

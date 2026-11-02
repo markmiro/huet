@@ -7,7 +7,7 @@ test("bad saved state falls back to defaults instead of crashing", async ({ page
   page.on("console", (message) => {
     if (message.type() === "error") errors.push(message.text());
   });
-  await page.goto("/");
+  await page.goto("/basic");
   await page.evaluate(() => {
     // Values the old order-based keys could hand to the wrong hook
     localStorage.setItem("useBrowserState_huet_0_", JSON.stringify([{ id: 1 }]));
@@ -38,7 +38,7 @@ test("bad saved state falls back to defaults instead of crashing", async ({ page
 
 test("the theme and configurator state survive a reload", async ({ page }) => {
   page.on("dialog", (dialog) => void dialog.accept());
-  await page.goto("/");
+  await page.goto("/basic");
   await page.evaluate(() => localStorage.clear());
   await page.reload();
 
