@@ -139,3 +139,7 @@ The Forms page's "On other surfaces" section, with minimal styling on:
 | Base Inverted | ![Base Inverted before](screenshots/forms-apca-surfaces-base-inverted-before.png) | ![Base Inverted after](screenshots/forms-apca-surfaces-base-inverted-after.png) |
 | Orange Boost | ![Orange Boost before](screenshots/forms-apca-surfaces-orange-boost-before.png) | ![Orange Boost after](screenshots/forms-apca-surfaces-orange-boost-after.png) |
 | Sunset | ![Sunset before](screenshots/forms-apca-surfaces-sunset-before.png) | ![Sunset after](screenshots/forms-apca-surfaces-sunset-after.png) |
+
+## Disabled controls
+
+`huet/forms.css` faded disabled controls with a 55% sRGB mix, which kept Lc 73 of black-on-white's 106 but only Lc 41 of white-on-black's 108. The solver now writes `--huet-disabled` (Lc 45, half the foreground's) and `--huet-disabled-border` (Lc 15, half the border's) on every surface. See [Disabled controls on light and dark surfaces](disabled-controls.md) for the measurements, the prototypes that didn't work, and what it costs to recompute.

@@ -21,8 +21,8 @@ export interface ThemeCssOptions extends BackgroundOptions {
 /**
  * A CSS rule with a theme's colors on one background, for pages that render
  * on the server, at build time, or without JavaScript. It sets the role colors
- * (`--huet-background`, `--huet-foreground`, `--huet-muted`, `--huet-border`
- * and one per hue, which `huet/styles.css`, `huet/tailwind.css` and the Shiki
+ * (`--huet-background`, `--huet-foreground`, `--huet-muted`, `--huet-border`,
+ * `--huet-disabled`, `--huet-disabled-border` and one per hue, which `huet/styles.css`, `huet/tailwind.css` and the Shiki
  * theme use) and the neutral contrast steps `--huet-0`, `--huet-5`, `--huet-10`, `--huet-20` … `--huet-100`
  * (`mountTheme` writes the same variables on each nested surface). For
  * light and dark modes, write one rule per mode:
