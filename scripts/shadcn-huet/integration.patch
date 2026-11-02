@@ -74,6 +74,19 @@ index 00c2223..12ccabe 100644
 +    opacity: 1;
 +  }
 +}
+diff --git a/apps/v4/components/callout.tsx b/apps/v4/components/callout.tsx
+index cfa6b58..a017436 100644
+--- a/apps/v4/components/callout.tsx
++++ b/apps/v4/components/callout.tsx
+@@ -28,7 +28,7 @@ export function Callout({
+     >
+       {icon}
+       {title && <AlertTitle>{title}</AlertTitle>}
+-      <AlertDescription className="text-card-foreground/80">
++      <AlertDescription>
+         {children}
+       </AlertDescription>
+     </Alert>
 diff --git a/apps/v4/components/directory-list.tsx b/apps/v4/components/directory-list.tsx
 index 05fe74b..c424b7e 100644
 --- a/apps/v4/components/directory-list.tsx
@@ -324,6 +337,19 @@ index cc54734..704fd22 100644
                          opacity: 0.9,
                        } as React.CSSProperties
                      }
+diff --git a/apps/v4/registry/new-york-v4/ui/alert.tsx b/apps/v4/registry/new-york-v4/ui/alert.tsx
+index 86310a6..c918f4f 100644
+--- a/apps/v4/registry/new-york-v4/ui/alert.tsx
++++ b/apps/v4/registry/new-york-v4/ui/alert.tsx
+@@ -54,7 +54,7 @@ function AlertDescription({
+     <div
+       data-slot="alert-description"
+       className={cn(
+-        "col-start-2 grid justify-items-start gap-1 text-sm text-muted-foreground [&_p]:leading-relaxed",
++        "col-start-2 grid justify-items-start gap-1 text-sm text-current/80 [&_p]:leading-relaxed",
+         className
+       )}
+       {...props}
 diff --git a/apps/v4/registry/new-york-v4/ui/bubble.tsx b/apps/v4/registry/new-york-v4/ui/bubble.tsx
 index da2c990..34b4a3e 100644
 --- a/apps/v4/registry/new-york-v4/ui/bubble.tsx
@@ -338,9 +364,18 @@ index da2c990..34b4a3e 100644
            "*:data-[slot=bubble-content]:border-border *:data-[slot=bubble-content]:bg-background [&>[data-slot=bubble-content]:is(button,a):hover]:bg-muted [&>[data-slot=bubble-content]:is(button,a):hover]:text-foreground dark:[&>[data-slot=bubble-content]:is(button,a):hover]:bg-input/30",
          ghost:
 diff --git a/apps/v4/registry/styles/style-luma.css b/apps/v4/registry/styles/style-luma.css
-index 891fbb6..923b58b 100644
+index 891fbb6..cdbee3a 100644
 --- a/apps/v4/registry/styles/style-luma.css
 +++ b/apps/v4/registry/styles/style-luma.css
+@@ -523,7 +523,7 @@
+   }
+ 
+   .cn-alert-description {
+-    @apply text-muted-foreground text-sm text-balance md:text-pretty [&_p:not(:last-child)]:mb-4;
++    @apply text-current/80 text-sm text-balance md:text-pretty [&_p:not(:last-child)]:mb-4;
+   }
+ 
+   .cn-alert-action {
 @@ -1473,7 +1473,7 @@
    }
  
@@ -351,9 +386,18 @@ index 891fbb6..923b58b 100644
  
    .cn-bubble-variant-outline {
 diff --git a/apps/v4/registry/styles/style-lyra.css b/apps/v4/registry/styles/style-lyra.css
-index 05342f2..b206ac6 100644
+index 05342f2..1b5cb93 100644
 --- a/apps/v4/registry/styles/style-lyra.css
 +++ b/apps/v4/registry/styles/style-lyra.css
+@@ -34,7 +34,7 @@
+   }
+ 
+   .cn-alert-description {
+-    @apply text-muted-foreground text-xs/relaxed text-balance md:text-pretty [&_p:not(:last-child)]:mb-2;
++    @apply text-current/80 text-xs/relaxed text-balance md:text-pretty [&_p:not(:last-child)]:mb-2;
+   }
+ 
+   .cn-alert-action {
 @@ -1452,7 +1452,7 @@
    }
  
@@ -364,9 +408,18 @@ index 05342f2..b206ac6 100644
  
    .cn-bubble-variant-outline {
 diff --git a/apps/v4/registry/styles/style-maia.css b/apps/v4/registry/styles/style-maia.css
-index ed13c68..7635e51 100644
+index ed13c68..5bdad44 100644
 --- a/apps/v4/registry/styles/style-maia.css
 +++ b/apps/v4/registry/styles/style-maia.css
+@@ -63,7 +63,7 @@
+   }
+ 
+   .cn-alert-description {
+-    @apply text-muted-foreground text-sm text-balance md:text-pretty [&_p:not(:last-child)]:mb-4;
++    @apply text-current/80 text-sm text-balance md:text-pretty [&_p:not(:last-child)]:mb-4;
+   }
+ 
+   .cn-alert-action {
 @@ -1474,7 +1474,7 @@
    }
  
@@ -377,9 +430,18 @@ index ed13c68..7635e51 100644
  
    .cn-bubble-variant-outline {
 diff --git a/apps/v4/registry/styles/style-mira.css b/apps/v4/registry/styles/style-mira.css
-index 1f6b9ef..02fdca7 100644
+index 1f6b9ef..0e29d73 100644
 --- a/apps/v4/registry/styles/style-mira.css
 +++ b/apps/v4/registry/styles/style-mira.css
+@@ -63,7 +63,7 @@
+   }
+ 
+   .cn-alert-description {
+-    @apply text-muted-foreground text-xs/relaxed text-balance md:text-pretty [&_p:not(:last-child)]:mb-4;
++    @apply text-current/80 text-xs/relaxed text-balance md:text-pretty [&_p:not(:last-child)]:mb-4;
+   }
+ 
+   .cn-alert-action {
 @@ -1479,7 +1479,7 @@
    }
  
@@ -390,9 +452,18 @@ index 1f6b9ef..02fdca7 100644
  
    .cn-bubble-variant-outline {
 diff --git a/apps/v4/registry/styles/style-nova.css b/apps/v4/registry/styles/style-nova.css
-index 293204b..181d0f7 100644
+index 293204b..8a11244 100644
 --- a/apps/v4/registry/styles/style-nova.css
 +++ b/apps/v4/registry/styles/style-nova.css
+@@ -34,7 +34,7 @@
+   }
+ 
+   .cn-alert-description {
+-    @apply text-muted-foreground text-sm text-balance md:text-pretty [&_p:not(:last-child)]:mb-4;
++    @apply text-current/80 text-sm text-balance md:text-pretty [&_p:not(:last-child)]:mb-4;
+   }
+ 
+   .cn-alert-action {
 @@ -1477,7 +1477,7 @@
    }
  
@@ -403,9 +474,18 @@ index 293204b..181d0f7 100644
  
    .cn-bubble-variant-outline {
 diff --git a/apps/v4/registry/styles/style-rhea.css b/apps/v4/registry/styles/style-rhea.css
-index 94bbca2..64b18d4 100644
+index 94bbca2..f429a3b 100644
 --- a/apps/v4/registry/styles/style-rhea.css
 +++ b/apps/v4/registry/styles/style-rhea.css
+@@ -523,7 +523,7 @@
+   }
+ 
+   .cn-alert-description {
+-    @apply text-muted-foreground text-sm text-balance md:text-pretty [&_p:not(:last-child)]:mb-4;
++    @apply text-current/80 text-sm text-balance md:text-pretty [&_p:not(:last-child)]:mb-4;
+   }
+ 
+   .cn-alert-action {
 @@ -1473,7 +1473,7 @@
    }
  
@@ -416,9 +496,18 @@ index 94bbca2..64b18d4 100644
  
    .cn-bubble-variant-outline {
 diff --git a/apps/v4/registry/styles/style-sera.css b/apps/v4/registry/styles/style-sera.css
-index 6fb2c12..390d014 100644
+index 6fb2c12..6afde30 100644
 --- a/apps/v4/registry/styles/style-sera.css
 +++ b/apps/v4/registry/styles/style-sera.css
+@@ -34,7 +34,7 @@
+   }
+ 
+   .cn-alert-description {
+-    @apply text-muted-foreground text-sm text-balance md:text-pretty [&_p:not(:last-child)]:mb-4;
++    @apply text-current/80 text-sm text-balance md:text-pretty [&_p:not(:last-child)]:mb-4;
+   }
+ 
+   .cn-alert-action {
 @@ -1464,7 +1464,7 @@
    }
  
@@ -429,9 +518,18 @@ index 6fb2c12..390d014 100644
  
    .cn-bubble-variant-outline {
 diff --git a/apps/v4/registry/styles/style-vega.css b/apps/v4/registry/styles/style-vega.css
-index 9f03b3c..e933573 100644
+index 9f03b3c..161422b 100644
 --- a/apps/v4/registry/styles/style-vega.css
 +++ b/apps/v4/registry/styles/style-vega.css
+@@ -59,7 +59,7 @@
+   }
+ 
+   .cn-alert-description {
+-    @apply text-muted-foreground text-sm text-balance md:text-pretty [&_p:not(:last-child)]:mb-4;
++    @apply text-current/80 text-sm text-balance md:text-pretty [&_p:not(:last-child)]:mb-4;
+   }
+ 
+   .cn-alert-action {
 @@ -1477,7 +1477,7 @@
    }
  

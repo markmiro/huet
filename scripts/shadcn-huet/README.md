@@ -26,8 +26,9 @@ Leave `layout.tsx` and `theme-provider.tsx` out of it, since `setup.mjs` edits t
 
 `huet-configurator.tsx` writes shadcn's color roles (`--background`, `--card`, `--muted`…) on `<html>`, and moves every Tailwind swatch onto the theme:
 
-- Grays and white take the neutral ramp's color at the same position.
-- Colored swatches take the theme's hues the way Huet recolors SVGs, and their shade scale is pinned to the theme's own color: `fill-green-500` (dashboard-01's "Done" check) is the theme's green, lighter shades run to the ramp's light end and darker ones to its dark end.
+- Grays and white take the neutral ramp's color at the same position. Tailwind's gray families (slate, gray, zinc, neutral, stone, mauve, olive, mist, taupe) count as gray whatever their tint, which only flavors the stock neutrals.
+- Colored swatches take the theme's hues the way Huet recolors SVGs, and their shade scale is pinned to the theme's own color: `fill-green-500` (dashboard-01's "Done" check) is the theme's green, lighter shades run to the ramp's light end and darker ones to its dark end. The palette's dark end is shadcn's dark page (`oklch(0.145 0 0)`), not black, so a `950` fill sits as close to a dark page as on stock shadcn.
+- A palette shade beside the page (50 on a light page, 950 on a dark one) has at most as much color as its distance from the page, like `huet-bg-red-10`, and keeps the page's tint, so `bg-red-50` on a lime page is the page with a little red. Shades on the far side are text colors (900 on a light page, 50 on a dark one): they keep no tint and are at least as colorful as their mirror beside the page (50 as 950), so dark-mode alert text takes the alert's hue. All of this is `placePalette`.
 - Elements shadcn keeps dark on a light page with `className="dark"` (the /create and /typeset side menus, their bottom toolbars, dialogs) get the theme's dark roles from a `.dark` rule, with primary as their max-contrast invert, since globals.css would give them shadcn's own grays. On a dark page they inherit the page's colors, picked accent included.
 
 ## Code blocks
