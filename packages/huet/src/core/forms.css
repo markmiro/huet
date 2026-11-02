@@ -446,11 +446,15 @@
   [data-huet-forms] :where(input, textarea, select):where(:user-invalid, [aria-invalid="true"]) {
     --_line: var(--huet-red);
   }
-  /* Disabled controls, and the labels and fieldsets around them, mix their
-     text and line colors 55% over the background. Fading both by the same
-     amount keeps a slider's filled part stronger than its track. In the color
-     property, currentColor is the inherited text color, so a control inside a
-     faded label or fieldset is skipped to avoid fading it twice. */
+  /* Disabled controls, and the labels and fieldsets around them, use the
+     surface's disabled colors: text at half the foreground's Lc and lines at
+     half the border's, on light and dark surfaces alike. A slider's filled part
+     stays stronger than its track. Disabled buttons get a flat fill at the
+     surface's 5 step instead of an outline. A control inside a disabled label
+     or fieldset inherits its color.
+
+     Themes from before these variables existed fall back to mixing 55% over
+     the background, which fades dark surfaces more than light ones. */
   [data-huet-forms] {
     --_disabled: 55%;
   }
@@ -460,20 +464,17 @@
       fieldset:disabled,
       :is(input, textarea, select, button):disabled:not(label:has(:disabled) *, fieldset:disabled *)
     ) {
-    color: color-mix(in srgb, currentColor var(--_disabled), var(--huet-background));
+    color: var(--huet-disabled, color-mix(in srgb, currentColor var(--_disabled), var(--huet-background)));
   }
   [data-huet-forms] :where(input, textarea, select, button, fieldset):disabled {
-    --_line: color-mix(in srgb, var(--huet-border) var(--_disabled), var(--huet-background));
+    --_line: var(--huet-disabled-border, color-mix(in srgb, var(--huet-border) var(--_disabled), var(--huet-background)));
     cursor: not-allowed;
-  }
-  [data-huet-forms] :where([data-huet-color-border]):disabled {
-    --_line: color-mix(in srgb, var(--huet-relative-border) var(--_disabled), var(--huet-background));
   }
   /* Disabled fields keep their faded outline; disabled buttons get a flat fill instead */
   [data-huet-forms] :where(button, input:is([type="button"], [type="submit"], [type="reset"])):disabled,
   [data-huet-forms] :where(input[type="file"]:disabled)::file-selector-button {
     border-color: transparent;
-    background-color: color-mix(in srgb, var(--_line) 40%, var(--huet-background));
+    background-color: var(--huet-5, color-mix(in srgb, var(--_line) 40%, var(--huet-background)));
     cursor: not-allowed;
   }
   /* Icons inside disabled fields fade with their text */

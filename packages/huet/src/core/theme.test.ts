@@ -91,6 +91,47 @@ describe("readability", () => {
     }
     expect(hueTargetMet / (256 * hues.length)).toBeGreaterThan(0.9);
   });
+  it("keeps disabled text and lines at half the foreground's and the border's Lc, light or dark", () => {
+    const theme = createTheme();
+    for (let i = 0; i < 256; i++) {
+      const bg = "#" + i.toString(16).padStart(2, "0").repeat(3);
+      const t = theme.tokens(bg);
+      const [fg, muted, border, disabled, disabledBorder] =
+        [t.foreground, t.muted, t.border, t.disabled, t.disabledBorder].map((x) => contrast(bg, x));
+      if (fg < 15) continue;
+      expect(disabled / fg, bg).toBeCloseTo(1 / 2, 1);
+      expect(disabledBorder / border, bg).toBeCloseTo(1 / 2, 1);
+      // Disabled text sits between muted text and borders, and a disabled
+      // slider's filled part (text) stays stronger than its track (line).
+      expect(disabled, bg).toBeLessThan(muted);
+      expect(disabled, bg).toBeGreaterThan(border);
+      expect(disabledBorder, bg).toBeLessThan(border);
+      expect(contrast(t.disabledBorder, t.disabled), bg).toBeGreaterThanOrEqual(5);
+      for (const color of [t.disabled, t.disabledBorder])
+        expect(Math.sign(luminance(color) - luminance(bg)), bg).toBe(Math.sign(luminance(t.foreground) - luminance(bg)));
+    }
+    // Black and white, the case a 55% sRGB mix got wrong: Lc 73 on white, 41 on black
+    for (const bg of ["#ffffff", "#000000"]) {
+      expect(contrast(bg, theme.tokens(bg).disabled), bg).toBeGreaterThanOrEqual(45);
+      expect(contrast(bg, theme.tokens(bg).disabled), bg).toBeLessThan(47);
+    }
+  });
+  it("keeps the same disabled share on light and dark presets and their surfaces", () => {
+    for (const name of ["Base", "Sunset", "Orange Boost", "A Box of Macaroni"] as const) {
+      const shares = [0, 1].flatMap((background) => {
+        const r = resolveTheme(themes[name], { background });
+        return [r.root, r.step(r.root, 20, "blue"), r.step(r.root, 100)].map((surface) => {
+          const t = r.tokensOn(surface);
+          const fg = contrast(t.background, t.foreground);
+          return { text: contrast(t.background, t.disabled) / fg, line: contrast(t.background, t.disabledBorder) / contrast(t.background, t.border) };
+        });
+      });
+      for (const { text, line } of shares) {
+        expect(text, name).toBeCloseTo(1 / 2, 1);
+        expect(line, name).toBeCloseTo(1 / 2, 1);
+      }
+    }
+  });
   it("puts light text on middle grays, where APCA reads it better", () => {
     const theme = createTheme();
     for (const bg of ["#747474", "#797979", "#7d7d7d", "#828282", "#8b8b8b", "#9b9b9b"]) {

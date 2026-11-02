@@ -271,7 +271,12 @@ const grid = "grid grid-cols-[repeat(auto-fill,minmax(14em,1fr))] gap-x-6 gap-y-
               <div class="flex gap-3">
                 <button type="submit">Create</button>
                 <button type="button">Cancel</button>
+                <button type="button" disabled>Archive</button>
               </div>
+              <label class={field}>
+                Owner (disabled)
+                <input class={fieldInput} type="text" value="Ada Lovelace" disabled />
+              </label>
             </fieldset>
           ))}
         </div>
