@@ -102,7 +102,7 @@ The pictures assume the first choice listed in each item.
 
 1. **When the 1px edge is reserved.** Options: only in high-contrast modes, where layout shifts once when the user changes the setting; or always, which costs 1px everywhere but never shifts.
 2. **One knob or several.** `contrast` above 1 currently drives three things: ramp extension, fading region fills, and the minimum boundary contrast. Splitting them gives more control and more API.
-3. **How steep `contrast` below 1 should be.** Today's fade is steep: body text is 9.1:1 at 0.95, 6.4:1 at 0.9, and 2.3:1 at 0.6. Above 1 the proposal is gentle. A log-scale fade would make the two halves match.
+3. **How steep `contrast` below 1 should be.** Today body text falls from Lc 102.8 to 91.0 at 0.95, 81.8 at 0.9, and 45.2 at 0.6. Above 1 the proposal is gentler. Fading in equal Lc steps would make the two halves match.
 4. **Layout errors after mount.** A layout can break only at a size reached later. Throwing then would break the live page, so the proposal logs a `console.error` with the same message and skips lines for that container.
 5. **How much region fills fade.** At `contrast: 2` they fade to half their amount. Zero fading is simpler, but leaves less room for text on mid-tone surfaces.
 6. **The name `huet-split`.**

@@ -7,16 +7,16 @@
         "background": "#747474",
         "muted": "#b7b7b7",
         "border": "#959595",
-        "mutedRatio": 2.330458699405466,
-        "borderRatio": 1.5604177422553598
+        "mutedLc": 33.52019326335144,
+        "borderLc": 15.185333541712327
       },
       {
         "position": 0.51,
         "background": "#797979",
         "muted": "#3c3c3c",
         "border": "#5a5a5a",
-        "mutedRatio": 2.533998327777523,
-        "borderRatio": 1.5843335322595773
+        "mutedLc": 23.408419641653275,
+        "borderLc": 11.732045068587851
       }
     ]
   },
@@ -28,16 +28,16 @@
         "background": "#747474",
         "muted": "#fcfcfc",
         "border": "#cfcfcf",
-        "mutedRatio": 4.5557850825086454,
-        "borderRatio": 3.000080929973038
+        "mutedLc": 75.94772457635179,
+        "borderLc": 47.52430637936295
       },
       {
         "position": 0.51,
         "background": "#797979",
         "muted": "#0b0b0b",
         "border": "#d7d7d7",
-        "mutedRatio": 4.521412295791812,
-        "borderRatio": 3.02461600326852
+        "mutedLc": 33.6542312912547,
+        "borderLc": 50.10594181475042
       }
     ]
   }

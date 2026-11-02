@@ -1,4 +1,5 @@
 import { test, expect, type Page } from "@playwright/test";
+import chroma from "chroma-js";
 
 import { configurator, setPercent } from "./helpers/configurator";
 
@@ -89,28 +90,26 @@ for (const mode of ["contrast", "outlined"]) {
     await page.getByLabel("Theme button").selectOption(mode);
     await page.mouse.move(0, 0);
 
-    const ratios = await trigger.evaluate((button) => {
-      const luminance = (rgb: string) => {
-        const [r, g, b] = rgb.match(/\d+/g)!.slice(0, 3).map((v) => {
-          const c = Number(v) / 255;
-          return c <= 0.04045 ? c / 12.92 : ((c + 0.055) / 1.055) ** 2.4;
-        });
-        return 0.2126 * r + 0.7152 * g + 0.0722 * b;
-      };
+    const { surface, dots } = await trigger.evaluate((button) => {
       // The mini map is drawn for the button's fill, or else the theme's page
       const own = getComputedStyle(button).backgroundColor;
-      const surface = luminance(
-        own === "rgba(0, 0, 0, 0)"
-          ? getComputedStyle(document.querySelector("#page")!).backgroundColor
-          : own
-      );
-      return [...button.querySelectorAll("[title]")].map((dot) => {
-        const l = luminance(getComputedStyle(dot).backgroundColor);
-        return (Math.max(l, surface) + 0.05) / (Math.min(l, surface) + 0.05);
-      });
+      return {
+        surface:
+          own === "rgba(0, 0, 0, 0)"
+            ? getComputedStyle(document.querySelector("#page")!).backgroundColor
+            : own,
+        dots: [...button.querySelectorAll("[title]")].map(
+          (dot) => getComputedStyle(dot).backgroundColor
+        ),
+      };
     });
+    // Contrast here is distance in CIE L*, as the mini map sorts by
+    const lightness = (color: string) => chroma(color).get("lab.l");
+    const distances = dots.map((dot) =>
+      Math.abs(lightness(dot) - lightness(surface))
+    );
 
-    expect(ratios.length).toBeGreaterThan(1);
-    expect(ratios).toEqual([...ratios].sort((a, b) => b - a));
+    expect(distances.length).toBeGreaterThan(1);
+    expect(distances).toEqual([...distances].sort((a, b) => b - a));
   });
 }
