@@ -16,9 +16,9 @@ import { Group } from "./group"
 const hues = [
   ["Red", "bg-red-600 text-red-50", "bg-red-100 text-red-800 dark:bg-red-950 dark:text-red-200", "border-red-300 text-red-700 dark:border-red-800 dark:text-red-300", "bg-red-500"],
   ["Orange", "bg-orange-600 text-orange-50", "bg-orange-100 text-orange-800 dark:bg-orange-950 dark:text-orange-200", "border-orange-300 text-orange-700 dark:border-orange-800 dark:text-orange-300", "bg-orange-500"],
-  ["Amber", "bg-amber-500 text-amber-950", "bg-amber-100 text-amber-800 dark:bg-amber-950 dark:text-amber-200", "border-amber-300 text-amber-700 dark:border-amber-800 dark:text-amber-300", "bg-amber-500"],
-  ["Yellow", "bg-yellow-400 text-yellow-950", "bg-yellow-100 text-yellow-800 dark:bg-yellow-950 dark:text-yellow-200", "border-yellow-300 text-yellow-700 dark:border-yellow-800 dark:text-yellow-300", "bg-yellow-500"],
-  ["Lime", "bg-lime-500 text-lime-950", "bg-lime-100 text-lime-800 dark:bg-lime-950 dark:text-lime-200", "border-lime-300 text-lime-700 dark:border-lime-800 dark:text-lime-300", "bg-lime-500"],
+  ["Amber", "bg-amber-600 text-amber-50", "bg-amber-100 text-amber-800 dark:bg-amber-950 dark:text-amber-200", "border-amber-300 text-amber-700 dark:border-amber-800 dark:text-amber-300", "bg-amber-500"],
+  ["Yellow", "bg-yellow-600 text-yellow-50", "bg-yellow-100 text-yellow-800 dark:bg-yellow-950 dark:text-yellow-200", "border-yellow-300 text-yellow-700 dark:border-yellow-800 dark:text-yellow-300", "bg-yellow-500"],
+  ["Lime", "bg-lime-600 text-lime-50", "bg-lime-100 text-lime-800 dark:bg-lime-950 dark:text-lime-200", "border-lime-300 text-lime-700 dark:border-lime-800 dark:text-lime-300", "bg-lime-500"],
   ["Green", "bg-green-600 text-green-50", "bg-green-100 text-green-800 dark:bg-green-950 dark:text-green-200", "border-green-300 text-green-700 dark:border-green-800 dark:text-green-300", "bg-green-500"],
   ["Emerald", "bg-emerald-600 text-emerald-50", "bg-emerald-100 text-emerald-800 dark:bg-emerald-950 dark:text-emerald-200", "border-emerald-300 text-emerald-700 dark:border-emerald-800 dark:text-emerald-300", "bg-emerald-500"],
   ["Teal", "bg-teal-600 text-teal-50", "bg-teal-100 text-teal-800 dark:bg-teal-950 dark:text-teal-200", "border-teal-300 text-teal-700 dark:border-teal-800 dark:text-teal-300", "bg-teal-500"],
