@@ -14,7 +14,9 @@ const websites = [
   { name: "YouTube", href: `${base}youtube` },
 ];
 const pages = [
-  { name: "Basic", href: base },
+  // The showcase spans the home page and its shadcn page (see Showcase.astro).
+  { name: "Showcase", href: base, also: [`${base}shadcn`] },
+  { name: "Basic", href: `${base}basic` },
   "websites",
   { name: "Color Contrast", href: `${base}color-contrast` },
   { name: "Images", href: `${base}images` },
@@ -22,8 +24,10 @@ const pages = [
   { name: "Forms", href: `${base}forms` },
 ] as const;
 const current = Astro.url.pathname.replace(/(\.html|\/)$/, "") || "/";
-const isCurrent = (href: string) => (href.replace(/\/$/, "") || "/") === current;
-const onWebsite = websites.some((page) => isCurrent(page.href));
+const isPath = (href: string) => (href.replace(/\/$/, "") || "/") === current;
+const isCurrent = (page: { href: string; also?: readonly string[] }) =>
+  isPath(page.href) || (page.also?.some(isPath) ?? false);
+const onWebsite = websites.some(isCurrent);
 const item = (isActive: boolean) => [
   "rounded px-3 py-1 no-underline",
   isActive ? "huet-bg-100" : "hover:underline",
@@ -59,7 +63,7 @@ const item = (isActive: boolean) => [
                   <Icon icon={ic_chevron_right} size="1.25em" />
                 </button>
               ) : (
-                <a href={page.href} aria-current={isCurrent(page.href) ? "page" : undefined} class:list={item(isCurrent(page.href))}>
+                <a href={page.href} aria-current={isCurrent(page) ? "page" : undefined} class:list={item(isCurrent(page))}>
                   {page.name}
                 </a>
               ),
@@ -76,7 +80,7 @@ const item = (isActive: boolean) => [
             </button>
             <span class="huet-border-30 mx-1 h-5 border-l" aria-hidden="true"></span>
             {websites.map((page) => (
-              <a href={page.href} aria-current={isCurrent(page.href) ? "page" : undefined} class:list={item(isCurrent(page.href))}>
+              <a href={page.href} aria-current={isCurrent(page) ? "page" : undefined} class:list={item(isCurrent(page))}>
                 {page.name}
               </a>
             ))}
@@ -84,7 +88,7 @@ const item = (isActive: boolean) => [
         </nav>
         <ThemeButton client:only="react" />
       </header>
-      <main class="flex-auto overflow-hidden">
+      <main class="flex-auto overflow-clip">
         <slot />
       </main>
     </div>

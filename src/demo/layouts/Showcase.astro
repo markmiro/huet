@@ -1,0 +1,116 @@
+---
+/*
+  The showcase: shadcn components on Huet themes. The home page is the card
+  wall; /shadcn shows each part in full. A side nav moves between them.
+
+  The components are styled with shadcn's CSS variables. Huet's shadcn adapter
+  (the same one the themed shadcn site uses) paints those variables from the
+  theme picked in the header, and moves Tailwind's palette onto its hues.
+*/
+import Demo from "./Demo.astro";
+import "../shadcn/shadcn.css";
+
+const { title } = Astro.props;
+const base = import.meta.env.BASE_URL.replace(/\/?$/, "/");
+const current = Astro.url.pathname.replace(/(\.html|\/)$/, "") || "/";
+const isCurrent = (href: string) => (href.replace(/\/$/, "") || "/") === current;
+const links = [
+  { name: "Overview", href: base, sections: [] },
+  {
+    name: "shadcn integration",
+    href: `${base}shadcn`,
+    sections: [
+      ["forms", "Form states"],
+      ["badges", "Badges"],
+      ["charts", "Charts"],
+      ["themes", "Themes"],
+      ["code", "Code"],
+    ],
+  },
+];
+---
+<Demo title={title}>
+  <div class="flex items-start">
+    <nav
+      aria-label="Showcase"
+      class="huet-border-10 sticky top-(--header-height) hidden h-[calc(100svh-var(--header-height))] w-44 shrink-0 overflow-y-auto border-r px-3 py-5 text-sm lg:block"
+    >
+      <p class="huet-text-50 mb-2 px-2 text-xs font-bold tracking-wide uppercase">Showcase</p>
+      <ul class="flex flex-col gap-0.5">
+        {links.map((link) => (
+          <li>
+            <a
+              href={link.href}
+              aria-current={isCurrent(link.href) ? "page" : undefined}
+              class:list={[
+                "block rounded px-2 py-1.5 no-underline",
+                isCurrent(link.href) ? "huet-bg-10 font-medium" : "hover:underline",
+              ]}
+            >
+              {link.name}
+            </a>
+            {link.sections.length > 0 && (
+              <ul class="huet-border-10 my-1 ml-3 flex flex-col border-l pl-2">
+                {link.sections.map(([id, label]) => (
+                  <li>
+                    <a
+                      href={`${link.href}#${id}`}
+                      data-section={id}
+                      class="huet-text-60 aria-[current=location]:huet-bg-10 aria-[current=location]:huet-text-100 block rounded px-2 py-1 no-underline hover:underline aria-[current=location]:font-medium"
+                    >
+                      {label}
+                    </a>
+                  </li>
+                ))}
+              </ul>
+            )}
+          </li>
+        ))}
+      </ul>
+    </nav>
+    <div class="shadcn min-w-0 flex-1">
+      <slot />
+    </div>
+  </div>
+</Demo>
+
+<script>
+  import { applyHuet } from "../../../scripts/shadcn-huet/shadcn-adapter";
+  import { subscribeTheme } from "../components/themeStore";
+
+  // The header's theme button already recolors images and SVGs, and keeps the
+  // header on Huet's own colors.
+  subscribeTheme(({ theme, background }) => applyHuet(theme, background, { images: false, header: false }));
+
+  // The site header is sticky too, so the side nav and section anchors sit
+  // below it. Its height changes when its links wrap.
+  const header = document.querySelector("header")!;
+  new ResizeObserver(() =>
+    document.documentElement.style.setProperty("--header-height", `${header.offsetHeight}px`),
+  ).observe(header);
+
+  // Scrollspy: the side nav marks the section you're reading. That's the last
+  // one whose top has passed a line a quarter of the way down below the header (the
+  // first, until one has), or the last once the page can't scroll further.
+  const links = new Map(
+    [...document.querySelectorAll<HTMLAnchorElement>("a[data-section]")].map((link) => [link.dataset.section!, link]),
+  );
+  const sections = [...document.querySelectorAll<HTMLElement>("section[id]")].filter((section) => links.has(section.id));
+  let frame = 0;
+  function markCurrent() {
+    frame = 0;
+    if (!sections.length) return;
+    const line = header.offsetHeight + (innerHeight - header.offsetHeight) / 4;
+    const atBottom = innerHeight + scrollY >= document.documentElement.scrollHeight - 2;
+    let current = atBottom ? sections.at(-1) : undefined;
+    if (!current) for (const section of sections) if (section.getBoundingClientRect().top <= line) current = section;
+    current ??= sections[0];
+    for (const [id, link] of links) {
+      if (id === current?.id) link.setAttribute("aria-current", "location");
+      else link.removeAttribute("aria-current");
+    }
+  }
+  addEventListener("scroll", () => (frame ||= requestAnimationFrame(markCurrent)), { passive: true });
+  addEventListener("resize", () => (frame ||= requestAnimationFrame(markCurrent)));
+  markCurrent();
+</script>

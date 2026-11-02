@@ -1,223 +1,48 @@
 ---
-import Icon from "../components/Icon.astro";
-import { ic_notifications } from "react-icons-kit/md/ic_notifications";
-import { ic_sentiment_satisfied } from "react-icons-kit/md/ic_sentiment_satisfied";
+import Showcase from "../layouts/Showcase.astro";
+import CodeCard from "../shadcn/CodeCard.astro";
+import {
+  AlertsStack,
+  DesignReviewCard,
+  GalleryCard,
+  IssuesCard,
+  SignUpCard,
+  SpendingCard,
+  TeamCard,
+} from "../shadcn/cards";
 
-import Section from "../components/Section.astro";
-import Demo from "../layouts/Demo.astro";
-
-const ramps = ["gray", "white", "red", "yellow", "green", "blue", "purple"];
-const hues = ["red", "yellow", "green", "blue", "purple"];
-const items = [
-  { title: "This is something or other", subtitle: "This is a subtitle" },
-  { title: "This is another item", subtitle: "This another subtitle" },
-  { title: "Yes", subtitle: "No" },
-];
-const input = "block w-[20em] rounded border bg-transparent p-2";
-const focus = "focus-visible:outline-2 focus-visible:-outline-offset-2";
-const stepButton = `huet-bg-5 huet-outline-100 w-8 ${focus}`;
-const button =
-  "mt-3 flex w-full max-w-[20em] items-center justify-center rounded p-2 text-center";
+const base = import.meta.env.BASE_URL.replace(/\/?$/, "/");
 ---
-<Demo title="Basic">
-  <div class="mx-auto w-[50em] p-8">
-    <h1 data-theme-name class="my-[0.67em] border-b-[.125em] pb-1 text-5xl font-bold">&nbsp;</h1>
-
-    <Section title="Colors">
-      <div class="mb-2 flex gap-2">
-        {ramps.map((ramp) => (
-          <div class={`huet-bg-${ramp}-100 huet-bg/text-white-100 w-full rounded-xs p-1 text-center text-xl`}>
-            {ramp}
-          </div>
-        ))}
-      </div>
-    </Section>
-
-    <Section title="Nav">
-      <div class="huet-bg-100 flex items-center justify-between p-4">
-        <div class="huet-text-50 mr-2"><Icon icon={ic_sentiment_satisfied} size={32} /></div>
-        <div class="flex items-center">
-          <div class="mr-4">Home &nbsp;&nbsp; About &nbsp;&nbsp; Contact</div>
-          <input
-            readonly
-            value="Search"
-            aria-label="Search"
-            class="huet-bg-20 huet-bg/border-20 huet-bg/text-50 mr-4 w-[15em] rounded border p-2 shadow-[inset_0_2px_10px_rgb(0_0_0/0.2)]"
-          />
-          <div class="relative">
-            <Icon icon={ic_notifications} size={24} />
-            <div class="huet-bg-red-100 huet-border-red-0 absolute top-0 right-0 size-2.5 rounded-full border"></div>
-          </div>
-        </div>
-      </div>
-    </Section>
-
-    <Section title="Selectable">
-      <div data-selectable>
-        <label class="mb-4 block max-w-[30em]">
-          <span class="mb-1 flex justify-between">
-            Background contrast <span class="huet-text-50">(0-100)</span>
-          </span>
-          <span class="flex items-center gap-3">
-            <span class="huet-border-20 flex overflow-hidden rounded-xs border">
-              <button type="button" data-contrast-step="-1" aria-label="Decrease background contrast" class={stepButton}>−</button>
-              <input
-                data-contrast-number
-                type="number"
-                min="0"
-                max="100"
-                value="100"
-                aria-label="Background contrast"
-                class={`stepper-input huet-border-20 huet-outline-100 w-12 border-x bg-transparent py-1 text-center ${focus}`}
-              />
-              <button type="button" data-contrast-step="1" aria-label="Increase background contrast" class={stepButton}>+</button>
-            </span>
-            <input
-              data-contrast-range
-              type="range"
-              min="0"
-              max="100"
-              value="100"
-              aria-label="Background contrast slider"
-              class="slider huet-border-20 huet-outline-100 flex-auto rounded-xs focus-visible:outline-2 focus-visible:outline-offset-4"
-            />
-          </span>
-        </label>
-        {items.map((item) => (
-          <button
-            data-item={item.title}
-            class="huet-bg-100 mb-px flex w-full items-center justify-between p-2 text-left"
-            data-layout="mb-px flex w-full items-center justify-between p-2 text-left"
-          >
-            <div>
-              {item.title}
-              <div data-subtitle class="huet-text-50">{item.subtitle}</div>
-            </div>
-            <div class="flex">
-              <div class="huet-bg-red-50 huet-bg/text-white-100 mr-2 p-1 text-xs">red</div>
-              <div class="huet-bg-green-50 huet-bg/text-white-100 p-1 text-xs">green</div>
-            </div>
-          </button>
-        ))}
-        <div class="huet-text-50 mt-2 text-xs">Click on one of the above blocks to select them</div>
-      </div>
-    </Section>
-
-    <Section title="Form">
-      <label class="mt-2 mb-1 block" for="username">Username</label>
-      <input id="username" readonly value="foobar" class={`huet-border-20 ${input}`} />
-      <div class="huet-text-green-100 mt-1 text-xs">✓ Username is available</div>
-      <label class="mt-4 mb-1 block" for="email">Email</label>
-      <input id="email" readonly value="foo@bar" class={`huet-border-red-100 ${input}`} />
-      <div class="huet-text-red-100 mt-1 text-xs">Invalid email</div>
-      <button class={`huet-bg-100 huet-bg/text-white-100 ${button}`}>Submit</button>
-      <button class={`huet-bg-50 huet-bg/text-white-50 ${button} mt-2`}>Submit Disabled</button>
-      <div class="huet-text-50 mt-1 text-[75%]">
-        By signing up you agree to the <a href="#" class="huet-text-blue-100 underline">Terms and Conditions</a>.
-      </div>
-    </Section>
-
-    <Section title="Alert">
-      {hues.map((hue) => (
-        <div class={`huet-bg-${hue}-10 huet-border-${hue}-20 huet-bg/text-${hue}-100 mt-4 flex items-center justify-between rounded border p-4`}>
-          <div class="leading-[1.4]">
-            Hold up! We need to notify you about something.
-            <br />
-            Click <a href="#" class="huet-text-blue-100 underline">this link</a> to find out more.
-          </div>
-          <div class={`huet-bg-${hue}-10 huet-bg/text-${hue}-100 flex size-8 items-center justify-center rounded-full`}>✕</div>
-        </div>
-      ))}
-    </Section>
-
-    <Section title="Code">
-      <pre class="huet-bg-5 my-4 p-4 text-base"><span class="huet-text-red-100">function</span> <span class="huet-text-purple-100">Purple</span>({"{ children }) {"}
-  <span class="huet-text-red-100">return</span> (
-<span class="huet-bg-red-20"><span class="huet-text-red-100">-</span>   {"<"}<span class="huet-text-blue-100">Block</span> <span class="huet-text-purple-100">contrast</span><span class="huet-text-red-100">=</span><span class="huet-text-yellow-100">"fg=100-purple"</span>{">"}</span>
-<span class="huet-bg-green-30"><span class="huet-text-green-100">+</span>   {"<"}<span class="huet-text-blue-100">Block</span> <span class="huet-text-purple-100">as</span><span class="huet-text-red-100">=</span><span class="huet-text-yellow-100">"span"</span> <span class="huet-text-purple-100">contrast</span><span class="huet-text-red-100">=</span><span class="huet-text-yellow-100">"fg=100-purple"</span>{">"}</span>
-      {"{children}"}
-    {"</"}<span class="huet-text-blue-100">Block</span>{">"}
-  );
-{"}"}</pre>
-    </Section>
-
-    <Section title="SVG Chart">
-      <svg width="500" height="200" xmlns="http://www.w3.org/2000/svg" version="1.1">
-        <rect class="huet-text-red-100" x="10%" y="40%" width="20%" height="60%" fill="currentColor" />
-        <rect class="huet-text-green-100" x="40%" y="20%" width="20%" height="80%" fill="currentColor" />
-        <rect class="huet-text-blue-100" x="70%" y="0%" width="20%" height="100%" fill="currentColor" />
-        <line class="huet-text-50" x1="0" y1="0" x2="0" y2="100%" stroke="currentColor" stroke-width="2" />
-        <line class="huet-text-50" x1="0" y1="100%" x2="100%" y2="100%" stroke="currentColor" stroke-width="2" />
-      </svg>
-      <p class="my-4">
-        <small>Note: The above chart might not be accessible to people with color blindness.</small>
-      </p>
-    </Section>
+<Showcase title="Showcase">
+  <!--
+    Laid out for a 14-inch laptop (about 1512 × 860 inside the browser): the
+    cards fill the screen in four columns, two cards each.
+  -->
+  <div class="flex flex-wrap items-baseline gap-x-4 gap-y-1 px-6 pt-5">
+    <h1 class="text-xl font-semibold tracking-tight">Huet showcase</h1>
+    <p class="text-sm text-muted-foreground">
+      shadcn components, themed by Huet. Pick a theme with the button at the top right.
+    </p>
+    <a href={`${base}shadcn`} class="ml-auto text-sm text-muted-foreground underline-offset-4 hover:underline">
+      Every state, in the shadcn integration →
+    </a>
   </div>
-</Demo>
-
-<script>
-  import { amounts } from "huet";
-
-  // Saved under the same keys the React demo used.
-  const read = (key: string, fallback: unknown) => {
-    try {
-      const raw = localStorage.getItem(`huet:demo:basic:${key}`);
-      return raw === null ? fallback : JSON.parse(raw);
-    } catch {
-      return fallback;
-    }
-  };
-  const write = (key: string, value: unknown) => {
-    try {
-      localStorage.setItem(`huet:demo:basic:${key}`, JSON.stringify(value));
-    } catch {
-      // Storage may be unavailable
-    }
-  };
-
-  const root = document.querySelector("[data-selectable]")!;
-  const number = root.querySelector<HTMLInputElement>("[data-contrast-number]")!;
-  const range = root.querySelector<HTMLInputElement>("[data-contrast-range]")!;
-  const items = [...root.querySelectorAll<HTMLButtonElement>("[data-item]")];
-  const saved = Number(read("bgContrast", 100));
-  // Classes take 13 amounts, so the controls snap to the closest one.
-  const nearest = (value: number) =>
-    amounts.reduce((a, b) => (Math.abs(b - value) < Math.abs(a - value) ? b : a));
-  let contrast: number = Number.isFinite(saved) ? nearest(saved) : 100;
-
-  // Selected items move onto the blue ramp, like <Block base="blue">.
-  const render = () => {
-    number.value = range.value = String(contrast);
-    range.style.setProperty("--fill", String(contrast / 100));
-    for (const item of items) {
-      const isSelected = read(`isSelected:${item.dataset.item}`, false) === true;
-      const ramp = isSelected ? "blue-" : "";
-      const text = isSelected ? " huet-bg/text-blue-100" : "";
-      item.className = `huet-bg-${ramp}${contrast}${text} ${item.dataset.layout}`;
-      item.querySelector("[data-subtitle]")!.className = `huet-text-${ramp}50`;
-    }
-  };
-  const setContrast = (value: string) => {
-    const next = Number(value);
-    if (!Number.isFinite(next)) return;
-    contrast = nearest(next);
-    write("bgContrast", contrast);
-    render();
-  };
-  // Snap typed numbers once they're committed, so "30" isn't snapped at "3".
-  number.addEventListener("change", () => setContrast(number.value));
-  range.addEventListener("input", () => setContrast(range.value));
-  for (const button of root.querySelectorAll<HTMLButtonElement>("[data-contrast-step]"))
-    button.addEventListener("click", () => {
-      const index = amounts.indexOf(contrast as (typeof amounts)[number]) + Number(button.dataset.contrastStep);
-      setContrast(String(amounts[Math.min(amounts.length - 1, Math.max(0, index))]));
-    });
-  for (const item of items)
-    item.addEventListener("click", () => {
-      const key = `isSelected:${item.dataset.item}`;
-      write(key, read(key, false) !== true);
-      render();
-    });
-  render();
-</script>
+  <div class="grid items-start gap-5 p-6 md:grid-cols-2 xl:grid-cols-4 **:data-[slot=card]:w-full">
+    <div class="flex flex-col gap-5">
+      <TeamCard client:load />
+      <SignUpCard client:load />
+    </div>
+    <div class="flex flex-col gap-5">
+      <GalleryCard client:load />
+      <DesignReviewCard client:load />
+    </div>
+    <div class="flex flex-col gap-5">
+      <SpendingCard client:load />
+      <IssuesCard client:load />
+    </div>
+    <div class="flex flex-col gap-5">
+      <CodeCard />
+      <AlertsStack client:load />
+    </div>
+  </div>
+</Showcase>

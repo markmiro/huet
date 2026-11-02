@@ -73,7 +73,7 @@ The [`huet` README](packages/huet/README.md) covers class syntax, Tailwind, mult
 | --- | --- |
 | `packages/huet` | The `huet` package |
 | `packages/huet-react` | The `huet-react` package |
-| `src/demo` | The demo site, built with Astro, Tailwind and Huet classes. It imports the packages like an app would. |
+| `src/demo` | The demo site, built with Astro, Tailwind and Huet classes. It imports the packages like an app would. Its home page is a showcase of shadcn components on Huet themes (`src/demo/shadcn`). |
 | `tests` | Browser tests (Playwright) against the demo site |
 | `docs` | Design notes and screenshots |
 | `vendor/shadcn-ui`, `scripts/shadcn-huet` | The shadcn site themed with Huet: setup, dev and deploy instructions in [its README](scripts/shadcn-huet/README.md) |

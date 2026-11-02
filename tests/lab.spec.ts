@@ -103,7 +103,7 @@ test("gray controls, focus, inheritance, live themes and mobile layout", async (
 });
 
 test("original React form and alerts after the color fixes", async ({ page }) => {
-  await page.goto("/");
+  await page.goto("/basic");
   await expect(
     page.getByRole("heading", { name: "Form", exact: true }),
   ).toBeVisible();

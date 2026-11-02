@@ -4,7 +4,7 @@ import chroma from "chroma-js";
 import { configurator, setPercent } from "./helpers/configurator";
 
 async function open(page: Page) {
-  await page.goto("/");
+  await page.goto("/basic");
   await page.evaluate(() => localStorage.clear());
   await page.reload();
   return page.getByRole("button", { name: /^Theme:/ });

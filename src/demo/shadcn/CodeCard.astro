@@ -1,0 +1,36 @@
+---
+import { transformerNotationDiff } from "@shikijs/transformers";
+import { Code } from "astro:components";
+import { huetShikiTheme, huetShikiTransformer } from "huet";
+
+// configurator.tsx as a small diff. Huet makes the block and each changed row
+// a surface, so tokens and the +/− markers are solved against the row.
+const code = `export function ThemePanel() {
+  const [theme, setTheme] = useState(
+    themes.Base // [!code --]
+    themes.Sunset // [!code ++]
+  )
+  const [bg, setBg] = useState(1) // [!code --]
+  const [bg, setBg] = useState(0) // [!code ++]
+  return (
+    <ThemeConfigurator
+      value={theme}
+      onChange={setTheme}
+      background={bg}
+      onBackgroundChange={setBg}
+    />
+  )
+}`;
+const added = code.match(/\[!code \+\+\]/g)?.length ?? 0;
+const removed = code.match(/\[!code --\]/g)?.length ?? 0;
+---
+<figure class="overflow-hidden rounded-xl border">
+  <figcaption class="huet-bg-5 flex items-center gap-2 border-b px-4 py-2.5 font-mono text-sm">
+    configurator.tsx
+    <span class="ml-auto flex gap-1 text-xs">
+      <span class="huet-bg-green-20 rounded-full px-2 py-0.5">+{added}</span>
+      <span class="huet-bg-red-20 rounded-full px-2 py-0.5">−{removed}</span>
+    </span>
+  </figcaption>
+  <Code code={code} lang="tsx" theme={huetShikiTheme()} transformers={[transformerNotationDiff(), huetShikiTransformer()]} />
+</figure>

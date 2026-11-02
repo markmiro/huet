@@ -59,6 +59,7 @@ if (missingBuilds.length) {
 
 mkdirSync(resolve(v4, "components/huet"), { recursive: true })
 cpSync(resolve(here, "huet-configurator.tsx"), resolve(v4, "components/huet/huet-configurator.tsx"))
+cpSync(resolve(here, "shadcn-adapter.ts"), resolve(v4, "components/huet/shadcn-adapter.ts"))
 
 patch("app/layout.tsx", marker, (source) => {
   const imported = source.includes(marker)
