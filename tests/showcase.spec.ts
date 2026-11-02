@@ -108,3 +108,39 @@ for (const [mode, background] of [["light", 1], ["dark", 0]] as const) {
     }
   });
 }
+
+for (const [mode, background] of [["light", 1], ["dark", 0]] as const) {
+  test(`every hue's solid badge is readable (${mode})`, async ({ page }) => {
+    await open(page, "/shadcn", themes.Base, background);
+    // Tailwind puts dark text on its bright yellows (bg-yellow-400 text-yellow-950),
+    // but Huet gives every hue the same lightness, so each takes light text on its 600.
+    const solids = page.locator('h3:text-is("Every hue: solid, soft, outline, dot") + div > div > [data-slot=badge]:first-child');
+    await expect(solids).toHaveCount(18);
+    for (const badge of await solids.all()) {
+      const name = (await badge.textContent())!;
+      const [fill, text] = await badge.evaluate((el) => {
+        const context = document.createElement("canvas").getContext("2d")!;
+        return [getComputedStyle(el).backgroundColor, getComputedStyle(el).color].map((value) => {
+          context.fillStyle = value;
+          context.fillRect(0, 0, 1, 1);
+          const [r, g, b] = context.getImageData(0, 0, 1, 1).data;
+          return "#" + [r, g, b].map((v) => v.toString(16).padStart(2, "0")).join("");
+        });
+      });
+      expect(contrast(fill, text), name).toBeGreaterThan(60);
+    }
+  });
+}
+
+test("the destructive alert is filled like the other colored alerts", async ({ page }) => {
+  // shadcn's destructive alert is bg-card with red text, so the demo gives it a red box.
+  const fillOf = (title: string) =>
+    hexOf(page, `[data-slot=alert]:has([data-slot=alert-title]:text-is("${title}"))`, "backgroundColor");
+  await open(page, "/shadcn", themes.Sunset, 0);
+  const plain = await fillOf("Heads up");
+  for (const title of ["Payment failed", "Storage almost full", "Saved", "New version"])
+    expect(await fillOf(title), title).not.toBe(plain);
+  await open(page, "/", themes.Sunset, 0);
+  const card = await hexOf(page, "[data-slot=card]", "backgroundColor");
+  for (const title of ["Build failed", "2 warnings", "Deployed"]) expect(await fillOf(title), title).not.toBe(card);
+});
