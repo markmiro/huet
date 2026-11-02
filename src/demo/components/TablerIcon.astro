@@ -1,0 +1,43 @@
+---
+// A Tabler icon (https://tabler.io/icons), inlined at build time so static
+// pages don't need React. Icons draw in currentColor, so Huet text classes on
+// the icon or its parent color it.
+import { readFileSync } from "node:fs";
+import { createRequire } from "node:module";
+
+type Props = {
+  /** The icon's Tabler name, such as "git-branch" */
+  name: string;
+  /** Use the filled version instead of the outline one */
+  filled?: boolean;
+  size?: number | string;
+  stroke?: number;
+  class?: string;
+  /** An accessible name. Without one, the icon is hidden from assistive tech. */
+  label?: string;
+};
+const { name, filled = false, size = 16, stroke = 2, class: className, label } = Astro.props;
+
+const file = createRequire(import.meta.url).resolve(`@tabler/icons/${filled ? "filled" : "outline"}/${name}.svg`);
+// Keep the shapes; this component writes its own <svg> attributes.
+const shapes = readFileSync(file, "utf8")
+  .replace(/^[\s\S]*?<svg[^>]*>/, "")
+  .replace(/<\/svg>\s*$/, "")
+  .replace(/<path stroke="none" d="M0 0h24v24H0z" fill="none" \/>/, "");
+---
+<svg
+  xmlns="http://www.w3.org/2000/svg"
+  width={size}
+  height={size}
+  viewBox="0 0 24 24"
+  fill={filled ? "currentColor" : "none"}
+  stroke={filled ? undefined : "currentColor"}
+  stroke-width={filled ? undefined : stroke}
+  stroke-linecap="round"
+  stroke-linejoin="round"
+  class:list={["inline-block shrink-0 align-[-0.15em]", className]}
+  role={label ? "img" : undefined}
+  aria-label={label}
+  aria-hidden={label ? undefined : "true"}
+  set:html={shapes}
+/>

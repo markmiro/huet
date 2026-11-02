@@ -1,171 +1,422 @@
 ---
-import Icon from "../components/Icon.astro";
-import { ic_apps } from "react-icons-kit/md/ic_apps";
-import { ic_chat_bubble } from "react-icons-kit/md/ic_chat_bubble";
+import { ic_add } from "react-icons-kit/md/ic_add";
+import { ic_check_circle } from "react-icons-kit/md/ic_check_circle";
+import { ic_chevron_right } from "react-icons-kit/md/ic_chevron_right";
+import { ic_closed_caption } from "react-icons-kit/md/ic_closed_caption";
+import { ic_content_cut } from "react-icons-kit/md/ic_content_cut";
+import { ic_crop_landscape } from "react-icons-kit/md/ic_crop_landscape";
+import { ic_expand_more } from "react-icons-kit/md/ic_expand_more";
+import { ic_favorite } from "react-icons-kit/md/ic_favorite";
+import { ic_file_download } from "react-icons-kit/md/ic_file_download";
+import { ic_fullscreen } from "react-icons-kit/md/ic_fullscreen";
 import { ic_menu } from "react-icons-kit/md/ic_menu";
-import { ic_notifications } from "react-icons-kit/md/ic_notifications";
+import { ic_mic } from "react-icons-kit/md/ic_mic";
+import { ic_more_horiz } from "react-icons-kit/md/ic_more_horiz";
+import { ic_more_vert } from "react-icons-kit/md/ic_more_vert";
+import { ic_notifications_none } from "react-icons-kit/md/ic_notifications_none";
+import { ic_pause } from "react-icons-kit/md/ic_pause";
+import { ic_picture_in_picture_alt } from "react-icons-kit/md/ic_picture_in_picture_alt";
+import { ic_playlist_add } from "react-icons-kit/md/ic_playlist_add";
+import { ic_playlist_play } from "react-icons-kit/md/ic_playlist_play";
 import { ic_search } from "react-icons-kit/md/ic_search";
-import { ic_video_call } from "react-icons-kit/md/ic_video_call";
+import { ic_settings } from "react-icons-kit/md/ic_settings";
+import { ic_share } from "react-icons-kit/md/ic_share";
+import { ic_skip_next } from "react-icons-kit/md/ic_skip_next";
+import { ic_sort } from "react-icons-kit/md/ic_sort";
+import { ic_thumb_down } from "react-icons-kit/md/ic_thumb_down";
+import { ic_thumb_up } from "react-icons-kit/md/ic_thumb_up";
+import { ic_volume_up } from "react-icons-kit/md/ic_volume_up";
 
+import Icon from "../components/Icon.astro";
+import YouTubeLogo from "../components/YouTubeLogo.astro";
 import Demo from "../layouts/Demo.astro";
+import { images } from "../recolor/data";
 
-const comments = Array.from({ length: 7 });
-// The first preview sits above a divider; the other six follow it.
-const previews = Array.from({ length: 7 });
-const avatar = "huet-bg-50 size-8 rounded-full";
+const photo = (title: string) => images.find((image) => image.title === title)!.url;
+const bee = photo("Honeybee on an aster");
+
+// The progress bar's chapters, as fractions of the video
+const chapters = [
+  { title: "Dawn on the aster", start: 0, at: "0:00", crop: "origin-[15%_85%]" },
+  { title: "Landing", start: 0.12, at: "2:15", crop: "origin-[35%_45%]" },
+  { title: "Pollen baskets", start: 0.31, at: "5:49", crop: "origin-[60%_60%]" },
+  { title: "The waggle dance", start: 0.58, at: "10:53", crop: "origin-[55%_20%]" },
+  { title: "Back to the hive", start: 0.8, at: "15:01", crop: "origin-[90%_10%]" },
+];
+const played = 0.36;
+const buffered = 0.52;
+const hovered = 2;
+
+const chips = ["All", "From Tiny Worlds", "Insects", "Nature documentaries", "Related", "Recently uploaded", "Watched"];
+
+const upNext = [
+  { image: "Nautilus shell", title: "Why the nautilus shell isn't really a golden spiral", channel: "Number Garden", verified: true, meta: "2.1M views · 3 weeks ago", duration: "14:51" },
+  { image: "Mountain lake", title: "I spent 30 days alone at a mountain lake with no phone", channel: "Ellis Outdoors", verified: true, meta: "4.8M views · 1 year ago", duration: "24:18", progress: 0.6 },
+  { image: "Candlelit restaurant", title: "Sunday service from a candlelit kitchen, live and unedited", channel: "Ember & Oak", meta: "2.4K watching", live: true },
+  { image: "Produce market", title: "Tokyo's oldest produce market at 4 a.m.", channel: "Street Level", meta: "893K views · 5 days ago", duration: "18:02", badge: "New" },
+  { image: "Lichen on rock", title: "Lichen is two organisms pretending to be one", channel: "Tiny Worlds", verified: true, meta: "1.1M views · 2 months ago", duration: "11:27", progress: 1 },
+  { image: "Snowy mountain village", title: "A winter in the highest village in Europe", channel: "Far North Films", meta: "3.3M views · 8 months ago", duration: "41:09" },
+  { image: "Forest in daylight", title: "Rain on a forest floor · 3 hours of ambient sound for sleep and focus", channel: "Quiet Places", meta: "12M views · 2 years ago", duration: "3:02:14" },
+  { image: "City skyline at dusk", title: "Golden hour over the city · 8K timelapse", channel: "Long Exposure", verified: true, meta: "640K views · 4 months ago", duration: "6:30" },
+  { image: "Rugby match", title: "The greatest try ever scored? Breaking it down frame by frame", channel: "The Breakdown", meta: "2.7M views · 1 year ago", duration: "22:45", progress: 0.25 },
+  { image: "Table of food", title: "Cooking every recipe from a 1920s cookbook", channel: "Ember & Oak", meta: "1.9M views · 6 months ago", duration: "32:10" },
+  { image: "Beach, sea and sky", title: "Mix · Calm ocean waves", channel: "Quiet Places, Long Exposure and more", meta: "Updated today", playlist: "50+ videos" },
+  { image: "Kitchen in morning sun", title: "My slow morning routine in a 200-year-old farmhouse", channel: "Slow Days", meta: "5.2M views · 3 years ago", duration: "16:44" },
+];
+
+const comments = [
+  {
+    photo: photo("Woman, white background"),
+    handle: "@marenholt",
+    when: "2 days ago",
+    text: "The moment at 6:41 where the pollen basket fills up in real time is unreal. I've kept bees for eleven years and never seen it this close.",
+    likes: "8.4K",
+    replies: 112,
+    pinned: true,
+    hearted: true,
+  },
+  {
+    letter: "D",
+    avatar: "huet-bg-purple-60",
+    handle: "@dmitri.k",
+    when: "1 day ago",
+    text: "Fun fact: a honeybee visits 50–100 flowers on a single foraging trip, and this one is doing it on what's basically a purple trampoline.",
+    likes: "3.1K",
+    replies: 24,
+    hearted: true,
+  },
+  {
+    letter: "O",
+    avatar: "huet-bg-red-60",
+    handle: "@owenmakesthings",
+    when: "1 day ago",
+    text: "What lens is this? The depth of field on the wings at 10:53 looks like focus stacking but it's moving footage.",
+    likes: "1.2K",
+    replies: 9,
+  },
+  {
+    owner: true,
+    handle: "@TinyWorlds",
+    when: "1 day ago (edited)",
+    text: "Thanks everyone! It's a 100 mm macro on a slider, shot at 120 fps. Full kit list is in the description. Next episode: the inside of the hive.",
+    likes: "5.6K",
+    replies: 41,
+  },
+  {
+    letter: "S",
+    avatar: "huet-bg-green-60",
+    handle: "@sunnyside_apiary",
+    when: "20 hours ago",
+    text: "Showing this to my kids tonight. They keep asking why the bees 'dance' and the chapter at 10:53 explains it better than I ever could.",
+    likes: "642",
+  },
+  {
+    photo: photo("Woman, grey backdrop"),
+    handle: "@ines.paints",
+    when: "14 hours ago",
+    text: "Paused at 3:20 to use as a painting reference. The color in this whole video is gorgeous.",
+    likes: "318",
+    replies: 3,
+  },
+  {
+    letter: "R",
+    avatar: "huet-bg-yellow-60",
+    handle: "@rafa_outdoors",
+    when: "5 hours ago",
+    text: "Asters in late October are a lifeline for bees before winter. Plant them, people!",
+    likes: "97",
+  },
+];
+
+const pill = "huet-bg-5 hover:huet-bg-10 flex h-9 items-center gap-2 rounded-full px-4 font-medium";
+const iconButton = "hover:huet-bg-10 flex size-10 items-center justify-center rounded-full";
+const playerButton = "flex size-10 items-center justify-center";
+const verified = "huet-text-50 inline-flex align-[-2px]";
 ---
 <Demo title="YouTube">
-  <!-- The legacy demo inherited line-height 1.15 from Tachyons. Font-size
-       utilities set their own line-height, so they carry /[1.15] too. -->
-  <div class="leading-[1.15]">
-    <header class="huet-bg-5 sticky top-0 z-[1] flex justify-between p-4 shadow-[0_0_10px_rgb(0_0_0/0.3)]">
-      <div class="flex items-center">
-        <Icon icon={ic_menu} size="1.5em" class="mr-4" />
-        <svg
-          viewBox="0 0 200 60"
-          preserveAspectRatio="xMidYMid meet"
-          focusable="false"
-          role="img"
-          aria-label="YouTube"
-          class="h-[1.5em]"
-        >
-          <path
-            class="huet-text-red-100"
-            fill="currentColor"
-            d="M63,14.87c-0.72-2.7-2.85-4.83-5.56-5.56C52.54,8,32.88,8,32.88,8S13.23,8,8.32,9.31
-            c-2.7,0.72-4.83,2.85-5.56,5.56C1.45,19.77,1.45,30,1.45,30s0,10.23,1.31,15.13c0.72,2.7,2.85,4.83,5.56,5.56
-            C13.23,52,32.88,52,32.88,52s19.66,0,24.56-1.31c2.7-0.72,4.83-2.85,5.56-5.56C64.31,40.23,64.31,30,64.31,30
-            S64.31,19.77,63,14.87z"
-          />
-          <!-- The play button is white measured against the red, so it sets the red
-               as its own background (SVG shapes don't paint it) and takes white from that. -->
-          <polygon
-            class="huet-bg-red-100 huet-bg/text-white-100"
-            fill="currentColor"
-            points="26.6,39.43 42.93,30 26.6,20.57"
-          />
-          <g fill="currentColor">
-            <path
-              d="M92.69,48.03c-1.24-0.84-2.13-2.14-2.65-3.91c-0.52-1.77-0.79-4.12-0.79-7.06v-4
-              c0-2.97,0.3-5.35,0.9-7.15c0.6-1.8,1.54-3.11,2.81-3.93c1.27-0.82,2.94-1.24,5.01-1.24c2.04,0,3.67,0.42,4.9,1.26
-              c1.23,0.84,2.13,2.15,2.7,3.93c0.57,1.78,0.85,4.16,0.85,7.12v4c0,2.94-0.28,5.3-0.83,7.08c-0.55,1.78-1.45,3.09-2.7,3.91
-              c-1.24,0.82-2.93,1.24-5.06,1.24C95.65,49.29,93.93,48.87,92.69,48.03z M99.66,43.71c0.34-0.9,0.52-2.37,0.52-4.4v-8.59
-              c0-1.98-0.17-3.42-0.52-4.34c-0.34-0.91-0.95-1.37-1.82-1.37c-0.84,0-1.43,0.46-1.78,1.37c-0.34,0.91-0.52,2.36-0.52,4.34v8.59
-              c0,2.04,0.16,3.51,0.49,4.4c0.33,0.9,0.93,1.35,1.8,1.35C98.71,45.06,99.31,44.61,99.66,43.71z"
-            />
-            <path
-              d="M188.16,37.13v1.39c0,1.77,0.05,3.09,0.16,3.98c0.1,0.88,0.32,1.53,0.65,1.93
-              c0.33,0.4,0.84,0.61,1.53,0.61c0.93,0,1.57-0.36,1.91-1.08c0.34-0.72,0.53-1.92,0.56-3.6l5.35,0.31
-              c0.03,0.24,0.04,0.57,0.04,0.99c0,2.55-0.7,4.45-2.09,5.71c-1.39,1.26-3.36,1.89-5.91,1.89c-3.06,0-5.2-0.96-6.43-2.88
-              c-1.23-1.92-1.84-4.88-1.84-8.9v-4.81c0-4.14,0.64-7.15,1.91-9.06c1.27-1.9,3.45-2.85,6.54-2.85c2.13,0,3.76,0.39,4.9,1.17
-              c1.14,0.78,1.94,1.99,2.41,3.64c0.46,1.65,0.7,3.93,0.7,6.83v4.72H188.16z M188.95,25.53c-0.31,0.39-0.52,1.03-0.63,1.91
-              c-0.11,0.88-0.16,2.23-0.16,4.02v1.98h4.54v-1.98c0-1.77-0.06-3.11-0.18-4.02c-0.12-0.91-0.34-1.56-0.65-1.93
-              c-0.31-0.37-0.8-0.56-1.46-0.56C189.75,24.94,189.26,25.14,188.95,25.53z"
-            />
-            <path
-              d="M77.59,36.61l-7.06-25.49h6.16l2.47,11.55c0.63,2.85,1.09,5.27,1.39,7.28h0.18
-              c0.21-1.44,0.67-3.85,1.39-7.24l2.56-11.6h6.16L83.7,36.61v12.23h-6.11V36.61z"
-            />
-            <path
-              d="M126.45,21.28v27.55h-4.85l-0.54-3.37h-0.13c-1.32,2.55-3.3,3.82-5.93,3.82c-1.83,0-3.18-0.6-4.05-1.8
-              c-0.87-1.2-1.3-3.07-1.3-5.62V21.28h6.2v20.23c0,1.23,0.13,2.11,0.4,2.63c0.27,0.52,0.72,0.79,1.35,0.79
-              c0.54,0,1.06-0.16,1.55-0.49c0.49-0.33,0.86-0.75,1.1-1.26V21.28H126.45z"
-            />
-            <path
-              d="M158.27,21.28v27.55h-4.85l-0.54-3.37h-0.13c-1.32,2.55-3.3,3.82-5.93,3.82c-1.83,0-3.18-0.6-4.05-1.8
-              c-0.87-1.2-1.3-3.07-1.3-5.62V21.28h6.2v20.23c0,1.23,0.13,2.11,0.4,2.63c0.27,0.52,0.72,0.79,1.35,0.79
-              c0.54,0,1.06-0.16,1.55-0.49c0.49-0.33,0.86-0.75,1.1-1.26V21.28H158.27z"
-            />
-            <path d="M143.31,16.11h-6.16v32.72h-6.07V16.11h-6.16v-4.99h18.38V16.11z" />
-            <path
-              d="M178.8,25.69c-0.38-1.74-0.98-3-1.82-3.78c-0.84-0.78-1.99-1.17-3.46-1.17c-1.14,0-2.2,0.32-3.19,0.97
-              c-0.99,0.64-1.75,1.49-2.29,2.54h-0.05l0-14.52h-5.98v39.11h5.12l0.63-2.61h0.13c0.48,0.93,1.2,1.66,2.16,2.2
-              c0.96,0.54,2.02,0.81,3.19,0.81c2.1,0,3.64-0.97,4.63-2.9c0.99-1.93,1.48-4.95,1.48-9.06v-4.36
-              C179.36,29.84,179.17,27.43,178.8,25.69z M173.11,36.93c0,2.01-0.08,3.58-0.25,4.72c-0.16,1.14-0.44,1.95-0.83,2.43
-              c-0.39,0.48-0.91,0.72-1.57,0.72c-0.51,0-0.98-0.12-1.42-0.36c-0.43-0.24-0.79-0.6-1.06-1.08V27.71
-              c0.21-0.75,0.57-1.36,1.08-1.84c0.51-0.48,1.06-0.72,1.66-0.72c0.63,0,1.12,0.25,1.46,0.74c0.34,0.49,0.58,1.33,0.72,2.49
-              c0.13,1.17,0.2,2.83,0.2,4.99V36.93z"
-            />
-          </g>
-        </svg>
+  <div class="text-sm/normal">
+    <!-- Masthead -->
+    <header class="huet-bg-0 sticky top-0 z-10 flex h-14 items-center justify-between gap-4 px-4">
+      <div class="flex shrink-0 items-center gap-4">
+        <button aria-label="Guide" class={iconButton}><Icon icon={ic_menu} size={24} /></button>
+        <a href="#" aria-label="YouTube Home" class="flex items-start gap-0.5">
+          <YouTubeLogo class="h-5" />
+          <span class="huet-text-60 -mt-1 text-[10px]">US</span>
+        </a>
       </div>
-      <div class="mx-8 hidden w-2/5 sm:flex sm:max-lg:flex-auto">
-        <!-- Placeholder: 20 against the input's own background. Typed text keeps
-             the input's foreground (text-huet-fg). -->
-        <input
-          placeholder="Search"
-          aria-label="Search"
-          class="huet-bg-5 huet-border-20 huet-bg/text-20 text-huet-fg placeholder:text-(--huet-relative-text) flex-auto border px-1 shadow-[inset_0_2px_6px_rgb(0_0_0/0.1)]"
-        />
-        <button aria-label="Search" class="huet-bg-5 huet-border-20 flex border-y border-r px-4 py-px">
-          <div class="huet-text-50"><Icon icon={ic_search} size="1.2em" /></div>
+      <div class="hidden max-w-[40em] flex-1 items-center gap-4 sm:flex">
+        <div class="flex flex-1">
+          <!-- Placeholder: 50 against the input's own background. Typed text keeps
+               the input's foreground. -->
+          <input
+            placeholder="Search"
+            aria-label="Search"
+            value="honeybee macro 4k"
+            class="huet-bg-0 huet-border-30 huet-bg/text-50 text-huet-fg placeholder:text-(--huet-relative-text) min-w-0 flex-1 rounded-l-full border px-4 py-2 shadow-[inset_0_1px_2px_rgb(0_0_0/0.1)] focus-visible:outline-none focus-visible:huet-border-blue-60"
+          />
+          <button aria-label="Search" class="huet-bg-5 hover:huet-bg-10 huet-bg/border-30 flex w-16 items-center justify-center rounded-r-full border border-l-0">
+            <Icon icon={ic_search} size={24} />
+          </button>
+        </div>
+        <button aria-label="Search with your voice" class="huet-bg-5 hover:huet-bg-10 flex size-10 shrink-0 items-center justify-center rounded-full">
+          <Icon icon={ic_mic} size={24} />
         </button>
       </div>
-      <div class="flex flex-none items-center">
-        <div class="huet-text-50 flex flex-none items-center">
-          <Icon icon={ic_video_call} size="1.5em" class="mr-4" />
-          <Icon icon={ic_apps} size="1.5em" class="mr-4" />
-          <Icon icon={ic_chat_bubble} size="1.2em" class="mr-4" />
-          <Icon icon={ic_notifications} size="1.5em" class="mr-4" />
-        </div>
-        <div class="huet-bg-40 size-8 rounded-full"></div>
+      <div class="flex shrink-0 items-center gap-2">
+        <button class={`${pill} hidden md:flex`}><Icon icon={ic_add} size={24} />Create</button>
+        <button aria-label="Notifications, 9+ unread" class={`${iconButton} relative`}>
+          <Icon icon={ic_notifications_none} size={24} />
+          <span class="huet-bg-red-100 huet-bg/text-white-100 absolute top-0.5 right-0 rounded-full px-1 text-[11px] leading-4 font-medium">9+</span>
+        </button>
+        <img data-huet-recolor src={photo("Man, grey wall")} alt="Your account" class="ml-2 size-8 rounded-full object-cover object-top" />
       </div>
     </header>
 
-    <div class="flex flex-wrap px-4 pt-4 lg:flex-nowrap">
-      <div class="mb-4 w-full lg:mr-4 lg:w-4/5">
-        <div class="huet-bg-20 w-full pt-[55%]"></div>
-        <div class="my-4 block text-xl/[1.15]">Dan Abramov: Beyond React 16 | JSConf Iceland 2018</div>
-        <div class="huet-text-50 my-4 block">46,841 views</div>
-        <div class="huet-border-10 my-4 border-t"></div>
-        <div class="flex justify-between">
-          <div class="huet-text-blue-100">https://2018.jsconf.is/speakers/dan-a...</div>
-          <button class="huet-bg-red-100 huet-bg/text-white-100 rounded-xs px-4 py-2 text-sm/[1.15]">
-            <b>SUBSCRIBE</b> 108K
-          </button>
-        </div>
-        <div class="mb-4 flex items-center">
-          <div>23 Comments</div>
-          <div class="huet-text-60 text-xs/[1.15]">SORT BY</div>
-        </div>
-        <div class="flex items-center">
-          <div class={`${avatar} mr-2`}></div>
-          <div class="huet-text-60 huet-border-10 flex-auto border-b pb-1 text-sm/[1.15]">Add a public comment</div>
-        </div>
-        {comments.map(() => (
-          <div class="mt-4 flex items-center">
-            <div class={`${avatar} mr-2`}></div>
-            <div class="huet-text-60 flex-auto pb-1 text-sm/[1.15]">Lorem...</div>
-          </div>
-        ))}
-      </div>
+    <div class="mx-auto flex max-w-[1754px] flex-col gap-6 px-4 pt-4 pb-10 xl:flex-row xl:px-6">
+      <!-- Watch column -->
+      <main class="min-w-0 flex-1">
+        <div class="relative">
+          <!-- Ambient mode: a blurred, recolored copy of the frame glows behind the player -->
+          <img data-huet-recolor src={bee} alt="" aria-hidden="true" class="pointer-events-none absolute inset-0 size-full scale-[1.04] rounded-xl object-cover opacity-50 blur-3xl" />
 
-      <div>
-        <div class="mb-4 flex justify-between">
-          <b>Up next</b>
-          <b class="flex items-center">
-            <div class="huet-text-40 mr-1 text-xs/[1.15]">AUTOPLAY</div>
-            <div class="huet-bg-20 relative h-[1em] w-[2.4em] rounded-full">
-              <div class="huet-bg-blue-100 absolute top-1/2 size-[1.3em] translate-x-[85%] -translate-y-1/2 rounded-full shadow-[0px_2px_4px_rgb(0_0_0/0.3)]"></div>
+          <div class="huet-bg-100 relative aspect-video overflow-hidden rounded-xl">
+            <img data-huet-recolor src={bee} alt="A honeybee gathering pollen on a purple aster" class="absolute inset-0 size-full object-cover" />
+            <!-- A scrim in the player's own color, so the controls on it stay readable -->
+            <span class="huet-text-0 pointer-events-none absolute inset-x-0 bottom-0 h-40 bg-[linear-gradient(transparent,currentColor)] opacity-80"></span>
+            <span class="huet-text-0 pointer-events-none absolute inset-x-0 top-0 h-24 bg-[linear-gradient(currentColor,transparent)] opacity-60"></span>
+
+            <div class="absolute inset-x-0 top-0 hidden items-center gap-3 p-4 sm:flex">
+              <img data-huet-recolor src={photo("Lichen on rock")} alt="" class="size-10 rounded-full object-cover" />
+              <span class="truncate text-lg font-medium">The secret life of a honeybee, filmed on a single aster</span>
             </div>
-          </b>
-        </div>
-        {previews.map((_, i) => (
-          <Fragment>
-            <div class:list={["flex items-start", i > 0 && "mb-2"]}>
-              <div class="huet-bg-20 mr-2 h-[5em] w-[8em] shrink-0"></div>
-              <div class="flex flex-col">
-                <div class="mb-1 line-clamp-2 max-w-[32rem] text-sm/[1.15] font-bold">
-                  Why Everything You Thought You Knew About Quantum Physics is Different - with Philip Ball
+
+            <div class="absolute inset-x-0 bottom-0 px-3">
+              <!-- Storyboard preview where the pointer is over the progress bar -->
+              <div class="absolute bottom-[4.25rem] left-[44%] hidden md:flex -translate-x-1/2 flex-col items-center gap-1">
+                <span class="huet-bg-100 block overflow-hidden rounded-lg p-0.5">
+                  <span class="block overflow-hidden rounded-md">
+                    <img data-huet-recolor src={bee} alt="" class="block aspect-video w-40 scale-[2.2] object-cover origin-[60%_60%]" />
+                  </span>
+                </span>
+                <span class="text-xs font-medium">{chapters[hovered].title}</span>
+                <span class="text-sm font-semibold">8:16</span>
+              </div>
+
+              <!-- Progress bar: each chapter is its own track -->
+              <div class="relative flex h-4 items-center gap-0.5">
+                {chapters.map((c, i) => {
+                  const end = chapters[i + 1]?.start ?? 1;
+                  const fill = (to: number) => `${Math.max(0, Math.min(1, (to - c.start) / (end - c.start))) * 100}%`;
+                  return (
+                    <span
+                      class:list={["huet-bg-30 relative block overflow-hidden rounded-full", i === hovered ? "h-1.5" : "h-1"]}
+                      style={`width: ${(end - c.start) * 100}%`}
+                    >
+                      <span class="huet-bg-60 absolute inset-y-0 left-0 block" style={`width: ${fill(buffered)}`}></span>
+                      <span class="huet-bg-red-100 absolute inset-y-0 left-0 block" style={`width: ${fill(played)}`}></span>
+                    </span>
+                  );
+                })}
+                <span class="huet-bg-red-100 absolute top-1/2 block size-3.5 -translate-x-1/2 -translate-y-1/2 rounded-full" style={`left: ${played * 100}%`}></span>
+              </div>
+
+              <div class="flex h-12 items-center justify-between">
+                <div class="flex min-w-0 items-center">
+                  <button aria-label="Pause" class={playerButton}><Icon icon={ic_pause} size={30} /></button>
+                  <button aria-label="Next" class={playerButton}><Icon icon={ic_skip_next} size={28} /></button>
+                  <button aria-label="Mute" class={playerButton}><Icon icon={ic_volume_up} size={26} /></button>
+                  <span class="hidden h-1 w-16 overflow-hidden rounded-full sm:flex">
+                    <span class="huet-bg-100 block w-3/4"></span>
+                    <span class="huet-bg-30 block flex-1"></span>
+                  </span>
+                  <span class="ml-3 shrink-0 text-[13px] tabular-nums">6:41 / 18:47</span>
+                  <span class="ml-3 hidden items-center truncate text-[13px] md:flex">· {chapters[2].title}<Icon icon={ic_chevron_right} size={18} /></span>
                 </div>
-                <div class="huet-text-60 mb-1 text-xs/[1.15]">The Royal Institution</div>
-                <div class="huet-text-60 text-xs/[1.15]">358K views</div>
+                <div class="flex shrink-0 items-center">
+                  <span role="switch" aria-checked="true" aria-label="Autoplay" class="huet-bg-40 relative mx-2 hidden h-3.5 w-9 rounded-full sm:block">
+                    <span class="huet-bg-100 absolute top-1/2 right-0 flex size-5 -translate-y-1/2 items-center justify-center rounded-full shadow">
+                      <span class="block size-0 border-y-[4px] border-l-[6px] border-y-transparent"></span>
+                    </span>
+                  </span>
+                  <button aria-label="Subtitles" class={`${playerButton} relative`}>
+                    <Icon icon={ic_closed_caption} size={26} />
+                    <span class="huet-bg-red-100 absolute bottom-2 left-2.5 block h-0.5 w-5 rounded-full"></span>
+                  </button>
+                  <button aria-label="Settings" class={`${playerButton} relative`}>
+                    <Icon icon={ic_settings} size={24} />
+                    <span class="huet-bg-red-100 huet-bg/text-white-100 absolute top-1.5 right-0 rounded-xs px-0.5 text-[8px] leading-tight font-bold">4K</span>
+                  </button>
+                  <button aria-label="Miniplayer" class={`${playerButton} hidden sm:flex`}><Icon icon={ic_picture_in_picture_alt} size={22} /></button>
+                  <button aria-label="Theater mode" class={`${playerButton} hidden sm:flex`}><Icon icon={ic_crop_landscape} size={26} /></button>
+                  <button aria-label="Full screen" class={playerButton}><Icon icon={ic_fullscreen} size={28} /></button>
+                </div>
               </div>
             </div>
-            {i === 0 && <div class="huet-border-10 my-4 border-t"></div>}
-          </Fragment>
-        ))}
-      </div>
+          </div>
+        </div>
+
+        <h1 class="mt-3 text-xl/7 font-bold">The secret life of a honeybee, filmed on a single aster | 4K macro</h1>
+
+        <div class="mt-3 flex flex-wrap items-center justify-between gap-3">
+          <div class="flex items-center gap-3">
+            <img data-huet-recolor src={photo("Lichen on rock")} alt="Tiny Worlds" class="size-10 rounded-full object-cover" />
+            <div class="mr-3">
+              <a href="#" class="text-base font-semibold">Tiny Worlds <span class={verified}><Icon icon={ic_check_circle} size={14} /></span></a>
+              <div class="huet-text-60 text-xs">1.84M subscribers</div>
+            </div>
+            <button class="huet-bg/border-30 hover:huet-bg-10 h-9 rounded-full border px-4 font-medium">Join</button>
+            <button class="huet-bg-100 hover:huet-bg-80 h-9 rounded-full px-4 font-medium">Subscribe</button>
+          </div>
+          <div class="flex flex-wrap items-center gap-2">
+            <div class="huet-bg-5 flex h-9 items-center overflow-hidden rounded-full">
+              <button aria-label="Like this video along with 48K other people" class="hover:huet-bg-10 flex h-full items-center gap-2 pr-3 pl-4 font-medium">
+                <Icon icon={ic_thumb_up} size={20} />48K
+              </button>
+              <span class="huet-bg-20 block h-6 w-px"></span>
+              <button aria-label="Dislike this video" class="hover:huet-bg-10 flex h-full items-center pr-4 pl-3"><Icon icon={ic_thumb_down} size={20} /></button>
+            </div>
+            <button class={pill}><Icon icon={ic_share} size={20} />Share</button>
+            <button class={`${pill} hidden sm:flex`}><Icon icon={ic_file_download} size={20} />Download</button>
+            <button class={`${pill} hidden lg:flex`}><Icon icon={ic_content_cut} size={20} />Clip</button>
+            <button class={`${pill} hidden lg:flex`}><Icon icon={ic_playlist_add} size={20} />Save</button>
+            <button aria-label="More actions" class="huet-bg-5 hover:huet-bg-10 flex size-9 items-center justify-center rounded-full"><Icon icon={ic_more_horiz} size={20} /></button>
+          </div>
+        </div>
+
+        <!-- Description -->
+        <div class="huet-bg-5 hover:huet-bg-10 mt-3 rounded-xl p-3">
+          <p class="font-semibold">1,284,093 views  Premiered Oct 30, 2026 <span class="huet-text-blue-100">#macro #honeybee #nature</span></p>
+          <p class="mt-1">
+            We spent three mornings on one aster in our garden, waiting for the same bee to come back.
+            Shot on a 100 mm macro lens at 120 fps, then slowed down so you can watch the pollen baskets fill.
+          </p>
+          <p class="mt-3">Chapters</p>
+          <ul class="mt-1">
+            {chapters.map((c) => (
+              <li><a href="#" class="huet-text-blue-100 hover:underline">{c.at}</a> {c.title}</li>
+            ))}
+          </ul>
+          <div class="mt-3 flex gap-2 overflow-x-auto pb-1">
+            {chapters.map((c, i) => (
+              <a href="#" class:list={["flex w-[11em] shrink-0 flex-col rounded-lg p-1.5", i === hovered ? "huet-bg-20" : "hover:huet-bg-20"]}>
+                <span class="block overflow-hidden rounded-md">
+                  <img data-huet-recolor src={bee} alt="" class={`block aspect-video w-full scale-[2.2] object-cover ${c.crop}`} />
+                </span>
+                <span class="mt-1.5 line-clamp-1 font-medium">{c.title}</span>
+                <span class="huet-bg-10 mt-1 self-start rounded px-1 text-xs font-medium">{c.at}</span>
+              </a>
+            ))}
+          </div>
+          <button class="mt-2 font-semibold">Show less</button>
+        </div>
+
+        <!-- Comments -->
+        <section class="mt-6">
+          <div class="flex items-center gap-8">
+            <h2 class="text-xl font-bold">4,127 Comments</h2>
+            <button class="flex items-center gap-2 font-medium"><Icon icon={ic_sort} size={24} />Sort by</button>
+          </div>
+          <div class="mt-6 flex gap-4">
+            <img data-huet-recolor src={photo("Man, grey wall")} alt="" class="size-10 shrink-0 rounded-full object-cover object-top" />
+            <div class="huet-border-30 huet-text-60 flex-1 border-b pb-1">Add a comment…</div>
+          </div>
+
+          <ul class="mt-8 space-y-6">
+            {comments.map((c) => (
+              <li class="flex gap-4">
+                {c.photo ? (
+                  <img data-huet-recolor src={c.photo} alt="" class="size-10 shrink-0 rounded-full object-cover object-top" />
+                ) : c.owner ? (
+                  <img data-huet-recolor src={photo("Lichen on rock")} alt="" class="size-10 shrink-0 rounded-full object-cover" />
+                ) : (
+                  <span class={`${c.avatar} flex size-10 shrink-0 items-center justify-center rounded-full text-lg font-medium`}>{c.letter}</span>
+                )}
+                <div class="min-w-0 flex-1">
+                  {c.pinned && <p class="huet-text-60 mb-1 text-xs">📌 Pinned by @TinyWorlds</p>}
+                  <p class="text-[13px]">
+                    {c.owner ? (
+                      <span class="huet-bg-20 rounded-full px-1.5 py-0.5 font-medium">{c.handle} <span class="inline-flex align-[-2px]"><Icon icon={ic_check_circle} size={12} /></span></span>
+                    ) : (
+                      <span class="font-medium">{c.handle}</span>
+                    )}
+                    <span class="huet-text-60 ml-1">{c.when}</span>
+                  </p>
+                  <p class="mt-0.5">
+                    {c.text.split(/(\d+:\d\d)/).map((part, i) =>
+                      i % 2 ? <a href="#" class="huet-text-blue-100 hover:underline">{part}</a> : part,
+                    )}
+                  </p>
+                  <div class="huet-text-60 mt-1 flex items-center gap-1 text-xs">
+                    <button aria-label="Like" class="hover:huet-bg-10 huet-text-100 flex size-8 items-center justify-center rounded-full"><Icon icon={ic_thumb_up} size={16} /></button>
+                    <span>{c.likes}</span>
+                    <button aria-label="Dislike" class="hover:huet-bg-10 huet-text-100 ml-2 flex size-8 items-center justify-center rounded-full"><Icon icon={ic_thumb_down} size={16} /></button>
+                    {c.hearted && (
+                      <span title="Hearted by Tiny Worlds" class="relative ml-1 size-6">
+                        <img data-huet-recolor src={photo("Lichen on rock")} alt="" class="size-6 rounded-full object-cover" />
+                        <span class="huet-text-red-100 absolute -right-1.5 -bottom-1.5"><Icon icon={ic_favorite} size={14} /></span>
+                      </span>
+                    )}
+                    <button class="hover:huet-bg-10 huet-text-100 ml-2 rounded-full px-3 py-1.5 font-medium">Reply</button>
+                  </div>
+                  {c.replies && (
+                    <button class="huet-text-blue-100 hover:huet-bg-blue-10 -ml-3 flex items-center gap-1.5 rounded-full px-3 py-1.5 font-medium">
+                      <Icon icon={ic_expand_more} size={22} />{c.replies} {c.replies === 1 ? "reply" : "replies"}
+                    </button>
+                  )}
+                </div>
+                <button aria-label="Action menu" class={`${iconButton} shrink-0`}><Icon icon={ic_more_vert} size={20} /></button>
+              </li>
+            ))}
+          </ul>
+        </section>
+      </main>
+
+      <!-- Up next -->
+      <aside class="shrink-0 xl:w-[402px]">
+        <div class="-mx-1 flex gap-3 overflow-x-auto px-1 pb-3">
+          {chips.map((chip, i) => (
+            <button class:list={["h-8 shrink-0 rounded-lg px-3 font-medium", i === 0 ? "huet-bg-100" : "huet-bg-5 hover:huet-bg-10"]}>{chip}</button>
+          ))}
+        </div>
+        <ul class="space-y-2">
+          {upNext.map((v) => (
+            <li>
+              <a href="#" class="group hover:huet-bg-5 -m-1 flex gap-2 rounded-xl p-1">
+                <span class="huet-bg-10 relative block aspect-video w-[168px] shrink-0 overflow-hidden rounded-lg">
+                  <img data-huet-recolor src={photo(v.image)} alt="" loading="lazy" class="absolute inset-0 size-full object-cover" />
+                  {v.duration && (
+                    <span class="huet-bg-100 absolute right-1 bottom-1 rounded px-1 text-xs font-medium">{v.duration}</span>
+                  )}
+                  {v.live && (
+                    <span class="huet-bg-red-100 huet-bg/text-white-100 absolute right-1 bottom-1 rounded px-1 text-xs font-semibold">● LIVE</span>
+                  )}
+                  {v.playlist && (
+                    <span class="huet-bg-100 absolute inset-y-0 right-0 flex w-2/5 flex-col items-center justify-center gap-0.5 text-xs font-medium">
+                      <Icon icon={ic_playlist_play} size={22} />{v.playlist}
+                    </span>
+                  )}
+                  {v.progress && (
+                    <span class="huet-bg-40 absolute inset-x-0 bottom-0 block h-1">
+                      <span class="huet-bg-red-100 block h-full" style={`width: ${v.progress * 100}%`}></span>
+                    </span>
+                  )}
+                </span>
+                <span class="min-w-0 flex-1 pr-6">
+                  <span class="line-clamp-2 font-semibold">{v.title}</span>
+                  <span class="huet-text-60 mt-1 block text-xs">
+                    {v.channel}
+                    {v.verified && <span class="inline-flex align-[-2px]"><Icon icon={ic_check_circle} size={12} /></span>}
+                  </span>
+                  <span class="huet-text-60 block text-xs">{v.meta}</span>
+                  {v.badge && <span class="huet-bg-10 mt-1 inline-block rounded px-1 text-xs font-medium">{v.badge}</span>}
+                  {v.live && <span class="huet-bg-red-10 huet-bg/text-red-100 mt-1 inline-block rounded px-1 text-xs font-semibold">LIVE</span>}
+                </span>
+              </a>
+            </li>
+          ))}
+        </ul>
+        <button class="huet-bg/border-30 hover:huet-bg-blue-10 huet-text-blue-100 mt-4 h-9 w-full rounded-full border font-medium">Show more</button>
+      </aside>
     </div>
   </div>
 </Demo>
