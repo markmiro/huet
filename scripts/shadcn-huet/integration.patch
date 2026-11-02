@@ -11,10 +11,25 @@ index 28e1b65..90e6a62 100644
              className="size-40 text-black"
              role="img"
 diff --git a/apps/v4/app/globals.css b/apps/v4/app/globals.css
-index 00c2223..b201caf 100644
+index 00c2223..12ccabe 100644
 --- a/apps/v4/app/globals.css
 +++ b/apps/v4/app/globals.css
-@@ -424,6 +424,22 @@
+@@ -198,7 +198,14 @@
+   html {
+     @apply overscroll-y-none;
+   }
++  /*
++    Upstream leaves body's color to the browser (black, or white under a dark
++    color-scheme), which only matches shadcn's near-black foreground. Text
++    without a text-* class, such as the block titles on /blocks and the
++    dashboard's headings and table cells, then ignores the theme.
++  */
+   body {
++    @apply text-foreground;
+     position: relative;
+     font-synthesis-weight: none;
+     text-rendering: optimizeLegibility;
+@@ -424,6 +431,22 @@
      }
    }
  
@@ -37,7 +52,7 @@ index 00c2223..b201caf 100644
    [data-highlighted-line],
    [data-highlighted-chars] {
      position: relative;
-@@ -460,3 +476,21 @@
+@@ -460,3 +483,21 @@
      @apply rounded-xl border-none bg-clip-padding shadow-2xl ring-4 ring-neutral-200/80 dark:bg-neutral-900 dark:ring-neutral-800;
    }
  }

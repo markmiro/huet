@@ -39,7 +39,7 @@ function chromaOf([r, g, b]: number[]) {
  * Computed colors may be oklab() or color-mix() results, so a canvas
  * converts them.
  */
-const colorOf = (page: Page, selector: string, property: "backgroundColor" | "fill") =>
+const colorOf = (page: Page, selector: string, property: "backgroundColor" | "fill" | "color") =>
   page
     .locator(selector)
     .first()
@@ -92,5 +92,26 @@ for (const [mode, background] of [["light", 1], ["dark", 0]] as const) {
     expect(g).toBeGreaterThan(r + 60);
     expect(g).toBeGreaterThan(b + 40);
     expect(g).toBeLessThan(background ? 160 : 200);
+  });
+
+  test(`text without a color class takes the theme's foreground (${mode})`, async ({ page }) => {
+    // shadcn never sets body's color, so this text kept the browser's black
+    // (or white on a dark page) whatever the theme.
+    await open(page, "/blocks", background);
+    const foreground = await page.evaluate(() => {
+      const probe = document.createElement("div");
+      probe.style.color = "var(--foreground)";
+      document.body.append(probe);
+      const context = document.createElement("canvas").getContext("2d")!;
+      context.fillStyle = getComputedStyle(probe).color;
+      probe.remove();
+      context.fillRect(0, 0, 1, 1);
+      return [...context.getImageData(0, 0, 1, 1).data.slice(0, 3)];
+    });
+    expect(chromaOf(foreground)).toBeGreaterThan(0.02);
+    await expect.poll(() => colorOf(page, "a[href='#dashboard-01']", "color")).toEqual(foreground);
+
+    await open(page, "/view/new-york-v4/dashboard-01", background);
+    await expect.poll(() => colorOf(page, "h1", "color")).toEqual(foreground);
   });
 }

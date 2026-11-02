@@ -8,7 +8,7 @@ pnpm shadcn:dev
 
 `shadcn:setup` can be rerun. It:
 
-- applies `integration.patch` to the submodule, unless it's already applied: surface and chart fixes, the /create preview's Live Audio Waveform drawn in `text-muted-foreground` instead of a fixed gray, `data-huet-recolor` opt-ins on the home page's QR code SVG and on the registry directory's logos, and `huetShikiTheme({ from })` around every highlighter's themes (docs MDX, component, block and chart source, and the registry's CodeBlock)
+- applies `integration.patch` to the submodule, unless it's already applied: surface and chart fixes, `text-foreground` on `body` (upstream leaves it to the browser's black, so text without a `text-*` class, such as the /blocks titles, ignored the theme), the /create preview's Live Audio Waveform drawn in `text-muted-foreground` instead of a fixed gray, `data-huet-recolor` opt-ins on the home page's QR code SVG and on the registry directory's logos, and `huetShikiTheme({ from })` around every highlighter's themes (docs MDX, component, block and chart source, and the registry's CodeBlock)
 - copies `huet-configurator.tsx` into `apps/v4/components/huet/` and mounts it in the root layout
 - builds and packs the local `huet` and `huet-react` packages, installs them in the app, and builds the registry
 
