@@ -39,9 +39,9 @@ function applyHuet(picked: Theme, pageBackground: number, pageEdits: Edits = {})
   const { isDark, background, foreground, mutedForeground, surface, accent, tokens, ink, fill } = page
   // A copy: the dark-island rule below takes only the role colors.
   const vars = { ...page.vars }
-  // Tailwind swatches move onto the theme's ramp and hues (see swatchPlacer).
+  // Tailwind swatches move onto the theme's ramp and hues (see placePalette).
   const place = swatchPlacer(picked, theme.ramp)
-  for (const swatch of palette ?? []) vars[swatch.key] = place(swatch)
+  Object.assign(vars, placePalette(palette ?? [], place, theme.ramp, isDark))
   // Plain white and black are not on the radioactive ramp. Use the ramp ends,
   // hue included, so `bg-white` becomes the theme's light color.
   vars["--color-white"] = theme.ramp(1)
@@ -475,7 +475,9 @@ function readSwatch(key: string, raw: string): Swatch | undefined {
   }
 }
 
-type Place = (swatch: Swatch) => string
+type Place = ((swatch: Swatch) => string) & {
+  oklchOf: (swatch: Swatch, darkPage?: number) => [number, number, number]
+}
 
 const clamp01 = (value: number) => Math.min(1, Math.max(0, value))
 const lightnessOf = (color: string) => clamp01(chroma(color).oklch()[0] || 0)
@@ -524,20 +526,127 @@ function swatchPlacer(picked: Theme, ramp: (amount: number) => string): Place {
     anchorCache.set(five, cached)
     return cached
   }
-  return (swatch) => {
-    if (swatch.c < 0.02) return ramp(clamp01(swatch.l))
+  /**
+   * The OKLCH a colored swatch lands on. `darkPage` is the lightness that maps
+   * to the ramp's dark end: 0 for a lone color, shadcn's dark page for
+   * Tailwind's palette (see placePalette).
+   */
+  const oklchOf = (swatch: Swatch, darkPage = 0): [number, number, number] => {
     const [, mappedC, mappedH] = chroma.gl(...toTheme(...channels(swatch)), 1).oklch()
     const [c, h] =
       Number.isFinite(mappedH) && mappedC >= 0.02 ? [mappedC, mappedH] : [swatch.c, swatch.h]
     const five = nearestHue(fives, swatch.h)
-    if (!five || five.l <= 0 || five.l >= 1) return inGamut(lightnessOf(ramp(clamp01(swatch.l))), c, h)
+    const fromDark = (l: number) => clamp01((l - darkPage) / (1 - darkPage))
+    if (!five || five.l <= 0 || five.l >= 1) return [lightnessOf(ramp(fromDark(swatch.l))), c, h]
     const anchor = anchorOf(five)
     const lightness =
       swatch.l <= five.l
-        ? dark + (swatch.l / five.l) * (anchor - dark)
+        ? dark + clamp01((swatch.l - darkPage) / (five.l - darkPage)) * (anchor - dark)
         : anchor + ((swatch.l - five.l) / (1 - five.l)) * (light - anchor)
-    return inGamut(lightness, c, h)
+    return [lightness, c, h]
   }
+  const place = (swatch: Swatch) =>
+    swatch.c < 0.02 ? ramp(clamp01(swatch.l)) : inGamut(...oklchOf(swatch))
+  return Object.assign(place, { oklchOf })
+}
+
+/** Tailwind's gray families. Their slight tint only flavors the stock neutrals. */
+const NEUTRAL_FAMILIES = new Set(["slate", "gray", "zinc", "neutral", "stone", "mauve", "olive", "mist", "taupe"])
+
+/**
+ * Tailwind's palette was made for shadcn's pages: white, and this lightness in
+ * dark mode. Measuring from those two puts the page-adjacent shades next to
+ * the theme's page in both modes. From 0, a 950 fill sat twice as far from a
+ * dark page as on stock shadcn.
+ */
+const STOCK_DARK_PAGE = 0.145
+
+/** A Tailwind OKLCH lightness as a position on the theme's neutral ramp. */
+const rampPosition = (lightness: number) => clamp01((lightness - STOCK_DARK_PAGE) / (1 - STOCK_DARK_PAGE))
+
+/** Chroma at which a shade beside the page stops taking on the ramp's tint. Most 300s are past it. */
+const FULL_CHROMA = 0.1
+
+/**
+ * Tailwind's palette (`--color-red-50` …) on the theme. Grays take the neutral
+ * ramp's color. Colored shades go through `place` (the theme's hues, pinned to
+ * its colors) and take the hue of their family's most colorful shade, then:
+ *
+ * - Beside the page (50 on a light page, 950 on a dark one), a shade has at
+ *   most as much color as its distance from the page, like `huet-bg-red-10`:
+ *   a quarter of the way to its family's most colorful shade gets at most a
+ *   quarter of that chroma. It keeps the ramp's tint, the more the paler it
+ *   is, so `bg-red-50` on a lime page is the page with a little red.
+ * - On the far side, text shades (900 on a light page, 50 on a dark one) keep
+ *   no tint and are at least as colorful as their mirror beside the page (50
+ *   as 950). Tailwind makes every 50 nearly white, so dark-mode alert text
+ *   lost the alert's color.
+ */
+function placePalette(swatches: Swatch[], place: Place, ramp: (amount: number) => string, isDark: boolean) {
+  const vars: Record<string, string> = {}
+  const families = new Map<string, Swatch[]>()
+  for (const swatch of swatches) {
+    const family = swatch.key.match(/^--color-([a-z]+)-\d+$/)?.[1]
+    if (!family) vars[swatch.key] = place(swatch)
+    else families.set(family, [...(families.get(family) ?? []), swatch])
+  }
+  const tint = rampTint(ramp)
+  for (const [family, shades] of families) {
+    if (NEUTRAL_FAMILIES.has(family)) {
+      for (const shade of shades) vars[shade.key] = ramp(rampPosition(shade.l))
+      continue
+    }
+    const placed = new Map(shades.map((shade) => [shade.key, place.oklchOf(shade, STOCK_DARK_PAGE)]))
+    const peak = shades.reduce((best, shade) => (shade.c > best.c ? shade : best))
+    // Recoloring a near-white or near-black shade lands on the ramp's own hue
+    // (lime for red-50 on Radioactive), so every shade takes the family's.
+    const [, peakChroma, hue] = placed.get(peak.key)!
+    /** Chroma of a shade beside the page, capped by its distance from the page. */
+    const besidePage = (shade: Swatch) => {
+      const position = rampPosition(shade.l)
+      const peakPosition = rampPosition(peak.l)
+      const fromPage = position >= peakPosition
+        ? (1 - position) / Math.max(1e-6, 1 - peakPosition)
+        : position / Math.max(1e-6, peakPosition)
+      return Math.min(placed.get(shade.key)![1], Math.min(1, fromPage) * peakChroma)
+    }
+    const byStep = new Map(shades.map((shade) => [Number(shade.key.slice(shade.key.lastIndexOf("-") + 1)), shade]))
+    for (const [step, shade] of byStep) {
+      const [l, placedChroma] = placed.get(shade.key)!
+      const far = isDark ? step < 500 : step > 500
+      const mirror = byStep.get(1000 - step)
+      const c = far ? Math.max(placedChroma, mirror ? besidePage(mirror) : 0) : besidePage(shade)
+      const keep = far ? 0 : 1 - Math.min(1, c / FULL_CHROMA)
+      vars[shade.key] = tinted(l, c, hue, tint(l), keep)
+    }
+  }
+  return vars
+}
+
+/** The neutral ramp's OKLab tint (a, b) at a lightness. */
+function rampTint(ramp: (amount: number) => string) {
+  const ascending = lightnessOf(ramp(1)) >= lightnessOf(ramp(0))
+  return (lightness: number): [number, number] => {
+    let low = 0
+    let high = 1
+    for (let i = 0; i < 20; i++) {
+      const mid = (low + high) / 2
+      if (lightnessOf(ramp(mid)) < lightness === ascending) low = mid
+      else high = mid
+    }
+    const [, a, b] = chroma(ramp((low + high) / 2)).oklab()
+    return [a, b]
+  }
+}
+
+/** OKLCH plus `keep` of a tint, with chroma reduced until it fits sRGB so its hue holds. */
+function tinted(l: number, c: number, h: number, [tintA, tintB]: [number, number], keep: number) {
+  const angle = (h * Math.PI) / 180
+  const at = (amount: number) =>
+    chroma.oklab(clamp01(l), tintA * keep + amount * Math.cos(angle), tintB * keep + amount * Math.sin(angle))
+  let color = at(c)
+  for (let i = 0; i < 24 && color.clipped(); i++) color = at((c *= 0.9))
+  return color.hex()
 }
 
 function nearestHue(swatches: Swatch[], hue: number) {
