@@ -69,6 +69,11 @@ export const settings = {
   taper: 0.31,
   /** How many hairs catch the light (regrows). */
   sheen: 0.9,
+  /** Where the band of shine sits, 0 at the top to 1 at the bottom, and how far it spreads (regrows). */
+  sheenPosition: 0.3,
+  sheenSpread: 0.25,
+  /** How dark the hairs along the top edge are, turned away from the light; also keeps the shine off it (regrows). */
+  edgeShadow: 0,
   /** How far the hairs stand at rest, with no hover: 0 is combed flat, 1 standing up. */
   static: 0,
   /** How much further the hairs stand when hovered, on top of `static` (up to 1). */
@@ -135,10 +140,10 @@ export const presets: Record<string, Readonly<FurSettings>> = {
   /** Thin, long, curly, droopy hair with lots of shine and a softer click. */
   Shaggy: {
     ...defaultSettings,
-    shift: -0.13,
-    darker: 0.35,
-    lighter: 0.12,
-    saturation: 2.2,
+    shift: -0.12,
+    darker: 0.4,
+    lighter: 0.22,
+    saturation: 3,
     density: 1.25,
     length: 0.95,
     thickness: 0.3,
@@ -148,7 +153,11 @@ export const presets: Record<string, Readonly<FurSettings>> = {
     messiness: 2.3,
     fuzz: 2,
     taper: 1,
-    sheen: 2.2,
+    sheen: 4,
+    sheenPosition: 0.21,
+    sheenSpread: 0.05,
+    edgeShadow: 0.47,
+    static: 0,
     hover: 0.34,
     hoverSpeed: 7.5,
     hoverDamping: 0.5,
@@ -157,7 +166,9 @@ export const presets: Record<string, Readonly<FurSettings>> = {
     leaveSettle: 1.4,
     leaveBounce: 5.5,
     sway: 0.05,
+    hoverStretch: 0,
     poofHeight: 0.19,
+    clickStretch: 0,
     poofRise: 0.16,
     poofSettle: 2.5,
     poofBounce: 7.5,
@@ -245,6 +256,50 @@ export const presets: Record<string, Readonly<FurSettings>> = {
     brush: 1.05,
     brushSpeed: 6,
     brushDamping: 0.32,
+  },
+  /** Curly, messy fur that stands up on its own, with a springy, rippling hover and click. */
+  Fluffy: {
+    ...defaultSettings,
+    shift: -0.18,
+    darker: 0.31,
+    lighter: 0.17,
+    saturation: 3,
+    density: 1,
+    length: 0.95,
+    thickness: 0.8,
+    curl: 0.9,
+    droop: 0,
+    lengthVariation: 2,
+    messiness: 1.35,
+    fuzz: 0,
+    taper: 0.31,
+    sheen: 2.5,
+    sheenPosition: 0.71,
+    sheenSpread: 0.23,
+    edgeShadow: 0,
+    static: 0.6,
+    hover: 0.34,
+    hoverSpeed: 26.5,
+    hoverDamping: 0.45,
+    leaveFallSpeed: 1.3,
+    leaveEase: "gravity",
+    leaveSettle: 3.2,
+    leaveBounce: 6,
+    sway: 0.14,
+    hoverStretch: 0.12,
+    poofHeight: 0.74,
+    clickStretch: 0.42,
+    poofRise: 0.06,
+    poofSettle: 2,
+    poofBounce: 13,
+    poofEase: "ease-out",
+    poofHold: 0.1,
+    poofFallSpeed: 2.2,
+    poofFallEase: "ease-out",
+    wave: 1.4,
+    brush: 2.2,
+    brushSpeed: 14.5,
+    brushDamping: 0.3,
   },
 };
 
@@ -392,11 +447,16 @@ function grow(w: number, h: number, radius: number, seed: number, scale: number,
     // underneath and toward the ends. Guard hairs catch slightly more of it.
     const px = fromX / (w / 2), py = fromY / (h / 2);
     const occlusion = rim * Math.max(0, py) * 0.15;
-    const shade = clamp(0.6 - 0.18 * py - 0.06 * px * px - occlusion + (random() - 0.5) * 0.32 + (guard ? 0.06 : -0.08), 0, 1);
-    // Sheen: a few hairs catch the light, most in a soft band across the upper
-    // part where the light falls, and some along the top edge.
-    const band = Math.exp(-((py + 0.4) ** 2) / 0.12);
-    const shine = (0.14 * band + 0.04 * smoothstep(0.4, -0.9, py) * rim) * settings.sheen;
+    // The top edge, where the surface turns away from the light: it can be in
+    // shadow, like the rim of a lit ball, rather than catching the shine.
+    const topEdge = rim * smoothstep(-0.2, -0.9, outY) * clamp(settings.edgeShadow, 0, 1);
+    const shade = clamp(0.6 - 0.18 * py - 0.06 * px * px - occlusion - 0.4 * topEdge + (random() - 0.5) * 0.32 + (guard ? 0.06 : -0.08), 0, 1);
+    // Sheen: a few hairs catch the light, most in a soft band across the button
+    // at `sheenPosition` (0 top, 1 bottom), `sheenSpread` wide, and some along
+    // the top edge unless it's in shadow.
+    const center = clamp(settings.sheenPosition, 0, 1) * 2 - 1, spread = Math.max(0.03, settings.sheenSpread);
+    const band = Math.exp(-((py - center) ** 2) / (2 * spread * spread));
+    const shine = (0.14 * band + 0.04 * smoothstep(0.4, -0.9, py) * rim * (1 - topEdge)) * settings.sheen;
     if (random() < shine) sheen[Math.floor(random() * sheenLevels)].push(n);
     else lists[guard][Math.round(shade * (levels - 1))].push(n);
     n++;
@@ -427,6 +487,10 @@ export function mountFur(button: HTMLElement) {
   // started and peaks, and whether the landing uses the poof's bounce.
   let stage: "rise" | "hold" | "fall" | "leave" | null = null, stageTime = 0;
   let riseFrom = 0, risePeak = 0, leaveFrom = 0;
+  // How far through a click the fur is, 0 to 1, for its stretch: it rises
+  // and holds with the click, then falls over `poofHeight` at the click's
+  // fall speed. `poofFall` is the seconds into that fall, or -1.
+  let poof = 0, poofFrom = 0, poofFall = -1;
   // The rest a fall is heading for; when it changes mid-fall, the fall carries on from where it is.
   let fallTarget = NaN;
   // Which spring settles the fur: hovering in, a click's landing, or hovering out's landing.
@@ -479,16 +543,15 @@ export function mountFur(button: HTMLElement) {
     // The wave only spreads the motion away from the static lift, so at rest every hair stands the same.
     const base = clamp(settings.static, 0, 1), moved = up - base;
     // Stretch: hovering stretches hairs as they rise from rest to the hover
-    // lift; a click stretches them further as they rise above it to its peak.
-    // Without a click, a hover overshoot stretches a little past the hover amount.
+    // lift (and a little past it in a bouncy overshoot, unless a click plays).
+    // A click stretches them further along its own rise and fall, `poof`, so
+    // it works even when the fur already stands fully upright.
     const hoverTop = Math.min(1, base + settings.hover);
-    const clickTop = Math.min(1, hoverTop + settings.poofHeight);
-    const clicking = stage === "rise" || stage === "hold" || stage === "fall" || spring === "click";
-    const stretchAt = (l: number) => {
+    const clicking = poof > 0 || stage === "rise" || stage === "hold" || stage === "fall" || spring === "click";
+    const stretchAt = (l: number, delay: number) => {
       const hovered = hoverTop - base > 1e-3 ? (l - base) / (hoverTop - base) : 0;
-      if (!clicking) return settings.hoverStretch * clamp(hovered, 0, 1.3);
-      const clicked = clickTop - hoverTop > 1e-3 ? (l - hoverTop) / (clickTop - hoverTop) : 0;
-      return settings.hoverStretch * clamp(hovered, 0, 1) + settings.clickStretch * clamp(clicked, 0, 1.2);
+      const clicked = clamp(poof * (1 + settings.wave) - delay * settings.wave * poof, 0, 1);
+      return settings.hoverStretch * clamp(hovered, 0, clicking ? 1 : 1.3) + settings.clickStretch * clicked;
     };
     for (let i = 0; i < s.n; i++) {
       const dx = s.x[i] - pointerX, dy = s.y[i] - pointerY;
@@ -503,7 +566,7 @@ export function mountFur(button: HTMLElement) {
       tx /= tl; ty /= tl;
       const r = s.rim[i];
       // Outline hairs reach out as they stand; middle ones point at you, so they look shorter.
-      const len = s.len[i] * (1 + stretchAt(l)) * (1 + r * 0.3 * l - (1 - r) * 0.35 * L);
+      const len = s.len[i] * (1 + stretchAt(l, s.delay[i])) * (1 + r * 0.3 * l - (1 - r) * 0.35 * L);
       const curl = s.curl[i] * (1 - 0.5 * L);
       // Hairs droop under their weight until they stand.
       const droop = 0.2 * settings.droop * (1 - L) * len;
@@ -519,47 +582,68 @@ export function mountFur(button: HTMLElement) {
     }
   }
 
-  /** Strokes every hair: a darker, thicker root half, then a thin, lighter tip. */
+  // Each hair is stroked as `pieces` stretches of its curve, each a little
+  // thinner than the last. Their flat ends meet along the same direction, so
+  // the hair narrows in small steps with no bead where the pieces join.
+  const pieces = 4, stride = (pieces + 1) * 4;
+  // Bernstein weights for the point, and the slope, at each join.
+  const joins = Array.from({ length: pieces + 1 }, (_, j) => {
+    const t = j / pieces, u = 1 - t;
+    return [u * u * u, 3 * u * u * t, 3 * u * t * t, t * t * t, 3 * u * u, 6 * u * t, 3 * t * t];
+  });
+  // Each hair's point and slope at every join, worked out on the first piece.
+  let ends = new Float32Array(0);
+
+  function joinsOf(c: Float32Array, i: number) {
+    const k = i * 8, e = i * stride;
+    const x0 = c[k], y0 = c[k + 1], x1 = c[k + 2], y1 = c[k + 3];
+    const x2 = c[k + 4], y2 = c[k + 5], x3 = c[k + 6], y3 = c[k + 7];
+    for (let j = 0; j <= pieces; j++) {
+      const [b0, b1, b2, b3, d0, d1, d2] = joins[j], q = e + j * 4;
+      ends[q] = b0 * x0 + b1 * x1 + b2 * x2 + b3 * x3;
+      ends[q + 1] = b0 * y0 + b1 * y1 + b2 * y2 + b3 * y3;
+      ends[q + 2] = d0 * (x1 - x0) + d1 * (x2 - x1) + d2 * (x3 - x2);
+      ends[q + 3] = d0 * (y1 - y0) + d1 * (y2 - y1) + d2 * (y3 - y2);
+    }
+  }
+
+  /**
+   * Strokes every hair, narrowing from root to tip by `taper`: darker root
+   * pieces, then lighter tip pieces. Only the very tip gets a round end.
+   */
   function strokeHairs(s: Strands) {
-    const c = s.curve, t = 0.5, top = levels - 1;
-    for (let pass = 0; pass < 2; pass++) {
+    const c = s.curve, top = levels - 1, third = 1 / (3 * pieces);
+    if (ends.length < s.n * stride) ends = new Float32Array(s.n * stride);
+    const taper = clamp(settings.taper, 0.05, 1);
+    for (let p = 0; p < pieces; p++) {
+      const tip = p >= pieces / 2;
+      ctx.lineCap = p === pieces - 1 ? "round" : "butt";
+      ctx.globalAlpha = tip ? 0.75 : 1;
+      const narrow = 1 - (1 - taper) * (p / (pieces - 1));
       for (let g = 0; g < 2; g++) {
+        ctx.lineWidth = (g ? 1.1 : 0.95) * scale * settings.thickness * narrow;
         s.groups[g].forEach((group, level) => {
           if (!group.length) return;
-          if (pass === 0) {
-            ctx.strokeStyle = palette[Math.max(0, level - 1)];
-            ctx.lineWidth = (g ? 1.1 : 0.95) * scale * settings.thickness;
-            ctx.globalAlpha = 1;
-          } else {
-            ctx.strokeStyle = palette[Math.min(top, level + 1)];
-            ctx.lineWidth = (g ? 1.1 : 0.95) * settings.taper * scale * settings.thickness;
-            ctx.globalAlpha = 0.75;
-          }
+          ctx.strokeStyle = tip ? palette[Math.min(top, level + 1)] : palette[Math.max(0, level - 1)];
           ctx.beginPath();
           for (const i of group) {
-            const k = i * 8;
-            const x0 = c[k], y0 = c[k + 1], x1 = c[k + 2], y1 = c[k + 3];
-            const x2 = c[k + 4], y2 = c[k + 5], x3 = c[k + 6], y3 = c[k + 7];
-            // de Casteljau split at t.
-            const ax = x0 + (x1 - x0) * t, ay = y0 + (y1 - y0) * t;
-            const bx = x1 + (x2 - x1) * t, by = y1 + (y2 - y1) * t;
-            const ex = x2 + (x3 - x2) * t, ey = y2 + (y3 - y2) * t;
-            const fx = ax + (bx - ax) * t, fy = ay + (by - ay) * t;
-            const gx = bx + (ex - bx) * t, gy = by + (ey - by) * t;
-            const mx = fx + (gx - fx) * t, my = fy + (gy - fy) * t;
-            if (pass === 0) {
-              ctx.moveTo(x0, y0);
-              ctx.bezierCurveTo(ax, ay, fx, fy, mx, my);
-            } else {
-              ctx.moveTo(mx, my);
-              ctx.bezierCurveTo(gx, gy, ex, ey, x3, y3);
-            }
+            if (p === 0) joinsOf(c, i);
+            // The stretch of the curve between two joins, as its own cubic.
+            const a = i * stride + p * 4, b = a + 4;
+            const ax = ends[a], ay = ends[a + 1], bx = ends[b], by = ends[b + 1];
+            ctx.moveTo(ax, ay);
+            ctx.bezierCurveTo(
+              ax + ends[a + 2] * third, ay + ends[a + 3] * third,
+              bx - ends[b + 2] * third, by - ends[b + 3] * third,
+              bx, by,
+            );
           }
           ctx.stroke();
         });
       }
     }
     ctx.globalAlpha = 1;
+    ctx.lineCap = "round";
   }
 
   /** Strokes the sheen hairs: thin and translucent, so they read as light catching the fur. */
@@ -639,6 +723,8 @@ export function mountFur(button: HTMLElement) {
       lift = target;
       velocity = 0;
       stage = null;
+      poof = 0;
+      poofFall = -1;
     } else if (stage === "rise") {
       // Up to the peak, along the rise curve.
       stageTime += dt;
@@ -646,6 +732,7 @@ export function mountFur(button: HTMLElement) {
       const ease = eases[settings.poofEase] ?? eases["ease-out"];
       const u = Math.min(1, stageTime / duration);
       lift = riseFrom + (risePeak - riseFrom) * ease(u);
+      poof = poofFrom + (1 - poofFrom) * ease(u);
       velocity = 0;
       if (u >= 1) {
         stage = "hold";
@@ -655,11 +742,13 @@ export function mountFur(button: HTMLElement) {
       // Hang at the top.
       stageTime += dt;
       lift = risePeak;
+      poof = 1;
       velocity = 0;
       if (stageTime >= settings.poofHold) {
         stage = "fall";
         stageTime = 0;
         fallTarget = NaN;
+        poofFall = 0;
       }
     } else if (stage === "fall" || stage === "leave") {
       // Down to where the fur rests now, along the fall curve: a click's fall
@@ -687,6 +776,18 @@ export function mountFur(button: HTMLElement) {
         // Land with the curve's final speed, so a curve that ends moving
         // (like gravity) overshoots and bounces.
         velocity = ((target - from) * (ease(1) - ease(0.98))) / (0.02 * duration);
+        // A fall keeps its speed however short it is, so a short drop would
+        // land as hard as a long one and dip far below where the fur rests
+        // (with static, nearly flat). Land softly enough to dip at most half
+        // the drop. Below flat the hairs only press a little flatter, so that
+        // part of the dip is left alone, and falls to flat bounce as before.
+        if (velocity < 0) {
+          const a = click ? settings.poofSettle : settings.leaveSettle;
+          const b = click ? settings.poofBounce : settings.leaveBounce;
+          const dip = -velocity / Math.sqrt(a * a + b * b);
+          const room = 0.5 * Math.abs(target - from) + Math.max(0, dip - target);
+          if (dip > room) velocity *= room / dip;
+        }
       } else velocity = 0;
     } else {
       // A landing wobbles with its own settle and bounce, even if the target
@@ -709,9 +810,21 @@ export function mountFur(button: HTMLElement) {
         lift += velocity * (dt / steps);
       }
     }
+    if (poofFall >= 0) {
+      // The click's stretch falls on its own clock, even once the fur has
+      // landed: as if falling the click's height at its fall speed.
+      poofFall += dt;
+      const duration = Math.max(0.1, settings.poofHeight) / Math.max(0.05, settings.poofFallSpeed);
+      const u = Math.min(1, poofFall / duration);
+      poof = 1 - (eases[settings.poofFallEase] ?? eases.gravity)(u);
+      if (u >= 1) {
+        poof = 0;
+        poofFall = -1;
+      }
+    }
     const moving = relax(dt);
     draw();
-    const settled = stage === null && Math.abs(target - lift) < 0.002 && Math.abs(velocity) < 0.002 && !moving;
+    const settled = stage === null && poofFall < 0 && Math.abs(target - lift) < 0.002 && Math.abs(velocity) < 0.002 && !moving;
     if (settled) spring = "hover";
     if (settled && (!hovering || reduceMotion.matches)) {
       lift = target;
@@ -740,6 +853,8 @@ export function mountFur(button: HTMLElement) {
     stage = "rise";
     stageTime = 0;
     riseFrom = lift;
+    poofFrom = poof;
+    poofFall = -1;
     // Capped where the hairs look fully upright: higher would just hang there
     // unseen and make the visible part of the fall look sudden. Hang time
     // controls the pause instead.
