@@ -45,9 +45,9 @@ function easeInverse(ease: (t: number) => number, f: number) {
  */
 export const settings = {
   /** Palette: where its middle sits (L*, 0–1, from the color), how far it reaches below and above that. */
-  shift: -0.25,
-  darker: 0.32,
-  lighter: 0.21,
+  shift: -0.13,
+  darker: 0.4,
+  lighter: 0.22,
   /** Hairs per area (regrows). */
   density: 1.65,
   /** Hair length. Changing it grows or shrinks the hairs with the hover spring. */
@@ -63,15 +63,32 @@ export const settings = {
   messiness: 1,
   /** How far hairs along the outline lean out, making the fuzzy edge (regrows). */
   fuzz: 2,
+  /**
+   * How far from the button's edge the fur starts, in px at scale 1 (regrows):
+   * above 0 the outline hairs and the fur's body sit out past the edge, below
+   * 0 they move in, eating into the button.
+   */
+  distance: 0,
   /** Tip width relative to the root. */
   taper: 0.31,
   /** How many hairs catch the light (regrows). */
-  sheen: 0.9,
+  sheen: 0.1,
   /** Where the band of shine sits, 0 at the top to 1 at the bottom, and how far it spreads (regrows). */
-  sheenPosition: 0.3,
-  sheenSpread: 0.25,
+  sheenPosition: 0.1,
+  sheenSpread: 0.32,
   /** How dark the hairs along the top edge are, turned away from the light; also keeps the shine off it (regrows). */
   edgeShadow: 0,
+  /**
+   * The soft shadow on the page under the button: how dark it is (0 to 1),
+   * its blur and how far it drops (px at scale 1), and its width relative
+   * to the button's.
+   */
+  shadow: 0.16,
+  shadowBlur: 9,
+  shadowDrop: 0,
+  shadowWidth: 1,
+  /** On wide-gamut screens, how far colors move out toward the more vivid colors sRGB can't show (0 to 1). */
+  vividness: 0,
   /** How far the hairs stand at rest, with no hover: 0 is combed flat, 1 standing up. */
   static: 0,
   /** How much further the hairs stand when hovered, on top of `static` (up to 1). */
@@ -95,6 +112,8 @@ export const settings = {
    * them half as long again (regrows, to make room).
    */
   hoverStretch: 0,
+  /** How much lighter the fur gets as it rises to the hover lift, in L* (0–1); below 0 darkens. */
+  hoverLight: 0.05,
   /**
    * A click poofs the fur up by `poofHeight` over `poofRise` seconds, hangs
    * there for `poofHold` seconds, then falls at `poofFallSpeed` back to
@@ -105,6 +124,8 @@ export const settings = {
   poofHeight: 0.53,
   /** How much longer still the hairs grow at the top of a click, on top of `hoverStretch` (regrows). */
   clickStretch: 0,
+  /** How much lighter still a click makes the fur, on top of `hoverLight`, springing back with the click. */
+  clickLight: 0,
   poofRise: 0.13,
   poofSettle: 3.1,
   poofBounce: 15,
@@ -162,6 +183,7 @@ export const presets: Record<string, Readonly<FurSettings>> = {
     leaveBounce: 5.5,
     sway: 0.05,
     hoverStretch: 0,
+    hoverLight: 0,
     poofHeight: 0.19,
     clickStretch: 0,
     poofRise: 0.16,
@@ -175,44 +197,8 @@ export const presets: Record<string, Readonly<FurSettings>> = {
     brushSpeed: 4.5,
     brushDamping: 0.32,
   },
-  /** Short, thick, straight, matte fur in rich color, with a bouncy hover. */
+  /** Sparse, thick, glossy strands, with a smooth, bounce-free hover and click that brighten, then darken. */
   Teddy: {
-    ...defaultSettings,
-    shift: -0.11,
-    darker: 0.36,
-    lighter: 0.21,
-    density: 1.5,
-    length: 0.4,
-    thickness: 1.4,
-    curl: 0.35,
-    droop: 0.4,
-    lengthVariation: 1,
-    messiness: 0.45,
-    fuzz: 1.8,
-    taper: 0.31,
-    sheen: 0,
-    hover: 0.34,
-    hoverSpeed: 22,
-    hoverDamping: 0.25,
-    leaveFallSpeed: 1.3,
-    leaveEase: "gravity",
-    leaveSettle: 2,
-    leaveBounce: 3,
-    sway: 0.14,
-    poofHeight: 0.37,
-    poofRise: 0.07,
-    poofSettle: 3.1,
-    poofBounce: 15,
-    poofEase: "ease-out",
-    poofHold: 0,
-    poofFallSpeed: 1.45,
-    poofFallEase: "gravity",
-    brush: 1.05,
-    brushSpeed: 6,
-    brushDamping: 0.32,
-  },
-  /** Sparse, thick, straight, glossy strands that stand out messily. */
-  Bristle: {
     ...defaultSettings,
     shift: -0.11,
     darker: 0.36,
@@ -225,28 +211,93 @@ export const presets: Record<string, Readonly<FurSettings>> = {
     lengthVariation: 1,
     messiness: 2.5,
     fuzz: 0,
+    distance: 0,
     taper: 0.58,
     sheen: 2.7,
+    sheenPosition: 0.3,
+    sheenSpread: 0.25,
+    edgeShadow: 0,
+    shadow: 0.16,
+    shadowBlur: 9,
+    shadowDrop: 0,
+    shadowWidth: 1,
+    vividness: 0,
+    static: 0,
     hover: 0.34,
     hoverSpeed: 22,
-    hoverDamping: 0.45,
-    leaveFallSpeed: 1.3,
-    leaveEase: "gravity",
-    leaveSettle: 2,
-    leaveBounce: 3,
+    hoverDamping: 0.95,
+    leaveFallSpeed: 0.8,
+    leaveEase: "ease-out",
+    leaveSettle: 3.7,
+    leaveBounce: 0,
     sway: 0.14,
+    hoverStretch: 0,
+    hoverLight: 0.09,
     poofHeight: 0.29,
+    clickStretch: 0.37,
+    clickLight: -0.1,
     poofRise: 0.15,
-    poofSettle: 3.1,
-    poofBounce: 15,
+    poofSettle: 11.7,
+    poofBounce: 0,
     poofEase: "ease-out",
     poofHold: 0,
     poofFallSpeed: 1.35,
-    poofFallEase: "gravity",
+    poofFallEase: "ease-out",
     brush: 1.05,
     brushSpeed: 6,
     brushDamping: 0.32,
   },
+  // Bristle is set aside for now: too close to Teddy.
+  // /** Sparse, thick, straight, glossy strands that stand out messily. */
+  // Bristle: {
+  //   ...defaultSettings,
+  //   shift: -0.11,
+  //   darker: 0.36,
+  //   lighter: 0.12,
+  //   density: 0.8,
+  //   length: 0.4,
+  //   thickness: 2.05,
+  //   curl: 0.25,
+  //   droop: 0,
+  //   lengthVariation: 1,
+  //   messiness: 2.5,
+  //   fuzz: 0,
+  //   distance: 0,
+  //   taper: 0.58,
+  //   sheen: 2.7,
+  //   sheenPosition: 0.3,
+  //   sheenSpread: 0.25,
+  //   edgeShadow: 0,
+  //   shadow: 0.16,
+  //   shadowBlur: 9,
+  //   shadowDrop: 0,
+  //   shadowWidth: 1,
+  //   vividness: 0,
+  //   static: 0,
+  //   hover: 0.34,
+  //   hoverSpeed: 22,
+  //   hoverDamping: 0.45,
+  //   leaveFallSpeed: 1.3,
+  //   leaveEase: "gravity",
+  //   leaveSettle: 2,
+  //   leaveBounce: 3,
+  //   sway: 0.14,
+  //   hoverStretch: 0,
+  //   hoverLight: 0.05,
+  //   poofHeight: 0.29,
+  //   clickStretch: 0,
+  //   clickLight: 0.06,
+  //   poofRise: 0.15,
+  //   poofSettle: 3.1,
+  //   poofBounce: 15,
+  //   poofEase: "ease-out",
+  //   poofHold: 0,
+  //   poofFallSpeed: 1.35,
+  //   poofFallEase: "gravity",
+  //   brush: 1.05,
+  //   brushSpeed: 6,
+  //   brushDamping: 0.32,
+  // },
   /** Curly, messy fur that stands up on its own, with a springy, rippling hover and click. */
   Fluffy: {
     ...defaultSettings,
@@ -261,11 +312,17 @@ export const presets: Record<string, Readonly<FurSettings>> = {
     lengthVariation: 2,
     messiness: 1.35,
     fuzz: 0,
+    distance: 0,
     taper: 0.31,
     sheen: 2.5,
     sheenPosition: 0.71,
     sheenSpread: 0.23,
     edgeShadow: 0,
+    shadow: 0.16,
+    shadowBlur: 9,
+    shadowDrop: 0,
+    shadowWidth: 1,
+    vividness: 0,
     static: 0.6,
     hover: 0.1,
     hoverSpeed: 26.5,
@@ -276,18 +333,309 @@ export const presets: Record<string, Readonly<FurSettings>> = {
     leaveBounce: 6,
     sway: 0.14,
     hoverStretch: 0.1,
+    hoverLight: 0.07,
     poofHeight: 0.55,
     clickStretch: 0.34,
-    poofRise: 0.14,
-    poofSettle: 2.1,
-    poofBounce: 18,
+    clickLight: -0.08,
+    poofRise: 0.13,
+    poofSettle: 3.3,
+    poofBounce: 10,
     poofEase: "ease-out",
     poofHold: 0,
-    poofFallSpeed: 0.2,
+    poofFallSpeed: 1.2,
     poofFallEase: "gravity",
     brush: 2.2,
     brushSpeed: 14.5,
     brushDamping: 0.3,
+  },
+  /** Very short, thick, neat pile that grows out long when hovered or clicked. */
+  Velvet: {
+    ...defaultSettings,
+    shift: 0,
+    darker: 0.37,
+    lighter: 0.12,
+    density: 0.8,
+    length: 0.15,
+    thickness: 2.2,
+    curl: 0.25,
+    droop: 0,
+    lengthVariation: 1,
+    messiness: 0,
+    fuzz: 0,
+    taper: 0.32,
+    sheen: 1.2,
+    sheenPosition: 0.04,
+    sheenSpread: 0.52,
+    edgeShadow: 0.21,
+    vividness: 0.38,
+    static: 0.32,
+    hover: 0.68,
+    hoverSpeed: 12.5,
+    hoverDamping: 0.45,
+    leaveFallSpeed: 0.9,
+    leaveEase: "gravity",
+    leaveSettle: 4.1,
+    leaveBounce: 3,
+    sway: 0.14,
+    hoverStretch: 0.83,
+    hoverLight: 0,
+    poofHeight: 1.29,
+    clickStretch: 0.59,
+    poofRise: 0.11,
+    poofSettle: 3.1,
+    poofBounce: 15,
+    poofEase: "ease-out",
+    poofHold: 0,
+    poofFallSpeed: 1.35,
+    poofFallEase: "gravity",
+    brush: 2.6,
+    brushSpeed: 3,
+    brushDamping: 0.6,
+  },
+  /** Long, sparse, messy strands that sway a lot and barely react to a click. */
+  Mane: {
+    ...defaultSettings,
+    shift: 0,
+    darker: 0.46,
+    lighter: 0.17,
+    density: 0.7,
+    length: 2.22,
+    thickness: 1,
+    curl: 0.25,
+    droop: 0,
+    lengthVariation: 1,
+    messiness: 2.2,
+    fuzz: 0,
+    taper: 0.32,
+    sheen: 0.1,
+    sheenPosition: 0.04,
+    sheenSpread: 0.52,
+    edgeShadow: 0.21,
+    vividness: 0.38,
+    static: 0.19,
+    hover: 0.17,
+    hoverSpeed: 17,
+    hoverDamping: 0.45,
+    leaveFallSpeed: 0.9,
+    leaveEase: "gravity",
+    leaveSettle: 4.1,
+    leaveBounce: 3,
+    sway: 0.23,
+    hoverStretch: 0.1,
+    hoverLight: 0,
+    poofHeight: 0.17,
+    clickStretch: 0.05,
+    poofRise: 0.11,
+    poofSettle: 3.1,
+    poofBounce: 15,
+    poofEase: "ease-out",
+    poofHold: 0,
+    poofFallSpeed: 1.35,
+    poofFallEase: "gravity",
+    brush: 0.45,
+    brushSpeed: 6.5,
+    brushDamping: 0.6,
+  },
+  // Sprout is set aside for now: not enough action.
+  // /** Smooth and almost bald at rest; the hairs shoot out on hover, and further on a click. */
+  // Sprout: {
+  //   ...defaultSettings,
+  //   shift: 0,
+  //   darker: 0.28,
+  //   lighter: 0.5,
+  //   density: 0.3,
+  //   length: 0.03,
+  //   thickness: 1.95,
+  //   curl: 0,
+  //   droop: 0,
+  //   lengthVariation: 0,
+  //   messiness: 0,
+  //   fuzz: 0,
+  //   distance: 0,
+  //   taper: 1,
+  //   sheen: 3.6,
+  //   sheenPosition: 0.07,
+  //   sheenSpread: 0.05,
+  //   edgeShadow: 0.75,
+  //   shadow: 0.11,
+  //   shadowBlur: 9.5,
+  //   shadowDrop: -3,
+  //   shadowWidth: 0.97,
+  //   vividness: 1,
+  //   static: 0.76,
+  //   hover: 1,
+  //   hoverSpeed: 30,
+  //   hoverDamping: 0.4,
+  //   leaveFallSpeed: 0.85,
+  //   leaveEase: "gravity",
+  //   leaveSettle: 4.1,
+  //   leaveBounce: 3,
+  //   sway: 0.27,
+  //   hoverStretch: 4,
+  //   hoverLight: 0.06,
+  //   poofHeight: 1.5,
+  //   clickStretch: 1.5,
+  //   clickLight: -0.1,
+  //   poofRise: 0.03,
+  //   poofSettle: 3.1,
+  //   poofBounce: 14.5,
+  //   poofEase: "ease-out",
+  //   poofHold: 0.04,
+  //   poofFallSpeed: 3.6,
+  //   poofFallEase: "ease-out",
+  //   brush: 2.45,
+  //   brushSpeed: 7,
+  //   brushDamping: 0.15,
+  // },
+  /** Sparse, thick, very messy glossy curls set into the button, like tinsel, with slow, gentle motion that darkens on hover and click. */
+  Tinsel: {
+    ...defaultSettings,
+    shift: -0.11,
+    darker: 0.16,
+    lighter: 0.5,
+    density: 0.35,
+    length: 1.04,
+    thickness: 1.85,
+    curl: 1.25,
+    droop: 0.1,
+    lengthVariation: 2,
+    messiness: 3,
+    fuzz: 0,
+    distance: -6,
+    taper: 0.55,
+    sheen: 1.8,
+    sheenPosition: 0.81,
+    sheenSpread: 0.17,
+    edgeShadow: 0,
+    shadow: 0,
+    shadowBlur: 9,
+    shadowDrop: 0,
+    shadowWidth: 1,
+    vividness: 1,
+    static: 0.47,
+    hover: 0.05,
+    hoverSpeed: 22,
+    hoverDamping: 0.5,
+    leaveFallSpeed: 0.4,
+    leaveEase: "ease-in-out",
+    leaveSettle: 1.4,
+    leaveBounce: 5.5,
+    sway: 0.05,
+    hoverStretch: 0.32,
+    hoverLight: -0.08,
+    poofHeight: 0.23,
+    clickStretch: 0,
+    clickLight: -0.15,
+    poofRise: 0.17,
+    poofSettle: 2.5,
+    poofBounce: 3,
+    poofEase: "ease-in-out",
+    poofHold: 0,
+    poofFallSpeed: 0.3,
+    poofFallEase: "ease-out",
+    brush: 0.1,
+    brushSpeed: 4.5,
+    brushDamping: 0.32,
+  },
+  /** A few thick, tightly curled, pointed strands that spring up on hover and stretch out on a click. */
+  Coil: {
+    ...defaultSettings,
+    shift: 0,
+    darker: 0.15,
+    lighter: 0.12,
+    density: 0.2,
+    length: 0.5,
+    thickness: 2,
+    curl: 2.25,
+    droop: 0,
+    lengthVariation: 2,
+    messiness: 1.9,
+    fuzz: 0,
+    distance: 0,
+    taper: 1,
+    sheen: 0.6,
+    sheenPosition: 0.38,
+    sheenSpread: 0.65,
+    edgeShadow: 0.48,
+    shadow: 0.2,
+    shadowBlur: 19,
+    shadowDrop: -1,
+    shadowWidth: 0.97,
+    vividness: 1,
+    static: 0.58,
+    hover: 1,
+    hoverSpeed: 28,
+    hoverDamping: 0.55,
+    leaveFallSpeed: 0.6,
+    leaveEase: "ease-out",
+    leaveSettle: 4.1,
+    leaveBounce: 3,
+    sway: 0.3,
+    hoverStretch: 1.35,
+    hoverLight: 0.05,
+    poofHeight: 1,
+    clickStretch: 0.86,
+    clickLight: -0.04,
+    poofRise: 0.12,
+    poofSettle: 4.6,
+    poofBounce: 9.5,
+    poofEase: "ease-out",
+    poofHold: 0.05,
+    poofFallSpeed: 1.9,
+    poofFallEase: "ease-out",
+    brush: 0.75,
+    brushSpeed: 8,
+    brushDamping: 1.05,
+  },
+  /** Long, thin, glossy hairs that droop heavily, with no shadow and a slow, gentle hover and click. */
+  Mustache: {
+    ...defaultSettings,
+    shift: -0.07,
+    darker: 0.28,
+    lighter: 0.29,
+    density: 0.4,
+    length: 0.85,
+    thickness: 0.65,
+    curl: 0,
+    droop: 3,
+    lengthVariation: 1.15,
+    messiness: 2.3,
+    fuzz: 0.4,
+    distance: 0,
+    taper: 0.64,
+    sheen: 2.8,
+    sheenPosition: 0.28,
+    sheenSpread: 0.26,
+    edgeShadow: 0.63,
+    shadow: 0,
+    shadowBlur: 9,
+    shadowDrop: 0,
+    shadowWidth: 1,
+    vividness: 0,
+    static: 0,
+    hover: 0.1,
+    hoverSpeed: 10,
+    hoverDamping: 0.6,
+    leaveFallSpeed: 0.2,
+    leaveEase: "ease-out",
+    leaveSettle: 1.6,
+    leaveBounce: 0,
+    sway: 0.25,
+    hoverStretch: 0.95,
+    hoverLight: 0.04,
+    poofHeight: 0.25,
+    clickStretch: 0.11,
+    clickLight: -0.1,
+    poofRise: 0.09,
+    poofSettle: 1,
+    poofBounce: 0,
+    poofEase: "ease-in-out",
+    poofHold: 0,
+    poofFallSpeed: 0.2,
+    poofFallEase: "ease-out",
+    brush: 0,
+    brushSpeed: 2,
+    brushDamping: 0.1,
   },
 };
 
@@ -322,7 +670,7 @@ function hexOf(css: string) {
  * Yellows warm toward orange in the shade instead of going olive, as yellow
  * fur does. Colors past sRGB lose chroma to fit.
  */
-function shadeOf(color: string, L: number, middle: number, saturation: number) {
+function shadeOf(color: string, L: number, middle: number, saturation: number): Lab {
   const [, a, b] = toOklab(color);
   const depth = clamp((middle - L) / 0.2, 0, 1);
   const k = saturation * (L < middle ? 1 + 0.6 * (middle - L) : 1);
@@ -330,7 +678,70 @@ function shadeOf(color: string, L: number, middle: number, saturation: number) {
   const degrees = (hue * 180) / Math.PI;
   if (degrees > 60 && degrees < 125) hue -= ((22 * Math.PI) / 180) * depth * smoothstep(125, 95, degrees);
   const chroma = Math.hypot(a, b) * k;
-  return fromOklab([fromLightness(clamp(L, 0, 1)), chroma * Math.cos(hue), chroma * Math.sin(hue)]);
+  return [fromLightness(clamp(L, 0, 1)), chroma * Math.cos(hue), chroma * Math.sin(hue)];
+}
+
+type Lab = [number, number, number];
+type Gamut = "srgb" | "display-p3";
+
+/** OKLab to linear-light sRGB, unclamped, so colors past sRGB come out below 0 or above 1. */
+function linearSrgb([L, a, b]: Lab): Lab {
+  const l = (L + 0.3963377774 * a + 0.2158037573 * b) ** 3;
+  const m = (L - 0.1055613458 * a - 0.0638541728 * b) ** 3;
+  const s = (L - 0.0894841775 * a - 1.291485548 * b) ** 3;
+  return [
+    4.0767416621 * l - 3.3077115913 * m + 0.2309699292 * s,
+    -1.2684380046 * l + 2.6097574011 * m - 0.3413193965 * s,
+    -0.0041960863 * l - 0.7034186147 * m + 1.707614701 * s,
+  ];
+}
+/** Linear sRGB to linear Display P3. */
+const linearP3 = ([r, g, b]: Lab): Lab => [
+  0.8224621 * r + 0.177538 * g,
+  0.0331941 * r + 0.9668058 * g,
+  0.0170827 * r + 0.0723974 * g + 0.9105199 * b,
+];
+const linearIn = (lab: Lab, gamut: Gamut) => (gamut === "srgb" ? linearSrgb(lab) : linearP3(linearSrgb(lab)));
+const fitsIn = (lab: Lab, gamut: Gamut) => linearIn(lab, gamut).every((v) => v >= -1e-6 && v <= 1 + 1e-6);
+/** The most chroma a lightness and hue can have in a gamut, as a fraction of `lab`'s chroma (0 if none). */
+function room(lab: Lab, gamut: Gamut) {
+  if (Math.hypot(lab[1], lab[2]) < 1e-5) return 1;
+  let lo = 0, hi = 4;
+  for (let i = 0; i < 18; i++) {
+    const mid = (lo + hi) / 2;
+    if (fitsIn([lab[0], lab[1] * mid, lab[2] * mid], gamut)) lo = mid;
+    else hi = mid;
+  }
+  return lo;
+}
+const encode = (v: number) => (v <= 0.0031308 ? 12.92 * v : 1.055 * v ** (1 / 2.4) - 0.055);
+
+// Wide gamut needs a P3 screen.
+const wideScreen = matchMedia("(color-gamut: p3)");
+/** Whether to use wide gamut, where the screen supports it. */
+export const display = { wide: true };
+/** What this screen supports, for showing in the panel. */
+export const support = () => ({ wide: wideScreen.matches });
+const gamutNow = (): Gamut => (display.wide && wideScreen.matches ? "display-p3" : "srgb");
+
+/**
+ * Writes an OKLab color for the canvas. On a wide gamut, `vivid` (0–1) moves
+ * its chroma out toward the wider gamut's edge as far as it is toward sRGB's,
+ * so a vivid sRGB color becomes as vivid as the screen can show. Colors past
+ * the gamut lose chroma to fit.
+ */
+function paint(lab: Lab, gamut: Gamut, vivid: number): string {
+  let c = lab;
+  if (gamut !== "srgb" && vivid > 0) {
+    const spread = room(c, gamut) / Math.max(1e-3, room(c, "srgb"));
+    const k = 1 + clamp(vivid, 0, 1) * (Math.min(spread, 3) - 1);
+    if (k > 1) c = [c[0], c[1] * k, c[2] * k];
+  }
+  const fit = room(c, gamut);
+  if (fit < 1) c = [c[0], c[1] * fit, c[2] * fit];
+  if (gamut === "srgb") return fromOklab(c);
+  const [r, g, b] = linearIn(c, gamut).map((v) => encode(clamp(v, 0, 1)).toFixed(4));
+  return `color(display-p3 ${r} ${g} ${b})`;
 }
 
 function rng(seed: number) {
@@ -381,6 +792,8 @@ function grow(w: number, h: number, radius: number, seed: number, scale: number,
     const qx = Math.abs(x - cx) - (w / 2 - r), qy = Math.abs(y - cy) - (h / 2 - r);
     return Math.hypot(Math.max(qx, 0), Math.max(qy, 0)) + Math.min(Math.max(qx, qy), 0) - r;
   };
+  // The fur's outline, moved out (or in) from the button's by `distance`.
+  const off = settings.distance * scale, reach = Math.max(0, off);
   const max = Math.round(((w * h) / scale ** 1.6 + ((w + h) * 7) / scale) * settings.density);
   const f = () => new Float32Array(max);
   const s = {
@@ -392,8 +805,8 @@ function grow(w: number, h: number, radius: number, seed: number, scale: number,
   const sheen: number[][] = Array.from({ length: sheenLevels }, () => []);
   let n = 0;
   for (let tries = 0; n < max && tries < max * 4; tries++) {
-    const x = random() * (w + 4) - 2, y = random() * (h + 4) - 2;
-    const d = sdf(x, y);
+    const x = random() * (w + 4 + reach * 2) - 2 - reach, y = random() * (h + 4 + reach * 2) - 2 - reach;
+    const d = sdf(x, y) - off;
     if (d > 0.5) continue;
     const rim = smoothstep(-9 * scale, 0, d);
     // Denser along the outline, where the fuzz shows.
@@ -458,11 +871,22 @@ function grow(w: number, h: number, radius: number, seed: number, scale: number,
 }
 
 export function mountFur(button: HTMLElement) {
-  const canvas = document.createElement("canvas");
-  canvas.className = "fur-canvas";
-  canvas.setAttribute("aria-hidden", "true");
-  button.prepend(canvas);
-  const ctx = canvas.getContext("2d")!;
+  // The canvas, remade when the color setup changes, since a canvas's color
+  // space and depth are fixed once its context exists.
+  let canvas!: HTMLCanvasElement, ctx!: CanvasRenderingContext2D;
+  let setup = "";
+  function makeCanvas() {
+    const gamut = gamutNow();
+    setup = gamut;
+    const next = document.createElement("canvas");
+    next.className = "fur-canvas";
+    next.setAttribute("aria-hidden", "true");
+    ctx = next.getContext("2d", { colorSpace: gamut })!;
+    if (canvas) canvas.replaceWith(next);
+    else button.prepend(next);
+    canvas = next;
+  }
+  makeCanvas();
 
   // `--fur-scale` sizes the hairs; `pad` is the canvas margin they can reach into.
   let scale = 1, pad = halo;
@@ -491,31 +915,86 @@ export function mountFur(button: HTMLElement) {
 
   const seed = [...(button.textContent ?? "")].reduce((a, c) => (a * 31 + c.charCodeAt(0)) | 0, 7);
 
+  // The button's color, and the fur's shades for each amount of hover and
+  // click lightening, worked out as they're first needed and kept until the
+  // colors or settings change. Steps of 0.001 L* are too small to see, so
+  // slow fades don't step; each new step costs a fraction of a millisecond.
+  let surface = "#000";
+  const shades = new Map<number, { palette: string[]; sheen: string[]; undercoat: [string, string] }>();
+
   function readColors() {
     const style = getComputedStyle(button);
     // The button's color, even once its flat background is hidden.
-    const surface = hexOf(style.getPropertyValue("--fur-color").trim() || style.backgroundColor);
+    surface = hexOf(style.getPropertyValue("--fur-color").trim() || style.backgroundColor);
+    shades.clear();
+    useShades(0);
+    button.toggleAttribute("data-fur-ready", true);
+  }
+
+  /** Switches to the shades lightened by `light` (L*, 0–1), working them out the first time. */
+  function useShades(light: number) {
+    const key = Math.round(light * 1000);
+    let set = shades.get(key);
+    if (!set) {
+      if (shades.size > 2000) shades.clear();
+      set = shadesAt(key / 1000);
+      shades.set(key, set);
+    }
+    palette = set.palette;
+    sheenPalette = set.sheen;
+    undercoat = set.undercoat;
+  }
+
+  function shadesAt(light: number) {
     const Ls = lightness(surface);
-    const middle = clamp(Ls + settings.shift, 0.05, 0.95);
+    const middle = clamp(Ls + settings.shift + light, 0.05, 0.95);
     const low = Math.max(0.02, middle - settings.darker), high = Math.min(0.97, middle + settings.lighter);
     // Level 0.6 of the way up is the middle, so most of the fur reads as the button's color.
     const at = (u: number) => (u < 0.6 ? middle - ((0.6 - u) / 0.6) * (middle - low) : middle + ((u - 0.6) / 0.4) * (high - middle));
-    const color = (u: number) => shadeOf(surface, at(u), middle, 1);
-    palette = Array.from({ length: levels }, (_, i) => color(i / (levels - 1)));
-    undercoat = [color(0.46), color(0.3)];
-    // Sheen: lighter than the brightest fur, with some of its color, so it reads as light on the hair.
-    sheenPalette = Array.from({ length: sheenLevels }, (_, i) =>
-      shadeOf(surface, Math.min(0.97, high + 0.03 + 0.02 * i), middle, 0.8));
-    button.toggleAttribute("data-fur-ready", true);
+    const gamut = gamutNow();
+    const color = (u: number) => paint(shadeOf(surface, at(u), middle, 1), gamut, settings.vividness);
+    return {
+      palette: Array.from({ length: levels }, (_, i) => color(i / (levels - 1))),
+      undercoat: [color(0.46), color(0.3)] as [string, string],
+      // Sheen: lighter than the brightest fur, with some of its color, so it reads as light on the hair.
+      sheen: Array.from({ length: sheenLevels }, (_, i) =>
+        paint(shadeOf(surface, Math.min(0.97, high + 0.03 + 0.02 * i), middle, 0.8), gamut, settings.vividness)),
+    };
   }
+
+  /**
+   * How much the fur is lightened now: by `hoverLight` as far as it has
+   * risen toward the hover lift (with the hover's own timing), and by
+   * `clickLight` as far through a click as it is (with the click's rise,
+   * hang and spring-back). The hover part stops at the hover lift, so a
+   * click's extra lift doesn't also brighten it, however small the hover lift.
+   */
+  function lightNow() {
+    if (!settings.hoverLight && !settings.clickLight) return 0;
+    const base = clamp(settings.static, 0, 1), hoverTop = Math.min(1, base + settings.hover);
+    const hovered = hoverTop - base > 1e-3 ? clamp((lift - base) / (hoverTop - base), 0, 1) : 0;
+    return settings.hoverLight * hovered + settings.clickLight * clamp(poof, -0.5, 1);
+  }
+
+  /**
+   * Room around the button for the hairs at their longest: the halo fits
+   * hairs up to length 1.4, and grows for longer ones and for the stretch
+   * of hovering and clicking.
+   */
+  const padFor = (scale: number) =>
+    Math.round(Math.max(
+      halo * scale * Math.max(1, settings.length / 1.4) * (1 + Math.max(0, settings.hoverStretch) + Math.max(0, settings.clickStretch)) + Math.max(0, settings.distance) * scale,
+      // And for the shadow: its drop, blur and height below the button, and its width past the sides.
+      (Math.max(0, settings.shadowDrop) + 2 * Math.max(0, settings.shadowBlur) + 10) * scale,
+      (Math.max(0, settings.shadowWidth - 1) * w * 0.46) + 2 * Math.max(0, settings.shadowBlur) * scale,
+    ));
 
   function layout() {
     const b = button.getBoundingClientRect();
     const style = getComputedStyle(button);
     w = b.width; h = b.height;
     scale = parseFloat(style.getPropertyValue("--fur-scale")) || 1;
-    // Room for the hairs at their longest, stretched by hovering and clicking.
-    pad = Math.round(halo * scale * (1 + Math.max(0, settings.hoverStretch) + Math.max(0, settings.clickStretch)));
+    pad = padFor(scale);
     Object.assign(canvas.style, { inset: `-${pad}px`, width: `calc(100% + ${pad * 2}px)`, height: `calc(100% + ${pad * 2}px)` });
     radius = parseFloat(style.borderTopLeftRadius) || 0;
     dpr = Math.min(2, devicePixelRatio || 1);
@@ -537,11 +1016,12 @@ export function mountFur(button: HTMLElement) {
     // A click stretches them further along its own rise and fall, `poof`, so
     // it works even when the fur already stands fully upright.
     const hoverTop = Math.min(1, base + settings.hover);
-    const clicking = poof !== 0 || recoil || stage === "rise" || stage === "hold" || stage === "fall" || spring === "click";
+    // The click's part only adds to the hover's, so a click always stretches
+    // further than hovering (until its spring-back overshoots).
     const clicked = settings.clickStretch * clamp(poof, -0.5, 1);
     const stretchAt = (l: number) => {
       const hovered = hoverTop - base > 1e-3 ? (l - base) / (hoverTop - base) : 0;
-      return settings.hoverStretch * clamp(hovered, 0, clicking ? 1 : 1.3) + clicked;
+      return settings.hoverStretch * clamp(hovered, 0, 1.3) + clicked;
     };
     for (let i = 0; i < s.n; i++) {
       const dx = s.x[i] - pointerX, dy = s.y[i] - pointerY;
@@ -658,21 +1138,31 @@ export function mountFur(button: HTMLElement) {
   function draw() {
     if (!strands || !palette.length) return;
     const s = strands;
+    useShades(lightNow());
     ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
     ctx.clearRect(0, 0, w + pad * 2, h + pad * 2);
-    // A soft shadow on the page underneath, so the fur sits on it.
-    ctx.filter = `blur(${9 * scale}px)`;
-    ctx.fillStyle = "rgba(0, 0, 0, 0.16)";
-    ctx.beginPath();
-    ctx.ellipse(pad + w / 2, pad + h - scale, w * 0.46, Math.min(10 * scale, h * 0.2), 0, 0, Math.PI * 2);
-    ctx.fill();
+    // A soft shadow on the page underneath, so the fur sits on it. Skipped
+    // when off, since a blur is one of the costlier things to draw.
+    if (settings.shadow > 0) {
+      ctx.filter = `blur(${Math.max(0, settings.shadowBlur) * scale}px)`;
+      ctx.fillStyle = `rgba(0, 0, 0, ${clamp(settings.shadow, 0, 1)})`;
+      ctx.beginPath();
+      ctx.ellipse(pad + w / 2, pad + h + (settings.shadowDrop - 1) * scale, w * 0.46 * Math.max(0.05, settings.shadowWidth), Math.min(10 * scale, h * 0.2), 0, 0, Math.PI * 2);
+      ctx.fill();
+    }
     // The undercoat: the shade deep in the fur, between the hairs.
-    const rr = Math.min(radius, w / 2, h / 2), inset = 3 * scale;
+    // Follows the fur's outline, `distance` out from the button's. Dense fur
+    // hides the body's edge a little inside the outline; sparse fur would
+    // leave a gap between it and the hairs, so the body reaches out to where
+    // they grow, with a softer edge.
+    const sparse = 1 - clamp(settings.density, 0, 1);
+    const rr = Math.min(radius, w / 2, h / 2);
+    const inset = Math.min((3 - settings.distance - 5 * sparse) * scale, Math.min(w, h) / 2 - 1);
     const depth = ctx.createLinearGradient(0, pad, 0, pad + h);
     depth.addColorStop(0, undercoat[0]);
     depth.addColorStop(1, undercoat[1]);
     ctx.fillStyle = depth;
-    ctx.filter = `blur(${2.5 * scale}px)`;
+    ctx.filter = `blur(${(2.5 + 2 * sparse) * scale}px)`;
     ctx.beginPath();
     ctx.roundRect(pad + inset, pad + inset, w - inset * 2, h - inset * 2, Math.max(0, rr - inset));
     ctx.fill();
@@ -948,6 +1438,10 @@ export function mountFur(button: HTMLElement) {
   button.addEventListener("blur", aim);
 
   const refresh = () => {
+    if (setup !== gamutNow()) {
+      makeCanvas();
+      layout();
+    } else if (padFor(scale) !== pad) layout();
     readColors();
     draw();
     // Settings may have moved where the fur rests or hovers: spring there.
