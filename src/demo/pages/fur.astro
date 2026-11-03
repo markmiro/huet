@@ -1,0 +1,806 @@
+---
+import Demo from "../layouts/Demo.astro";
+
+// Plain colors, not from the theme: each button sets its fur color and label color.
+const buttons = [
+  { id: "pet", label: "Pet me", color: "#ffd21a", text: "#5c4a10", shape: "pill" },
+  { id: "continue", label: "Continue", color: "#ffffff", text: "#383838", shape: "pill" },
+  { id: "hi", label: "Hi", color: "#b66cf2", text: "#ffffff", shape: "ball" },
+  { id: "save", label: "Save", color: "#38d06c", text: "#ffffff", shape: "pill" },
+  { id: "learn", label: "Learn more", color: "#3d8dff", text: "#ffffff", shape: "pill" },
+];
+// Twice the size, with hairs 1.5 times as long and thick, to see them up close.
+const big = { id: "big", label: "Adopt a cat", color: "#ff5c7c", text: "#ffe5e6", shape: "pill" };
+const panels = [
+  { title: "On white", className: "fur-panel-white" },
+  { title: "On black", className: "fur-panel-black" },
+];
+// Sliders for the fur's shared settings (see `settings` in fur.ts). "regrow" ones change the hairs themselves.
+interface Control {
+  key: string;
+  label: string;
+  hint?: string;
+  /** A slider's range; a control with `options` is a dropdown instead. */
+  min?: number;
+  max?: number;
+  step?: number;
+  options?: string[];
+  /** Changes the hairs themselves, so they're grown again. */
+  regrow?: boolean;
+}
+interface Group {
+  title: string;
+  /** Motion groups say what triggers them, and get a colored card: hover, click or brushing. */
+  kind?: "hover" | "click" | "brush";
+  when?: string;
+  sliders: Control[];
+}
+const controls: Group[] = [
+  {
+    title: "Color",
+    sliders: [
+      { key: "saturation", label: "Saturation", min: 0, max: 3, step: 0.05 },
+      { key: "shift", label: "Lightness", min: -0.3, max: 0.3, step: 0.01 },
+      { key: "darker", label: "Shadows", min: 0, max: 0.4, step: 0.01 },
+      { key: "lighter", label: "Highlights", min: 0, max: 0.3, step: 0.01 },
+    ],
+  },
+  {
+    title: "Hair",
+    sliders: [
+      { key: "density", label: "Density", min: 0.2, max: 2, step: 0.05, regrow: true },
+      { key: "length", label: "Length", min: 0.4, max: 2.5, step: 0.05, regrow: true },
+      {
+        key: "lengthVariation", label: "Length variation", min: 0, max: 2, step: 0.05, regrow: true,
+        hint: "How much hair lengths differ. 0 makes them all the same, for a trimmed look.",
+      },
+      { key: "thickness", label: "Thickness", min: 0.3, max: 3, step: 0.05 },
+      {
+        key: "taper", label: "Taper", min: 0.1, max: 1, step: 0.01,
+        hint: "Tip width compared to the root. Lower ends in fine points; 1 keeps the same width.",
+      },
+      { key: "curl", label: "Curl", min: 0, max: 3, step: 0.05, regrow: true },
+      { key: "droop", label: "Droop", min: 0, max: 3, step: 0.05 },
+      {
+        key: "static", label: "Static", min: 0, max: 1, step: 0.01,
+        hint: "How far the hairs stand up on their own, like static, even with no hover. 0 lies combed flat, 1 stands straight up. Hover and click lift on top of it.",
+      },
+      {
+        key: "messiness", label: "Messiness", min: 0, max: 3, step: 0.05, regrow: true,
+        hint: "How far hairs stray from the combed direction. 0 is neatly brushed.",
+      },
+      {
+        key: "fuzz", label: "Fuzzy edge", min: 0, max: 3, step: 0.05, regrow: true,
+        hint: "How far hairs along the outline lean out, softening the button's edge.",
+      },
+      { key: "sheen", label: "Shine", min: 0, max: 4, step: 0.1, regrow: true },
+    ],
+  },
+  {
+    title: "Hover in",
+    kind: "hover",
+    when: "When the pointer moves onto a button.",
+    sliders: [
+      {
+        key: "hover", label: "Hover lift", min: 0, max: 1, step: 0.01,
+        hint: "How much further the hairs stand up while the pointer is over the button, on top of the static (up to straight up). 0 doesn't rise at all.",
+      },
+      {
+        key: "hoverStretch", label: "Hover stretch", min: 0, max: 1, step: 0.01, regrow: true,
+        hint: "How much longer the hairs grow as they rise on hover. 0 keeps their length; 0.5 makes them half as long again; 1 doubles them.",
+      },
+      {
+        key: "hoverSpeed", label: "Rise speed", min: 2, max: 30, step: 0.5,
+        hint: "How quickly the fur rises when the pointer comes onto the button.",
+      },
+      {
+        key: "hoverDamping", label: "Rise damping", min: 0.05, max: 1.5, step: 0.05,
+        hint: "How much the rise bounces. Lower overshoots and wobbles; 1 and above eases in without overshooting.",
+      },
+      {
+        key: "sway", label: "Sway", min: 0, max: 0.3, step: 0.01,
+        hint: "How much the hairs gently sway while the pointer is over the button.",
+      },
+    ],
+  },
+  {
+    title: "Hover out",
+    kind: "hover",
+    when: "When the pointer leaves a button without a click playing. A click's own settings finish a click first.",
+    sliders: [
+      {
+        key: "leaveFallSpeed", label: "Fall speed", min: 0.2, max: 6, step: 0.05,
+        hint: "How fast the fur falls when the pointer leaves (without a click playing). A full drop from upright to flat takes 1 ÷ this many seconds; shorter drops take less. Lower it for a slower droop.",
+      },
+      {
+        key: "leaveEase", label: "Fall easing",
+        options: ["gravity", "ease-in", "linear", "ease-in-out", "ease-out", "back-out", "elastic-out"],
+        hint: "The curve of the fall. Gravity starts slow and speeds up, landing fast enough to bounce; ease-in lands harder. Ease-in-out and ease-out slow down before landing, so they barely bounce.",
+      },
+      {
+        key: "leaveSettle", label: "Landing settle", min: 1, max: 12, step: 0.1,
+        hint: "How quickly the landing bounce fades. Comes to rest in about 4.6 ÷ this many seconds after landing, so lower bounces longer.",
+      },
+      {
+        key: "leaveBounce", label: "Landing bounce", min: 0, max: 20, step: 0.5,
+        hint: "How fast the fur wobbles after it lands. Higher means quicker, tighter wobbles; 0 settles without wobbling.",
+      },
+    ],
+  },
+  {
+    title: "Click",
+    kind: "click",
+    when: "When you click, whether the pointer stays or leaves: the fur poofs up, hangs, falls and lands.",
+    sliders: [
+      {
+        key: "poofHeight", label: "Click height", min: 0, max: 1.5, step: 0.01,
+        hint: "How much further a click makes the fur stand up, on top of the hover lift, up to fully upright.",
+      },
+      {
+        key: "clickStretch", label: "Click stretch", min: 0, max: 1, step: 0.01, regrow: true,
+        hint: "How much longer still the hairs grow at the top of a click, on top of the hover stretch, shrinking back as the fur falls. 0.5 adds half their length.",
+      },
+      {
+        key: "poofRise", label: "Click rise (s)", min: 0.03, max: 0.6, step: 0.01,
+        hint: "Seconds the fur takes to poof up after a click. Lower is snappier.",
+      },
+      {
+        key: "poofEase", label: "Rise easing",
+        options: ["ease-out", "ease-in-out", "ease-in", "linear", "back-out", "elastic-out"],
+        hint: "The curve of the rise. Ease-out starts fast and slows into the peak; ease-in builds up; back-out and elastic-out overshoot the peak first.",
+      },
+      {
+        key: "poofHold", label: "Hang time (s)", min: 0, max: 1.5, step: 0.01,
+        hint: "Seconds the fur stays up at the peak before it starts to fall.",
+      },
+      {
+        key: "poofFallSpeed", label: "Fall speed", min: 0.2, max: 6, step: 0.05,
+        hint: "How fast the click's fall comes down, to where the fur rests: hovered, or flat if the pointer has left. A full drop from upright to flat takes 1 ÷ this many seconds, so falling back to hovering is quicker than falling flat. Lower it if the fur droops too fast.",
+      },
+      {
+        key: "poofFallEase", label: "Fall easing",
+        options: ["gravity", "ease-in", "linear", "ease-in-out", "ease-out", "back-out", "elastic-out"],
+        hint: "The curve of the fall. Gravity starts slow and speeds up, landing fast enough to bounce; ease-in lands harder. Ease-in-out and ease-out slow down before landing, so they barely bounce.",
+      },
+      {
+        key: "poofSettle", label: "Landing settle", min: 1, max: 12, step: 0.1,
+        hint: "How quickly the landing bounce fades. Comes to rest in about 4.6 ÷ this many seconds after landing, so lower bounces longer.",
+      },
+      {
+        key: "poofBounce", label: "Landing bounce", min: 0, max: 20, step: 0.5,
+        hint: "How fast the fur wobbles after it lands. Higher means quicker, tighter wobbles; 0 settles without wobbling.",
+      },
+      {
+        key: "wave", label: "Ripple", min: 0, max: 1.5, step: 0.05,
+        hint: "How much the poof spreads out from where you clicked. 0 lifts every hair at once; higher sends a wave across the fur.",
+      },
+    ],
+  },
+  {
+    title: "Brushing",
+    kind: "brush",
+    when: "When the pointer moves across the fur.",
+    sliders: [
+      {
+        key: "brush", label: "Brushing", min: 0, max: 3, step: 0.05,
+        hint: "How strongly moving the pointer across the fur pushes the hairs. 0 turns brushing off.",
+      },
+      {
+        key: "brushSpeed", label: "Return speed", min: 1, max: 20, step: 0.5,
+        hint: "How quickly brushed hairs spring back to where they lie.",
+      },
+      {
+        key: "brushDamping", label: "Return damping", min: 0.05, max: 1.5, step: 0.05,
+        hint: "How much brushed hairs wobble on the way back. Lower wobbles more; 1 and above settles smoothly.",
+      },
+    ],
+  },
+];
+const all = [...buttons, big];
+---
+<Demo title="Fur">
+  <div class="mx-auto max-w-[84em] p-8">
+    <h1 class="my-[0.67em] text-5xl font-bold">Fur buttons</h1>
+    <p class="huet-text-50 max-w-[42em]">
+      A prototype of textured controls. Hover a button and its fur rises a little; click it and the
+      fur poofs up and settles back down; move the pointer across it to brush the hairs.
+    </p>
+
+    <div class="mt-8 flex flex-wrap items-start gap-8">
+      <aside class="fur-controls" aria-label="Fur controls">
+        <div class="fur-controls-head">
+          <h2>Controls</h2>
+          <button type="button" data-fur-reset>Reset</button>
+        </div>
+        <div class="fur-transfer">
+          <button type="button" data-fur-copy>Copy settings</button>
+          <button type="button" data-fur-paste>Paste settings</button>
+        </div>
+        <label class="fur-field fur-preset">
+          <span>Preset</span>
+          <select data-fur-preset></select>
+        </label>
+        <div class="fur-paste" data-fur-paste-box hidden>
+          <textarea data-fur-paste-text rows="5" placeholder="Paste copied settings here"></textarea>
+          <div class="fur-transfer">
+            <button type="button" data-fur-paste-apply>Apply</button>
+            <button type="button" data-fur-paste-cancel>Cancel</button>
+          </div>
+        </div>
+        <p class="fur-hint fur-saved">Changes are saved in this browser. Reset goes back to the defaults.</p>
+
+        <fieldset>
+          <legend>Button color</legend>
+          <label class="fur-field">
+            <span>Button</span>
+            <select data-fur-pick>
+              {all.map((button) => (
+                <option value={button.id}>{button.id === "big" ? `Big ${button.label}` : button.label}</option>
+              ))}
+            </select>
+          </label>
+          <div class="fur-colors">
+            <label class="fur-field"><span>Fur</span><input type="color" data-fur-color /></label>
+            <label class="fur-field"><span>Label</span><input type="color" data-fur-text /></label>
+          </div>
+        </fieldset>
+
+        {controls.map((group) => (
+          <fieldset class:list={[group.kind && `fur-group fur-group-${group.kind}`]}>
+            <legend>{group.title}</legend>
+            {group.when && <p class="fur-when">{group.when}</p>}
+            {group.sliders.map((slider) => (
+              <label class="fur-slider">
+                <span>{slider.label}</span>
+                {slider.options ? (
+                  <select data-fur-setting={slider.key}>
+                    {slider.options.map((option) => <option value={option}>{option}</option>)}
+                  </select>
+                ) : (
+                  <>
+                    <output data-fur-value={slider.key}></output>
+                    <input
+                      type="range"
+                      data-fur-setting={slider.key}
+                      data-regrow={slider.regrow ? "" : undefined}
+                      min={slider.min}
+                      max={slider.max}
+                      step={slider.step}
+                    />
+                  </>
+                )}
+                {slider.hint && <small class="fur-hint">{slider.hint}</small>}
+              </label>
+            ))}
+          </fieldset>
+        ))}
+
+        <fieldset>
+          <legend>Big button</legend>
+          <label class="fur-slider">
+            <span>Hair scale</span>
+            <output data-fur-big-value></output>
+            <input type="range" data-fur-big-scale min="1" max="4" step="0.1" value="1.5" />
+          </label>
+        </fieldset>
+      </aside>
+
+      <div class="min-w-0 flex-1">
+        {panels.map((panel, i) => (
+          <section class:list={["fur-panel rounded-xl px-8 py-10", panel.className, i && "mt-8"]}>
+            <h2 class="mb-8 text-xl font-bold">{panel.title}</h2>
+            <div class="flex flex-wrap items-center gap-x-16 gap-y-14 py-2">
+              {buttons.map((button) => (
+                <button
+                  type="button"
+                  data-fur
+                  data-fur-id={button.id}
+                  data-color={button.color}
+                  data-text={button.text}
+                  class:list={["fur", `fur-${button.shape}`]}
+                  style={`--fur-color: ${button.color}; color: ${button.text}`}
+                >
+                  <span data-fur-label>{button.label}</span>
+                </button>
+              ))}
+            </div>
+            <div class="mt-20 mb-8 flex">
+              <button
+                type="button"
+                data-fur
+                data-fur-id={big.id}
+                data-color={big.color}
+                data-text={big.text}
+                class:list={["fur fur-big", `fur-${big.shape}`]}
+                style={`--fur-color: ${big.color}; color: ${big.text}`}
+              >
+                <span data-fur-label>{big.label}</span>
+              </button>
+            </div>
+          </section>
+        ))}
+      </div>
+    </div>
+  </div>
+</Demo>
+
+<style is:global>
+  .fur-controls {
+    position: sticky;
+    top: 1rem;
+    width: 17rem;
+    max-height: calc(100vh - 2rem);
+    overflow-y: auto;
+    padding: 1rem 1.25rem 1.25rem;
+    border-radius: 0.75rem;
+    background: #f4f4f5;
+    color: #18181b;
+    font-size: 0.875rem;
+    accent-color: #18181b;
+  }
+  .fur-controls-head {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+  }
+  .fur-transfer {
+    margin-top: 0.75rem;
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 0.375rem;
+  }
+  .fur-transfer button {
+    padding: 0.35rem 0.6rem;
+  }
+  .fur-preset {
+    margin-top: 0.75rem;
+  }
+  .fur-paste textarea {
+    margin-top: 0.75rem;
+    width: 100%;
+    border: 1px solid #d4d4d8;
+    border-radius: 0.375rem;
+    background: #fff;
+    padding: 0.4rem;
+    font: 0.75rem/1.4 ui-monospace, monospace;
+    color: inherit;
+  }
+  .fur-saved {
+    margin-top: 0.4rem;
+  }
+  .fur-controls h2 {
+    font-size: 1rem;
+    font-weight: 700;
+  }
+  .fur-controls button,
+  .fur-controls select {
+    border: 1px solid #d4d4d8;
+    border-radius: 0.375rem;
+    background: #fff;
+    padding: 0.2rem 0.6rem;
+    color: inherit;
+  }
+  .fur-controls fieldset {
+    margin-top: 1rem;
+    display: grid;
+    gap: 0.6rem;
+  }
+  .fur-controls legend {
+    margin-bottom: 0.5rem;
+    font-size: 0.75rem;
+    font-weight: 700;
+    letter-spacing: 0.04em;
+    text-transform: uppercase;
+    color: #71717a;
+  }
+  /* Motion settings: a card per trigger, colored by kind, so hover and click settings don't blur together. */
+  .fur-controls .fur-group {
+    margin-top: 1.25rem;
+    padding: 0.75rem 0.75rem 0.85rem;
+    border-radius: 0.5rem;
+    border-left: 4px solid var(--fur-kind);
+    background: color-mix(in srgb, var(--fur-kind) 9%, #fff);
+  }
+  .fur-controls .fur-group legend {
+    float: left;
+    width: 100%;
+    margin-bottom: 0;
+    color: var(--fur-kind-text);
+  }
+  .fur-group-hover {
+    --fur-kind: #3b82f6;
+    --fur-kind-text: #1d4ed8;
+  }
+  .fur-group-click {
+    --fur-kind: #f97316;
+    --fur-kind-text: #c2410c;
+  }
+  .fur-group-brush {
+    --fur-kind: #22c55e;
+    --fur-kind-text: #15803d;
+  }
+  .fur-when {
+    clear: both;
+    margin-bottom: 0.15rem;
+    font-size: 0.75rem;
+    line-height: 1.35;
+    color: #3f3f46;
+  }
+  .fur-slider {
+    display: grid;
+    grid-template-columns: 1fr auto;
+    row-gap: 0.15rem;
+  }
+  .fur-slider input,
+  .fur-slider select {
+    grid-column: 1 / -1;
+    width: 100%;
+  }
+  .fur-hint {
+    grid-column: 1 / -1;
+    font-size: 0.75rem;
+    line-height: 1.35;
+    color: #71717a;
+  }
+  .fur-slider output {
+    font-variant-numeric: tabular-nums;
+    color: #52525b;
+  }
+  .fur-field {
+    display: grid;
+    gap: 0.25rem;
+  }
+  .fur-colors {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 0.75rem;
+  }
+  .fur-colors input {
+    width: 100%;
+    height: 2rem;
+    border: 1px solid #d4d4d8;
+    border-radius: 0.375rem;
+    background: #fff;
+    padding: 0.125rem;
+  }
+
+  .fur-panel-white {
+    background: #fff;
+    color: #111;
+  }
+  .fur-panel-black {
+    background: #0b0b0c;
+    color: #f4f4f5;
+  }
+  .fur {
+    position: relative;
+    border: 0;
+    background-color: var(--fur-color);
+    font: inherit;
+    font-weight: 700;
+    font-size: 1.125rem;
+    cursor: pointer;
+    -webkit-tap-highlight-color: transparent;
+  }
+  .fur-pill {
+    border-radius: 999px;
+    padding: 0.9em 1.7em;
+  }
+  /* Twice the size (padding and radius follow the font size), with hairs drawn at 1.5 times the scale. */
+  .fur-big {
+    font-size: 2.25rem;
+    --fur-scale: 1.5;
+    margin-left: 2rem;
+  }
+  .fur-ball {
+    border-radius: 50%;
+    width: 5.5rem;
+    height: 5.5rem;
+  }
+  /* Once the fur is drawn, it replaces the flat background, so no hard edge shows. */
+  .fur[data-fur-ready] {
+    background-color: transparent;
+  }
+  .fur > [data-fur-label] {
+    position: relative;
+  }
+  .fur-canvas {
+    position: absolute;
+    pointer-events: none;
+  }
+  /* The ring goes outside the fur. */
+  .fur:focus-visible {
+    outline: 2px solid currentColor;
+    outline-offset: 24px;
+  }
+</style>
+
+<script>
+  import { defaultSettings, mountFur, presets, refreshFur, regrowFur, settings, type Ease, type EaseSetting, type FurSettings, type NumericSetting } from "../fur/fur";
+
+  type Key = keyof FurSettings;
+  interface Saved {
+    settings: Partial<FurSettings>;
+    colors: Record<string, { fur: string; label: string }>;
+    bigHairScale: number;
+  }
+  const storageKey = "huet-demo:fur";
+  const defaultBigScale = "1.5";
+  const buttons = [...document.querySelectorAll<HTMLElement>("[data-fur]")];
+  const bigScale = document.querySelector<HTMLInputElement>("[data-fur-big-scale]")!;
+  const bigValue = document.querySelector<HTMLOutputElement>("[data-fur-big-value]")!;
+  const bigs = buttons.filter((button) => button.dataset.furId === "big");
+
+  /** Sets a button's fur and label colors. */
+  const color = (button: HTMLElement, fur: string, label: string) => {
+    button.style.setProperty("--fur-color", fur);
+    button.style.color = label;
+    button.dataset.textNow = label;
+  };
+
+  /** Everything the panel controls: what Copy settings copies and what's saved for the next visit. */
+  const snapshot = (): Saved => {
+    const colors: Saved["colors"] = {};
+    for (const button of buttons) {
+      colors[button.dataset.furId!] = {
+        fur: button.style.getPropertyValue("--fur-color").trim(),
+        label: button.dataset.textNow ?? button.dataset.text!,
+      };
+    }
+    return { settings: { ...settings }, colors, bigHairScale: Number(bigScale.value) };
+  };
+
+  /**
+   * Applies saved or pasted settings, and returns how many values it took.
+   * Only known settings with the right type and real colors are taken, so an
+   * older save or a stray paste can't break the page. Takes a whole snapshot
+   * or just its `settings`.
+   */
+  const applySaved = (input: unknown) => {
+    if (!input || typeof input !== "object") return 0;
+    const saved = ("settings" in input ? input : { settings: input }) as Partial<Saved>;
+    const isColor = (value: unknown): value is string => typeof value === "string" && /^#[0-9a-f]{6}$/i.test(value);
+    let count = 0;
+    for (let [key, value] of Object.entries(saved.settings ?? {})) {
+      // Static used to be called height.
+      if (key === "height") key = "static";
+      if (!(key in settings) || typeof value !== typeof settings[key as Key]) continue;
+      if (typeof value === "number" && !Number.isFinite(value)) continue;
+      Object.assign(settings, { [key]: value });
+      count++;
+    }
+    for (const button of buttons) {
+      const colors = saved.colors?.[button.dataset.furId!];
+      if (!colors || !isColor(colors.fur) || !isColor(colors.label)) continue;
+      color(button, colors.fur, colors.label);
+      count++;
+    }
+    if (typeof saved.bigHairScale === "number" && Number.isFinite(saved.bigHairScale)) {
+      bigScale.value = String(saved.bigHairScale);
+      for (const button of bigs) button.style.setProperty("--fur-scale", bigScale.value);
+      count++;
+    }
+    bigValue.value = String(+Number(bigScale.value).toFixed(1));
+    return count;
+  };
+
+  // Restore the last visit's settings before the fur first draws.
+  try {
+    applySaved(JSON.parse(localStorage.getItem(storageKey) ?? "null"));
+  } catch {
+    localStorage.removeItem(storageKey);
+  }
+
+  // Save changes for the next visit, at most a few times a second while dragging.
+  let saveTimer = 0;
+  const save = () => {
+    matchPreset();
+    clearTimeout(saveTimer);
+    saveTimer = window.setTimeout(() => {
+      try {
+        localStorage.setItem(storageKey, JSON.stringify(snapshot()));
+      } catch {
+        // Storage may be unavailable (private browsing, or full).
+      }
+    }, 200);
+  };
+
+  const furs = new Map<HTMLElement, ReturnType<typeof mountFur>>();
+  for (const button of buttons) furs.set(button, mountFur(button));
+
+  // Slider changes can arrive faster than frames; apply them once per frame.
+  let pending: "refresh" | "regrow" | null = null;
+  const schedule = (kind: "refresh" | "regrow") => {
+    const first = !pending;
+    if (pending !== "regrow") pending = kind;
+    if (first)
+      requestAnimationFrame(() => {
+        const work = pending;
+        pending = null;
+        if (work === "regrow") regrowFur();
+        else refreshFur();
+      });
+  };
+
+  // Sliders, and dropdowns (like the easings).
+  const sliders = [...document.querySelectorAll<HTMLInputElement | HTMLSelectElement>("[data-fur-setting]")];
+  const show = (key: Key) => {
+    const output = document.querySelector<HTMLOutputElement>(`[data-fur-value="${key}"]`);
+    const value = settings[key];
+    if (output && typeof value === "number") output.value = String(+value.toFixed(2));
+  };
+  const syncSliders = () => {
+    for (const slider of sliders) {
+      const key = slider.dataset.furSetting as Key;
+      slider.value = String(settings[key]);
+      show(key);
+    }
+  };
+  for (const slider of sliders) {
+    slider.addEventListener(slider instanceof HTMLSelectElement ? "change" : "input", () => {
+      const key = slider.dataset.furSetting as Key;
+      if (slider instanceof HTMLSelectElement) settings[key as EaseSetting] = slider.value as Ease;
+      else settings[key as NumericSetting] = Number(slider.value);
+      show(key);
+      schedule(slider.hasAttribute("data-regrow") ? "regrow" : "refresh");
+      save();
+    });
+  }
+  syncSliders();
+
+  // Presets: picking one applies its settings. The dropdown shows the preset
+  // the sliders match, or "Custom" once they've been changed.
+  const presetSelect = document.querySelector<HTMLSelectElement>("[data-fur-preset]")!;
+  for (const name of Object.keys(presets)) presetSelect.append(new Option(name, name));
+  const custom = new Option("Custom", "");
+  presetSelect.append(custom);
+  function matchPreset() {
+    const match = Object.entries(presets).find(([, preset]) =>
+      (Object.keys(preset) as Key[]).every((key) => preset[key] === settings[key]),
+    );
+    presetSelect.value = match?.[0] ?? "";
+    custom.hidden = !!match;
+  }
+  // Picking a preset also sets the big button's hair scale: its own, if it
+  // has one here, or the default.
+  const presetBigScale: Record<string, string> = { Bristle: "1.3" };
+  presetSelect.addEventListener("change", () => {
+    const preset = presets[presetSelect.value];
+    if (!preset) return;
+    Object.assign(settings, preset);
+    syncSliders();
+    setBigScale(presetBigScale[presetSelect.value] ?? defaultBigScale);
+    regrowFur();
+    save();
+  });
+  matchPreset();
+
+  // The big button's hair scale.
+  function setBigScale(value: string) {
+    bigScale.value = value;
+    bigValue.value = String(+Number(value).toFixed(1));
+    for (const button of bigs) {
+      button.style.setProperty("--fur-scale", value);
+      furs.get(button)?.regrow();
+    }
+  }
+  bigScale.addEventListener("input", () => {
+    setBigScale(bigScale.value);
+    save();
+  });
+
+  // Button colors: the picked button changes in both panels.
+  const pick = document.querySelector<HTMLSelectElement>("[data-fur-pick]")!;
+  const furColor = document.querySelector<HTMLInputElement>("[data-fur-color]")!;
+  const textColor = document.querySelector<HTMLInputElement>("[data-fur-text]")!;
+  const picked = () => buttons.filter((button) => button.dataset.furId === pick.value);
+  const showColors = () => {
+    const [button] = picked();
+    furColor.value = button.style.getPropertyValue("--fur-color").trim();
+    textColor.value = button.dataset.textNow ?? button.dataset.text!;
+  };
+  const applyColors = () => {
+    for (const button of picked()) {
+      color(button, furColor.value, textColor.value);
+      furs.get(button)?.refresh();
+    }
+    save();
+  };
+  pick.addEventListener("change", showColors);
+  furColor.addEventListener("input", applyColors);
+  textColor.addEventListener("input", applyColors);
+  showColors();
+
+  // Copy settings: every slider and dropdown, each button's colors, and the big button's hair scale, as JSON.
+  const copy = document.querySelector<HTMLButtonElement>("[data-fur-copy]")!;
+  copy.addEventListener("click", async () => {
+    const text = JSON.stringify(snapshot(), null, 2);
+    let copied = true;
+    try {
+      await navigator.clipboard.writeText(text);
+    } catch {
+      // The clipboard can be unavailable (an insecure origin, or no permission): fall back to a hidden text area.
+      const area = Object.assign(document.createElement("textarea"), { value: text });
+      document.body.append(area);
+      area.select();
+      copied = document.execCommand("copy");
+      area.remove();
+    }
+    flash(copy, copied ? "Copied!" : "Couldn't copy", "Copy settings");
+  });
+
+  // Paste settings: reads the clipboard if the browser allows it, otherwise
+  // opens a box to paste into.
+  const paste = document.querySelector<HTMLButtonElement>("[data-fur-paste]")!;
+  const pasteBox = document.querySelector<HTMLElement>("[data-fur-paste-box]")!;
+  const pasteText = document.querySelector<HTMLTextAreaElement>("[data-fur-paste-text]")!;
+  const flash = (button: HTMLButtonElement, text: string, back: string) => {
+    button.textContent = text;
+    setTimeout(() => (button.textContent = back), 1500);
+  };
+  /** Applies pasted text; returns whether it held any settings. */
+  const applyPasted = (text: string) => {
+    let count = 0;
+    try {
+      count = applySaved(JSON.parse(text));
+    } catch {
+      // Not JSON.
+    }
+    if (!count) return false;
+    syncSliders();
+    showColors();
+    regrowFur();
+    save();
+    return true;
+  };
+  paste.addEventListener("click", async () => {
+    let text = "";
+    try {
+      text = await navigator.clipboard.readText();
+    } catch {
+      // No clipboard access: fall back to the box.
+    }
+    if (text && applyPasted(text)) {
+      pasteBox.hidden = true;
+      flash(paste, "Pasted!", "Paste settings");
+      return;
+    }
+    pasteBox.hidden = false;
+    pasteText.value = text;
+    pasteText.focus();
+  });
+  const pasteApply = document.querySelector<HTMLButtonElement>("[data-fur-paste-apply]")!;
+  pasteApply.addEventListener("click", () => {
+    if (applyPasted(pasteText.value)) {
+      pasteBox.hidden = true;
+      pasteText.value = "";
+      flash(paste, "Pasted!", "Paste settings");
+    } else flash(pasteApply, "No settings found", "Apply");
+  });
+  document.querySelector("[data-fur-paste-cancel]")!.addEventListener("click", () => {
+    pasteBox.hidden = true;
+    pasteText.value = "";
+  });
+
+  // Reset: back to the defaults (the first preset), and forget the saved settings.
+  document.querySelector("[data-fur-reset]")!.addEventListener("click", () => {
+    Object.assign(settings, defaultSettings);
+    syncSliders();
+    bigScale.value = bigValue.value = defaultBigScale;
+    for (const button of buttons) {
+      button.style.setProperty("--fur-color", button.dataset.color!);
+      button.style.color = button.dataset.text!;
+      delete button.dataset.textNow;
+      if (button.dataset.furId === "big") button.style.setProperty("--fur-scale", defaultBigScale);
+    }
+    showColors();
+    regrowFur();
+    matchPreset();
+    clearTimeout(saveTimer);
+    try {
+      localStorage.removeItem(storageKey);
+    } catch {
+      // Storage may be unavailable.
+    }
+  });
+</script>

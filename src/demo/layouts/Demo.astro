@@ -13,6 +13,7 @@ const pages = [
   { name: "Images", href: `${base}images` },
   { name: "Code", href: `${base}code` },
   { name: "Forms", href: `${base}forms` },
+  { name: "Fur", href: `${base}fur` },
 ];
 const current = Astro.url.pathname.replace(/(\.html|\/)$/, "") || "/";
 const isCurrent = (href: string) => (href.replace(/\/$/, "") || "/") === current;
