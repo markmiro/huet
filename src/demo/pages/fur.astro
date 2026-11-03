@@ -3,8 +3,8 @@ import Demo from "../layouts/Demo.astro";
 
 // Plain colors, not from the theme: each button sets its fur color and label color.
 const buttons = [
-  { id: "pet", label: "Pet me", color: "#ffd21a", text: "#5c4a10", shape: "pill" },
-  { id: "continue", label: "Continue", color: "#ffffff", text: "#383838", shape: "pill" },
+  { id: "pet", label: "Pet me", color: "#ffd21a", text: "#000000", shape: "pill" },
+  { id: "continue", label: "Continue", color: "#ffffff", text: "#000000", shape: "pill" },
   { id: "hi", label: "Hi", color: "#b66cf2", text: "#ffffff", shape: "ball" },
   { id: "save", label: "Save", color: "#38d06c", text: "#ffffff", shape: "pill" },
   { id: "learn", label: "Learn more", color: "#3d8dff", text: "#ffffff", shape: "pill" },
@@ -37,19 +37,43 @@ interface Group {
 }
 const controls: Group[] = [
   {
-    title: "Color",
+    title: "Color and light",
     sliders: [
-      { key: "saturation", label: "Saturation", min: 0, max: 3, step: 0.05 },
-      { key: "shift", label: "Lightness", min: -0.3, max: 0.3, step: 0.01 },
-      { key: "darker", label: "Shadows", min: 0, max: 0.4, step: 0.01 },
-      { key: "lighter", label: "Highlights", min: 0, max: 0.3, step: 0.01 },
+      {
+        key: "shift", label: "Lightness", min: -0.5, max: 0.5, step: 0.01,
+        hint: "Moves the fur's middle shade lighter or darker than the button color. Shades stop at near white and near black, so past that it just flattens out.",
+      },
+      {
+        key: "darker", label: "Shadows", min: 0, max: 0.7, step: 0.01,
+        hint: "How much darker the darkest hairs are than the middle shade.",
+      },
+      {
+        key: "lighter", label: "Highlights", min: 0, max: 0.5, step: 0.01,
+        hint: "How much lighter the lightest hairs are than the middle shade.",
+      },
+      {
+        key: "sheen", label: "Shine", min: 0, max: 4, step: 0.1, regrow: true,
+        hint: "How many extra glossy hairs catch the light, drawn on top a little lighter than the lightest fur. 0 is matte.",
+      },
+      {
+        key: "sheenPosition", label: "Shine position", min: 0, max: 1, step: 0.01, regrow: true,
+        hint: "Where the band of shiny hairs sits: 0 at the top, 0.5 across the middle, 1 at the bottom.",
+      },
+      {
+        key: "sheenSpread", label: "Shine spread", min: 0.05, max: 1, step: 0.01, regrow: true,
+        hint: "How wide the band of shine is. Lower keeps it to a narrow stripe; higher spreads it over more of the button.",
+      },
+      {
+        key: "edgeShadow", label: "Top edge shadow", min: 0, max: 1, step: 0.01, regrow: true,
+        hint: "Darkens the hairs along the top edge, where the surface turns away from the light, and keeps the shine off it. 0 leaves the edge lit.",
+      },
     ],
   },
   {
     title: "Hair",
     sliders: [
       { key: "density", label: "Density", min: 0.2, max: 2, step: 0.05, regrow: true },
-      { key: "length", label: "Length", min: 0.4, max: 2.5, step: 0.05, regrow: true },
+      { key: "length", label: "Length", min: 0.15, max: 2.5, step: 0.05 },
       {
         key: "lengthVariation", label: "Length variation", min: 0, max: 2, step: 0.05, regrow: true,
         hint: "How much hair lengths differ. 0 makes them all the same, for a trimmed look.",
@@ -72,19 +96,6 @@ const controls: Group[] = [
       {
         key: "fuzz", label: "Fuzzy edge", min: 0, max: 3, step: 0.05, regrow: true,
         hint: "How far hairs along the outline lean out, softening the button's edge.",
-      },
-      { key: "sheen", label: "Shine", min: 0, max: 4, step: 0.1, regrow: true },
-      {
-        key: "sheenPosition", label: "Shine position", min: 0, max: 1, step: 0.01, regrow: true,
-        hint: "Where the band of shiny hairs sits: 0 at the top, 0.5 across the middle, 1 at the bottom.",
-      },
-      {
-        key: "sheenSpread", label: "Shine spread", min: 0.05, max: 1, step: 0.01, regrow: true,
-        hint: "How wide the band of shine is. Lower keeps it to a narrow stripe; higher spreads it over more of the button.",
-      },
-      {
-        key: "edgeShadow", label: "Top edge shadow", min: 0, max: 1, step: 0.01, regrow: true,
-        hint: "Darkens the hairs along the top edge, where the surface turns away from the light, and keeps the shine off it. 0 leaves the edge lit.",
       },
     ],
   },
@@ -111,7 +122,7 @@ const controls: Group[] = [
       },
       {
         key: "sway", label: "Sway", min: 0, max: 0.3, step: 0.01,
-        hint: "How much the hairs gently sway while the pointer is over the button.",
+        hint: "How far each hair gently rocks from side to side while the pointer is over the button, like a breeze. It only shows while the fur is lifted and the pointer stays on the button.",
       },
     ],
   },
@@ -150,7 +161,7 @@ const controls: Group[] = [
       },
       {
         key: "clickStretch", label: "Click stretch", min: 0, max: 1, step: 0.01, regrow: true,
-        hint: "How much longer still the hairs grow at the top of a click, on top of the hover stretch, shrinking back as the fur falls. 0.5 adds half their length.",
+        hint: "How much longer still the hairs grow at the top of a click, on top of the hover stretch. 0.5 adds half their length. When the click lets go they spring back, overshooting a little shorter, with the landing settle and bounce.",
       },
       {
         key: "poofRise", label: "Click rise (s)", min: 0.03, max: 0.6, step: 0.01,
@@ -176,15 +187,11 @@ const controls: Group[] = [
       },
       {
         key: "poofSettle", label: "Landing settle", min: 1, max: 12, step: 0.1,
-        hint: "How quickly the landing bounce fades. Comes to rest in about 4.6 ÷ this many seconds after landing, so lower bounces longer.",
+        hint: "How quickly the landing bounce fades, and the click stretch's spring-back. Comes to rest in about 4.6 ÷ this many seconds, so lower bounces longer.",
       },
       {
         key: "poofBounce", label: "Landing bounce", min: 0, max: 20, step: 0.5,
-        hint: "How fast the fur wobbles after it lands. Higher means quicker, tighter wobbles; 0 settles without wobbling.",
-      },
-      {
-        key: "wave", label: "Ripple", min: 0, max: 1.5, step: 0.05,
-        hint: "How much the poof spreads out from where you clicked. 0 lifts every hair at once; higher sends a wave across the fur.",
+        hint: "How fast the fur wobbles after it lands, and how fast stretched hairs spring back. Higher means quicker, tighter wobbles; 0 settles without wobbling.",
       },
     ],
   },

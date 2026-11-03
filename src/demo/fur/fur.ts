@@ -48,11 +48,9 @@ export const settings = {
   shift: -0.25,
   darker: 0.32,
   lighter: 0.21,
-  /** Chroma relative to the color. */
-  saturation: 2.2,
   /** Hairs per area (regrows). */
   density: 1.65,
-  /** Hair length (regrows). */
+  /** Hair length. Changing it grows or shrinks the hairs with the hover spring. */
   length: 0.8,
   thickness: 0.75,
   /** How much hairs curl (regrows). */
@@ -121,8 +119,6 @@ export const settings = {
    */
   poofFallSpeed: 1.45,
   poofFallEase: "gravity" as Ease,
-  /** How much the poof ripples out from the click point; 0 lifts all hairs at once. */
-  wave: 0.3,
   /** How strongly the pointer brushes the hairs. */
   brush: 1.05,
   /** How brushed hairs spring back: speed (rad/s) and damping ratio (lower bounces more). */
@@ -143,7 +139,6 @@ export const presets: Record<string, Readonly<FurSettings>> = {
     shift: -0.12,
     darker: 0.4,
     lighter: 0.22,
-    saturation: 3,
     density: 1.25,
     length: 0.95,
     thickness: 0.3,
@@ -176,7 +171,6 @@ export const presets: Record<string, Readonly<FurSettings>> = {
     poofHold: 0.06,
     poofFallSpeed: 0.9,
     poofFallEase: "gravity",
-    wave: 0.3,
     brush: 1.05,
     brushSpeed: 4.5,
     brushDamping: 0.32,
@@ -187,7 +181,6 @@ export const presets: Record<string, Readonly<FurSettings>> = {
     shift: -0.11,
     darker: 0.36,
     lighter: 0.21,
-    saturation: 3,
     density: 1.5,
     length: 0.4,
     thickness: 1.4,
@@ -214,7 +207,6 @@ export const presets: Record<string, Readonly<FurSettings>> = {
     poofHold: 0,
     poofFallSpeed: 1.45,
     poofFallEase: "gravity",
-    wave: 0.3,
     brush: 1.05,
     brushSpeed: 6,
     brushDamping: 0.32,
@@ -225,7 +217,6 @@ export const presets: Record<string, Readonly<FurSettings>> = {
     shift: -0.11,
     darker: 0.36,
     lighter: 0.12,
-    saturation: 3,
     density: 0.8,
     length: 0.4,
     thickness: 2.05,
@@ -252,7 +243,6 @@ export const presets: Record<string, Readonly<FurSettings>> = {
     poofHold: 0,
     poofFallSpeed: 1.35,
     poofFallEase: "gravity",
-    wave: 0.3,
     brush: 1.05,
     brushSpeed: 6,
     brushDamping: 0.32,
@@ -263,7 +253,6 @@ export const presets: Record<string, Readonly<FurSettings>> = {
     shift: -0.18,
     darker: 0.31,
     lighter: 0.17,
-    saturation: 3,
     density: 1,
     length: 0.95,
     thickness: 0.8,
@@ -278,7 +267,7 @@ export const presets: Record<string, Readonly<FurSettings>> = {
     sheenSpread: 0.23,
     edgeShadow: 0,
     static: 0.6,
-    hover: 0.34,
+    hover: 0.1,
     hoverSpeed: 26.5,
     hoverDamping: 0.45,
     leaveFallSpeed: 1.3,
@@ -286,17 +275,16 @@ export const presets: Record<string, Readonly<FurSettings>> = {
     leaveSettle: 3.2,
     leaveBounce: 6,
     sway: 0.14,
-    hoverStretch: 0.12,
-    poofHeight: 0.74,
-    clickStretch: 0.42,
-    poofRise: 0.06,
-    poofSettle: 2,
-    poofBounce: 13,
+    hoverStretch: 0.1,
+    poofHeight: 0.55,
+    clickStretch: 0.34,
+    poofRise: 0.14,
+    poofSettle: 2.1,
+    poofBounce: 18,
     poofEase: "ease-out",
-    poofHold: 0.1,
-    poofFallSpeed: 2.2,
-    poofFallEase: "ease-out",
-    wave: 1.4,
+    poofHold: 0,
+    poofFallSpeed: 0.2,
+    poofFallEase: "gravity",
     brush: 2.2,
     brushSpeed: 14.5,
     brushDamping: 0.3,
@@ -328,8 +316,8 @@ function hexOf(css: string) {
 }
 
 /**
- * The color's hue at L* `L` (0–1), with `saturation` times its chroma around
- * `middle`. Shadows get slightly more chroma, as color pools in the shade, and
+ * The color's hue at L* `L` (0–1), with `saturation` times its chroma (1 is
+ * the color's own) around `middle`. Shadows get slightly more chroma, as color pools in the shade, and
  * highlights keep nearly all of it, so the light doesn't wash the fur out.
  * Yellows warm toward orange in the shade instead of going olive, as yellow
  * fur does. Colors past sRGB lose chroma to fit.
@@ -369,7 +357,7 @@ interface Strands {
   /** Unit direction it stands toward: out of the outline, or (in the middle) toward the viewer. */
   standX: Float32Array; standY: Float32Array;
   len: Float32Array; curl: Float32Array; phase: Float32Array;
-  rim: Float32Array; delay: Float32Array;
+  rim: Float32Array;
   /** How far the pointer has brushed each hair, and how fast that's changing. */
   bendX: Float32Array; bendY: Float32Array; bendVX: Float32Array; bendVY: Float32Array;
   /** Each frame's curve per hair: root, then the cubic's three points. */
@@ -397,7 +385,7 @@ function grow(w: number, h: number, radius: number, seed: number, scale: number,
   const f = () => new Float32Array(max);
   const s = {
     x: f(), y: f(), restX: f(), restY: f(), leanX: f(), leanY: f(), standX: f(), standY: f(),
-    len: f(), curl: f(), phase: f(), rim: f(), delay: f(),
+    len: f(), curl: f(), phase: f(), rim: f(),
     bendX: f(), bendY: f(), bendVX: f(), bendVY: f(), curve: new Float32Array(max * 8),
   };
   const lists: number[][][] = [0, 1].map(() => Array.from({ length: levels }, () => []));
@@ -439,7 +427,8 @@ function grow(w: number, h: number, radius: number, seed: number, scale: number,
     // Average length, plus a random part scaled by `lengthVariation`.
     const vary = (spread: number) => (random() - 0.5) * spread * settings.lengthVariation;
     const base = (guard ? 9.5 + vary(5) : 5.5 + vary(3)) + rim * (4 + vary(4));
-    s.len[n] = Math.max(1, base) * scale * settings.length;
+    // Relative to `length`, which is applied as the hairs are drawn so it can animate.
+    s.len[n] = Math.max(1, base) * scale;
     s.curl[n] = (random() * 2 - 1) * (guard ? 0.9 : 0.6) * settings.curl;
     s.phase[n] = random() * Math.PI * 2;
     s.rim[n] = rim;
@@ -487,10 +476,12 @@ export function mountFur(button: HTMLElement) {
   // started and peaks, and whether the landing uses the poof's bounce.
   let stage: "rise" | "hold" | "fall" | "leave" | null = null, stageTime = 0;
   let riseFrom = 0, risePeak = 0, leaveFrom = 0;
-  // How far through a click the fur is, 0 to 1, for its stretch: it rises
-  // and holds with the click, then falls over `poofHeight` at the click's
-  // fall speed. `poofFall` is the seconds into that fall, or -1.
-  let poof = 0, poofFrom = 0, poofFall = -1;
+  // How stretched a click has the hairs, 0 to 1: it rises and holds with the
+  // click, then springs back on the click's landing spring (`recoil`), so the
+  // hairs snap back, overshoot a little shorter and wobble out.
+  let poof = 0, poofFrom = 0, poofVelocity = 0, recoil = false;
+  // The hair length being drawn, springing toward `settings.length` when it changes.
+  let grown = settings.length, growth = 0;
   // The rest a fall is heading for; when it changes mid-fall, the fall carries on from where it is.
   let fallTarget = NaN;
   // Which spring settles the fur: hovering in, a click's landing, or hovering out's landing.
@@ -509,12 +500,12 @@ export function mountFur(button: HTMLElement) {
     const low = Math.max(0.02, middle - settings.darker), high = Math.min(0.97, middle + settings.lighter);
     // Level 0.6 of the way up is the middle, so most of the fur reads as the button's color.
     const at = (u: number) => (u < 0.6 ? middle - ((0.6 - u) / 0.6) * (middle - low) : middle + ((u - 0.6) / 0.4) * (high - middle));
-    const color = (u: number) => shadeOf(surface, at(u), middle, settings.saturation);
+    const color = (u: number) => shadeOf(surface, at(u), middle, 1);
     palette = Array.from({ length: levels }, (_, i) => color(i / (levels - 1)));
     undercoat = [color(0.46), color(0.3)];
     // Sheen: lighter than the brightest fur, with some of its color, so it reads as light on the hair.
     sheenPalette = Array.from({ length: sheenLevels }, (_, i) =>
-      shadeOf(surface, Math.min(0.97, high + 0.03 + 0.02 * i), middle, settings.saturation * 0.8));
+      shadeOf(surface, Math.min(0.97, high + 0.03 + 0.02 * i), middle, 0.8));
     button.toggleAttribute("data-fur-ready", true);
   }
 
@@ -540,23 +531,22 @@ export function mountFur(button: HTMLElement) {
     const up = Math.max(-0.5, lift);
     const sway = reduceMotion.matches ? 0 : settings.sway * Math.min(1, Math.abs(up) * 3);
     const near = 2 * (22 * scale) ** 2;
-    // The wave only spreads the motion away from the static lift, so at rest every hair stands the same.
-    const base = clamp(settings.static, 0, 1), moved = up - base;
+    const base = clamp(settings.static, 0, 1);
     // Stretch: hovering stretches hairs as they rise from rest to the hover
     // lift (and a little past it in a bouncy overshoot, unless a click plays).
     // A click stretches them further along its own rise and fall, `poof`, so
     // it works even when the fur already stands fully upright.
     const hoverTop = Math.min(1, base + settings.hover);
-    const clicking = poof > 0 || stage === "rise" || stage === "hold" || stage === "fall" || spring === "click";
-    const stretchAt = (l: number, delay: number) => {
+    const clicking = poof !== 0 || recoil || stage === "rise" || stage === "hold" || stage === "fall" || spring === "click";
+    const clicked = settings.clickStretch * clamp(poof, -0.5, 1);
+    const stretchAt = (l: number) => {
       const hovered = hoverTop - base > 1e-3 ? (l - base) / (hoverTop - base) : 0;
-      const clicked = clamp(poof * (1 + settings.wave) - delay * settings.wave * poof, 0, 1);
-      return settings.hoverStretch * clamp(hovered, 0, clicking ? 1 : 1.3) + settings.clickStretch * clicked;
+      return settings.hoverStretch * clamp(hovered, 0, clicking ? 1 : 1.3) + clicked;
     };
     for (let i = 0; i < s.n; i++) {
       const dx = s.x[i] - pointerX, dy = s.y[i] - pointerY;
-      // A wave from where the pointer came in (or clicked), and a little more right under it.
-      let l = clamp(base + moved * (1 + settings.wave) - s.delay[i] * settings.wave * moved, -0.5, 1.2);
+      // A little higher right under the pointer.
+      let l = up;
       if (hovering) l += 0.12 * Math.exp(-(dx * dx + dy * dy) / near);
       const L = Math.min(1, l);
       const a = sway * Math.sin(time * 2.2 + s.phase[i]);
@@ -566,7 +556,7 @@ export function mountFur(button: HTMLElement) {
       tx /= tl; ty /= tl;
       const r = s.rim[i];
       // Outline hairs reach out as they stand; middle ones point at you, so they look shorter.
-      const len = s.len[i] * (1 + stretchAt(l, s.delay[i])) * (1 + r * 0.3 * l - (1 - r) * 0.35 * L);
+      const len = s.len[i] * grown * (1 + stretchAt(l)) * (1 + r * 0.3 * l - (1 - r) * 0.35 * L);
       const curl = s.curl[i] * (1 - 0.5 * L);
       // Hairs droop under their weight until they stand.
       const droop = 0.2 * settings.droop * (1 - L) * len;
@@ -724,7 +714,10 @@ export function mountFur(button: HTMLElement) {
       velocity = 0;
       stage = null;
       poof = 0;
-      poofFall = -1;
+      poofVelocity = 0;
+      recoil = false;
+      grown = settings.length;
+      growth = 0;
     } else if (stage === "rise") {
       // Up to the peak, along the rise curve.
       stageTime += dt;
@@ -748,7 +741,8 @@ export function mountFur(button: HTMLElement) {
         stage = "fall";
         stageTime = 0;
         fallTarget = NaN;
-        poofFall = 0;
+        recoil = true;
+        poofVelocity = 0;
       }
     } else if (stage === "fall" || stage === "leave") {
       // Down to where the fur rests now, along the fall curve: a click's fall
@@ -810,21 +804,38 @@ export function mountFur(button: HTMLElement) {
         lift += velocity * (dt / steps);
       }
     }
-    if (poofFall >= 0) {
-      // The click's stretch falls on its own clock, even once the fur has
-      // landed: as if falling the click's height at its fall speed.
-      poofFall += dt;
-      const duration = Math.max(0.1, settings.poofHeight) / Math.max(0.05, settings.poofFallSpeed);
-      const u = Math.min(1, poofFall / duration);
-      poof = 1 - (eases[settings.poofFallEase] ?? eases.gravity)(u);
-      if (u >= 1) {
+    if (recoil) {
+      // The click's stretch springs back on its own, even once the fur has
+      // landed, with the click's landing settle and bounce.
+      const a = settings.poofSettle, b = settings.poofBounce;
+      const k = a * a + b * b, damping = 2 * a;
+      const steps = Math.ceil(dt * 240);
+      for (let i = 0; i < steps; i++) {
+        poofVelocity += (-k * poof - damping * poofVelocity) * (dt / steps);
+        poof += poofVelocity * (dt / steps);
+      }
+      if (Math.abs(poof) < 0.002 && Math.abs(poofVelocity) < 0.01) {
         poof = 0;
-        poofFall = -1;
+        poofVelocity = 0;
+        recoil = false;
+      }
+    }
+    if (!reduceMotion.matches && (grown !== settings.length || growth !== 0)) {
+      // Grow or shrink toward the length setting, on the hover spring.
+      const w = settings.hoverSpeed, k = w * w, damping = 2 * w * settings.hoverDamping;
+      const steps = Math.ceil(dt * 240);
+      for (let i = 0; i < steps; i++) {
+        growth += (k * (settings.length - grown) - damping * growth) * (dt / steps);
+        grown += growth * (dt / steps);
+      }
+      if (Math.abs(settings.length - grown) < 0.002 && Math.abs(growth) < 0.002) {
+        grown = settings.length;
+        growth = 0;
       }
     }
     const moving = relax(dt);
     draw();
-    const settled = stage === null && poofFall < 0 && Math.abs(target - lift) < 0.002 && Math.abs(velocity) < 0.002 && !moving;
+    const settled = stage === null && !recoil && growth === 0 && grown === settings.length && Math.abs(target - lift) < 0.002 && Math.abs(velocity) < 0.002 && !moving;
     if (settled) spring = "hover";
     if (settled && (!hovering || reduceMotion.matches)) {
       lift = target;
@@ -843,18 +854,15 @@ export function mountFur(button: HTMLElement) {
     target = hovering || button.matches(":focus-visible") ? Math.min(1, rest + settings.hover) : rest;
     run();
   };
-  /** Plays the click poof, rippling out from (x, y) in canvas px, or from everywhere at once. */
-  const startPoof = (x?: number, y?: number) => {
+  /** Plays the click poof. */
+  const startPoof = () => {
     if (reduceMotion.matches) return;
-    if (strands && x !== undefined && y !== undefined) {
-      const s = strands, span = Math.hypot(w, h);
-      for (let i = 0; i < s.n; i++) s.delay[i] = Math.min(1, Math.hypot(s.x[i] - x, s.y[i] - y) / span);
-    } else strands?.delay.fill(0);
     stage = "rise";
     stageTime = 0;
     riseFrom = lift;
-    poofFrom = poof;
-    poofFall = -1;
+    poofFrom = Math.max(0, poof);
+    poofVelocity = 0;
+    recoil = false;
     // Capped where the hairs look fully upright: higher would just hang there
     // unseen and make the visible part of the fall look sudden. Hang time
     // controls the pause instead.
@@ -872,11 +880,6 @@ export function mountFur(button: HTMLElement) {
   button.addEventListener("pointerenter", (event) => {
     local(event);
     lastX = pointerX; lastY = pointerY;
-    if (strands) {
-      // Hairs nearest the pointer stand first.
-      const s = strands, span = Math.hypot(w, h);
-      for (let i = 0; i < s.n; i++) s.delay[i] = Math.min(1, Math.hypot(s.x[i] - pointerX, s.y[i] - pointerY) / span);
-    }
     hovering = true;
     // Coming back while hovering out: rise again with the hover spring.
     if (stage === "leave" || spring === "leave") {
@@ -932,7 +935,7 @@ export function mountFur(button: HTMLElement) {
   });
   button.addEventListener("pointerdown", (event) => {
     local(event);
-    startPoof(pointerX, pointerY);
+    startPoof();
   });
   button.addEventListener("keydown", (event) => {
     if (event.repeat || (event.key !== "Enter" && event.key !== " ")) return;
@@ -940,7 +943,6 @@ export function mountFur(button: HTMLElement) {
   });
   button.addEventListener("focus", () => {
     if (!button.matches(":focus-visible") || hovering) return;
-    strands?.delay.fill(0);
     aim();
   });
   button.addEventListener("blur", aim);
