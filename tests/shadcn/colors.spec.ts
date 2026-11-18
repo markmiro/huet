@@ -1,20 +1,22 @@
 import { test, expect, type Page, type Frame } from "@playwright/test";
 
+import { contrast } from "../../packages/huet/src/core/color";
 import { themes } from "../../packages/huet/src/core/themes";
+import type { Theme } from "../../packages/huet/src/core/theme";
 
 // Sunset's neutrals are navy to yellow, so anything still on shadcn's own
 // grays (or Tailwind's own green) stands out.
 const sunset = themes.Sunset;
 
-/** Loads `path` with Sunset saved, once Huet has painted the page. */
-async function open(page: Page, path: string, background: number) {
+/** Loads `path` with `theme` (Sunset by default) saved, once Huet has painted the page. */
+async function open(page: Page, path: string, background: number, theme: Theme = sunset) {
   await page.goto(path);
   await page.evaluate(
     ([theme, background]) => {
       localStorage.setItem("huet-shadcn", JSON.stringify({ theme, background }));
       localStorage.setItem("shadcn-create-welcome-dialog", "true");
     },
-    [sunset, background] as const,
+    [theme, background] as const,
   );
   await page.reload();
   await page.waitForFunction(() => document.getElementById("huet-dark"));
@@ -115,3 +117,65 @@ for (const [mode, background] of [["light", 1], ["dark", 0]] as const) {
     await expect.poll(() => colorOf(page, "h1", "color")).toEqual(foreground);
   });
 }
+
+// Radioactive runs gray to lime: its text only reaches about Lc 60 on a card.
+const radioactive = themes.Radioactive;
+
+for (const [mode, background] of [["light", 1], ["dark", 0]] as const) {
+  test(`muted text stays readable on a narrow ramp (${mode})`, async ({ page }) => {
+    // The step shadcn's muted gray maps to read at Lc 34 on Radioactive's cards.
+    await open(page, "/", background, radioactive);
+    const [card, muted] = await page.evaluate(() =>
+      ["--card", "--muted-foreground"].map((name) => document.documentElement.style.getPropertyValue(name)),
+    );
+    expect(contrast(card, muted)).toBeGreaterThanOrEqual(44.5);
+  });
+}
+
+test("GitHub avatars load and take the theme", async ({ page }) => {
+  // github.com/<user>.png redirects without CORS headers, so the CORS request
+  // Huet needs to read the pixels failed and every avatar showed as broken.
+  await open(page, "/preview/radix/preview", 0, radioactive);
+  const avatars = page.locator("[data-slot=avatar] img");
+  await expect(avatars.first()).toBeAttached();
+  await expect
+    .poll(() =>
+      avatars.evaluateAll((images) =>
+        (images as HTMLImageElement[]).filter(
+          (img) => !(img.naturalWidth > 0 && img.getAttribute("data-huet-recolored") === ""),
+        ).map((img) => img.src),
+      ),
+    )
+    .toEqual([]);
+});
+
+test("an image from a host without CORS shows its original", async ({ page }) => {
+  await open(page, "/", 0, radioactive);
+  // Another origin that sends no CORS headers: the same server by IP.
+  const src = new URL("/apple-touch-icon.png", page.url()).href.replace("localhost", "127.0.0.1");
+  await page.evaluate((src) => {
+    const img = document.createElement("img");
+    img.id = "no-cors";
+    img.src = src;
+    document.body.prepend(img);
+  }, src);
+  const img = page.locator("#no-cors");
+  await expect(img).toHaveAttribute("data-huet-recolored", "original");
+  await expect.poll(() => img.evaluate((el: HTMLImageElement) => el.naturalWidth)).toBeGreaterThan(0);
+  await expect(img).toBeVisible();
+});
+
+test("the /create preview's QR code takes the theme, like its frame", async ({ page }) => {
+  // The frame's bg-white becomes the theme's light end; a QR code left black
+  // on white sat inside it like a sticker.
+  await open(page, "/preview/radix/preview-02", 0, radioactive);
+  const qr = page.locator("svg[data-huet-recolor]").first();
+  await expect(qr).toBeAttached();
+  await expect
+    .poll(() =>
+      qr.evaluate((svg) =>
+        [...svg.querySelectorAll("path")].map((path) => getComputedStyle(path).fill),
+      ),
+    )
+    .not.toContain("rgb(0, 0, 0)");
+});

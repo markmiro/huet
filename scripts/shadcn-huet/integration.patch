@@ -140,6 +140,18 @@ index 6ea08f6..8710165 100644
      },
      transformers: [
        {
+diff --git a/apps/v4/registry/bases/aria/blocks/preview-02/cards/qr-connect.tsx b/apps/v4/registry/bases/aria/blocks/preview-02/cards/qr-connect.tsx
+index 650a1c5..b778be9 100644
+--- a/apps/v4/registry/bases/aria/blocks/preview-02/cards/qr-connect.tsx
++++ b/apps/v4/registry/bases/aria/blocks/preview-02/cards/qr-connect.tsx
+@@ -21,6 +21,7 @@ export function QrConnect() {
+             value="https://ledger.app/connect/jd-4829"
+             size={160}
+             level="M"
++            data-huet-recolor=""
+           />
+         </div>
+       </CardContent>
 diff --git a/apps/v4/registry/bases/aria/blocks/preview/cards/live-waveform.tsx b/apps/v4/registry/bases/aria/blocks/preview/cards/live-waveform.tsx
 index 852984e..640e386 100644
 --- a/apps/v4/registry/bases/aria/blocks/preview/cards/live-waveform.tsx
@@ -193,6 +205,18 @@ index 4765dcd..d69c611 100644
      ],
      langs: [],
      engine: createJavaScriptRegexEngine({ forgiving: true }),
+diff --git a/apps/v4/registry/bases/base/blocks/preview-02/cards/qr-connect.tsx b/apps/v4/registry/bases/base/blocks/preview-02/cards/qr-connect.tsx
+index ff1ae90..78be3ad 100644
+--- a/apps/v4/registry/bases/base/blocks/preview-02/cards/qr-connect.tsx
++++ b/apps/v4/registry/bases/base/blocks/preview-02/cards/qr-connect.tsx
+@@ -21,6 +21,7 @@ export function QrConnect() {
+             value="https://ledger.app/connect/jd-4829"
+             size={160}
+             level="M"
++            data-huet-recolor=""
+           />
+         </div>
+       </CardContent>
 diff --git a/apps/v4/registry/bases/base/blocks/preview/cards/live-waveform.tsx b/apps/v4/registry/bases/base/blocks/preview/cards/live-waveform.tsx
 index 7b7b5e7..2b987cb 100644
 --- a/apps/v4/registry/bases/base/blocks/preview/cards/live-waveform.tsx
@@ -246,6 +270,18 @@ index 4765dcd..d69c611 100644
      ],
      langs: [],
      engine: createJavaScriptRegexEngine({ forgiving: true }),
+diff --git a/apps/v4/registry/bases/radix/blocks/preview-02/cards/qr-connect.tsx b/apps/v4/registry/bases/radix/blocks/preview-02/cards/qr-connect.tsx
+index edf7b7d..72c3f69 100644
+--- a/apps/v4/registry/bases/radix/blocks/preview-02/cards/qr-connect.tsx
++++ b/apps/v4/registry/bases/radix/blocks/preview-02/cards/qr-connect.tsx
+@@ -21,6 +21,7 @@ export function QrConnect() {
+             value="https://ledger.app/connect/jd-4829"
+             size={160}
+             level="M"
++            data-huet-recolor=""
+           />
+         </div>
+       </CardContent>
 diff --git a/apps/v4/registry/bases/radix/blocks/preview/cards/live-waveform.tsx b/apps/v4/registry/bases/radix/blocks/preview/cards/live-waveform.tsx
 index bf035f4..c371468 100644
 --- a/apps/v4/registry/bases/radix/blocks/preview/cards/live-waveform.tsx
