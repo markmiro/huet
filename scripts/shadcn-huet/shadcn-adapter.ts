@@ -602,6 +602,24 @@ const rampPosition = (lightness: number) => clamp01((lightness - STOCK_DARK_PAGE
 const FULL_CHROMA = 0.1
 
 /**
+ * Each shade's chroma is held between these quantiles of that shade's chroma
+ * across the colored families, so no hue's alert border or fill outshouts the
+ * rest (red's 950 border on Sunset dark was twice amber's).
+ */
+const CHROMA_BAND = [0.3, 0.45] as const
+
+/** Ramp distance from a family's most colorful shade at which the band fully applies. The peak itself keeps its chroma. */
+const BAND_REACH = 0.12
+
+/**
+ * How far light-page text shades (600–950) move back toward the ramp's
+ * lightness at their Tailwind position. Pinned to the theme's color, amber-900
+ * sat at L 0.28 where sRGB has almost no room for color, so Base light's alert
+ * text looked gray.
+ */
+const TEXT_LIFT = 0.5
+
+/**
  * Tailwind's palette (`--color-red-50` …) on the theme. Grays take the neutral
  * ramp's color. Colored shades go through `place` (the theme's hues, pinned to
  * its colors) and take the hue of their family's most colorful shade, then:
@@ -614,7 +632,11 @@ const FULL_CHROMA = 0.1
  * - On the far side, text shades (900 on a light page, 50 on a dark one) keep
  *   no tint and are at least as colorful as their mirror beside the page (50
  *   as 950). Tailwind makes every 50 nearly white, so dark-mode alert text
- *   lost the alert's color.
+ *   lost the alert's color. On a light page they sit `TEXT_LIFT` of the way
+ *   back toward the ramp's lightness, where there's room for color.
+ * - Away from its family's peak, a shade's chroma is pulled into
+ *   `CHROMA_BAND` for that step, so every hue's borders and fills are about
+ *   equally colorful. The page tint is added afterwards, unchanged.
  */
 function placePalette(swatches: Swatch[], place: Place, ramp: (amount: number) => string, isDark: boolean) {
   const vars: Record<string, string> = {}
@@ -625,6 +647,7 @@ function placePalette(swatches: Swatch[], place: Place, ramp: (amount: number) =
     else families.set(family, [...(families.get(family) ?? []), swatch])
   }
   const tint = rampTint(ramp)
+  const colored: { key: string; step: number; l: number; c: number; hue: number; far: boolean; position: number; fromPeak: number }[] = []
   for (const [family, shades] of families) {
     if (NEUTRAL_FAMILIES.has(family)) {
       for (const shade of shades) vars[shade.key] = ramp(rampPosition(shade.l))
@@ -650,9 +673,22 @@ function placePalette(swatches: Swatch[], place: Place, ramp: (amount: number) =
       const far = isDark ? step < 500 : step > 500
       const mirror = byStep.get(1000 - step)
       const c = far ? Math.max(placedChroma, mirror ? besidePage(mirror) : 0) : besidePage(shade)
-      const keep = far ? 0 : 1 - Math.min(1, c / FULL_CHROMA)
-      vars[shade.key] = tinted(l, c, hue, tint(l), keep)
+      const position = rampPosition(shade.l)
+      const fromPeak = clamp01(Math.abs(position - rampPosition(peak.l)) / BAND_REACH)
+      colored.push({ key: shade.key, step, l, c, hue, far, position, fromPeak })
     }
+  }
+  const chromaByStep = new Map<number, number[]>()
+  for (const { step, c } of colored) chromaByStep.set(step, [...(chromaByStep.get(step) ?? []), c])
+  for (const chromas of chromaByStep.values()) chromas.sort((a, b) => a - b)
+  const quantile = (chromas: number[], q: number) => chromas[Math.min(chromas.length - 1, Math.floor(chromas.length * q))]
+  for (const shade of colored) {
+    const chromas = chromaByStep.get(shade.step)!
+    const banded = Math.min(Math.max(shade.c, quantile(chromas, CHROMA_BAND[0])), quantile(chromas, CHROMA_BAND[1]))
+    const c = shade.c + shade.fromPeak * (banded - shade.c)
+    const l = shade.far && !isDark ? shade.l + TEXT_LIFT * Math.max(0, lightnessOf(ramp(shade.position)) - shade.l) : shade.l
+    const keep = shade.far ? 0 : 1 - Math.min(1, c / FULL_CHROMA)
+    vars[shade.key] = tinted(l, c, shade.hue, tint(l), keep)
   }
   return vars
 }
