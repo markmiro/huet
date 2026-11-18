@@ -151,6 +151,38 @@ for (const webgl of [true, false]) {
   });
 }
 
+for (const webgl of [true, false]) {
+  test(`mountImages fades its copies with contrast below 1 (${webgl ? "GPU" : "CPU"})`, async ({ page }) => {
+    await setup(page, { webgl });
+    const result = await page.evaluate(async () => {
+      const { images, fixture, canvasPixels } = window as any;
+      const root = document.createElement("div");
+      root.innerHTML = `<img data-huet-recolor src="${fixture}" alt="">`;
+      document.body.append(root);
+      const img = root.querySelector("img")!;
+      const theme = { neutral: ["#000000", "#ffffff"] };
+      const alphas = async () => {
+        await mount.ready();
+        const pixels = canvasPixels(img.nextElementSibling as HTMLCanvasElement);
+        return [...new Set(pixels.filter((_: number, i: number) => i % 4 === 3))];
+      };
+      const mount = images.mountImages(root, { ...theme, contrast: 0.5 });
+      const half = await alphas();
+      mount.update({ ...theme, contrast: 0 });
+      const none = await alphas();
+      mount.update(theme);
+      const full = await alphas();
+      mount.destroy();
+      return { half, none, full };
+    });
+    // Alpha is stored in 8 bits: half of 255 rounds either way.
+    expect(result.half.length).toBe(1);
+    expect(Math.abs(result.half[0] - 127.5)).toBeLessThanOrEqual(1);
+    expect(result.none).toEqual([0]);
+    expect(result.full).toEqual([255]);
+  });
+}
+
 test("mountImages leaves srcset alone and unreadable images as they are", async ({ page }) => {
   await setup(page);
   const result = await page.evaluate(async () => {

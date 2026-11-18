@@ -6,11 +6,13 @@
   with it, since previews of themes that aren't mounted can't use classes.
   `rampThrough` and `contrast` (the solver's APCA Lc) are for pages that
   place their own colors on a theme, such as the shadcn demo's accent and
-  chart palette.
+  chart palette. `fade` is how a theme's contrast below 1 fades a color
+  toward the page, for colors such pages work out at full contrast.
 */
 export { resolveTheme, themeVariables } from "./core/theme";
 export { rampThrough } from "./core/ramp";
 export type { RampThrough } from "./core/ramp";
 export { contrast } from "./core/color";
 export type { ResolvedTheme } from "./core/theme";
+export { fade } from "./core/steps";
 export type { StepRamp, Surface } from "./core/steps";

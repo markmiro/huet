@@ -94,6 +94,36 @@ test("Tailwind's colors in charts and badges follow the theme", async ({ page })
 });
 
 for (const [mode, background] of [["light", 1], ["dark", 0]] as const) {
+  test(`contrast 0 leaves only the page background (${mode})`, async ({ page }) => {
+    await open(page, "/", { ...themes.Base, contrast: 0 }, background);
+    const pageColor = await hexOf(page, "html", "backgroundColor");
+    // shadcn's roles, Tailwind's palette, charts and the code block all fade to the page.
+    const paints = {
+      card: () => hexOf(page, "[data-slot=card]", "backgroundColor"),
+      title: () => hexOf(page, "[data-slot=card-title]", "color"),
+      badge: () => hexOf(page, "[data-slot=badge]:text-is('bug')", "backgroundColor"),
+      badgeText: () => hexOf(page, "[data-slot=badge]:text-is('bug')", "color"),
+      alert: () => hexOf(page, "[data-slot=alert]:has-text('2 warnings')", "backgroundColor"),
+      bar: () => hexOf(page, "[data-slot=chart] .recharts-bar-rectangle path", "fill"),
+      code: () => hexOf(page, "pre.has-diff", "backgroundColor"),
+    };
+    for (const [key, paint] of Object.entries(paints)) await expect.poll(paint, { message: key }).toBe(pageColor);
+    // Tailwind's black shadows fade too.
+    const shadow = await page.locator("[data-slot=card]").first().evaluate((el) => getComputedStyle(el).boxShadow);
+    expect(shadow).not.toMatch(/rgba\(0, 0, 0, 0\.\d+\)/);
+    // So do the recolored photos and avatars.
+    await expect.poll(() => page.locator("img[data-huet-recolored]").count()).toBeGreaterThan(0);
+    const opaque = await page.locator("canvas").evaluateAll((canvases) =>
+      (canvases as HTMLCanvasElement[]).filter((canvas) => {
+        const { data } = canvas.getContext("2d")!.getImageData(0, 0, canvas.width, canvas.height);
+        return data.some((value, i) => i % 4 === 3 && value > 0);
+      }).length,
+    );
+    expect(opaque).toBe(0);
+  });
+}
+
+for (const [mode, background] of [["light", 1], ["dark", 0]] as const) {
   test(`shadcn's accent classes keep their primary readable (${mode})`, async ({ page }) => {
     await open(page, "/shadcn", themes.Sunset, background);
     // `.theme-yellow .theme-container` sets --primary to var(--color-yellow-400),

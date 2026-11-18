@@ -106,8 +106,11 @@ function parseColor(value: string): Rgba | null {
 /** Where an element's paint comes from: what wins the cascade, or nothing when it inherits. */
 type Source = "style" | "rule" | "attribute" | "";
 
-/** What a mount writes: paints, and a raster `<image>`'s recolored `href` or its `visibility` while that renders. */
-type Written = Paint | "href" | "visibility";
+/**
+ * What a mount writes: paints, a raster `<image>`'s recolored `href` or its
+ * `visibility` while that renders, and the `opacity` contrast fades an SVG by.
+ */
+type Written = Paint | "href" | "visibility" | "opacity";
 
 interface Write {
   /** The presentation attribute, or the inline style when CSS outranks it. */
@@ -155,6 +158,10 @@ interface Override {
  * otherwise wash out the theme. So are filters on ancestors that wrap only
  * recolored SVGs. A color filter on an ancestor that also shows other content
  * can't be lifted, so it's reported as an error, once per SVG.
+ *
+ * A theme `contrast` below 1 fades each recolored SVG toward what's behind
+ * it, as it fades the page's colors, by scaling its `opacity`, so at 0 it's
+ * gone.
  */
 export function mountSvgs(
   root: ParentNode & Node,
@@ -280,12 +287,18 @@ export function mountSvgs(
     // Read every original before writing, since a mapped parent changes what its children compute.
     const writes: [SVGElement, Paint, Rgba, Source, boolean, string][] = [];
     const images: [SVGImageElement, string][] = [];
+    const fades: [SVGElement, number][] = [];
+    const contrast = target.contrast ?? 1;
     const seen = new Set<Element>();
     const folded = new Map<Element, string>();
     for (const svg of svgs) {
       const filters = filtersOver(svg, (el) => svgs.has(el as SVGElement));
       reportStuck(reported, svg, filters.stuck);
       for (const { el, filter } of filters.folded) folded.set(el, filter);
+      // An SVG inside another recolored one fades with it.
+      let outer: Element | null = svg.parentElement;
+      while (outer && !(outer instanceof SVGElement && svgs.has(outer))) outer = outer.parentElement;
+      if (contrast < 1 && !outer) fades.push([svg, Number(getComputedStyle(svg).opacity) * contrast]);
       // Only rules that match something in this SVG can apply inside it.
       const rules = allRules.filter(
         ({ selector }) => matches(svg, selector) || svg.querySelector(selector) !== null,
@@ -345,6 +358,12 @@ export function mountSvgs(
         shown.set(el, { href, url });
         setAttribute(el, "href", url);
       } else setAttribute(el, "visibility", "hidden");
+    }
+    for (const [el, opacity] of fades) {
+      const original = el.style.getPropertyValue("opacity");
+      const priority = el.style.getPropertyPriority("opacity");
+      el.style.setProperty("opacity", String(opacity), "important");
+      overrideOf(el).paints.set("opacity", { via: "style", value: original || null, priority, written: el.style.getPropertyValue("opacity") });
     }
     for (const [el, filter] of folded) {
       liftFilter(el, holder, filter);

@@ -40,7 +40,8 @@ export interface Theme {
   /**
    * From 0 to 2, defaulting to 1. Below 1, every color fades toward the page
    * background, role colors (`huet-text`, `huet-muted`, …) included, for
-   * dimmed or disabled UI. Above 1, explicit amounts such as `huet-text-60`
+   * dimmed or disabled UI, and so do images and SVGs that `mountImages` and
+   * `mountSvgs` recolor. Above 1, explicit amounts such as `huet-text-60`
    * reach full contrast sooner: at 2, at half the amount.
    */
   contrast?: number;
