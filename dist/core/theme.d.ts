@@ -122,6 +122,10 @@ export interface Tokens {
     foreground: string;
     muted: string;
     border: string;
+    /** Text on disabled controls: Lc 40, between muted and border. */
+    disabled: string;
+    /** Lines on disabled controls: half the border's Lc. */
+    disabledBorder: string;
     red: string;
     yellow: string;
     green: string;
@@ -161,5 +165,5 @@ export declare function createTheme(options?: ThemeOptions): Readonly<{
     derive: (parent: Surface, full: string) => Surface;
 }>;
 export type ResolvedTheme = ReturnType<typeof createTheme>;
-/** Role tokens as `--huet-*` custom properties. */
+/** Role tokens as `--huet-*` custom properties: `disabledBorder` is `--huet-disabled-border`. */
 export declare function themeVariables(tokens: Readonly<Tokens>): Record<string, string>;

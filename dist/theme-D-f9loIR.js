@@ -365,7 +365,9 @@ var U = {
 }), K = (e, { y: t }) => Math.abs(p(t, e)), q = {
 	foreground: 90,
 	muted: 60,
-	border: 30
+	disabled: 40,
+	border: 30,
+	disabledBorder: 15
 };
 function J(e, t, n) {
 	let r = d(e), i = t[0].color, a = -1, o = "", s = Infinity;
@@ -487,7 +489,9 @@ function ne(e = {}) {
 			background: e,
 			foreground: X(r, c, l) ?? n,
 			muted: X(r, c, u(q.muted)) ?? n,
-			border: p
+			border: p,
+			disabled: X(r, c, u(q.disabled)) ?? n,
+			disabledBorder: X(r, c, u(q.disabledBorder)) ?? n
 		};
 	}
 	let I = /* @__PURE__ */ new Map(), L = D >= q.muted, R = (e) => Math.max(m(e, o), m(e, s)) >= q.muted, z = (e, t) => {
@@ -539,8 +543,8 @@ function ne(e = {}) {
 	});
 }
 function re(e) {
-	return Object.fromEntries(Object.entries(e).map(([e, t]) => [`--huet-${e}`, t]));
+	return Object.fromEntries(Object.entries(e).map(([e, t]) => [`--huet-${e.replace(/[A-Z]/g, (e) => "-" + e.toLowerCase())}`, t]));
 }
 export { C as _, $ as a, _ as b, re as c, c as d, T as f, g, b as h, F as i, N as l, o as m, I as n, V as o, s as p, U as r, H as s, B as t, m as u, h as v, v as y };
 
-//# sourceMappingURL=theme-CamlTQ6k.js.map
+//# sourceMappingURL=theme-D-f9loIR.js.map
