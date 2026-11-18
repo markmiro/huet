@@ -49,6 +49,7 @@
     "embla-carousel-react": "^8.6.0",
     "happy-dom": "^21.0.4",
     "huet": "workspace:*",
+    "huet-emoji": "workspace:*",
     "huet-react": "workspace:*",
     "lucide-react": "^1.66.0",
     "react": "^18.3.1",

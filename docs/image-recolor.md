@@ -31,7 +31,9 @@ OKLab's a and b come from the same cube roots, so near-black pixels also look mo
 
 ### Emoji
 
-Color emoji are font glyphs, not images. CSS and SVG filters only apply per-channel curves or matrices, which can't express this mapping, so the demo rasterizes emoji into a transparent canvas and recolors that. Alpha passes through untouched, so edges stay clean. In a real UI, emoji would need to be rasterized (or come from an image set such as Twemoji) before recoloring.
+Color emoji are font glyphs, not images. CSS and SVG filters only apply per-channel curves or matrices, which can't express this mapping, so the recolor demo rasterizes emoji into a transparent canvas and recolors that. Alpha passes through untouched, so edges stay clean.
+
+In a real UI, [`huet-emoji`](../packages/huet-emoji) themes emoji as text instead. An emoji font in the COLR format paints its glyphs from a palette, so mapping each palette color and overriding it with `@font-palette-values` recolors every glyph exactly, with no rasterizing. That needs such a font on the page: bitmap fonts like Apple Color Emoji have no palette, so the system's own emoji can only be recolored as pixels.
 
 Emoji colors often carry meaning, which a theme can override:
 

@@ -15,23 +15,26 @@ Relative UI colors and themed images from one theme. Choose a theme, then give e
 | --- | --- |
 | [`huet`](packages/huet) | The theming library, for any framework: one JSON `Theme` format, preset `themes`, `mountTheme`, `themeCss`, Huet classes, Tailwind v4 bridge, themed images (`huet/images`) and form controls (`huet/forms.css`) |
 | [`huet-react`](packages/huet-react) | `<ThemeConfigurator>`, a floating React panel for picking and editing themes |
+| [`huet-emoji`](packages/huet-emoji) | `mountFonts`, which themes color emoji and other color fonts as live text. You bring the font. |
 
 ## Quick start
 
 ```sh
 pnpm add huet               # theming, any framework
 pnpm add huet-react         # optional: the React theme configurator
+pnpm add huet-emoji         # optional: themed emoji
 ```
 
-Until they are on npm, every push to `master` builds both packages and commits them to the [`dist`](https://github.com/markmiro/huet/tree/dist) and [`dist-react`](https://github.com/markmiro/huet/tree/dist-react) branches, so you can install them from GitHub without building anything:
+Until they are on npm, every push to `master` builds the packages and commits them to the [`dist`](https://github.com/markmiro/huet/tree/dist), [`dist-react`](https://github.com/markmiro/huet/tree/dist-react) and [`dist-emoji`](https://github.com/markmiro/huet/tree/dist-emoji) branches, so you can install them from GitHub without building anything:
 
 ```sh
 pnpm add github:markmiro/huet#dist
 pnpm add github:markmiro/huet#dist-react    # optional
+pnpm add github:markmiro/huet#dist-emoji    # optional
 # or: npm install …, bun add …
 ```
 
-Your lockfile pins the exact commit; each commit message names the `master` commit it was built from. Run `pnpm update huet huet-react` (or your package manager's equivalent) to pick up newer builds.
+Your lockfile pins the exact commit; each commit message names the `master` commit it was built from. Run `pnpm update huet huet-react huet-emoji` (or your package manager's equivalent) to pick up newer builds.
 
 ```ts
 import { mountTheme, themes, type Theme } from "huet";
@@ -65,7 +68,7 @@ import { ThemeConfigurator } from "huet-react";
 <ThemeConfigurator value={theme} onChange={setTheme} />;
 ```
 
-The [`huet` README](packages/huet/README.md) covers class syntax, Tailwind, multi-hue ramps and themed images. The [`huet-react` README](packages/huet-react/README.md) covers the configurator's props and wiring it to your page. Lifecycle examples for React, Vue, Svelte and Astro are in [framework integration](docs/frameworks.md).
+The [`huet` README](packages/huet/README.md) covers class syntax, Tailwind, multi-hue ramps and themed images. The [`huet-react` README](packages/huet-react/README.md) covers the configurator's props and wiring it to your page. The [`huet-emoji` README](packages/huet-emoji/README.md) covers themed emoji and other color fonts. Lifecycle examples for React, Vue, Svelte and Astro are in [framework integration](docs/frameworks.md).
 
 ## Repository layout
 
@@ -73,6 +76,7 @@ The [`huet` README](packages/huet/README.md) covers class syntax, Tailwind, mult
 | --- | --- |
 | `packages/huet` | The `huet` package |
 | `packages/huet-react` | The `huet-react` package |
+| `packages/huet-emoji` | The `huet-emoji` package |
 | `src/demo` | The demo site, built with Astro, Tailwind and Huet classes. It imports the packages like an app would. Its home page is a showcase of shadcn components on Huet themes (`src/demo/shadcn`). |
 | `tests` | Browser tests (Playwright) against the demo site |
 | `docs` | Design notes and screenshots |
@@ -86,7 +90,7 @@ In the workspace, each package's `exports` point at its TypeScript source, so th
 pnpm install
 pnpm dev                     # demo site
 pnpm typecheck
-pnpm test                    # unit tests for both packages
+pnpm test                    # unit tests for the packages
 pnpm exec playwright install chromium
 pnpm test:browser
 pnpm build:packages          # builds packages/*/dist
@@ -95,11 +99,11 @@ pnpm build                   # builds the demo site into dist-demo
 
 ## Publishing
 
-Both packages are versioned together. Use pnpm, which applies `publishConfig` and replaces `workspace:^` with the real version.
+The packages are versioned together. Use pnpm, which applies `publishConfig` and replaces `workspace:^` with the real version.
 
 ```sh
 pnpm login
-# Bump "version" in packages/huet/package.json and packages/huet-react/package.json
+# Bump "version" in each packages/*/package.json
 pnpm -r publish --dry-run    # builds each package and lists its files
 pnpm -r publish              # pnpm asks for your 2FA code
 ```
