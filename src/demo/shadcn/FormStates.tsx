@@ -150,7 +150,10 @@ function Alerts() {
         <AlertTitle>Heads up</AlertTitle>
         <AlertDescription>Your trial ends in 7 days.</AlertDescription>
       </Alert>
-      <Alert variant="destructive">
+      <Alert
+        variant="destructive"
+        className="border-red-300 bg-red-50 text-red-900 dark:border-red-800 dark:bg-red-950 dark:text-red-100 *:data-[slot=alert-description]:text-red-800 dark:*:data-[slot=alert-description]:text-red-200"
+      >
         <CircleAlertIcon />
         <AlertTitle>Payment failed</AlertTitle>
         <AlertDescription>Your card was declined. Update it to keep your plan.</AlertDescription>
