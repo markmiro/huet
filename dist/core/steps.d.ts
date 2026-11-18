@@ -12,6 +12,11 @@ export interface Surface extends Shade {
 }
 /** `gray` (the neutral ramp, the default), a hue, or `white`. */
 export type StepRamp = "gray" | "red" | "yellow" | "green" | "blue" | "purple" | "white";
+/**
+ * A fade in linear light keeps luminance ordering, so fading a parent and its
+ * child by the same amount can't reverse their contrast polarity.
+ */
+export declare function fade(origin: string, full: string, amount: number): string;
 export interface StepOptions {
     /** The neutral ramp's colors, darkest first. */
     neutral: readonly string[];

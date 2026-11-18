@@ -39,6 +39,10 @@ export interface MountSvgsOptions extends RecolorOptions {
  * otherwise wash out the theme. So are filters on ancestors that wrap only
  * recolored SVGs. A color filter on an ancestor that also shows other content
  * can't be lifted, so it's reported as an error, once per SVG.
+ *
+ * A theme `contrast` below 1 fades each recolored SVG toward what's behind
+ * it, as it fades the page's colors, by scaling its `opacity`, so at 0 it's
+ * gone.
  */
 export declare function mountSvgs(root: ParentNode & Node, theme: Theme, options?: MountSvgsOptions): {
     /** Recolor every SVG into a new theme, optionally with new options, at the next frame. */

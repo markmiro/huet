@@ -1,4 +1,4 @@
-import { a as e, f as t, g as n, h as r, i, o as a, p as o, r as s, t as c, u as l, y as u } from "./theme-DQdfBJ-D.js";
+import { _ as e, a as t, b as n, d as r, g as i, i as a, m as o, o as s, p as c, r as l, t as u } from "./theme-CamlTQ6k.js";
 // src/core/filters.ts
 var d = (e) => Math.min(1, Math.max(0, e)), f = (e) => (t) => {
 	let [n, r, i] = t;
@@ -231,14 +231,14 @@ var O = "#version 300 es\nin vec2 position;\nout vec2 uv;\nvoid main() {\n  uv =
 		this.gl.readPixels(0, 0, 1, 1, this.gl.RGBA, this.gl.UNSIGNED_BYTE, e);
 	}
 }, j = { neutral: ["#000000", "#ffffff"] }, M = (e) => e < .20689655172413793 ? (e / o) ** 2 : 1, N = /* @__PURE__ */ new Map();
-function P(n) {
-	let r = JSON.stringify(n), o = N.get(r);
-	if (o) return o;
-	c(n);
-	let { colors: l } = n, { ramp: d } = e(a(n)), f = /* @__PURE__ */ new Float64Array(257), p = /* @__PURE__ */ new Float64Array(257), m = /* @__PURE__ */ new Float64Array(257);
+function P(e) {
+	let r = JSON.stringify(e), i = N.get(r);
+	if (i) return i;
+	u(e);
+	let { colors: o } = e, { ramp: d } = t(s(e)), f = /* @__PURE__ */ new Float64Array(257), p = /* @__PURE__ */ new Float64Array(257), m = /* @__PURE__ */ new Float64Array(257);
 	for (let e = 0; e < 257; e++) {
-		let [n, r, i] = u(d(e / 256));
-		f[e] = Math.max(t(n), e ? f[e - 1] : 0), p[e] = r, m[e] = i;
+		let [t, r, i] = n(d(e / 256));
+		f[e] = Math.max(c(t), e ? f[e - 1] : 0), p[e] = r, m[e] = i;
 	}
 	let h = f[0], g = f[256], _ = [0, 0], v = (e) => {
 		let t = h + e * (g - h), n = 0, r = 256;
@@ -250,26 +250,26 @@ function P(n) {
 		}
 		let i = f[r] > f[n] ? (t - f[n]) / (f[r] - f[n]) : 0;
 		return _[0] = p[n] + i * (p[r] - p[n]), _[1] = m[n] + i * (m[r] - m[n]), _;
-	}, y = i.map((e) => u(l?.[e] ?? s[e]));
-	return o = {
+	}, y = a.map((e) => n(o?.[e] ?? l[e]));
+	return i = {
 		low: h,
 		high: g,
 		neutralAt: v,
 		a: Float64Array.from(y, (e) => e[1]),
 		b: Float64Array.from(y, (e) => e[2])
-	}, N.size >= 64 && N.clear(), N.set(r, o), o;
+	}, N.size >= 64 && N.clear(), N.set(r, i), i;
 }
 function F(e) {
-	let n = i.length, r = (t) => Math.atan2(e.b[t], e.a[t]), a = Array.from({ length: n }, (e, t) => t).sort((e, t) => r(e) - r(t)), o = a.map((t, r) => {
-		let i = a[(r + 1) % n], [o, s, c, l] = [
-			e.a[t],
-			e.b[t],
-			e.a[i],
-			e.b[i]
+	let t = a.length, n = (t) => Math.atan2(e.b[t], e.a[t]), r = Array.from({ length: t }, (e, t) => t).sort((e, t) => n(e) - n(t)), i = r.map((n, i) => {
+		let a = r[(i + 1) % t], [o, s, c, l] = [
+			e.a[n],
+			e.b[n],
+			e.a[a],
+			e.b[a]
 		], u = o * l - c * s;
 		return {
-			i0: t,
-			i1: i,
+			i0: n,
+			i1: a,
 			det: u,
 			m: [
 				l / u,
@@ -278,17 +278,17 @@ function F(e) {
 				o / u
 			]
 		};
-	}), { low: s, high: c } = e, l = c - s || 1, u = {
+	}), { low: o, high: s } = e, l = s - o || 1, u = {
 		t: 0,
 		i0: 0,
 		i1: 0,
 		w0: 0,
 		w1: 0
 	};
-	return ([r, i, a]) => {
-		let c = (t(r) - s) / l, [d, f] = e.neutralAt(c), p = M(r), m = (i - d) * p, h = (a - f) * p;
-		if (u.t = c, u.w0 = u.w1 = 0, m * m + h * h < 1e-10) return u;
-		for (let { i0: e, i1: t, det: n, m: r } of o) {
+	return ([n, r, a]) => {
+		let s = (c(n) - o) / l, [d, f] = e.neutralAt(s), p = M(n), m = (r - d) * p, h = (a - f) * p;
+		if (u.t = s, u.w0 = u.w1 = 0, m * m + h * h < 1e-10) return u;
+		for (let { i0: e, i1: t, det: n, m: r } of i) {
 			if (n <= 1e-12) continue;
 			let i = r[0] * m + r[1] * h, a = r[2] * m + r[3] * h;
 			if (i >= -1e-9 && a >= -1e-9) return Object.assign(u, {
@@ -299,11 +299,11 @@ function F(e) {
 			}), u;
 		}
 		let g = -Infinity;
-		for (let t = 0; t < n; t++) {
-			let n = e.a[t] ** 2 + e.b[t] ** 2, r = (m * e.a[t] + h * e.b[t]) / (n || 1), i = r * Math.sqrt(n);
+		for (let n = 0; n < t; n++) {
+			let t = e.a[n] ** 2 + e.b[n] ** 2, r = (m * e.a[n] + h * e.b[n]) / (t || 1), i = r * Math.sqrt(t);
 			i > g && (Object.assign(u, {
-				i0: t,
-				i1: t,
+				i0: n,
+				i1: n,
 				w0: Math.max(0, r),
 				w1: 0
 			}), g = i);
@@ -311,33 +311,33 @@ function F(e) {
 		return u;
 	};
 }
-function I([e, t, n], a = j) {
-	let { t: o, i0: s, i1: c, w0: l, w1: u } = F(P(a))(r(e, t, n)), d = {};
-	return l > 1e-6 && (d[i[s]] = l), u > 1e-6 && (d[i[c]] = (d[i[c]] ?? 0) + u), {
+function I([e, t, n], r = j) {
+	let { t: o, i0: s, i1: c, w0: l, w1: u } = F(P(r))(i(e, t, n)), d = {};
+	return l > 1e-6 && (d[a[s]] = l), u > 1e-6 && (d[a[c]] = (d[a[c]] ?? 0) + u), {
 		t: o,
 		weights: d
 	};
 }
-function L(e, t = {}, i = "images") {
-	let a = P(e), o = e[i]?.strength ?? 1, s = e[i]?.tint ?? 1;
-	if (!(o >= 0 && o <= 1)) throw RangeError("strength must be between 0 and 1");
-	if (!(s >= 0 && s <= 1)) throw RangeError("tint must be between 0 and 1");
-	let c = F(P(t.source ?? j)), u = t.filter ? y(t.filter).apply : null, { low: d, high: f } = a;
-	return (e, i, p) => {
-		u && ([e, i, p] = u(e, i, p));
-		let m = r(e, i, p), { t: h, i0: g, i1: _, w0: v, w1: y } = c(m), b = t.invert ? 1 - h : h, x = s + (1 - s) * Math.max(0, 1 - v - y), S = l(d + b * (f - d)), C = 1 / Math.max(M(S), 1e-6), [w, T] = a.neutralAt(b), E = [
+function L(t, n = {}, a = "images") {
+	let o = P(t), s = t[a]?.strength ?? 1, c = t[a]?.tint ?? 1;
+	if (!(s >= 0 && s <= 1)) throw RangeError("strength must be between 0 and 1");
+	if (!(c >= 0 && c <= 1)) throw RangeError("tint must be between 0 and 1");
+	let l = F(P(n.source ?? j)), u = n.filter ? y(n.filter).apply : null, { low: d, high: f } = o;
+	return (t, a, p) => {
+		u && ([t, a, p] = u(t, a, p));
+		let m = i(t, a, p), { t: h, i0: g, i1: _, w0: v, w1: y } = l(m), b = n.invert ? 1 - h : h, x = c + (1 - c) * Math.max(0, 1 - v - y), S = r(d + b * (f - d)), C = 1 / Math.max(M(S), 1e-6), [w, T] = o.neutralAt(b), E = [
 			S,
-			x * w + C * (v * a.a[g] + y * a.a[_]),
-			x * T + C * (v * a.b[g] + y * a.b[_])
+			x * w + C * (v * o.a[g] + y * o.a[_]),
+			x * T + C * (v * o.b[g] + y * o.b[_])
 		];
-		return n(o === 1 ? E : m.map((e, t) => e + (E[t] - e) * o));
+		return e(s === 1 ? E : m.map((e, t) => e + (E[t] - e) * s));
 	};
 }
-function R(e, t, r) {
-	let { low: a, high: o, neutralAt: s, a: c, b: u } = P(e), d = r ? i.indexOf(r) : -1, [f, p] = s(t);
-	return n([
-		l(a + t * (o - a)),
-		f + (d >= 0 ? c[d] : 0),
+function R(t, n, i) {
+	let { low: o, high: s, neutralAt: c, a: l, b: u } = P(t), d = i ? a.indexOf(i) : -1, [f, p] = c(n);
+	return e([
+		r(o + n * (s - o)),
+		f + (d >= 0 ? l[d] : 0),
 		p + (d >= 0 ? u[d] : 0)
 	]);
 }
@@ -364,34 +364,34 @@ function B(e, t, n) {
 		}
 	}
 }
-function ee(e, t) {
+function V(e, t) {
 	for (let n = 0; n < e.length; n += 4) {
 		let r = t(e[n] / 255, e[n + 1] / 255, e[n + 2] / 255);
 		e[n] = r[0] * 255, e[n + 1] = r[1] * 255, e[n + 2] = r[2] * 255;
 	}
 }
-function te(e, t, n = "Huet theme") {
+function H(e, t, n = "Huet theme") {
 	let r = [`TITLE "${n.replace(/"/g, "'")}"`, `LUT_3D_SIZE ${t}`];
 	for (let t = 0; t < e.length; t += 3) r.push(`${e[t].toFixed(6)} ${e[t + 1].toFixed(6)} ${e[t + 2].toFixed(6)}`);
 	return r.join("\n") + "\n";
 }
 // src/core/svgs.ts
-var ne = /currentcolor|var\(|context-(?:fill|stroke)/i, V = /^\s*(?:inherit|unset)\s*$/i, H = /* @__PURE__ */ new Set([
+var U = /currentcolor|var\(|context-(?:fill|stroke)/i, W = /^\s*(?:inherit|unset)\s*$/i, G = /* @__PURE__ */ new Set([
 	"fill",
 	"stroke",
 	"stop-color",
 	"style",
 	"class",
 	"href"
-]), U = /* @__PURE__ */ new WeakMap();
-function W(e) {
+]), K = /* @__PURE__ */ new WeakMap();
+function ee(e) {
 	let t;
 	try {
 		t = e.cssRules;
 	} catch {
 		return [];
 	}
-	let n = U.get(e);
+	let n = K.get(e);
 	if (n?.size === t.length) return n.rules;
 	let r = [], i = (e, t) => {
 		for (let n of e) if (n instanceof CSSStyleRule) for (let e of [
@@ -410,19 +410,19 @@ function W(e) {
 		}
 		else n instanceof CSSMediaRule ? i(n.cssRules, [...t, matchMedia(n.media.mediaText)]) : n instanceof CSSSupportsRule ? CSS.supports(n.conditionText) && i(n.cssRules, t) : n instanceof CSSGroupingRule && n.constructor.name !== "CSSStartingStyleRule" && i(n.cssRules, t);
 	};
-	return i(t, []), U.set(e, {
+	return i(t, []), K.set(e, {
 		size: t.length,
 		rules: r
 	}), r;
 }
-var G = (e, t) => {
+var q = (e, t) => {
 	try {
 		return e.matches(t);
 	} catch {
 		return !1;
 	}
-}, K;
-function q(e) {
+}, J;
+function te(e) {
 	let t = /^rgba?\(\s*([\d.]+)[\s,]+([\d.]+)[\s,]+([\d.]+)\s*(?:[,/]\s*([\d.]+)(%?))?\s*\)$/i.exec(e);
 	if (t) {
 		let e = t[4] === void 0 ? 1 : Number(t[4]) / (t[5] ? 100 : 1);
@@ -434,12 +434,12 @@ function q(e) {
 		];
 	}
 	if (!/^(?:oklch|oklab|lch|lab|hwb|hsla?|color)\(/i.test(e)) return null;
-	if (!K) {
+	if (!J) {
 		let e = document.createElement("canvas");
-		e.width = e.height = 1, K = e.getContext("2d", { willReadFrequently: !0 });
+		e.width = e.height = 1, J = e.getContext("2d", { willReadFrequently: !0 });
 	}
-	K.clearRect(0, 0, 1, 1), K.fillStyle = "transparent", K.fillStyle = e, K.fillRect(0, 0, 1, 1);
-	let [n, r, i, a] = K.getImageData(0, 0, 1, 1).data;
+	J.clearRect(0, 0, 1, 1), J.fillStyle = "transparent", J.fillStyle = e, J.fillRect(0, 0, 1, 1);
+	let [n, r, i, a] = J.getImageData(0, 0, 1, 1).data;
 	return [
 		n,
 		r,
@@ -447,7 +447,7 @@ function q(e) {
 		a / 255
 	];
 }
-function J(e, t, n = {}) {
+function ne(e, t, n = {}) {
 	let { selector: r = "svg[data-huet-recolor], [data-huet-recolor] svg", ...i } = n, a = i, o = t, s = /* @__PURE__ */ new Map(), c = t.svgs?.strength === 0, l = /* @__PURE__ */ new Map(), u = /* @__PURE__ */ new Map(), d, f = !1, p = /* @__PURE__ */ new Map(), m = [], h = {}, g = /* @__PURE__ */ new WeakMap(), _ = /* @__PURE__ */ new Set(), v = /* @__PURE__ */ new WeakMap(), y = /* @__PURE__ */ new Set();
 	L(t, a, "svgs");
 	let b = /* @__PURE__ */ new Set(), S = (e, { hadStyle: t, paints: n }) => {
@@ -480,7 +480,7 @@ function J(e, t, n = {}) {
 		}
 		e instanceof SVGElement && e.matches(r) && b.add(e);
 		for (let t of e.querySelectorAll(r)) t instanceof SVGElement && b.add(t);
-		let t = e.getRootNode(), n = [...t.styleSheets, ...t.adoptedStyleSheets].flatMap(W).filter((e) => e.media.every((e) => e.matches)), i = (e, t, n) => {
+		let t = e.getRootNode(), n = [...t.styleSheets, ...t.adoptedStyleSheets].flatMap(ee).filter((e) => e.media.every((e) => e.matches)), i = (e, t, n) => {
 			let r = e.style, i = r?.getPropertyValue(t) ?? "";
 			if (i && r.getPropertyPriority(t) === "important") return [
 				i,
@@ -488,7 +488,7 @@ function J(e, t, n = {}) {
 				!0
 			];
 			let a = "", o = "";
-			for (let r of n) r.paint === t && G(e, r.selector) && (r.important ? o = r.value : a = r.value);
+			for (let r of n) r.paint === t && q(e, r.selector) && (r.important ? o = r.value : a = r.value);
 			if (o) return [
 				o,
 				"rule",
@@ -514,57 +514,60 @@ function J(e, t, n = {}) {
 				"",
 				!1
 			];
-		}, a = /* @__PURE__ */ new Map(), o = (e, t, r, s) => {
+		}, a = /* @__PURE__ */ new Map(), s = (e, t, r, o) => {
 			let c = a.get(t);
 			c || a.set(t, c = /* @__PURE__ */ new Map());
 			let l = c.get(e);
 			if (l !== void 0) return l;
-			let [u] = i(e, t, r.contains(e) ? s : n);
-			return l = u && !V.test(u) ? ne.test(u) : t === "stop-color" && !u ? !1 : e.parentElement ? o(e.parentElement, t, r, s) : !1, c.set(e, l), l;
-		}, s = [], l = [], y = /* @__PURE__ */ new Set(), C = /* @__PURE__ */ new Map();
+			let [u] = i(e, t, r.contains(e) ? o : n);
+			return l = u && !W.test(u) ? U.test(u) : t === "stop-color" && !u ? !1 : e.parentElement ? s(e.parentElement, t, r, o) : !1, c.set(e, l), l;
+		}, l = [], y = [], C = [], E = o.contrast ?? 1, k = /* @__PURE__ */ new Set(), j = /* @__PURE__ */ new Map();
 		for (let e of b) {
 			let t = x(e, (e) => b.has(e));
 			D(g, e, t.stuck);
-			for (let { el: e, filter: n } of t.folded) C.set(e, n);
-			let r = n.filter(({ selector: t }) => G(e, t) || e.querySelector(t) !== null);
+			for (let { el: e, filter: n } of t.folded) j.set(e, n);
+			let r = e.parentElement;
+			for (; r && !(r instanceof SVGElement && b.has(r));) r = r.parentElement;
+			E < 1 && !r && C.push([e, Number(getComputedStyle(e).opacity) * E]);
+			let a = n.filter(({ selector: t }) => q(e, t) || e.querySelector(t) !== null);
 			for (let n of [e, ...e.querySelectorAll("*")]) {
-				if (!(n instanceof SVGElement) || y.has(n)) continue;
-				if (y.add(n), n instanceof SVGImageElement) {
-					l.push([n, t.key]);
+				if (!(n instanceof SVGElement) || k.has(n)) continue;
+				if (k.add(n), n instanceof SVGImageElement) {
+					y.push([n, t.key]);
 					continue;
 				}
-				let a = n instanceof SVGStopElement ? ["stop-color"] : ["fill", "stroke"];
-				for (let c of a) {
-					let [a, l, u] = i(n, c, r);
-					if ((!a || V.test(a)) && c !== "stop-color" && !b.has(n) || o(n, c, e, r)) continue;
-					let d = q(getComputedStyle(n).getPropertyValue(c));
-					d && d[3] > 0 && s.push([
+				let r = n instanceof SVGStopElement ? ["stop-color"] : ["fill", "stroke"];
+				for (let o of r) {
+					let [r, c, u] = i(n, o, a);
+					if ((!r || W.test(r)) && o !== "stop-color" && !b.has(n) || s(n, o, e, a)) continue;
+					let d = te(getComputedStyle(n).getPropertyValue(o));
+					d && d[3] > 0 && l.push([
 						n,
-						c,
+						o,
 						d,
-						l,
+						c,
 						u,
 						t.key
 					]);
 				}
 			}
 		}
-		let E = (e) => {
+		let M = (e) => {
 			let t = p.get(e);
 			return t || p.set(e, t = {
 				hadStyle: e.hasAttribute("style"),
 				paints: /* @__PURE__ */ new Map()
 			}), t;
-		}, k = (e, t, n) => {
-			E(e).paints.set(t, {
+		}, P = (e, t, n) => {
+			M(e).paints.set(t, {
 				via: "attribute",
 				value: e.getAttribute(t),
 				priority: "",
 				written: n
 			}), e.setAttribute(t, n);
 		};
-		for (let [e, t, n, r, i, a] of s) {
-			let o = E(e), s = O(n, a);
+		for (let [e, t, n, r, i, a] of l) {
+			let o = M(e), s = O(n, a);
 			if (r === "attribute" || r === "") o.paints.set(t, {
 				via: "attribute",
 				value: e.getAttribute(t),
@@ -581,7 +584,7 @@ function J(e, t, n = {}) {
 				});
 			}
 		}
-		for (let [e, t] of l) {
+		for (let [e, t] of y) {
 			let n = e.getAttribute("href") ?? e.getAttributeNS("http://www.w3.org/1999/xlink", "href");
 			if (!n || _.has(n)) continue;
 			let r = `${t}|${n}`, i = u.get(r);
@@ -590,9 +593,18 @@ function J(e, t, n = {}) {
 			o ? (v.set(e, {
 				href: n,
 				url: o
-			}), k(e, "href", o)) : k(e, "visibility", "hidden");
+			}), P(e, "href", o)) : P(e, "visibility", "hidden");
 		}
-		for (let [e, t] of C) w(e, h, t), m.push(e);
+		for (let [e, t] of C) {
+			let n = e.style.getPropertyValue("opacity"), r = e.style.getPropertyPriority("opacity");
+			e.style.setProperty("opacity", String(t), "important"), M(e).paints.set("opacity", {
+				via: "style",
+				value: n || null,
+				priority: r,
+				written: e.style.getPropertyValue("opacity")
+			});
+		}
+		for (let [e, t] of j) w(e, h, t), m.push(e);
 		N.takeRecords();
 	}, A = (e, t, n, r) => {
 		let i = u, s = (async () => {
@@ -619,7 +631,7 @@ function J(e, t, n = {}) {
 	}, M = ({ type: e, target: t, attributeName: n, addedNodes: i, removedNodes: a }) => {
 		if (!(t instanceof Element)) return !1;
 		let o = t.closest(r) !== null;
-		if (e === "attributes") return b.has(t) || t.matches(r) ? !0 : o ? H.has(n) : n === "class" && t.querySelector(r) !== null;
+		if (e === "attributes") return b.has(t) || t.matches(r) ? !0 : o ? G.has(n) : n === "class" && t.querySelector(r) !== null;
 		if (o) return !0;
 		for (let e of [...i, ...a]) if (e instanceof Element && (e.matches(r) || e.querySelector(r) !== null)) return !0;
 		return !1;
@@ -679,12 +691,17 @@ function Q(e, t, n = {}, r = document.createElement("canvas")) {
 	let f = d.getImageData(0, 0, i, a);
 	return B(f.data, l, c), d.putImageData(f, 0, 0), r;
 }
+function oe(e, t) {
+	if (t >= 1) return;
+	let n = e.getContext("2d");
+	n.save(), n.globalCompositeOperation = "destination-in", n.fillStyle = `rgba(0, 0, 0, ${t})`, n.fillRect(0, 0, e.width, e.height), n.restore();
+}
 var $ = [
 	"class",
 	"title",
 	"alt"
 ];
-function oe(e, t, n = {}) {
+function se(e, t, n = {}) {
 	let { selector: r = "img[data-huet-recolor], [data-huet-recolor] img", hoverOriginal: i = !1, ...a } = n, o = t, s = a, c = 0, l, u = !1, d = /* @__PURE__ */ new Map(), f = /* @__PURE__ */ new Map(), p = /* @__PURE__ */ new Map(), m = /* @__PURE__ */ new WeakMap(), h = (e) => d.has(e) || f.has(e), g = /* @__PURE__ */ new Set(), _ = (e, t) => {
 		let n = `${t} ${e}`, r = p.get(n);
 		if (!r) {
@@ -736,7 +753,7 @@ function oe(e, t, n = {}) {
 			D(m, e, i), C(e, t, !1), t.filters = r, Q(t.image, o, a ? {
 				...s,
 				filter: a
-			} : s, n), t.drawn = c, t.ready = !0, E(e, t);
+			} : s, n), oe(n, o.contrast ?? 1), t.drawn = c, t.ready = !0, E(e, t);
 		} catch {
 			O(e, t);
 		}
@@ -830,6 +847,6 @@ function oe(e, t, n = {}) {
 		}
 	};
 }
-export { A as GpuRecolor, B as applyLut, ee as applyTransform, z as buildLut, I as coordinatesOf, ie as hasGpu, oe as mountImages, J as mountSvgs, R as rampColor, Q as recolorImage, L as recolorer, te as toCube };
+export { A as GpuRecolor, B as applyLut, V as applyTransform, z as buildLut, I as coordinatesOf, ie as hasGpu, se as mountImages, ne as mountSvgs, R as rampColor, Q as recolorImage, L as recolorer, H as toCube };
 
 //# sourceMappingURL=images.js.map

@@ -45,6 +45,9 @@ export interface MountImagesOptions extends ImageOptions {
  * otherwise wash out the theme. So are filters on ancestors that wrap only
  * recolored images. A color filter on an ancestor that also shows other
  * content can't be lifted, so it's reported as an error, once per image.
+ *
+ * A theme `contrast` below 1 fades the recolored copies toward what's behind
+ * them, as it fades the page's colors, so at 0 they're gone.
  */
 export declare function mountImages(root: ParentNode & Node, theme: Theme, options?: MountImagesOptions): {
     /** Recolor every image into a new theme, optionally with new options. */
