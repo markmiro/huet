@@ -68,6 +68,9 @@ importers:
       huet:
         specifier: workspace:*
         version: link:packages/huet
+      huet-emoji:
+        specifier: workspace:*
+        version: link:packages/huet-emoji
       huet-react:
         specifier: workspace:*
         version: link:packages/huet-react
@@ -117,6 +120,24 @@ importers:
       shiki:
         specifier: ^4.5.0
         version: 4.5.0
+      typescript:
+        specifier: ^7.0.2
+        version: 7.0.2
+      vite:
+        specifier: ^8.3.4
+        version: 8.3.5(@types/node@26.6.5)(jiti@2.7.0)(yaml@2.9.1)
+      vite-plugin-dts:
+        specifier: ^5.1.2
+        version: 5.1.2(rolldown@1.2.15)(typescript@7.0.2)(vite@8.3.5(@types/node@26.6.5)(jiti@2.7.0)(yaml@2.9.1))
+
+  packages/huet-emoji:
+    devDependencies:
+      '@typescript/typescript6':
+        specifier: ^6.0.2
+        version: 6.0.2
+      huet:
+        specifier: workspace:^
+        version: link:../huet
       typescript:
         specifier: ^7.0.2
         version: 7.0.2

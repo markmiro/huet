@@ -34,18 +34,29 @@ test("images follow the configurator's theme", async ({ page }) => {
   expect(errors).toEqual([]);
 });
 
-// The emoji section is commented out on the Images page.
-test.skip("emoji are drawn into images and recolored", async ({ page }) => {
+test("emoji stay text and follow the configurator's theme", async ({ page }) => {
+  const errors: string[] = [];
+  page.on("pageerror", (error) => errors.push(error.message));
   await page.goto("/images");
-  const emoji = page.locator("img[data-emoji]");
-  await expect(emoji).toHaveCount(60);
-  await expect
-    .poll(
-      () => emoji.evaluateAll((els) => (els as HTMLImageElement[]).every((img) => img.src.startsWith("blob:"))),
-      { timeout: 30_000 },
-    )
-    .toBe(true);
-  await expect(emoji.first()).toHaveAttribute("alt", "🌸");
+  const palette = () =>
+    page.evaluate(() => ({
+      name: document.getElementById("page")!.style.getPropertyValue("font-palette"),
+      css: document.querySelector("style[data-huet-fonts]")?.textContent ?? "",
+    }));
+  await expect.poll(async () => (await palette()).name).toMatch(/^--huet-fonts-\d+$/);
+  const before = await palette();
+  expect(before.css).toContain(`@font-palette-values ${before.name} {\n  font-family: "Twemoji";`);
+  // The emoji are text in the Twemoji font, not images.
+  const emoji = page.locator("#emoji");
+  await expect(emoji).toContainText("Build passed ✅ and shipped 🚀");
+  await expect(emoji.locator("img, canvas, svg")).toHaveCount(0);
+  expect(await page.evaluate(() => document.fonts.check('30px "Twemoji"', "🌸"))).toBe(true);
+
+  await pickTheme(page, "Sunset");
+  await expect(page.getByRole("heading", { level: 1 })).toHaveText("Sunset");
+  await expect.poll(async () => (await palette()).css).not.toBe(before.css);
+  expect((await palette()).name).toBe(before.name);
+  expect(errors).toEqual([]);
 });
 
 test("images recolor by default, on the GPU", async ({ page }) => {

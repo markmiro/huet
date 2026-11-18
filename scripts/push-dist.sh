@@ -3,6 +3,7 @@
 # can install it from GitHub without building it:
 #   "huet": "github:markmiro/huet#dist"
 #   "huet-react": "github:markmiro/huet#dist-react"
+#   "huet-emoji": "github:markmiro/huet#dist-emoji"
 # Usage: scripts/push-dist.sh <package-dir> <branch> <remote-url>.
 # `pnpm pack` builds the package first through its prepack script.
 set -euo pipefail

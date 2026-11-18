@@ -2,7 +2,15 @@
 import Section from "../components/Section.astro";
 import Demo from "../layouts/Demo.astro";
 import { images } from "../recolor/data";
-// import { emojiRows } from "../recolor/emoji";
+
+// Emoji the demo's Twemoji subset holds (src/demo/assets/fonts).
+const emojiRows = [
+  "🌸🌻🌷🌹🌼🌿🍀🌲🍁🌈🔥💧",
+  "🍎🍊🍋🍏🫐🍇🍉🥑🥕🌶️🍄⭐",
+  "😀😍🥳😎🤖👻🐸🦊🐝🦋🐳🦜",
+  "❤️🧡💛💚💙💜🤎🖤🤍✅🚫👋",
+  "👍🏻👍🏼👍🏽👍🏾👍🏿🙌🏻🙌🏽🙌🏿🧑🏻🧑🏽🧑🏿",
+];
 
 const unsplash = (kind: string) =>
   images.filter((image) => image.group === "unsplash" && image.kind === kind);
@@ -45,46 +53,38 @@ const galleries = [
       Adjust their tint and strength, or turn image or SVG theming off, in the configurator’s Edit Theme tab.
     </p>
 
-    <Section title="SVG">
-      <p class="huet-text-50 -mt-12 mb-6 text-sm">
-        An inline SVG recolored as vectors with <code class="huet-bg-5 rounded-xs px-1 font-mono">mountSvgs</code>
-      </p>
-      <figure class="huet-bg-5 huet-border-10 max-w-[28em] overflow-hidden rounded border">
-        <svg id="landscape" data-huet-recolor viewBox="0 0 320 180" role="img" aria-label="Hills under a sun" class="block w-full">
-          <defs>
-            <linearGradient id="sky" x1="0" y1="0" x2="0" y2="1">
-              <stop offset="0" stop-color="#4a90d9" />
-              <stop offset="1" stop-color="#f6d6a8" />
-            </linearGradient>
-          </defs>
-          <rect width="320" height="180" fill="url(#sky)" />
-          <circle cx="240" cy="62" r="26" fill="#f4b400" />
-          <path d="M0 120 Q80 70 160 112 T320 100 V180 H0Z" fill="#5b8c3a" />
-          <path d="M0 146 Q110 108 210 140 T320 136 V180 H0Z" fill="#2f5d34" />
-          <path d="M58 136 l10 -26 l10 26Z" fill="#d93f3f" stroke="#1f1f1f" stroke-width="2" />
-        </svg>
-      </figure>
-    </Section>
+    <div class="grid gap-x-12 md:grid-cols-2">
+      <Section title="SVG">
+        <p class="huet-text-50 -mt-12 mb-6 text-sm">
+          An inline SVG recolored as vectors with <code class="huet-bg-5 rounded-xs px-1 font-mono">mountSvgs</code>
+        </p>
+        <figure class="huet-bg-5 huet-border-10 max-w-[28em] overflow-hidden rounded border">
+          <svg id="landscape" data-huet-recolor viewBox="0 0 320 180" role="img" aria-label="Hills under a sun" class="block w-full">
+            <defs>
+              <linearGradient id="sky" x1="0" y1="0" x2="0" y2="1">
+                <stop offset="0" stop-color="#4a90d9" />
+                <stop offset="1" stop-color="#f6d6a8" />
+              </linearGradient>
+            </defs>
+            <rect width="320" height="180" fill="url(#sky)" />
+            <circle cx="240" cy="62" r="26" fill="#f4b400" />
+            <path d="M0 120 Q80 70 160 112 T320 100 V180 H0Z" fill="#5b8c3a" />
+            <path d="M0 146 Q110 108 210 140 T320 136 V180 H0Z" fill="#2f5d34" />
+            <path d="M58 136 l10 -26 l10 26Z" fill="#d93f3f" stroke="#1f1f1f" stroke-width="2" />
+          </svg>
+        </figure>
+      </Section>
 
-    {/* Emoji section, commented out for now.
-    <Section title="Emoji">
-      <p class="huet-text-50 -mt-12 mb-6 text-sm">
-        Drawn by your system's emoji font into a transparent canvas, then recolored like any image
-      </p>
-      <div class="grid grid-cols-[repeat(auto-fill,minmax(4em,1fr))] gap-2">
-        {emojiRows.flat().map((emoji) => (
-          <img
-            data-huet-recolor
-            data-emoji={emoji}
-            alt={emoji}
-            width="96"
-            height="96"
-            class="huet-bg-5 block aspect-square w-full rounded p-1"
-          />
-        ))}
-      </div>
-    </Section>
-    */}
+      <Section title="Emoji">
+        <p class="huet-text-50 -mt-12 mb-6 text-sm">
+          Selectable text in Twemoji, themed with <code class="huet-bg-5 rounded-xs px-1 font-mono">huet-emoji</code>
+        </p>
+        <div id="emoji" class="emoji-text huet-bg-5 huet-border-10 max-w-[28em] rounded border p-4">
+          <p>Build passed ✅ and shipped 🚀 Thanks, everyone 🎉❤️</p>
+          {emojiRows.map((row) => <p class="mt-2 text-3xl tracking-wider">{row}</p>)}
+        </div>
+      </Section>
+    </div>
 
     {galleries.map((gallery) => (
       <Section title={gallery.title}>
@@ -110,3 +110,15 @@ const galleries = [
     ))}
   </div>
 </Demo>
+
+<style is:global>
+  /* The emoji font goes first in the stack; unicode-range keeps it to emoji. */
+  @font-face {
+    font-family: "Twemoji";
+    src: url("../assets/fonts/twemoji-demo.woff2") format("woff2");
+    unicode-range: U+200D, U+FE0F, U+20E3, U+231A-23FF, U+2600-27BF, U+2B05-2B55, U+1F000-1FAFF, U+E0020-E007F;
+  }
+  .emoji-text {
+    font-family: "Twemoji", ui-sans-serif, system-ui, sans-serif;
+  }
+</style>

@@ -2,7 +2,7 @@
 
 Relative UI colors and themed images from one theme, for any framework. Choose a theme, then give each element a ramp and a contrast amount in its class name, such as `huet-bg-blue-20`. Huet works out the actual colors from the element's parent background, and recolors images to match. Layout stays with your framework or Tailwind.
 
-For a React theme editor that drives these themes, see [`huet-react`](https://www.npmjs.com/package/huet-react).
+For a React theme editor that drives these themes, see [`huet-react`](https://www.npmjs.com/package/huet-react). For emoji and other color fonts in the theme, see [`huet-emoji`](https://www.npmjs.com/package/huet-emoji).
 
 ## Install
 

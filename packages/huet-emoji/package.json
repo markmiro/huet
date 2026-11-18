@@ -1,0 +1,62 @@
+{
+  "name": "huet-emoji",
+  "version": "1.0.0-alpha.1",
+  "description": "Color emoji and other color fonts in a Huet theme, as live text",
+  "license": "MIT",
+  "author": "Mark Miro",
+  "homepage": "https://markmiro.github.io/huet/",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/markmiro/huet.git",
+    "directory": "packages/huet-emoji"
+  },
+  "bugs": {
+    "url": "https://github.com/markmiro/huet/issues"
+  },
+  "keywords": [
+    "huet",
+    "emoji",
+    "color font",
+    "font-palette",
+    "theme"
+  ],
+  "type": "module",
+  "sideEffects": false,
+  "exports": {
+    ".": "./src/index.ts",
+    "./package.json": "./package.json"
+  },
+  "publishConfig": {
+    "main": "./dist/index.cjs",
+    "module": "./dist/index.js",
+    "types": "./dist/index.d.ts",
+    "exports": {
+      ".": {
+        "types": "./dist/index.d.ts",
+        "import": "./dist/index.js",
+        "require": "./dist/index.cjs"
+      },
+      "./package.json": "./package.json"
+    },
+    "bin": {
+      "huet-emoji": "./dist/cli.mjs"
+    }
+  },
+  "files": [
+    "dist"
+  ],
+  "scripts": {
+    "build": "vite build && node scripts/copy-cli.mjs",
+    "prepack": "pnpm run build"
+  },
+  "peerDependencies": {
+    "huet": "workspace:^"
+  },
+  "devDependencies": {
+    "@typescript/typescript6": "^6.0.2",
+    "huet": "workspace:^",
+    "typescript": "^7.0.2",
+    "vite": "^8.3.4",
+    "vite-plugin-dts": "^5.1.2"
+  }
+}
