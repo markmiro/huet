@@ -29,10 +29,15 @@ function usePageTheme() {
     else images.current = mountImages(page, theme, { hoverOriginal: true });
     if (svgs.current) svgs.current.update(theme);
     else svgs.current = mountSvgs(page, theme);
-    // The Images page declares the font. Its palette was read ahead of time, so emoji never show unthemed.
+    // Only the Images page has text in the emoji font. A new palette lays out
+    // the text that could use it again, so other pages go without one. The
+    // palette was read ahead of time, so emoji never show unthemed.
     if (fonts.current) fonts.current.update(theme);
-    else fonts.current = mountFonts(page, theme, { fonts: [{ family: "Twemoji", colors: twemojiPalette }] });
-    for (const el of document.querySelectorAll("[data-theme-name]")) el.textContent = themeName(theme);
+    else if (page.querySelector(".emoji-text"))
+      fonts.current = mountFonts(page, theme, { fonts: [{ family: "Twemoji", colors: twemojiPalette }] });
+    const name = themeName(theme);
+    // Left alone while a theme is dragged, so the page's observers have nothing to look at
+    for (const el of document.querySelectorAll("[data-theme-name]")) if (el.textContent !== name) el.textContent = name;
     themeApplied({ theme, background });
     // The theme's name can change with the list, as when it's saved or renamed
   }, [theme, background, themes]);

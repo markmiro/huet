@@ -1,7 +1,10 @@
 import { fileURLToPath } from "node:url";
 import { describe, it, expect } from "vitest";
 import { createTheme, hues, themeVariables, colorModels, resolveTheme } from "./theme";
-import { apca, contrast, lightness, textEnd, toOklab, fromOklab, mix, luminance } from "./color";
+import {
+  apca, apcaBackground, apcaFromY, apcaY, apcaYOfBits, bitsFromOklab, contrast, hexOfBits, lcOn, lightness,
+  luminanceOfBits, textEnd, toOklab, fromOklab, mix, luminance,
+} from "./color";
 import { classes, validateClasses, isHuetClass, parseColorClass, stateKey, classVariable } from "./classes";
 import { readFileSync } from "node:fs";
 import { compile } from "@tailwindcss/node";
@@ -34,6 +37,30 @@ describe("color math", () => {
     ])
       expect(fromOklab(toOklab(color))).toBe(color);
     expect(mix("#000", "#fff", 0.5)).toBe("#636363");
+  });
+  it("measures a color the same from its hex, its bits and its powers", () => {
+    let seed = 7;
+    const random = () => ((seed = (seed * 1664525 + 1013904223) >>> 0) / 2 ** 32);
+    for (let i = 0; i < 500; i++) {
+      const bits = Math.floor(random() * 2 ** 24);
+      const hex = hexOfBits(bits);
+      expect(hex).toMatch(/^#[\da-f]{6}$/);
+      expect(apcaYOfBits(bits)).toBe(apcaY(hex));
+      expect(apcaY(hex.toUpperCase())).toBe(apcaY(hex));
+      expect(luminanceOfBits(bits)).toBe(luminance(hex));
+      // Lc with the background's powers worked out once, and the text's too
+      const text = apcaY(hexOfBits(Math.floor(random() * 2 ** 24)));
+      const on = apcaBackground(apcaY(hex));
+      expect(lcOn(on, text)).toBe(Math.abs(apcaFromY(text, on.y)));
+      expect(lcOn(on, text, text ** 0.57, text ** 0.62)).toBe(lcOn(on, text));
+      const lab = toOklab(hex);
+      expect(hexOfBits(bitsFromOklab(lab[0], lab[1] * 3, lab[2] * 3))).toBe(fromOklab([lab[0], lab[1] * 3, lab[2] * 3]));
+    }
+    // Short hex takes the general path to the same numbers.
+    expect(apcaY("#abc")).toBeCloseTo(apcaY("#aabbcc"), 12);
+    expect(luminance("#abc")).toBeCloseTo(luminance("#aabbcc"), 12);
+    expect(toOklab("#abc")[0]).toBeCloseTo(toOklab("#aabbcc")[0], 12);
+    for (const bad of ["#12345g", "#1234567", "aabbcc", ""]) expect(() => apcaY(bad)).toThrow();
   });
   it("rejects alpha, invalid hex and invalid positions", () => {
     for (const dark of ["red", "#ffffff80", "#xyz", "#12", "var(--x)"])
@@ -143,6 +170,25 @@ describe("readability", () => {
       for (const value of Object.values(t))
         expect(value).toMatch(/^#[0-9a-f]{6}$/);
     }
+  });
+  it("resolves one theme on each background by itself", () => {
+    const theme = themes.Terminal;
+    const light = resolveTheme(theme, { background: 1 }),
+      dark = resolveTheme(theme, { background: 0 }),
+      again = resolveTheme({ ...theme }, { background: 1 });
+    expect(light.background).toBe("#7fff8b");
+    expect(dark.background).toBe("#0d171d");
+    expect(light.root.hex).not.toBe(dark.root.hex);
+    // Role colors default to the background each was resolved on.
+    expect(light.tokens().background).toBe(light.background);
+    expect(dark.tokens().background).toBe(dark.background);
+    expect(dark.tokens().foreground).not.toBe(light.tokens().foreground);
+    // The same theme again, as a new object, gives the same colors.
+    expect(again.tokens()).toEqual(light.tokens());
+    expect(again.step(again.root, 50, "blue").hex).toBe(light.step(light.root, 50, "blue").hex);
+    // Another contrast is another solver.
+    const faded = resolveTheme({ ...theme, contrast: 0.5 }, { background: 1 });
+    expect(faded.step(faded.root, 100).hex).not.toBe(light.step(light.root, 100).hex);
   });
   it("keeps nested surfaces readable and caches immutable results", () => {
     const theme = createTheme();

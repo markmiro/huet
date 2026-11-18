@@ -123,6 +123,76 @@ describe("framework-independent surfaces", () => {
   });
 });
 
+describe("theme updates", () => {
+  const dark: Theme = { neutral: ["#101820", "#f2e8dc"], colorModel: "lab" };
+  it("colors elements the page has just added or changed, before the observer reports them", () => {
+    const root = document.createElement("div");
+    root.innerHTML = '<section class="huet-bg-10"><p class="huet-text-60"></p></section>';
+    document.body.append(root);
+    const mount = mountTheme(root, base);
+    const section = root.querySelector("section")!,
+      p = root.querySelector("p")!;
+    const added = document.createElement("span");
+    added.className = "huet-text-80";
+    section.append(added);
+    p.className = "huet-text-30";
+    section.className = "huet-bg-20";
+    mount.update(dark);
+    const theme = resolveTheme(dark);
+    const surface = theme.step(theme.root, 20);
+    expect(background(section)).toBe(surface.hex);
+    expect(added.style.getPropertyValue("--huet-text-80")).toBe(theme.step(surface, 80).hex);
+    expect(p.style.getPropertyValue("--huet-text-30")).toBe(theme.step(surface, 30).hex);
+    expect(p.style.getPropertyValue("--huet-text-60")).toBe("");
+    mount.destroy();
+    root.remove();
+  });
+  it("writes every value again when the page has replaced an element's style", () => {
+    const root = document.createElement("div");
+    root.innerHTML = '<section class="huet-bg-10"></section>';
+    document.body.append(root);
+    const mount = mountTheme(root, base);
+    const section = root.querySelector("section")!;
+    // A second update with the same theme changes nothing, so nothing would be written.
+    mount.update(base);
+    section.setAttribute("style", "margin: 0px");
+    mount.update(base);
+    const theme = resolveTheme(base);
+    expect(background(section)).toBe(theme.step(theme.root, 10).hex);
+    expect(section.style.getPropertyValue("--huet-foreground")).not.toBe("");
+    expect(section.style.getPropertyValue("margin")).toBe("0px");
+    mount.destroy();
+    expect(section.getAttribute("style")).toBe("margin: 0px;");
+    root.remove();
+  });
+  it("leaves the tree alone when a change has nothing to do with Huet", async () => {
+    const root = document.createElement("div");
+    root.innerHTML = '<section class="huet-bg-10"><p>Text</p></section>';
+    document.body.append(root);
+    const mount = mountTheme(root, base);
+    const section = root.querySelector("section")!,
+      p = root.querySelector("p")!;
+    const written = background(section);
+    // A value the mount would put back if it colored the tree again
+    section.style.setProperty("--huet-background", "#123456");
+    p.textContent = "Other text";
+    p.className = "plain";
+    p.append(document.createElement("b"));
+    await tick();
+    expect(background(section)).toBe("#123456");
+    // A Huet class anywhere, added or removed, colors the tree again.
+    p.className = "plain huet-text-60";
+    await tick();
+    expect(background(section)).toBe(written);
+    section.style.setProperty("--huet-background", "#123456");
+    p.className = "plain";
+    await tick();
+    expect(background(section)).toBe(written);
+    expect(p.style.getPropertyValue("--huet-text-60")).toBe("");
+    mount.destroy();
+    root.remove();
+  });
+});
 describe("explicit contrast classes", () => {
   it("matches original calculations, including parent versus own-background references", () => {
     const root = document.createElement("div");

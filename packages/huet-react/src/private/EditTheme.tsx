@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { memo, useCallback, useRef, useState } from "react";
 import { checkTheme, colorModels, type ColorModel, type RecolorSettings, type Theme } from "huet";
 
 import { useThemeConfigurator } from "../context";
@@ -19,6 +19,8 @@ import { Switch } from "./ui/switch";
 // lab; the library's own default, for themes that leave it out, is oklab.
 const usualColorModel: ColorModel = "lab";
 const defaultSignalLightness = { onLight: 0.49, onDark: 0.49 };
+/** Changes some of the theme's fields. It's the same function from one edit to the next. */
+type Edit = (changes: Partial<Theme>) => void;
 
 function Section({
   title,
@@ -88,9 +90,11 @@ function PercentSetting({
  * wrong, so they're tucked away, with a dot when either isn't the default.
  * Contrast goes up to 100% here; a theme already above that shows in red.
  */
-function BaseColorSettings({ theme, edit }: { theme: Theme; edit: (changes: Partial<Theme>) => void }) {
-  const colorModel = theme.colorModel ?? "oklab";
-  const contrast = theme.contrast ?? 1;
+const BaseColorSettings = memo(function BaseColorSettings({
+  colorModel = "oklab",
+  contrast = 1,
+  edit,
+}: Pick<Theme, "colorModel" | "contrast"> & { edit: Edit }) {
   const changed = Number(colorModel !== usualColorModel) + Number(contrast !== 1);
   return (
     <SettingsPopover label="Blending and contrast" title="Blending and contrast" changed={changed}>
@@ -122,10 +126,12 @@ function BaseColorSettings({ theme, edit }: { theme: Theme; edit: (changes: Part
       )}
     </SettingsPopover>
   );
-}
+});
 
-function SignalSettings({ theme, edit }: { theme: Theme; edit: (changes: Partial<Theme>) => void }) {
-  const signal = theme.signalLightness ?? defaultSignalLightness;
+const SignalSettings = memo(function SignalSettings({
+  signalLightness: signal = defaultSignalLightness,
+  edit,
+}: Pick<Theme, "signalLightness"> & { edit: Edit }) {
   // No badge: nearly every preset sets its own
   return (
     <SettingsPopover label="Signal lightness" title="Signal lightness">
@@ -144,18 +150,22 @@ function SignalSettings({ theme, edit }: { theme: Theme; edit: (changes: Partial
       />
     </SettingsPopover>
   );
-}
+});
 
 /** A switch for theming images or SVGs, with tint and strength behind "⋯". Off is strength 0. */
-function Recoloring({
+const Recoloring = memo(function Recoloring({
   label,
+  field,
   value,
-  onChange,
+  edit,
 }: {
   label: string;
+  /** Which of the theme's settings this switches */
+  field: "images" | "svgs";
   value: RecolorSettings | undefined;
-  onChange: (settings: RecolorSettings) => void;
+  edit: Edit;
 }) {
+  const onChange = (settings: RecolorSettings) => edit({ [field]: settings });
   const settings = { strength: 1, tint: 1, ...value };
   const isOn = settings.strength > 0;
   const changed = Number(settings.tint !== 1) + Number(isOn && settings.strength !== 1);
@@ -177,17 +187,26 @@ function Recoloring({
       )}
     </Switch>
   );
-}
+});
 
 /** Edits every part of the theme, and the page's background when the page allows it. */
 export default function EditTheme() {
   const { theme, setTheme, background, setBackground, pageColors } = useThemeConfigurator();
-  const edit = (changes: Partial<Theme>) => {
-    const next = { ...theme, ...changes };
-    // Settings back at their defaults are left out, so the theme still matches its preset
-    for (const key of Object.keys(changes) as (keyof Theme)[]) if (next[key] === undefined) delete next[key];
-    setTheme(next);
-  };
+  // Dragging a color edits the theme on every frame. The sections that edit
+  // doesn't touch are memoized on their own fields, so `edit` has to stay
+  // the same function: it reads the theme as of the last render.
+  const latest = useRef(theme);
+  latest.current = theme;
+  const edit = useCallback<Edit>(
+    (changes) => {
+      const next = { ...latest.current, ...changes };
+      // Settings back at their defaults are left out, so the theme still matches its preset
+      for (const key of Object.keys(changes) as (keyof Theme)[]) if (next[key] === undefined) delete next[key];
+      setTheme(next);
+    },
+    [setTheme],
+  );
+  const editColors = useCallback((colors: Theme["colors"]) => edit({ colors }), [edit]);
   // The base colors last refused for running backwards. The message stays
   // until the theme's base colors change, by a valid pick or another theme.
   const [refusedOn, setRefusedOn] = useState<readonly string[]>();
@@ -215,7 +234,10 @@ export default function EditTheme() {
           <BackgroundSlider theme={theme} background={background} onChange={setBackground} />
         </Section>
       )}
-      <Section title="Base colors" actions={<BaseColorSettings theme={theme} edit={edit} />}>
+      <Section
+        title="Base colors"
+        actions={<BaseColorSettings colorModel={theme.colorModel} contrast={theme.contrast} edit={edit} />}
+      >
         <BaseColors colors={theme.neutral} colorModel={theme.colorModel} onChange={editNeutral} />
         {refusedOn === theme.neutral && (
           <p role="alert" className="huet-text-red-100">
@@ -223,8 +245,8 @@ export default function EditTheme() {
           </p>
         )}
       </Section>
-      <Section title="Hues" actions={<SignalSettings theme={theme} edit={edit} />}>
-        <Hues theme={theme} onChange={(colors) => edit({ colors })} />
+      <Section title="Hues" actions={<SignalSettings signalLightness={theme.signalLightness} edit={edit} />}>
+        <Hues colors={theme.colors} onChange={editColors} />
       </Section>
       {Object.keys(pageColors).length > 0 && (
         <Section title="Page colors">
@@ -233,8 +255,8 @@ export default function EditTheme() {
       )}
       <Section title="Images">
         <div className="hc:flex hc:flex-col hc:gap-[.25em]">
-          <Recoloring label="Theme images" value={theme.images} onChange={(images) => edit({ images })} />
-          <Recoloring label="Theme SVGs" value={theme.svgs} onChange={(svgs) => edit({ svgs })} />
+          <Recoloring label="Theme images" field="images" value={theme.images} edit={edit} />
+          <Recoloring label="Theme SVGs" field="svgs" value={theme.svgs} edit={edit} />
         </div>
       </Section>
     </div>

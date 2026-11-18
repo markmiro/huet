@@ -1,6 +1,6 @@
 import {
   fromLightness, lightnessOf as lightness, lightnessToe as toe,
-  oklabFromRgb, rgbFromOklab, toOklab, type Triple,
+  oklabFromRgb, rgbFromOklab, toOklab, writeRgbFromOklab, type Triple,
 } from "./color";
 import { colorFilter } from "./filters";
 import { checkTheme, defaultColors, hues, neutralRampOf, rampOptionsOf, type Hue, type Theme } from "./theme";
@@ -83,10 +83,12 @@ interface Frame {
 
 const frames = new Map<string, Frame>();
 function frame(theme: Theme): Frame {
-  const key = JSON.stringify(theme);
+  checkTheme(theme);
+  // Only these place a color. Images, SVGs and fonts each pass the theme with
+  // their own settings, and share its frame.
+  const key = JSON.stringify([theme.neutral, theme.colorModel, theme.colors]);
   let cached = frames.get(key);
   if (cached) return cached;
-  checkTheme(theme);
   const { colors } = theme;
   const { ramp } = neutralRampOf(rampOptionsOf(theme));
   // Sample the neutral ramp, which may pass through middle stops or travel
@@ -204,34 +206,124 @@ export function coordinatesOf(
  * theme, with the target's `images` settings, or its `svgs` settings for SVGs.
  */
 export function recolorer(target: Theme, options: RecolorOptions = {}, media: "images" | "svgs" = "images") {
-  const to = frame(target);
+  // Everything is checked now, so a bad theme throws here. The ramps are only
+  // sampled once there's a color to map: a mount makes a recolorer for every
+  // theme it's given, and a page being dragged through themes may have
+  // nothing for it to recolor.
+  checkTheme(target);
   const strength = target[media]?.strength ?? 1,
     tint = target[media]?.tint ?? 1;
   if (!(strength >= 0 && strength <= 1))
     throw new RangeError("strength must be between 0 and 1");
   if (!(tint >= 0 && tint <= 1)) throw new RangeError("tint must be between 0 and 1");
-  const decompose = decomposer(frame(options.source ?? defaultSource));
+  if (options.source) checkTheme(options.source);
   const filtered = options.filter ? colorFilter(options.filter).apply : null;
-  const { low, high } = to;
-  return (r: number, g: number, b: number): Triple => {
-    if (filtered) [r, g, b] = filtered(r, g, b);
-    const lab = oklabFromRgb(r, g, b);
-    const { t: position, i0, i1, w0, w1 } = decompose(lab);
-    const t = options.invert ? 1 - position : position;
-    const neutral = tint + (1 - tint) * Math.max(0, 1 - w0 - w1);
-    const L = fromLightness(low + t * (high - low));
-    const k = 1 / Math.max(vividness(L), 1e-6);
-    const [na, nb] = to.neutralAt(t);
-    const mapped: Triple = [
-      L,
-      neutral * na + k * (w0 * to.a[i0] + w1 * to.a[i1]),
-      neutral * nb + k * (w0 * to.b[i0] + w1 * to.b[i1]),
-    ];
-    if (strength === 1) return rgbFromOklab(mapped);
-    return rgbFromOklab(
-      lab.map((v, i) => v + (mapped[i] - v) * strength) as unknown as Triple,
-    );
+  let built: ReturnType<typeof build> | undefined;
+  const ready = () => (built ??= build());
+  return Object.assign((r: number, g: number, b: number): Triple => ready().map(r, g, b), {
+    /**
+     * The same mapping baked into a size³ lattice, as `buildLut` would. A
+     * lattice point's place in the source theme doesn't depend on the target,
+     * so it's kept from one target theme to the next: dragging a color builds a
+     * table for every frame.
+     */
+    lut: (size: number) => ready().lut(size),
+  });
+
+  function build() {
+    const to = frame(target);
+    const decompose = decomposer(frame(options.source ?? defaultSource));
+    const { low, high } = to;
+    const map = (r: number, g: number, b: number): Triple => {
+      if (filtered) [r, g, b] = filtered(r, g, b);
+      const lab = oklabFromRgb(r, g, b);
+      const { t: position, i0, i1, w0, w1 } = decompose(lab);
+      const t = options.invert ? 1 - position : position;
+      const neutral = tint + (1 - tint) * Math.max(0, 1 - w0 - w1);
+      const L = fromLightness(low + t * (high - low));
+      const k = 1 / Math.max(vividness(L), 1e-6);
+      const [na, nb] = to.neutralAt(t);
+      const mapped: Triple = [
+        L,
+        neutral * na + k * (w0 * to.a[i0] + w1 * to.a[i1]),
+        neutral * nb + k * (w0 * to.b[i0] + w1 * to.b[i1]),
+      ];
+      if (strength === 1) return rgbFromOklab(mapped);
+      return rgbFromOklab(
+        lab.map((v, i) => v + (mapped[i] - v) * strength) as unknown as Triple,
+      );
+    };
+    const lut = (size: number) => {
+      const from = latticeOf(options, size, decompose, filtered);
+      const out = new Float32Array(size ** 3 * 3);
+      for (let p = 0, o = 0; o < out.length; p++, o += 3) {
+        const position = from.t[p], i0 = from.i0[p], i1 = from.i1[p], w0 = from.w0[p], w1 = from.w1[p];
+        const t = options.invert ? 1 - position : position;
+        const neutral = tint + (1 - tint) * Math.max(0, 1 - w0 - w1);
+        const L = fromLightness(low + t * (high - low));
+        const k = 1 / Math.max(vividness(L), 1e-6);
+        const [na, nb] = to.neutralAt(t);
+        const a = neutral * na + k * (w0 * to.a[i0] + w1 * to.a[i1]),
+          b = neutral * nb + k * (w0 * to.b[i0] + w1 * to.b[i1]);
+        if (strength === 1) writeRgbFromOklab(out, o, L, a, b);
+        else {
+          const sL = from.lab[o], sa = from.lab[o + 1], sb = from.lab[o + 2];
+          writeRgbFromOklab(out, o, sL + (L - sL) * strength, sa + (a - sa) * strength, sb + (b - sb) * strength);
+        }
+      }
+      return out;
+    };
+    return { map, lut };
+  }
+}
+
+/** Each point of a size³ RGB lattice in a source theme's coordinates. Red varies fastest. */
+interface Lattice {
+  /** OKLab of each point. */
+  lab: Float64Array;
+  t: Float64Array;
+  i0: Uint8Array;
+  i1: Uint8Array;
+  w0: Float64Array;
+  w1: Float64Array;
+}
+const lattices = new Map<string, Lattice>();
+function latticeOf(
+  options: RecolorOptions,
+  size: number,
+  decompose: ReturnType<typeof decomposer>,
+  filtered: Transform | null,
+): Lattice {
+  const key = JSON.stringify([options.source ?? null, options.filter ?? "", size]);
+  let lattice = lattices.get(key);
+  if (lattice) return lattice;
+  const count = size ** 3;
+  lattice = {
+    lab: new Float64Array(count * 3),
+    t: new Float64Array(count),
+    i0: new Uint8Array(count),
+    i1: new Uint8Array(count),
+    w0: new Float64Array(count),
+    w1: new Float64Array(count),
   };
+  let p = 0;
+  for (let blue = 0; blue < size; blue++)
+    for (let green = 0; green < size; green++)
+      for (let red = 0; red < size; red++, p++) {
+        let [r, g, b] = [red / (size - 1), green / (size - 1), blue / (size - 1)];
+        if (filtered) [r, g, b] = filtered(r, g, b);
+        const lab = oklabFromRgb(r, g, b);
+        const { t, i0, i1, w0, w1 } = decompose(lab);
+        lattice.lab.set(lab, p * 3);
+        lattice.t[p] = t;
+        lattice.i0[p] = i0;
+        lattice.i1[p] = i1;
+        lattice.w0[p] = w0;
+        lattice.w1[p] = w1;
+      }
+  if (lattices.size >= 16) lattices.clear();
+  lattices.set(key, lattice);
+  return lattice;
 }
 
 /** A color on a theme's neutral ramp, or on a hue ramp at anchor chroma. */

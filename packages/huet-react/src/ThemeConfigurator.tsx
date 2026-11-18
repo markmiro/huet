@@ -1,5 +1,5 @@
 import { isEqual } from "lodash-es";
-import React, { useEffect, useMemo, useRef } from "react";
+import React, { useCallback, useEffect, useMemo, useRef } from "react";
 import { themes as presets, type Theme } from "huet";
 import { resolveTheme } from "huet/internal";
 
@@ -93,26 +93,36 @@ export function ConfiguratorRoot({
     if (name !== undefined) setLastPicked(name);
   }, [name, setLastPicked]);
   const editedFrom = name === undefined && lastPicked in themes ? lastPicked : undefined;
+  // The same functions from one edit to the next, so the parts of the panel
+  // that an edit doesn't change can skip rendering while a color is dragged.
+  const setTheme = useCallback((theme: Theme) => onChangeRef.current(theme), []);
+  const setPageColor = useMemo(
+    () =>
+      canEditPageColors
+        ? (name: string, colors: string[] | undefined) => callbacks.current.onPageColorChange?.(name, colors)
+        : undefined,
+    [canEditPageColors],
+  );
+  const setBackground = useMemo(
+    () => (canSetBackground ? (next: number) => callbacks.current.onBackgroundChange?.(next) : undefined),
+    [canSetBackground],
+  );
   const state = useMemo(
     () => ({
       theme: value,
       // Throws a descriptive error for an invalid theme, which the boundary shows
       resolved: resolveTheme(value, { background }),
-      setTheme: (theme: Theme) => onChangeRef.current(theme),
+      setTheme,
       themes,
       background,
       pageColors,
-      setPageColor: canEditPageColors
-        ? (name: string, colors: string[] | undefined) => callbacks.current.onPageColorChange?.(name, colors)
-        : undefined,
+      setPageColor,
       name,
       editedFrom,
       reset: () => {
         if (editedFrom !== undefined) onChangeRef.current(themes[editedFrom]);
       },
-      setBackground: canSetBackground
-        ? (next: number) => callbacks.current.onBackgroundChange?.(next)
-        : undefined,
+      setBackground,
       list: canEditList
         ? {
             saveAsNew: () => {
@@ -153,7 +163,7 @@ export function ConfiguratorRoot({
           }
         : undefined,
     }),
-    [value, themes, background, pageColors, canEditPageColors, name, editedFrom, canEditList, canSetBackground, setLastPicked],
+    [value, themes, background, pageColors, setTheme, setPageColor, name, editedFrom, canEditList, setBackground, setLastPicked],
   );
   return (
     <ThemeConfiguratorContext.Provider value={state}>{children}</ThemeConfiguratorContext.Provider>

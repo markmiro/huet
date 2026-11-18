@@ -208,6 +208,21 @@ describe("lookup tables", () => {
     expect(worst).toBeLessThan(0.05);
   });
 
+  it("bake to the same table as sampling the transform", () => {
+    const cases: [object, Parameters<typeof recolorer>[1]][] = [
+      [sunset, {}],
+      [{ ...sunset, images: { strength: 0.4, tint: 0.3 } }, {}],
+      [base, { source: sunset, invert: true }],
+      [sunset, { filter: "grayscale(0.5) hue-rotate(40deg)" }],
+      // The same source again, in another target
+      [{ neutral: ["#101820", "#f2e8dc"], colorModel: "lab" }, {}],
+    ];
+    for (const [theme, options] of cases) {
+      const transform = recolorer(theme as Parameters<typeof recolorer>[0], options);
+      expect(transform.lut(9)).toEqual(buildLut(transform, 9));
+    }
+  });
+
   it("serialize as .cube files", () => {
     const cube = toCube(buildLut(recolorer(base), 2), 2, 'say "hi"').trim().split("\n");
     expect(cube.slice(0, 2)).toEqual([`TITLE "say 'hi'"`, "LUT_3D_SIZE 2"]);

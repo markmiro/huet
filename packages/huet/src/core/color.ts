@@ -13,7 +13,31 @@ const linear = (v: number) =>
   v <= 0.04045 ? v / 12.92 : ((v + 0.055) / 1.055) ** 2.4;
 const gamma = (v: number) =>
   v <= 0.0031308 ? 12.92 * v : 1.055 * v ** (1 / 2.4) - 0.055;
+/*
+  A six-digit hex has 256 values per channel, so what the solver needs of each
+  one is looked up. A theme measures thousands of colors, every time it's edited.
+*/
+const linearOf = Float64Array.from({ length: 256 }, (_, i) => linear(i / 255));
+const apcaOf = Float64Array.from({ length: 256 }, (_, i) => (i / 255) ** 2.4);
+/** The 24 bits of a six-digit hex color, or -1 for anything else. */
+function bitsOf(hex: string): number {
+  if (hex.length !== 7 || hex.charCodeAt(0) !== 35) return -1;
+  let bits = 0;
+  for (let i = 1; i < 7; i++) {
+    const code = hex.charCodeAt(i);
+    const digit =
+      code >= 48 && code <= 57 ? code - 48
+      : code >= 97 && code <= 102 ? code - 87
+      : code >= 65 && code <= 70 ? code - 55
+      : -1;
+    if (digit < 0) return -1;
+    bits = (bits << 4) | digit;
+  }
+  return bits;
+}
 export function luminance(hex: string): number {
+  const bits = bitsOf(hex);
+  if (bits >= 0) return luminanceOfBits(bits);
   const [r, g, b] = rgb(hex).map(linear);
   return 0.2126 * r + 0.7152 * g + 0.0722 * b;
 }
@@ -32,17 +56,13 @@ export const fromLightness = (v: number) =>
 export function lightness(hex: string): number {
   return lightnessOf(toOklab(hex)[0]);
 }
-// Themes measure the same few thousand colors over and over, so keep them.
-const apcaYs = new Map<string, number>();
 /** APCA's screen luminance, with its soft clamp near black. */
 export function apcaY(hex: string): number {
-  let y = apcaYs.get(hex);
-  if (y !== undefined) return y;
+  const bits = bitsOf(hex);
+  if (bits >= 0) return apcaYOfBits(bits);
   const [r, g, b] = rgb(hex);
-  y = 0.2126729 * r ** 2.4 + 0.7151522 * g ** 2.4 + 0.072175 * b ** 2.4;
+  let y = 0.2126729 * r ** 2.4 + 0.7151522 * g ** 2.4 + 0.072175 * b ** 2.4;
   if (y < 0.022) y += (0.022 - y) ** 1.414;
-  if (apcaYs.size >= 8192) apcaYs.clear();
-  apcaYs.set(hex, y);
   return y;
 }
 /**
@@ -65,6 +85,30 @@ export function apcaFromY(t: number, b: number): number {
     : (b ** 0.65 - t ** 0.62) * 1.14;
   return Math.sign(sapc) * Math.max(0, Math.abs(sapc) - 0.027) * 100;
 }
+/**
+ * A background's APCA luminance with the powers `apcaFromY` raises it to.
+ * Measuring many colors against one background then raises each to one power,
+ * or to none when the text's powers are known too.
+ */
+export interface ApcaBackground {
+  y: number;
+  /** Under darker text, and under lighter text. */
+  p56: number;
+  p65: number;
+}
+export const apcaBackground = (y: number): ApcaBackground => ({ y, p56: y ** 0.56, p65: y ** 0.65 });
+/**
+ * Unsigned Lc of text with APCA luminance `t` on `background`: the same number
+ * as `Math.abs(apcaFromY(t, background.y))`. `t57` and `t62` are `t ** 0.57`
+ * and `t ** 0.62`, for text that's measured on many backgrounds.
+ */
+export function lcOn(background: ApcaBackground, t: number, t57?: number, t62?: number): number {
+  if (Math.abs(background.y - t) < 0.0005) return 0;
+  const sapc = background.y > t
+    ? (background.p56 - (t57 ?? t ** 0.57)) * 1.14
+    : (background.p65 - (t62 ?? t ** 0.62)) * 1.14;
+  return Math.max(0, Math.abs(sapc) - 0.027) * 100;
+}
 /** How readable `color` is on `background`, as an unsigned Lc. */
 export const contrast = (background: string, color: string) =>
   Math.abs(apca(color, background));
@@ -79,7 +123,9 @@ export function textEnd(background: string, dark: string, light: string): string
 // OKLab conversion matrices: https://bottosson.github.io/posts/oklab/
 /** Gamma-encoded sRGB channels (0–1) to OKLab. */
 export function oklabFromRgb(r: number, g: number, b: number): Triple {
-  (r = linear(r)), (g = linear(g)), (b = linear(b));
+  return oklabFromLinear(linear(r), linear(g), linear(b));
+}
+function oklabFromLinear(r: number, g: number, b: number): Triple {
   const l = Math.cbrt(0.4122214708 * r + 0.5363325363 * g + 0.0514459929 * b);
   const m = Math.cbrt(0.2119034982 * r + 0.6806995451 * g + 0.1073969566 * b);
   const s = Math.cbrt(0.0883024619 * r + 0.2817188376 * g + 0.6299787005 * b);
@@ -90,6 +136,8 @@ export function oklabFromRgb(r: number, g: number, b: number): Triple {
   ];
 }
 export function toOklab(hex: string): Triple {
+  const bits = bitsOf(hex);
+  if (bits >= 0) return oklabFromLinear(linearOf[bits >> 16], linearOf[(bits >> 8) & 255], linearOf[bits & 255]);
   return oklabFromRgb(...rgb(hex));
 }
 /**
@@ -130,41 +178,76 @@ export function maxLchChroma(L: number, H: number): number {
   }
   return lo;
 }
-function fromLab([L, a, b]: Triple): number[] {
-  const l = (L + 0.3963377774 * a + 0.2158037573 * b) ** 3;
-  const m = (L - 0.1055613458 * a - 0.0638541728 * b) ** 3;
-  const s = (L - 0.0894841775 * a - 1.291485548 * b) ** 3;
-  return [
-    4.0767416621 * l - 3.3077115913 * m + 0.2309699292 * s,
-    -1.2684380046 * l + 2.6097574011 * m - 0.3413193965 * s,
-    -0.0041960863 * l - 0.7034186147 * m + 1.707614701 * s,
-  ];
+// Linear sRGB channels of the last OKLab color converted. The solver converts
+// thousands of colors each time a theme is edited, so they aren't arrays.
+let linearR = 0, linearG = 0, linearB = 0;
+function linearFromOklab(L: number, a: number, b: number) {
+  // Cubed by multiplying: about twice as fast as `** 3`, and fitting a color
+  // into sRGB does this twenty times over.
+  const l_ = L + 0.3963377774 * a + 0.2158037573 * b,
+    m_ = L - 0.1055613458 * a - 0.0638541728 * b,
+    s_ = L - 0.0894841775 * a - 1.291485548 * b;
+  const l = l_ * l_ * l_,
+    m = m_ * m_ * m_,
+    s = s_ * s_ * s_;
+  linearR = 4.0767416621 * l - 3.3077115913 * m + 0.2309699292 * s;
+  linearG = -1.2684380046 * l + 2.6097574011 * m - 0.3413193965 * s;
+  linearB = -0.0041960863 * l - 0.7034186147 * m + 1.707614701 * s;
+}
+const fits = () =>
+  linearR >= -1e-7 && linearR <= 1 + 1e-7 && linearG >= -1e-7 && linearG <= 1 + 1e-7 && linearB >= -1e-7 && linearB <= 1 + 1e-7;
+/** Leaves an OKLab color's linear sRGB channels, after reducing its chroma until they fit. */
+function intoGamut(L: number, a: number, b: number) {
+  linearFromOklab(L, a, b);
+  if (fits()) return;
+  let low = 0,
+    high = 1;
+  for (let i = 0; i < 20; i++) {
+    const mid = (low + high) / 2;
+    linearFromOklab(L, a * mid, b * mid);
+    if (fits()) low = mid;
+    else high = mid;
+  }
+  linearFromOklab(L, a * low, b * low);
 }
 /**
  * Map into gamma-encoded sRGB channels (0–1) by reducing chroma, preserving
  * OKLCH hue and lightness.
  */
-const fits = ([r, g, b]: number[]) =>
-  r >= -1e-7 && r <= 1 + 1e-7 && g >= -1e-7 && g <= 1 + 1e-7 && b >= -1e-7 && b <= 1 + 1e-7;
 export function rgbFromOklab([L, a, b]: Triple): Triple {
-  L = clamp(L);
-  let channels = fromLab([L, a, b]);
-  if (!fits(channels)) {
-    let low = 0,
-      high = 1;
-    for (let i = 0; i < 20; i++) {
-      const mid = (low + high) / 2;
-      if (fits(fromLab([L, a * mid, b * mid]))) low = mid;
-      else high = mid;
-    }
-    channels = fromLab([L, a * low, b * low]);
-  }
-  return [clamp(gamma(channels[0])), clamp(gamma(channels[1])), clamp(gamma(channels[2]))];
+  intoGamut(clamp(L), a, b);
+  return [clamp(gamma(linearR)), clamp(gamma(linearG)), clamp(gamma(linearB))];
+}
+/** `rgbFromOklab`, written into `out` at `offset`. */
+export function writeRgbFromOklab(out: Float32Array, offset: number, L: number, a: number, b: number) {
+  intoGamut(clamp(L), a, b);
+  out[offset] = clamp(gamma(linearR));
+  out[offset + 1] = clamp(gamma(linearG));
+  out[offset + 2] = clamp(gamma(linearB));
 }
 const hexBytes = Array.from({ length: 256 }, (_, i) => i.toString(16).padStart(2, "0"));
+/** `fromOklab` as the 24 bits of its hex, for colors that are measured rather than shown. */
+export function bitsFromOklab(L: number, a: number, b: number): number {
+  intoGamut(clamp(L), a, b);
+  return (
+    (Math.round(clamp(gamma(linearR)) * 255) << 16) |
+    (Math.round(clamp(gamma(linearG)) * 255) << 8) |
+    Math.round(clamp(gamma(linearB)) * 255)
+  );
+}
+export const hexOfBits = (bits: number) =>
+  "#" + hexBytes[bits >> 16] + hexBytes[(bits >> 8) & 255] + hexBytes[bits & 255];
+/** `apcaY` of a color as 24 bits. */
+export function apcaYOfBits(bits: number): number {
+  const y = 0.2126729 * apcaOf[bits >> 16] + 0.7151522 * apcaOf[(bits >> 8) & 255] + 0.072175 * apcaOf[bits & 255];
+  return y < 0.022 ? y + (0.022 - y) ** 1.414 : y;
+}
+/** `luminance` of a color as 24 bits. */
+export function luminanceOfBits(bits: number): number {
+  return 0.2126 * linearOf[bits >> 16] + 0.7152 * linearOf[(bits >> 8) & 255] + 0.0722 * linearOf[bits & 255];
+}
 export function fromOklab(lab: Triple): string {
-  const [r, g, b] = rgbFromOklab(lab);
-  return "#" + hexBytes[Math.round(r * 255)] + hexBytes[Math.round(g * 255)] + hexBytes[Math.round(b * 255)];
+  return hexOfBits(bitsFromOklab(lab[0], lab[1], lab[2]));
 }
 export function mix(a: string, b: string, amount: number): string {
   if (!Number.isFinite(amount) || amount < 0 || amount > 1)
