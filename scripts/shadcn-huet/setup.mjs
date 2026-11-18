@@ -60,6 +60,7 @@ if (missingBuilds.length) {
 mkdirSync(resolve(v4, "components/huet"), { recursive: true })
 cpSync(resolve(here, "huet-configurator.tsx"), resolve(v4, "components/huet/huet-configurator.tsx"))
 cpSync(resolve(here, "shadcn-adapter.ts"), resolve(v4, "components/huet/shadcn-adapter.ts"))
+cpSync(resolve(here, "first-paint.ts"), resolve(v4, "components/huet/first-paint.ts"))
 
 patch("app/layout.tsx", marker, (source) => {
   const imported = source.includes(marker)
@@ -71,6 +72,17 @@ patch("app/layout.tsx", marker, (source) => {
   if (imported.includes("<HuetConfigurator />")) return imported
   return imported.replace("<TailwindIndicator />", "<TailwindIndicator />\n            <HuetConfigurator />")
 })
+
+// Replays the last Huet paint before hydration, and hides preview iframes
+// until theirs lands, so pages and previews don't flash stock shadcn colors.
+patch("app/layout.tsx", "FIRST_PAINT_SCRIPT", (source) =>
+  source
+    .replace(
+      'import "@/app/globals.css"',
+      'import { FIRST_PAINT_SCRIPT } from "@/components/huet/first-paint"\n\nimport "@/app/globals.css"',
+    )
+    .replace("<head>", "<head>\n        <script dangerouslySetInnerHTML={{ __html: FIRST_PAINT_SCRIPT }} />"),
+)
 
 patch("components/theme-provider.tsx", 'attribute="data-theme"', (source) =>
   source.replace('attribute="class"', 'attribute="data-theme"'),

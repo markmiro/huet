@@ -12,8 +12,10 @@ import {
   onPageColors,
   PAGE_COLORS_MESSAGE,
   pageColors,
+  revealPaint,
   sameColors,
   samePageColors,
+  savePaint,
   type Edits,
   type PageColors,
 } from "./shadcn-adapter"
@@ -130,8 +132,13 @@ export function HuetConfigurator() {
       // painted, and don't save a theme that can't render.
       console.error("Huet: couldn't apply this theme, so the page keeps the last one.", error)
       return
+    } finally {
+      revealPaint()
     }
-    if (!embedded) localStorage.setItem(storageKey, JSON.stringify(saved))
+    if (embedded) return
+    localStorage.setItem(storageKey, JSON.stringify(saved))
+    // Only the top page's paint is replayed: a preview's picks and charts are its own.
+    savePaint()
   }, [saved])
   if (!saved || embedded) return null
   return (
