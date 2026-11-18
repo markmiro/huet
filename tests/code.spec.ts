@@ -63,8 +63,8 @@ test("every-theme cards get their own colors without nested mounts", async ({ pa
   const base = cards.filter({ has: page.locator("figcaption", { hasText: /^Base$/ }) });
   await expect(base).toHaveCount(1);
   expect(await base.evaluate((el) => getComputedStyle(el).backgroundColor)).toBe("rgb(255, 255, 255)");
-  // 90% of the L* distance from white to black.
-  expect(await base.locator("pre").evaluate((el) => getComputedStyle(el).backgroundColor)).toBe("rgb(27, 27, 27)");
+  // 90% of the flared L* distance from white to black.
+  expect(await base.locator("pre").evaluate((el) => getComputedStyle(el).backgroundColor)).toBe("rgb(40, 40, 40)");
   await expect(base).toHaveAttribute("data-selected", "");
 });
 

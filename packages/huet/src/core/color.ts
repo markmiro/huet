@@ -32,6 +32,24 @@ export const fromLightness = (v: number) =>
 export function lightness(hex: string): number {
   return lightnessOf(toOklab(hex)[0]);
 }
+/*
+  Screens never show true black: room light and the panel's own leakage add
+  a little light to every color. Near white that's lost in the color's own
+  light, but near black it swamps small differences, so `#111` on `#000`
+  barely shows while `#eee` on `#fff` does. APCA models the same flare with
+  its soft clamp, which starts at 0.022 of white's luminance (see `apcaY`).
+*/
+const screenFlare = 0.022;
+/**
+ * L* (0–1) as seen on a screen: L* of the color's luminance plus
+ * `screenFlare`, rescaled so white stays 1. Equal steps of it look about
+ * equally far apart on light and dark backgrounds, where plain L* steps fade
+ * out near black.
+ */
+export function flaredLightness(hex: string): number {
+  const y = toOklab(hex)[0] ** 3;
+  return lightnessOf(Math.cbrt((y + screenFlare) / (1 + screenFlare)));
+}
 // Themes measure the same few thousand colors over and over, so keep them.
 const apcaYs = new Map<string, number>();
 /** APCA's screen luminance, with its soft clamp near black. */

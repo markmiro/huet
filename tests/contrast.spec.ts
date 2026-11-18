@@ -1,8 +1,8 @@
 import { test, expect, type Page } from "@playwright/test";
 import { openConfigurator, setPercent } from "./helpers/configurator";
-import { toOklab, contrast, lightness, luminance } from "../packages/huet/src/core/color";
-/** Distance in CIE L* (0–1) between two colors. */
-const distance = (a: string, b: string) => Math.abs(lightness(a) - lightness(b));
+import { toOklab, contrast, flaredLightness, luminance } from "../packages/huet/src/core/color";
+/** Distance in flared L* (0–1) between two colors, the lightness explicit strengths step in. */
+const distance = (a: string, b: string) => Math.abs(flaredLightness(a) - flaredLightness(b));
 import { writeFileSync } from "node:fs";
 import { themes } from "../packages/huet/src/core/themes";
 const screenshots = process.env.HUET_SCREENSHOTS ?? "test-results/screenshots";
@@ -33,7 +33,7 @@ test("Color Contrast forms retain hue and scale low-strength fills", async ({ pa
       for (let i = 1; i < column.borders.length; i++) {
         const [, a, b] = toOklab(column.borders[i]);
         expect(Math.hypot(a, b), JSON.stringify(column)).toBeGreaterThan(.035);
-        // The fills are huet-bg-RAMP-10, so each travels 10% of the L*
+        // The fills are huet-bg-RAMP-10, so each travels 10% of the flared L*
         // distance to the 100-strength border.
         const fraction = distance(column.background, column.fills[i]) /
           distance(column.background, column.borders[i]);

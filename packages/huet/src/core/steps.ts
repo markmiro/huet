@@ -1,5 +1,5 @@
 import chroma from "chroma-js";
-import { fromOklab, lightness, luminance, mix, rgb, textEnd, toOklab } from "./color";
+import { flaredLightness, fromOklab, luminance, mix, rgb, textEnd, toOklab } from "./color";
 
 /*
   The solver behind explicit amounts: `huet-bg-25`, `huet-text-red-100`,
@@ -43,15 +43,16 @@ const shadeOf = (lab: chroma.Color | [number, number, number]): Shade => {
 const shadeOfHex = (hex: string) => shadeOf(chroma(hex).lab());
 
 /**
- * Travel along the same OKLab path, spacing strengths by equal CIE L* steps.
- * Raw OKLab interpolation crushes small steps near black, because OKLab's
- * lightness is steep there. L* is linear in luminance near black, so equal
+ * Travel along the same OKLab path, spacing strengths by equal steps of L*
+ * with screen flare (`flaredLightness`). Raw OKLab interpolation crushes
+ * small steps near black, because OKLab's lightness is steep there, and plain
+ * L* steps are too small to see there on a real screen. With flare, equal
  * strength steps look about equally far apart on either polarity.
  */
 function mixSignal(background: string, target: string, amount: number) {
   if (amount === 0) return background;
   if (amount === 1) return target;
-  const bgL = lightness(background), endL = lightness(target);
+  const bgL = flaredLightness(background), endL = flaredLightness(target);
   if (Math.abs(endL - bgL) < 1e-10) return mix(background, target, amount);
   const lighter = endL > bgL;
   const desired = bgL + (endL - bgL) * amount;
@@ -61,7 +62,7 @@ function mixSignal(background: string, target: string, amount: number) {
   for (let i = 0; i < 18; i++) {
     const middle = (low + high) / 2;
     const color = mix(background, target, middle);
-    const value = lightness(color);
+    const value = flaredLightness(color);
     const distance = Math.abs(value - desired);
     if (distance < error) { best = color; error = distance; }
     if (lighter ? value < desired : value > desired) low = middle;
@@ -103,7 +104,7 @@ export function stepper({ neutral, colorModel, colors, contrast = 1, signalLight
   const neutralScale = chroma.scale([...neutral]).mode(colorModel as chroma.InterpolationMode).correctLightness();
   const samples = Array.from({ length: 257 }, (_, i) => {
     const shade = shadeOf(neutralScale(i / 256));
-    return { ...shade, lightness: lightness(shade.hex), oklab: toOklab(shade.hex) };
+    return { ...shade, lightness: flaredLightness(shade.hex), oklab: toOklab(shade.hex) };
   });
   const [darkEnd, lightEnd] = [samples[0], samples[256]].sort((a, b) => a.lightness - b.lightness);
   const ends = [samples[0].hex, samples[256].hex].sort((a, b) => luminance(a) - luminance(b));
@@ -127,7 +128,7 @@ export function stepper({ neutral, colorModel, colors, contrast = 1, signalLight
 
   /** Whether a parent is off the neutral ramp, such as a blue surface. */
   const isTinted = (parent: Shade) => {
-    const bgL = lightness(parent.hex);
+    const bgL = flaredLightness(parent.hex);
     let nearest = samples[0];
     for (const sample of samples)
       if (Math.abs(sample.lightness - bgL) < Math.abs(nearest.lightness - bgL)) nearest = sample;
@@ -137,14 +138,14 @@ export function stepper({ neutral, colorModel, colors, contrast = 1, signalLight
   };
 
   /**
-   * Equal L* steps along the neutral ramp toward the end text reads better
+   * Equal flared L* steps along the neutral ramp toward the end text reads better
    * against. On a colored parent, the steps keep its tint, fading it out by
    * the end of the ramp, so gray on a blue card is a deeper or paler blue.
    */
   const neutralStep = (parent: Shade, amount: number): Shade => {
     const lighter = textEnd(parent.hex, darkEnd.hex, lightEnd.hex) === lightEnd.hex;
-    const bgL = lightness(parent.hex);
-    // Strength spans this background's available range in equal L* steps.
+    const bgL = flaredLightness(parent.hex);
+    // Strength spans this background's available range in equal flared L* steps.
     const available = Math.abs((lighter ? lightEnd : darkEnd).lightness - bgL);
     if (available <= 1e-10) return parent;
     const target = available * amount;
