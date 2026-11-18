@@ -68,16 +68,16 @@ test("disabled text and lines keep the same Lc on light and dark surfaces", asyn
   await open(page);
   for (const theme of ["Base", "Orange Boost"]) {
     if (theme !== "Base") {
-      await page.getByRole("button", { name: /^Theme:/ }).click();
-      await page.getByRole("dialog").getByRole("button", { name: theme, exact: true }).click();
+      await (await openConfigurator(page)).getByRole("button", { name: theme, exact: true }).click();
       await page.reload();
       await expect(page.locator("h1[data-theme-name]")).toHaveText(theme);
     }
     // Disabled text and lines as a share of the enabled ones' Lc, and their own Lc,
     // on the page, an inverted surface and a blue one
     const shares: Record<string, number[][]> = {};
-    for (const background of ["1", "0"]) {
-      await page.getByRole("combobox", { name: "Background", exact: true }).selectOption(background);
+    for (const end of ["max", "min"]) {
+      const slider = (await openConfigurator(page, "Edit Theme")).getByRole("slider", { name: "Background" });
+      await slider.fill((await slider.getAttribute(end))!);
       for (const scope of ["form > section", "fieldset.huet-bg-100", "fieldset.huet-bg-blue-20"]) {
         const [bg, enabledText, text, line, enabledLine] = await page.locator(scope).filter({ has: page.locator("input[type=text][disabled]") }).first().evaluate((el) => {
           const surface = el.closest("[data-huet-color-bg], #page")!;
