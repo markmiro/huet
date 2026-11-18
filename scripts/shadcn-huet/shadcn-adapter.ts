@@ -105,10 +105,10 @@ function roleColors(theme: ResolvedTheme) {
   // Steps, not theme.surface(): its readability nudge jumps far off mid-tone pages.
   const fill = (amount: Parameters<typeof theme.surface>[1]) =>
     typeof amount === "number" ? theme.step(page, amount).hex : theme.surface(background, amount)
-  const mutedForeground = theme.step(theme.root, isDark ? 66 : 51.5).hex
   const ink = (surface: string) => theme.surface(surface, 100)
 
   const card = fill(isDark ? 5 : 0)
+  const mutedForeground = mutedText(theme, isDark ? 66 : 51.5, card, foreground)
   const muted = fill(isDark ? 13 : 3.5)
   const accent = fill(isDark ? 25 : 3.5)
   const secondary = muted
@@ -158,6 +158,22 @@ function roleColors(theme: ResolvedTheme) {
     "--huet-bubble-tint-dark-hover": rampLightness(theme.ramp, 0.35),
   }
   return { vars, isDark, background, foreground, mutedForeground, surface, accent, tokens, ink, fill }
+}
+
+/**
+ * Muted text (descriptions, captions) at the theme's step that matches
+ * shadcn's own on wide ramps. A narrow ramp, such as Radioactive's gray to
+ * lime, leaves that step too faint to read on a card (Lc 34), so the step
+ * moves toward the text until it reads at Lc 45, or at 80% of the text's
+ * own contrast where the ramp can't reach that, so it stays dimmer than text.
+ */
+function mutedText(theme: ResolvedTheme, amount: number, card: string, foreground: string) {
+  const target = Math.min(45, contrast(card, foreground) * 0.8)
+  let color = theme.step(theme.root, amount).hex
+  for (let step = amount; step < 100 && contrast(card, color) < target; step += 0.5) {
+    color = theme.step(theme.root, step).hex
+  }
+  return color
 }
 
 /**
@@ -1149,6 +1165,16 @@ function luminance(hex: string) {
 let imageMount: ReturnType<typeof mountImages> | null = null
 let imageWatch: MutationObserver | null = null
 
+/**
+ * shadcn's avatars are `https://github.com/<user>.png`, which redirects to
+ * avatars.githubusercontent.com without CORS headers, so a CORS request for
+ * it fails. The avatar host itself allows CORS: ask it directly.
+ */
+function corsSource(src: string) {
+  const match = /^https:\/\/github\.com\/([\w-]+)\.png(\?.*)?$/.exec(src)
+  return match ? `https://avatars.githubusercontent.com/${match[1]}${match[2] ?? ""}` : src
+}
+
 /** Let Huet read cross-origin pixels, and give attribute-sized images a size the canvas can copy. */
 function prepareImage(img: HTMLImageElement) {
   if (img.dataset.huetPrepared) return
@@ -1160,7 +1186,15 @@ function prepareImage(img: HTMLImageElement) {
   if (!img.crossOrigin && img.src) {
     try {
       const origin = new URL(img.currentSrc || img.src, location.href).origin
-      if (origin !== location.origin) img.crossOrigin = "anonymous"
+      if (origin !== location.origin) {
+        const src = corsSource(img.src)
+        if (src !== img.src && !img.srcset) img.src = src
+        img.crossOrigin = "anonymous"
+        // A host without CORS headers fails the request, and the image shows
+        // as broken. Fetch it again without CORS: Huet can't read those
+        // pixels, so it gives up on recoloring and shows the original.
+        img.addEventListener("error", () => img.removeAttribute("crossorigin"), { once: true })
+      }
     } catch {
       // An empty or relative src can wait until it has a URL.
     }
