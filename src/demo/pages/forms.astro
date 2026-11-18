@@ -35,14 +35,14 @@ const grid = "grid grid-cols-[repeat(auto-fill,minmax(14em,1fr))] gap-x-6 gap-y-
   <div class="mx-auto max-w-[60em] p-8">
     <h1 data-theme-name class="my-[0.67em] border-b-[.125em] pb-1 text-5xl font-bold">&nbsp;</h1>
     <p class="huet-text-50 max-w-[42em]">
-      Native form controls, first as the browser draws them, then with Huet's minimal form styles.
-      Turn the styles on to theme every part of every control, such as a slider's track, thumb and
-      filled part, from the theme you pick in the configurator.
+      Native form controls with Huet's minimal form styles, which theme every part of every control,
+      such as a slider's track, thumb and filled part, from the theme you pick in the configurator.
+      Turn the styles off to see the controls as the browser draws them.
     </p>
 
     <div class="huet-bg-5 mt-6 flex flex-wrap items-center gap-x-8 gap-y-4 rounded p-4">
       <label data-huet-forms class="flex items-center gap-3 font-bold">
-        <input data-toggle-styles type="checkbox" role="switch" />
+        <input data-toggle-styles type="checkbox" role="switch" checked />
         Minimal styling
       </label>
       <div class="grid gap-1 text-sm">
@@ -52,7 +52,7 @@ const grid = "grid grid-cols-[repeat(auto-fill,minmax(14em,1fr))] gap-x-6 gap-y-
       </div>
     </div>
 
-    <form data-forms-demo>
+    <form data-forms-demo data-huet-forms>
       <Section title="Text fields">
         <div class={grid}>
           {textFields.map((input) => (
@@ -287,7 +287,8 @@ const grid = "grid grid-cols-[repeat(auto-fill,minmax(14em,1fr))] gap-x-6 gap-y-
 
   const render = () => form.toggleAttribute("data-huet-forms", toggle.checked);
   try {
-    toggle.checked = localStorage.getItem(key) === "true";
+    // On unless turned off
+    toggle.checked = localStorage.getItem(key) !== "false";
   } catch {
     // Storage may be unavailable
   }
