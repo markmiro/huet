@@ -74,7 +74,7 @@ function mixSignal(background: string, target: string, amount: number) {
  * A fade in linear light keeps luminance ordering, so fading a parent and its
  * child by the same amount can't reverse their contrast polarity.
  */
-function fade(origin: string, full: string, amount: number) {
+export function fade(origin: string, full: string, amount: number) {
   if (amount === 0) return origin;
   if (amount === 1) return full;
   const linear = (v: number) => v <= .04045 ? v / 12.92 : ((v + .055) / 1.055) ** 2.4;

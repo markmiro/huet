@@ -11,6 +11,7 @@ import { coordinatesOf, mountImages, mountSvgs, recolorer } from "huet/images"
 // adapter uses Huet's solver directly.
 import {
   contrast,
+  fade,
   rampThrough,
   resolveTheme,
   themeVariables,
@@ -49,7 +50,10 @@ export function applyHuet(
 ) {
   edits = pageEdits
   stealPalette()
-  const theme = resolveTheme(picked, { background: pageBackground })
+  // Every color here is worked out at full contrast, then faded as it's written.
+  const full: Theme = (picked.contrast ?? 1) < 1 ? { ...picked, contrast: 1 } : picked
+  const theme = resolveTheme(full, { background: pageBackground })
+  shown = fader(theme.background, picked.contrast ?? 1)
   const page = roleColors(theme)
   const { isDark, background, foreground, mutedForeground, surface, accent, tokens, ink, fill } = page
   // A copy: the dark-island rule below takes only the role colors.
@@ -67,14 +71,15 @@ export function applyHuet(
   const chartSteps = chartScale(foreground, mutedForeground)
 
   const root = document.documentElement
-  for (const [name, value] of Object.entries(vars)) root.style.setProperty(name, value)
-  root.style.backgroundColor = background
+  for (const [name, value] of Object.entries(vars)) root.style.setProperty(name, shown(value, name))
+  root.style.backgroundColor = shown(background)
   painted = { theme, foreground, background, menuAccent: accent, chartSteps }
   paintBrand()
-  paintDarkIslands(isDark ? null : roleColors(darkIsland(picked, pageBackground)), Object.keys(page.vars))
+  paintDarkIslands(isDark ? null : roleColors(darkIsland(full, pageBackground)), Object.keys(page.vars))
   paintThemeHues(theme, place, foreground, background, tokens.red, ink(fill("red")))
   paintChartConfigs(foreground, mutedForeground)
   if (header) paintTopNav(background)
+  paintShadows(picked.contrast ?? 1)
   paintCode(theme, background, surface)
   if (images) {
     paintImages(picked)
@@ -82,6 +87,27 @@ export function applyHuet(
   }
   root.classList.toggle("dark", isDark)
   root.style.colorScheme = isDark ? "dark" : "light"
+}
+
+/** A color as written: faded toward the page by the theme's contrast. See fader. */
+let shown = (value: string, _name?: string) => value
+
+const hexColor = /#[\da-f]{6}(?:[\da-f]{2})?\b/gi
+/** Variables that hold an OKLCH lightness rather than a color. */
+const isLightness = (name?: string) => name?.startsWith("--huet-bubble-tint") ?? false
+
+/**
+ * A theme's contrast below 1 fades every color toward the page, as Huet's own
+ * classes do, so at 0 only the page is left. The colors are hex, alone or in
+ * a color-mix(); the bubble tints are lightness, which fades toward the page's.
+ */
+function fader(page: string, amount: number) {
+  if (amount >= 1) return (value: string) => value
+  const [pageLightness] = chroma(page).oklch()
+  return (value: string, name?: string) =>
+    isLightness(name)
+      ? String(pageLightness + (Number(value) - pageLightness) * amount)
+      : value.replace(hexColor, (color) => fade(page, color.slice(0, 7), amount) + color.slice(7))
 }
 
 /** Dark mode follows Huet's own polarity: the page is dark when its text is lighter. */
@@ -224,7 +250,7 @@ function paintDarkIslands(island: ReturnType<typeof roleColors> | null, roles: s
         "--accent-foreground": island.ink(island.accent),
       }
     : Object.fromEntries([...roles, ...BRAND_ROLES].map((name) => [name, "inherit"]))
-  const decls = Object.entries(vars).map(([name, value]) => `${name}:${value}!important`)
+  const decls = Object.entries(vars).map(([name, value]) => `${name}:${shown(value, name)}!important`)
   // <html> takes the page's colors inline; only the elements inside it are islands.
   style.textContent = `.dark:not(html){${decls.join(";")}}`
 }
@@ -406,7 +432,7 @@ function paintBrand() {
   }
   chart.forEach((color, index) => (vars[`--chart-${index + 1}`] = color))
   const root = document.documentElement
-  for (const [name, value] of Object.entries(vars)) root.style.setProperty(name, value)
+  for (const [name, value] of Object.entries(vars)) root.style.setProperty(name, shown(value))
   paintCharts(chartSteps, chart)
   publishPageColors({ Accent: [brand.accent], Chart: brand.chart })
   watchBrand()
@@ -852,7 +878,7 @@ function paintCharts(steps: string[], chart: string[]) {
       const index = Number(prop.slice("--chart-".length)) - 1
       const color = own[index] ?? own[own.length - 1] ?? steps[index]
       if (!color) continue
-      decls.push(`${prop}: ${color} !important`)
+      decls.push(`${prop}: ${shown(color)} !important`)
     }
     if (decls.length) css += `${selector}{${decls.join(";")}}`
   }
@@ -975,7 +1001,7 @@ function writeChartConfigs() {
       if (!literal.length) continue
       literal.sort((a, b) => a.l - b.l)
       const last = Math.max(1, literal.length - 1)
-      const decls = literal.map((swatch, i) => `${swatch.key}: ${color(swatch, i / last)} !important`)
+      const decls = literal.map((swatch, i) => `${swatch.key}: ${shown(color(swatch, i / last))} !important`)
       css += `${rule.selectorText}{${decls.join(";")}}`
     }
   }
@@ -996,7 +1022,24 @@ function paintTopNav(background: string) {
     style.id = "huet-top-nav"
     document.head.append(style)
   }
-  style.textContent = `header{background-color:${background}!important}`
+  style.textContent = `header{background-color:${shown(background)}!important}`
+}
+
+/**
+ * Tailwind's shadows (shadow-sm, shadow-lg…) are black at 10% unless a
+ * shadow-* color utility sets --tw-shadow-color. Below 1, contrast fades them
+ * with the rest of the page. The few shadows at 5% or 25% (shadow-xs,
+ * shadow-2xl) fade from 10% too.
+ */
+function paintShadows(amount: number) {
+  let style = document.getElementById("huet-shadows")
+  if (!style) {
+    style = document.createElement("style")
+    style.id = "huet-shadows"
+    document.head.append(style)
+  }
+  // --tw-shadow-color doesn't inherit, so every element takes it, below any utility.
+  style.textContent = amount < 1 ? `:where(*){--tw-shadow-color:rgb(0 0 0 / ${0.1 * amount})}` : ""
 }
 
 /**
@@ -1010,7 +1053,7 @@ function paintTopNav(background: string) {
 function paintCode(theme: ResolvedTheme, page: string, code: string) {
   const on = (background: string) =>
     Object.entries(themeVariables(theme.tokensOn(theme.surfaceOf(background))))
-      .map(([name, value]) => `${name}:${value}`)
+      .map(([name, value]) => `${name}:${shown(value)}`)
       .join(";")
   let style = document.getElementById("huet-code")
   if (!style) {
@@ -1097,7 +1140,7 @@ function paintThemeHues(
               : NEUTRALS.has(prop) || swatch.c < 0.02
                 ? "inherit"
                 : place(swatch)
-      decls.push(`${prop}: ${value} !important`)
+      decls.push(`${prop}: ${shown(value)} !important`)
     }
     if (decls.length) css += `${selector}{${decls.join(";")}}`
   }

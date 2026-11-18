@@ -172,6 +172,36 @@ test("uses the theme's SVG settings, and keeps the page's paints at strength 0",
   expect(result.untouched).toBe('<rect id="a" fill="black"></rect>');
 });
 
+test("contrast below 1 fades each recolored SVG as a whole", async ({ page }) => {
+  await setup(
+    page,
+    `<svg id="outer" data-huet-recolor style="opacity: 0.8;"><svg id="inner"><rect fill="white" /></svg></svg>
+    <div data-huet-recolor><svg id="wrapped"><rect fill="white" /></svg></div>`,
+  );
+  const result = await page.evaluate(async (theme) => {
+    const w = window as any;
+    const original = w.root.innerHTML;
+    const mount = w.svgs.mountSvgs(w.root, { ...theme, contrast: 0.5 });
+    const opacity = (id: string) => getComputedStyle(w.root.querySelector(`#${id}`)).opacity;
+    // The page's own opacity is kept, times the contrast. An SVG inside a recolored one fades with it.
+    const half = { outer: opacity("outer"), inner: opacity("inner"), wrapped: opacity("wrapped") };
+    mount.update({ ...theme, contrast: 0 });
+    await mount.ready();
+    const none = { outer: opacity("outer"), wrapped: opacity("wrapped") };
+    mount.update(theme);
+    await mount.ready();
+    const full = { outer: opacity("outer"), wrapped: opacity("wrapped") };
+    mount.update({ ...theme, contrast: 0.5 });
+    await mount.ready();
+    mount.destroy();
+    return { half, none, full, restored: w.root.innerHTML === original };
+  }, theme);
+  expect(result.half).toEqual({ outer: "0.4", inner: "1", wrapped: "0.5" });
+  expect(result.none).toEqual({ outer: "0", wrapped: "0" });
+  expect(result.full).toEqual({ outer: "0.8", wrapped: "1" });
+  expect(result.restored).toBe(true);
+});
+
 test("follows added, removed, and opted-out SVGs, and restores the markup", async ({ page }) => {
   await setup(page, "");
   const result = await page.evaluate(async (theme) => {

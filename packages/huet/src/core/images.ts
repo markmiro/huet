@@ -29,7 +29,7 @@ export interface ImageOptions extends RecolorOptions {
 // LUTs are small (17³ × 3 floats ≈ 59 KB), so keep recent ones for reuse.
 const luts = new Map<string, Float32Array>();
 function lutFor(target: Theme, { lutSize = 17, ...options }: ImageOptions) {
-  // Contrast doesn't change image colors, so it isn't part of the key.
+  // Contrast fades a mounted image as a whole (see mountImages), so it isn't part of the key.
   const key = JSON.stringify([target.neutral, target.colorModel, target.colors, target.images, options, lutSize]);
   let lut = luts.get(key);
   if (!lut) {
@@ -93,6 +93,17 @@ export function recolorImage(
   return out;
 }
 
+/** Scale a canvas's alpha by `opacity`, as `opacity` would, without touching the page's styles. */
+function fadeCanvas(canvas: HTMLCanvasElement, opacity: number) {
+  if (opacity >= 1) return;
+  const context = canvas.getContext("2d")!;
+  context.save();
+  context.globalCompositeOperation = "destination-in";
+  context.fillStyle = `rgba(0, 0, 0, ${opacity})`;
+  context.fillRect(0, 0, canvas.width, canvas.height);
+  context.restore();
+}
+
 export interface MountImagesOptions extends ImageOptions {
   /**
    * Which images to recolor. Defaults to `img[data-huet-recolor], [data-huet-recolor] img`:
@@ -141,6 +152,9 @@ const mirrored = ["class", "title", "alt"];
  * otherwise wash out the theme. So are filters on ancestors that wrap only
  * recolored images. A color filter on an ancestor that also shows other
  * content can't be lifted, so it's reported as an error, once per image.
+ *
+ * A theme `contrast` below 1 fades the recolored copies toward what's behind
+ * them, as it fades the page's colors, so at 0 they're gone.
  */
 export function mountImages(
   root: ParentNode & Node,
@@ -283,6 +297,7 @@ export function mountImages(
       lift(img, entry, false);
       entry.filters = folded;
       recolorImage(entry.image!, target, key ? { ...settings, filter: key } : settings, canvas);
+      fadeCanvas(canvas, target.contrast ?? 1);
       entry.drawn = version;
       entry.ready = true;
       present(img, entry);
