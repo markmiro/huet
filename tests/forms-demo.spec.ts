@@ -13,25 +13,24 @@ async function open(page: Page) {
 const css = (page: Page, selector: string, property: string) =>
   page.locator(selector).first().evaluate((el, p) => getComputedStyle(el).getPropertyValue(p), property);
 
-test("the toggle applies the minimal form styles and is remembered", async ({ page }) => {
+test("the minimal form styles are on by default, and turning them off is remembered", async ({ page }) => {
   const toggle = await open(page);
   const form = page.locator("form[data-forms-demo]");
-  await expect(toggle).not.toBeChecked();
-  await expect(form).not.toHaveAttribute("data-huet-forms");
-  await expect(page.getByLabel("Checked", { exact: true })).toHaveCSS("appearance", "auto");
-
-  await toggle.click();
+  await expect(toggle).toBeChecked();
   await expect(form).toHaveAttribute("data-huet-forms", "");
   await expect(page.getByLabel("Checked", { exact: true })).toHaveCSS("appearance", "none");
 
+  await toggle.click();
+  await expect(form).not.toHaveAttribute("data-huet-forms");
+  await expect(page.getByLabel("Checked", { exact: true })).toHaveCSS("appearance", "auto");
+
   await page.reload();
-  await expect(page.getByRole("switch", { name: "Minimal styling" })).toBeChecked();
-  await expect(form).toHaveAttribute("data-huet-forms", "");
+  await expect(page.getByRole("switch", { name: "Minimal styling" })).not.toBeChecked();
+  await expect(form).not.toHaveAttribute("data-huet-forms");
 });
 
 test("controls take their colors from the theme and the surface they're on", async ({ page }) => {
-  const toggle = await open(page);
-  await toggle.click();
+  await open(page);
   const border = await css(page, "#page", "--huet-border");
   // Lines use the surface's border color, fills use the text color
   await expect(page.getByLabel("Name", { exact: true })).toHaveCSS("border-top-color", hexToRgb(border));
@@ -53,8 +52,7 @@ test("controls take their colors from the theme and the surface they're on", asy
 });
 
 test("disabled controls fade along with their labels, once", async ({ page }) => {
-  const toggle = await open(page);
-  await toggle.click();
+  await open(page);
   const color = (text: string) => page.locator("label", { hasText: text }).evaluate((el) => getComputedStyle(el).color);
   const drone = page.getByLabel("Drone (disabled)");
   // Black text mixed 55% over white
@@ -67,8 +65,7 @@ test("disabled controls fade along with their labels, once", async ({ page }) =>
 });
 
 test("disabled fields keep a faded outline, and disabled sliders keep their fill stronger than the track", async ({ page }) => {
-  const toggle = await open(page);
-  await toggle.click();
+  await open(page);
   const field = page.locator("form label", { hasText: "Disabled" }).locator("input[type=text]");
   await expect(field).toHaveCSS("background-color", "rgba(0, 0, 0, 0)");
   await expect(field).not.toHaveCSS("border-top-color", "rgba(0, 0, 0, 0)");
