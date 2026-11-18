@@ -1,5 +1,6 @@
 /** Applies 3D LUTs with WebGL2: one draw call per image, trilinear filtering for free. */
 export declare class GpuRecolor {
+    /** Where the shader draws: as large as the largest image so far, with the last one in its bottom-left corner. */
     readonly canvas: HTMLCanvasElement;
     private gl;
     private textures;

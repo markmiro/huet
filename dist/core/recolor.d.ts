@@ -29,7 +29,15 @@ export declare function coordinatesOf([r, g, b]: Triple, source?: Theme): Coordi
  * Map gamma-encoded sRGB channels (0–1) from the source theme into the target
  * theme, with the target's `images` settings, or its `svgs` settings for SVGs.
  */
-export declare function recolorer(target: Theme, options?: RecolorOptions, media?: "images" | "svgs"): (r: number, g: number, b: number) => Triple;
+export declare function recolorer(target: Theme, options?: RecolorOptions, media?: "images" | "svgs"): ((r: number, g: number, b: number) => Triple) & {
+    /**
+     * The same mapping baked into a size³ lattice, as `buildLut` would. A
+     * lattice point's place in the source theme doesn't depend on the target,
+     * so it's kept from one target theme to the next: dragging a color builds a
+     * table for every frame.
+     */
+    lut: (size: number) => Float32Array<ArrayBuffer>;
+};
 /** A color on a theme's neutral ramp, or on a hue ramp at anchor chroma. */
 export declare function rampColor(theme: Theme, t: number, hue?: Hue): Triple;
 export type Transform = (r: number, g: number, b: number) => Triple;

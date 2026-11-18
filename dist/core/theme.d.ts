@@ -79,25 +79,20 @@ export interface BackgroundOptions {
 }
 /** A theme resolved against a background: the solver Huet renders with. */
 export declare function resolveTheme(theme: Theme, { background }?: BackgroundOptions): Readonly<{
-    background: string;
-    dark: string;
-    light: string;
-    neutral: Readonly<Required<NeutralRamp>>;
-    colors: Readonly<{
-        red: string;
-        yellow: string;
-        green: string;
-        blue: string;
-        purple: string;
-    }>;
-    ramp: (t: number) => string;
+    /** Role colors on `bg`, the page background by default, beside `adjacent`. */
     tokens: (bg?: string, adjacent?: string) => Readonly<Tokens>;
-    tokensOn: (bg: Surface, parent?: Surface) => Readonly<Tokens>;
-    surface: (parent: string, amount: number | Hue) => string;
     root: Surface;
     step: (parent: Surface, amount: number, ramp?: import('./steps').StepRamp) => Surface;
     surfaceOf: (hex: string) => Surface;
     derive: (parent: Surface, full: string) => Surface;
+    dark: string;
+    light: string;
+    neutral: Readonly<Required<NeutralRamp>>;
+    colors: Readonly<Record<"red" | "yellow" | "green" | "blue" | "purple", string>>;
+    ramp: (t: number) => string;
+    tokensOn: (bg: Surface, parent?: Surface) => Readonly<Tokens>;
+    surface: (parent: string, amount: number | Hue) => string;
+    background: string;
 }>;
 export interface ThemeOptions {
     /** Global contrast multiplier for explicit relative-color classes: 0–2. */
@@ -144,25 +139,20 @@ export declare function neutralRampOf(options: Pick<ThemeOptions, "dark" | "ligh
 };
 /** The solver behind `resolveTheme`. Internal: tests exercise it directly. */
 export declare function createTheme(options?: ThemeOptions): Readonly<{
-    background: string;
-    dark: string;
-    light: string;
-    neutral: Readonly<Required<NeutralRamp>>;
-    colors: Readonly<{
-        red: string;
-        yellow: string;
-        green: string;
-        blue: string;
-        purple: string;
-    }>;
-    ramp: (t: number) => string;
+    /** Role colors on `bg`, the page background by default, beside `adjacent`. */
     tokens: (bg?: string, adjacent?: string) => Readonly<Tokens>;
-    tokensOn: (bg: Surface, parent?: Surface) => Readonly<Tokens>;
-    surface: (parent: string, amount: number | Hue) => string;
     root: Surface;
     step: (parent: Surface, amount: number, ramp?: import('./steps').StepRamp) => Surface;
     surfaceOf: (hex: string) => Surface;
     derive: (parent: Surface, full: string) => Surface;
+    dark: string;
+    light: string;
+    neutral: Readonly<Required<NeutralRamp>>;
+    colors: Readonly<Record<"red" | "yellow" | "green" | "blue" | "purple", string>>;
+    ramp: (t: number) => string;
+    tokensOn: (bg: Surface, parent?: Surface) => Readonly<Tokens>;
+    surface: (parent: string, amount: number | Hue) => string;
+    background: string;
 }>;
 export type ResolvedTheme = ReturnType<typeof createTheme>;
 /** Role tokens as `--huet-*` custom properties: `disabledBorder` is `--huet-disabled-border`. */
