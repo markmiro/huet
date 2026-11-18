@@ -178,7 +178,7 @@ export interface Tokens {
   foreground: string;
   muted: string;
   border: string;
-  /** Text on disabled controls: half the foreground's Lc, between muted and border. */
+  /** Text on disabled controls: Lc 40, between muted and border. */
   disabled: string;
   /** Lines on disabled controls: half the border's Lc. */
   disabledBorder: string;
@@ -209,11 +209,11 @@ const lc = (bgY: number, { y }: Step) => Math.abs(apcaFromY(y, bgY));
 /**
  * APCA lightness contrast (Lc) the preset roles aim for. Signal hues aim for the
  * muted level, and colored fills for the border level against their parent.
- * Disabled text and lines keep half of the foreground's and the border's Lc,
+ * Disabled text aims for Lc 40 and disabled lines for half the border's Lc,
  * on light and dark backgrounds alike. (A fixed color-mix keeps much more Lc
  * on light backgrounds than on dark ones.)
  */
-const roles = { foreground: 90, muted: 60, disabled: 45, border: 30, disabledBorder: 15 } as const;
+const roles = { foreground: 90, muted: 60, disabled: 40, border: 30, disabledBorder: 15 } as const;
 /** The candidate nearest the target without falling short, or the strongest one. */
 function select(
   background: string,

@@ -447,8 +447,8 @@
     --_line: var(--huet-red);
   }
   /* Disabled controls, and the labels and fieldsets around them, use the
-     surface's disabled colors: text at half the foreground's Lc and lines at
-     half the border's, on light and dark surfaces alike. A slider's filled part
+     surface's disabled colors: text at Lc 40 and lines at half the
+     border's Lc, on light and dark surfaces alike. A slider's filled part
      stays stronger than its track. Disabled buttons get a flat fill at the
      surface's 5 step instead of an outline. A control inside a disabled label
      or fieldset inherits its color.

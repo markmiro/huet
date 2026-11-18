@@ -64,7 +64,7 @@ test("disabled controls fade along with their labels, once", async ({ page }) =>
   await expect(page.locator("form button[type=button][disabled]").first()).toHaveCSS("color", faded);
 });
 
-test("disabled text and lines keep the same share of their Lc on light and dark surfaces", async ({ page }) => {
+test("disabled text and lines keep the same Lc on light and dark surfaces", async ({ page }) => {
   await open(page);
   for (const theme of ["Base", "Orange Boost"]) {
     if (theme !== "Base") {
@@ -93,10 +93,10 @@ test("disabled text and lines keep the same share of their Lc on light and dark 
     }
     for (const [scope, [light, dark]] of Object.entries(shares)) {
       const message = `${theme} ${scope}: light ${light}, dark ${dark}`;
-      // Text keeps Lc 45 of the foreground's 90, which is 42% of the endpoint's Lc 107
+      // Text aims for Lc 40, 4/9 of the foreground's 90 and 37% of the endpoint's Lc 107
       for (const [text, line] of [light, dark]) {
-        expect(text, message).toBeGreaterThan(0.4);
-        expect(text, message).toBeLessThan(0.55);
+        expect(text, message).toBeGreaterThan(0.35);
+        expect(text, message).toBeLessThan(0.5);
         expect(line, message).toBeCloseTo(0.5, 1);
       }
       // The same Lc whether the surface is light or dark. (A 55% sRGB mix gave
