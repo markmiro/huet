@@ -1,11 +1,11 @@
 import { describe, it, expect } from "vitest";
-import { contrast, lightness, luminance, textEnd, toOklab } from "./color";
+import { contrast, flaredLightness, lightness, luminance, textEnd, toOklab } from "./color";
 import { resolveTheme, type ResolvedTheme, type Theme } from "./theme";
 import { themes } from "./themes";
 import type { StepRamp, Surface } from "./steps";
 
 const hues = ["red", "yellow", "green", "blue", "purple"] as const;
-const distance = (a: string, b: string) => Math.abs(lightness(a) - lightness(b));
+const distance = (a: string, b: string) => Math.abs(flaredLightness(a) - flaredLightness(b));
 const at = (theme: Theme, background: number) => resolveTheme(theme, { background });
 
 describe("explicit steps", () => {
@@ -72,12 +72,21 @@ describe("explicit steps", () => {
     const [black, white] = [at(themes.Base, 0), at(themes.Base, 1)];
     for (const hue of hues)
       for (const amount of [6.25, 12.5, 25]) {
-        const onBlack = lightness(black.step(black.root, amount, hue).hex) * 100;
-        const onWhite = 100 - lightness(white.step(white.root, amount, hue).hex) * 100;
+        const onBlack = distance(black.root.hex, black.step(black.root, amount, hue).hex) * 100;
+        const onWhite = distance(white.root.hex, white.step(white.root, amount, hue).hex) * 100;
         expect(onBlack).toBeGreaterThan(2);
         expect(onBlack / onWhite).toBeGreaterThan(0.65);
         expect(onBlack / onWhite).toBeLessThan(1.5);
       }
+  });
+
+  it("take bigger L* steps on black than on white, so screen flare doesn't hide them", () => {
+    const [black, white] = [at(themes.Base, 0), at(themes.Base, 1)];
+    for (const amount of [2.5, 5, 10, 20]) {
+      const onBlack = lightness(black.step(black.root, amount).hex);
+      const onWhite = 1 - lightness(white.step(white.root, amount).hex);
+      expect(onBlack / onWhite, `${amount}`).toBeGreaterThan(1.5);
+    }
   });
 
   it("keep a colored surface's tint on its gray steps, fading it out by the end", () => {
@@ -94,7 +103,7 @@ describe("explicit steps", () => {
           const turn = Math.abs(angle(steps[2]) - angle(card.hex));
           expect(Math.min(turn, 2 * Math.PI - turn), label).toBeLessThan(0.5);
           expect(chroma(steps[2]), label).toBeGreaterThan(0.6 * chroma(card.hex));
-          // Still evenly spaced in L*, toward the same end as on a neutral card
+          // Still evenly spaced in flared L*, toward the same end as on a neutral card
           for (let i = 1; i < steps.length; i++)
             expect(distance(card.hex, steps[i]), `${label} ${i * 5}`).toBeGreaterThanOrEqual(distance(card.hex, steps[i - 1]) - 0.002);
           // and the end of the ramp at 100
@@ -102,7 +111,7 @@ describe("explicit steps", () => {
         }
   });
 
-  it("space neutral steps evenly in L* over the whole available range", () => {
+  it("space neutral steps evenly in flared L* over the whole available range", () => {
     for (const background of [0, 1]) {
       const t = at(themes.Base, background);
       for (const row of [20, 40, 60, 80]) {

@@ -124,7 +124,7 @@ Reproduce by serving the baseline checkout separately, then running `HUET_BEFORE
 Huet doesn't measure contrast as a ratio of relative luminances. A ratio overstates contrast on dark backgrounds and treats both polarities alike. Huet uses two measures, each where it fits:
 
 - **Preset roles use APCA.** `--huet-foreground`, `--huet-muted` and `--huet-border` (`theme.tokens()`, `huet-surface-*`, the root, and every form control) aim for lightness contrast (Lc) 90, 60 and 30, with the APCA-W3 0.0.98G-4g constants. APCA is polarity-aware, so dark-mode text comes out brighter than before (Base Inverted: `#959595` → `#e4e4e4` on black) and light-mode borders lighter (`#949494` → `#c7c7c7` on white). Where a background can't reach Lc 90, the three keep their proportions (⅔ and ⅓) of what it can reach, so they stay distinct and ordered on narrow ramps such as Orange Boost. The proportional rule is continuous, so the roles don't jump as the background moves. Signal hues aim for the muted level. Colored `huet-surface-*` fills aim for the border level against their parent and must leave room for Lc 60 text.
-- **Explicit strengths use CIE L\*.** `huet-bg-25`, `huet-text-60`, signal colors and neutral overlays move the requested percentage of the L\* distance toward the endpoint. This replaces `available ** strength` on the background ramp and `ratio ** amount` in `mixSignal`. APCA reports anything below Lc 7.3 as 0, so it can't space low strengths such as `huet-bg-6`. L\* is linear in luminance near black and close to symmetric, so strengths on white look as before, and low strengths on black come out slightly darker (strength 6: `#1a1a1a` → `#141414`). It's the same lightness the image recolorer uses.
+- **Explicit strengths use CIE L\*.** (Now L\* with screen flare; see [Screen flare in explicit strengths](#screen-flare-in-explicit-strengths).) `huet-bg-25`, `huet-text-60`, signal colors and neutral overlays move the requested percentage of the L\* distance toward the endpoint. This replaces `available ** strength` on the background ramp and `ratio ** amount` in `mixSignal`. APCA reports anything below Lc 7.3 as 0, so it can't space low strengths such as `huet-bg-6`. L\* is linear in luminance near black and close to symmetric, so strengths on white look as before, and low strengths on black come out slightly darker (strength 6: `#1a1a1a` → `#141414`). It's the same lightness the image recolorer uses.
 - **One rule picks the side.** `textEnd()` returns whichever endpoint reads better by APCA, with ties going dark. The solver, the preset roles, signal hues and surfaces all call it, so they always agree. On a black-to-white ramp APCA switches at `#a4a4a4`, where the previous measure switched at `#767676`. Mid grays from about `#777` to `#a3a3a3` now get light text, and nested `huet-bg-*` surfaces inside them step lighter.
 
 Below the reference's Lc 7.3 cutoff, Huet's `apca()` falls continuously to 0 instead of jumping, so small role targets on very narrow ramps stay reachable. Above it, values match the reference implementation's published test values. Lc targets are design targets: APCA is still a draft, and Huet makes no conformance claim. `contrastRatio` was removed from the public API.
@@ -139,3 +139,29 @@ The Forms page's "On other surfaces" section, with minimal styling on:
 | Base Inverted | ![Base Inverted before](screenshots/forms-apca-surfaces-base-inverted-before.png) | ![Base Inverted after](screenshots/forms-apca-surfaces-base-inverted-after.png) |
 | Orange Boost | ![Orange Boost before](screenshots/forms-apca-surfaces-orange-boost-before.png) | ![Orange Boost after](screenshots/forms-apca-surfaces-orange-boost-after.png) |
 | Sunset | ![Sunset before](screenshots/forms-apca-surfaces-sunset-before.png) | ![Sunset after](screenshots/forms-apca-surfaces-sunset-after.png) |
+
+## Screen flare in explicit strengths
+
+Equal L\* steps looked even on paper but not on screens in dark mode. On Base, the YouTube demo's `huet-bg-5` pills were `#111111` on black, against `#f0f0f0` on white: both 5 L\* from the page, but the dark ones were barely distinguishable. Screens never show true black: room light and the panel's own leakage add light to every color. Near white that's lost in the color's own light; near black it swamps small differences. APCA builds this in with its soft clamp, which is why those dark fills measure Lc 0.
+
+Explicit strengths now step in `flaredLightness()`: L\* of `(Y + 0.022) / 1.022`, a flare of 2.2% of white's luminance, the same point where APCA's soft clamp near black starts. It's fixed, not a theme setting. Roles, which already aim for APCA targets, don't change. Dark steps get about twice the L\* distance light ones do, in line with hand-tuned dark palettes:
+
+| Base | 5 | 10 | 20 | 50 | 60 | 80 |
+| --- | --- | --- | --- | --- | --- | --- |
+| On black, before | `#111111` | `#1c1c1c` | `#313131` | `#777777` | `#919191` | `#c7c7c7` |
+| On black, after | `#1a1a1a` | `#292929` | `#434343` | `#888888` | `#9f9f9f` | `#cfcfcf` |
+| On white, before | `#f0f0f0` | `#e2e2e2` | `#c5c5c5` | `#767676` | `#5e5e5e` | `#303030` |
+| On white, after | `#f1f1f1` | `#e6e6e6` | `#cecece` | `#878787` | `#707070` | `#424242` |
+
+On Base with a black page (`background: 0`):
+
+![Base on black, before and after](screenshots/flare-on-black.png)
+
+| Page | Before | After |
+| --- | --- | --- |
+| YouTube | ![YouTube demo on black before](screenshots/flare-youtube-dark-before.png) | ![YouTube demo on black after](screenshots/flare-youtube-dark-after.png) |
+| Code | ![Code page on black before](screenshots/flare-code-dark-before.png) | ![Code page on black after](screenshots/flare-code-dark-after.png) |
+
+The same rule applies in both directions, so light mode moves too. Low fills barely change, but middle and high amounts get lighter, because the flare compresses the dark end of the range they're measured across: on white, `huet-text-60` goes from Lc 82 to Lc 74.
+
+Unit tests check that low hue strengths on black and white are comparable in flared L\*, that plain L\* steps on black are at least 1.5× those on white, and even flared L\* spacing over the whole range. Browser tests measure the Color Contrast form's fills in flared L\*.
