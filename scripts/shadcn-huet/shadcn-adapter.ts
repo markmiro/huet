@@ -18,6 +18,8 @@ import {
   type ResolvedTheme,
 } from "huet/internal"
 
+import { PAINT_KEY } from "./first-paint"
+
 /**
  * Neutrals (background, text, borders, fills) come from Huet. Every Tailwind
  * swatch moves onto the same position of the theme's neutral ramp, and a
@@ -108,6 +110,35 @@ function fader(page: string, amount: number) {
     isLightness(name)
       ? String(pageLightness + (Number(value) - pageLightness) * amount)
       : value.replace(hexColor, (color) => fade(page, color.slice(0, 7), amount) + color.slice(7))
+}
+
+/**
+ * Save what applyHuet painted, for FIRST_PAINT_SCRIPT to replay on the next
+ * load before React hydrates. Chart configs are left out: their selectors
+ * are per-page React ids.
+ */
+export function savePaint() {
+  const root = document.documentElement
+  const vars: Record<string, string> = {}
+  for (const name of Array.from(root.style)) {
+    if (name.startsWith("--") || name === "background-color" || name === "color-scheme") {
+      vars[name] = root.style.getPropertyValue(name)
+    }
+  }
+  const styles: Record<string, string> = {}
+  for (const style of document.querySelectorAll<HTMLStyleElement>('style[id^="huet-"]')) {
+    if (style.id !== "huet-chart-configs") styles[style.id] = style.textContent ?? ""
+  }
+  try {
+    localStorage.setItem(PAINT_KEY, JSON.stringify({ vars, dark: root.classList.contains("dark"), styles }))
+  } catch {
+    // Full or blocked storage only costs the next load its head start.
+  }
+}
+
+/** Show an iframe that FIRST_PAINT_SCRIPT hid until Huet painted it. */
+export function revealPaint() {
+  document.documentElement.style.removeProperty("visibility")
 }
 
 /** Dark mode follows Huet's own polarity: the page is dark when its text is lighter. */

@@ -9,7 +9,7 @@ pnpm shadcn:dev
 `shadcn:setup` can be rerun. It:
 
 - applies `integration.patch` to the submodule, unless it's already applied: surface and chart fixes, `text-foreground` on `body` (upstream leaves it to the browser's black, so text without a `text-*` class, such as the /blocks titles, ignored the theme), the /create preview's Live Audio Waveform drawn in `text-muted-foreground` instead of a fixed gray, `data-huet-recolor` opt-ins on the QR code SVGs (the home page's, and the `QRCode` in each base's preview-02 block, which /create shows) and on the registry directory's logos, and `huetShikiTheme({ from })` around every highlighter's themes (docs MDX, component, block and chart source, and the registry's CodeBlock)
-- copies `huet-configurator.tsx` and `shadcn-adapter.ts` into `apps/v4/components/huet/` and mounts the configurator in the root layout
+- copies `huet-configurator.tsx`, `shadcn-adapter.ts` and `first-paint.ts` into `apps/v4/components/huet/`, mounts the configurator in the root layout, and puts `FIRST_PAINT_SCRIPT` first in its `<head>`
 - builds and packs the local `huet` and `huet-react` packages, installs them in the app, and builds the registry
 
 The gitlink only pins the upstream commit, so edits made inside `vendor/shadcn-ui` aren't saved with this repo. Edit `huet-configurator.tsx` and `shadcn-adapter.ts` here, and regenerate the patch after changing other vendor files:
@@ -35,6 +35,8 @@ Leave `layout.tsx` and `theme-provider.tsx` out of it, since `setup.mjs` edits t
 - Elements shadcn keeps dark on a light page with `className="dark"` (the /create and /typeset side menus, their bottom toolbars, dialogs) get the theme's dark roles from a `.dark` rule, with primary as their max-contrast invert, since globals.css would give them shadcn's own grays. On a dark page they inherit the page's colors, picked accent included.
 
 `huet-configurator.tsx` is the Huet panel around it: it stores the theme, and calls `applyHuet` on every edit.
+
+`applyHuet` runs after React hydrates, so on its own every page load, and every preview iframe (blocks, charts, /create, /typeset), would flash stock shadcn colors first. `FIRST_PAINT_SCRIPT` (`first-paint.ts`) runs before the first paint: it replays the top page's last paint, which `savePaint` stores in `localStorage` (`huet-shadcn-paint`) after each edit, and hides an iframe until its own paint lands (`revealPaint`), or for at most 4 seconds. Iframes don't save their paint, since a preview's picks and charts are its own.
 
 The Huet demo site uses the same adapter for its showcase (`src/demo/pages/index.astro` and `shadcn.astro`), on copies of shadcn's components in `src/demo/shadcn`. There, the header's theme button already recolors images and keeps the header on Huet's colors, so it calls `applyHuet(theme, background, { images: false, header: false })`.
 
