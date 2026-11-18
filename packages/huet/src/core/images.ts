@@ -1,6 +1,6 @@
 import { dropFilter, filtersOver, liftFilter, reportStuck } from "./filters";
 import { GpuRecolor } from "./gpu";
-import { applyLut, buildLut, recolorer, type RecolorOptions } from "./recolor";
+import { applyLut, recolorer, type RecolorOptions } from "./recolor";
 import type { Theme } from "./theme";
 
 export {
@@ -34,7 +34,7 @@ function lutFor(target: Theme, { lutSize = 17, ...options }: ImageOptions) {
   let lut = luts.get(key);
   if (!lut) {
     if (luts.size >= 16) luts.clear();
-    luts.set(key, (lut = buildLut(recolorer(target, options), lutSize)));
+    luts.set(key, (lut = recolorer(target, options).lut(lutSize)));
   }
   return lut;
 }

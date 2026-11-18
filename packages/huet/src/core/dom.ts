@@ -1,4 +1,4 @@
-import { classVariable, parseClassToken, parseColorClass, stateKey, validateClasses, type ColorClass, type Surface } from "./classes";
+import { classVariable, parseClassToken, parseColorClass, stateKey, validateClasses, type ClassToken, type ColorClass, type Surface } from "./classes";
 import { stepVariables } from "./css";
 import type { Surface as Background } from "./steps";
 import { resolveTheme, themeVariables, type BackgroundOptions, type ResolvedTheme, type Theme } from "./theme";
@@ -15,6 +15,44 @@ interface Context { dims: Dim[]; bg: Background[]; tokens: Readonly<Record<strin
 const maxCombinations = 256;
 const resolve = (theme: ResolvedTheme, base: Background, spec: ColorClass) =>
   theme.step(base, spec.amount, spec.ramp);
+/** What a `class` attribute asks of Huet. */
+interface Parsed {
+  errors: string[];
+  /** Whether the element has a background class. */
+  surface: boolean;
+  /** The resting background, or none, then each background a variant can switch to. */
+  states: (string | undefined)[];
+  /** `--huet-state` for each of `states`, when there's more than one. */
+  keys?: number[];
+  colors: (ClassToken & { spec: ColorClass })[];
+}
+// Pages repeat a few hundred class lists, and every theme update reads them all again.
+const parsedClasses = new Map<string, Parsed>();
+function parse(value: string): Parsed {
+  let parsed = parsedClasses.get(value);
+  if (!parsed) {
+    // As `classList` reads it: each class once
+    const names = [...new Set(value.split(/\s+/).filter(Boolean))].map(parseClassToken);
+    const backgrounds = names.filter((x) => x.base.startsWith("huet-surface-") || parseColorClass(x.base)?.property === "bg");
+    const rest = backgrounds.find((x) => !x.variants)?.base;
+    const states = [rest, ...new Set(backgrounds.filter((x) => x.variants && x.base !== rest).map((x) => x.base))];
+    const errors = validateClasses(value);
+    parsed = {
+      errors,
+      surface: backgrounds.length > 0,
+      states,
+      // An invalid class list never gets as far as its states
+      keys: states.length > 1 && !errors.length ? [-1, ...states.slice(1).map((x) => stateKey(parseColorClass(x!)!))] : undefined,
+      colors: names.flatMap((x) => {
+        const spec = parseColorClass(x.base);
+        return spec && spec.property !== "bg" ? [{ ...x, spec }] : [];
+      }),
+    };
+    if (parsedClasses.size >= 4096) parsedClasses.clear();
+    parsedClasses.set(value, parsed);
+  }
+  return parsed;
+}
 const weight = (key: number) =>
   `max(0%, (1 - max(var(--huet-state) - ${key}, ${key} - var(--huet-state))) * 100%)`;
 /**
@@ -52,7 +90,40 @@ export function mountTheme(root: HTMLElement, initialTheme: Theme, options: Back
   let disposed = false;
   const originals = new Map<HTMLElement, Map<string, [string, string]>>();
   const originalAttributes = new Map<HTMLElement, Map<string, string | null>>();
-  const writeValues = (el: HTMLElement, { values, markers }: Pending) => {
+  /** What this mount last wrote on each element. */
+  const written = new WeakMap<HTMLElement, { values: Record<string, string>; markers: Set<string> }>();
+  /**
+   * Write an element's variables and markers. With `trust`, values this mount
+   * already wrote aren't read back from the element first: a theme update
+   * changes hundreds of values on a large page, and most of the rest are as
+   * they were.
+   */
+  const writeValues = (el: HTMLElement, { values, markers }: Pending, trust: boolean) => {
+    let last = trust ? written.get(el) : undefined;
+    written.set(el, { values, markers });
+    // The page may have replaced the element's whole style since. One value tells.
+    for (const key in last?.values) {
+      if (el.style.getPropertyValue(key) !== last!.values[key]) last = undefined;
+      break;
+    }
+    if (last) {
+      let same = last.markers.size === markers.size;
+      if (same) for (const name of markers) if (!last.markers.has(name)) { same = false; break; }
+      if (same) {
+        let count = 0;
+        for (const key in values) {
+          count++;
+          if (!(key in last.values)) { same = false; break; }
+        }
+        if (same) for (const key in last.values) if (count-- <= 0) { same = false; break; }
+      }
+      // The same variables as last time: only the ones that changed need writing.
+      if (same) {
+        for (const key in values)
+          if (values[key] !== last.values[key]) el.style.setProperty(key, values[key]);
+        return;
+      }
+    }
     let original = originals.get(el);
     if (!original) {
       // A surface may move between independent roots before either observer runs.
@@ -104,8 +175,33 @@ export function mountTheme(root: HTMLElement, initialTheme: Theme, options: Back
     originalAttributes.delete(el);
     originals.delete(el);
     owners.delete(el);
+    written.delete(el);
+  };
+  // Elements that share a background and a class share its colors, so each
+  // is worked out once per theme.
+  let surfaces = new Map<Background, Map<string, { bg: Background; tokens: Record<string, string> }>>();
+  let colorsOn = new Map<Background, Map<string, string>>();
+  let rootTokens: Record<string, string> | undefined;
+  const forget = () => {
+    surfaces = new Map();
+    colorsOn = new Map();
+    rootTokens = undefined;
   };
   const surface = (parent: Background, base: string) => {
+    let known = surfaces.get(parent);
+    if (!known) surfaces.set(parent, (known = new Map()));
+    let result = known.get(base);
+    if (!result) known.set(base, (result = solveSurface(parent, base)));
+    return result;
+  };
+  const colorOn = (bg: Background, base: string, spec: ColorClass) => {
+    let known = colorsOn.get(bg);
+    if (!known) colorsOn.set(bg, (known = new Map()));
+    let hex = known.get(base);
+    if (hex === undefined) known.set(base, (hex = resolve(theme, bg, spec).hex));
+    return hex;
+  };
+  const solveSurface = (parent: Background, base: string) => {
     const spec = parseColorClass(base);
     const suffix = base.slice("huet-surface-".length);
     const bg = spec ? resolve(theme, parent, spec) : theme.derive(
@@ -118,14 +214,43 @@ export function mountTheme(root: HTMLElement, initialTheme: Theme, options: Back
     root.setAttribute("data-huet-error", message);
     throw new Error(message);
   };
-  const refresh = () => {
-    if (disposed) return;
+  /** An element Huet colors, as the last scan of the tree found it. */
+  interface Item extends Parsed {
+    el: HTMLElement;
+    /** The nearest enclosing item with its own colors, by index. The root has none. */
+    parent: number;
+  }
+  /** The tree's Huet elements, in document order, until the tree changes. */
+  let plan: Item[] | undefined;
+  const scan = () => {
     const elements = [root, ...root.querySelectorAll<HTMLElement>(selector)];
     // Check every element before writing, so an invalid class can't leave the tree
     // half-updated. Errors after mount have no caller, so the root records them too.
     // SVG elements expose className as an SVGAnimatedString.
-    const errors = [...new Set(elements.flatMap((el) => validateClasses(el.getAttribute("class") ?? "")))];
+    const classes = elements.map((el) => parse(el.getAttribute("class") ?? ""));
+    const errors = [...new Set(classes.flatMap((x) => x.errors))];
     if (errors.length) fail(errors.join("\n"));
+    const items: Item[] = [];
+    const surfaced = new Map<HTMLElement, number>();
+    elements.forEach((el, index) => {
+      const parsed = classes[index];
+      if (el !== root && !parsed.surface && !parsed.colors.length) return;
+      let ancestor = el === root ? null : el.parentElement;
+      while (ancestor && !surfaced.has(ancestor)) ancestor = ancestor.parentElement;
+      if (el === root || parsed.surface) surfaced.set(el, items.length);
+      items.push({ ...parsed, el, parent: ancestor ? surfaced.get(ancestor)! : -1 });
+    });
+    return items;
+  };
+  /**
+   * Color the tree. `trust` is for a theme update: the tree is read again only
+   * if it changed, and elements are taken to be as this mount left them.
+   */
+  const refresh = (trust = false) => {
+    if (disposed) return;
+    if (!trust) plan = undefined;
+    const reused = plan !== undefined;
+    const items = (plan ??= scan());
     const pending = new Map<HTMLElement, Pending>();
     const target = (el: HTMLElement) => {
       let entry = pending.get(el);
@@ -153,30 +278,14 @@ export function mountTheme(root: HTMLElement, initialTheme: Theme, options: Back
       return values[0];
     };
     const rootColor = theme.root;
-    const top: Context = {
-      dims: [], bg: [rootColor],
-      tokens: [{ ...themeVariables(theme.tokensOn(rootColor)), ...stepVariables(theme, rootColor) }],
-    };
-    const contexts = new Map<HTMLElement, Context>();
-    for (const el of elements) {
-      const names = [...el.classList].map(parseClassToken);
-      const backgrounds = names.filter((x) => x.base.startsWith("huet-surface-") || parseColorClass(x.base)?.property === "bg");
-      const colors = names.flatMap((x) => {
-        const spec = parseColorClass(x.base);
-        return spec && spec.property !== "bg" ? [{ ...x, spec }] : [];
-      });
-      if (el !== root && !backgrounds.length && !colors.length) continue;
-      let ancestor = el.parentElement;
-      while (ancestor && !contexts.has(ancestor)) ancestor = ancestor.parentElement;
-      const parent = (el !== root && ancestor && contexts.get(ancestor)) || top;
+    rootTokens ??= { ...themeVariables(theme.tokensOn(rootColor)), ...stepVariables(theme, rootColor) };
+    const top: Context = { dims: [], bg: [rootColor], tokens: [rootTokens] };
+    const contexts: Context[] = [];
+    items.forEach(({ el, parent: above, surface: hasBackground, states, keys, colors }, index) => {
+      const parent = above < 0 ? top : contexts[above];
       let context = parent;
-      if (el === root || backgrounds.length) {
-        // The resting background, or none, then each background a variant can switch to.
-        const rest = backgrounds.find((x) => !x.variants)?.base;
-        const states = [rest, ...new Set(backgrounds.filter((x) => x.variants && x.base !== rest).map((x) => x.base))];
-        const dim = states.length > 1
-          ? { el, keys: [-1, ...states.slice(1).map((x) => stateKey(parseColorClass(x!)!))] }
-          : undefined;
+      if (el === root || hasBackground) {
+        const dim = keys ? { el, keys } : undefined;
         const bg: Background[] = [], tokens: Context["tokens"] = [];
         parent.bg.forEach((color, i) => {
           for (const state of states) {
@@ -188,31 +297,49 @@ export function mountTheme(root: HTMLElement, initialTheme: Theme, options: Back
         if (bg.length > maxCombinations)
           fail(`Too many background states above "${el.getAttribute("class")}": ${bg.length} combinations, at most ${maxCombinations}. Each enclosing element with Tailwind variants on its Huet background multiplies them. Remove variants from some of those backgrounds.`);
         context = { dims: dim ? [...parent.dims, dim] : parent.dims, bg, tokens };
-        contexts.set(el, context);
+        contexts[index] = context;
         const entry = target(el);
         entry.markers.add("data-huet-color-bg");
         if (dim) entry.markers.add("data-huet-state");
-        for (const name of Object.keys(tokens[0]))
-          entry.values[name] = fold(context.dims, tokens.map((x) => x[name]), el);
+        // Most surfaces have one state all the way up, so there's nothing to choose between.
+        if (!context.dims.length) Object.assign(entry.values, tokens[0]);
+        else
+          for (const name of Object.keys(tokens[0]))
+            entry.values[name] = fold(context.dims, tokens.map((x) => x[name]), el);
       }
       for (const { variants, base, spec } of colors) {
         const entry = target(el);
         const from = spec.ownBackground ? context : parent;
-        const value = entry.values[classVariable(base)] ??= fold(from.dims, from.bg.map((x) => resolve(theme, x, spec).hex), el);
+        const value = entry.values[classVariable(base)] ??= from.dims.length
+          ? fold(from.dims, from.bg.map((x) => colorOn(x, base, spec)), el)
+          : colorOn(from.bg[0], base, spec);
         // Without Tailwind, styles.css reads the class without variants from a fixed name.
         if (!variants) {
           entry.values[`--huet-relative-${spec.property}`] = value;
           entry.markers.add(`data-huet-color-${spec.property}`);
         }
       }
-    }
+    });
     root.removeAttribute("data-huet-error");
-    for (const [el, entry] of pending) writeValues(el, entry);
+    for (const [el, entry] of pending) writeValues(el, entry, reused);
     for (const el of originals.keys()) if (!pending.has(el)) restore(el);
+  };
+  const hasHuet = (value: string | null) => !!value && value.includes("huet-");
+  /** Whether a change to the tree can change what Huet writes. Most don't: text, and elements without Huet classes. */
+  const matters = (record: MutationRecord) => {
+    if (record.type === "attributes")
+      return hasHuet(record.oldValue) || hasHuet((record.target as Element).getAttribute("class"));
+    for (const nodes of [record.addedNodes, record.removedNodes])
+      for (const node of nodes)
+        if (node.nodeType === 1 && ((node as Element).matches(selector) || (node as Element).querySelector(selector)))
+          return true;
+    return false;
   };
   // Observe structure/classes only: our variable writes never trigger another pass.
   const Observer = root.ownerDocument.defaultView!.MutationObserver;
-  const observer = new Observer(refresh);
+  const observer = new Observer((records) => {
+    if (records.some(matters)) refresh();
+  });
   try {
     refresh();
   } catch (error) {
@@ -228,6 +355,7 @@ export function mountTheme(root: HTMLElement, initialTheme: Theme, options: Back
     childList: true,
     attributes: true,
     attributeFilter: ["class"],
+    attributeOldValue: true,
   });
   return {
     /** Recolor with another theme. `background` stays as it was unless given. */
@@ -236,7 +364,10 @@ export function mountTheme(root: HTMLElement, initialTheme: Theme, options: Back
       const nextBackground = options.background ?? background;
       theme = resolveTheme(next, { background: nextBackground });
       background = nextBackground;
-      refresh();
+      forget();
+      // Changes the observer hasn't reported yet
+      if (observer.takeRecords().some(matters)) plan = undefined;
+      refresh(true);
     },
     destroy() {
       if (disposed) return;

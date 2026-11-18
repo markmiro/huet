@@ -1,16 +1,19 @@
 import chroma from "chroma-js";
 import { stepper, type Surface } from "./steps";
 import {
-  apcaFromY,
+  apcaBackground,
   apcaY,
+  apcaYOfBits,
+  bitsFromOklab,
   contrast,
-  fromOklab,
+  hexOfBits,
+  lcOn,
+  luminanceOfBits,
   luminance,
   mix,
   rgb,
   textEnd,
   toOklab,
-  type Triple,
 } from "./color";
 export const hues = ["red", "yellow", "green", "blue", "purple"] as const;
 export type Hue = (typeof hues)[number];
@@ -195,17 +198,16 @@ export const defaultColors: Readonly<Record<Hue, string>> = {
   blue: "#0082dc",
   purple: "#a359b9",
 };
-/** A color with its APCA luminance, for Lc. */
-type Step = { color: string; y: number };
-/** A step with its relative luminance too, for polarity. */
-type Candidate = Step & { luminance: number };
-const step = (color: string): Step => ({ color, y: apcaY(color) });
-const candidate = (color: string): Candidate => ({
-  ...step(color),
-  luminance: luminance(color),
+/**
+ * A color a signal hue can take, with its APCA luminance for Lc, its relative
+ * luminance for polarity, and the powers APCA raises its luminance to: a
+ * candidate is measured on every surface.
+ */
+type Candidate = { color: string; y: number; luminance: number; y57: number; y62: number };
+const candidateOf = (color: string, y: number, luminance: number): Candidate => ({
+  color, y, luminance, y57: y ** 0.57, y62: y ** 0.62,
 });
-/** Unsigned Lc of a color on a background with APCA luminance `bgY`. */
-const lc = (bgY: number, { y }: Step) => Math.abs(apcaFromY(y, bgY));
+const candidate = (color: string) => candidateOf(color, apcaY(color), luminance(color));
 /**
  * APCA lightness contrast (Lc) the preset roles aim for. Signal hues aim for the
  * muted level, and colored fills for the border level against their parent.
@@ -214,19 +216,25 @@ const lc = (bgY: number, { y }: Step) => Math.abs(apcaFromY(y, bgY));
  * on light backgrounds than on dark ones.)
  */
 const roles = { foreground: 90, muted: 60, disabled: 40, border: 30, disabledBorder: 15 } as const;
-/** The candidate nearest the target without falling short, or the strongest one. */
+/**
+ * The candidate nearest the target without falling short, or the strongest one.
+ * With `side`, only candidates on that side of the background's luminance
+ * count, and the background itself stands in when there are none.
+ */
 function select(
   background: string,
   candidates: readonly Candidate[],
   target: number,
+  side?: { lighter: boolean; luminance: number },
 ): string {
-  const bgY = apcaY(background);
-  let best = candidates[0].color,
+  const bg = apcaBackground(apcaY(background));
+  let best: string | undefined,
     bestLc = -1,
     nearest = "",
     nearestLc = Infinity;
   for (const x of candidates) {
-    const value = lc(bgY, x);
+    if (side && (side.lighter ? x.luminance < side.luminance : x.luminance > side.luminance)) continue;
+    const value = lcOn(bg, x.y, x.y57, x.y62);
     if (value > bestLc) {
       best = x.color;
       bestLc = value;
@@ -236,26 +244,55 @@ function select(
       nearestLc = value;
     }
   }
-  return nearest || best;
+  return nearest || (best ?? background);
 }
-/** Samples a path at 257 evenly spaced steps, on demand. */
-type Steps = (i: number) => Step;
+/** A path sampled at 257 evenly spaced steps, on demand. */
+interface Steps {
+  /** Step `i`'s color. */
+  color: (i: number) => string;
+  /** Step `i`'s APCA luminance. */
+  y: (i: number) => number;
+  /** The Lc of step `i` on the background the path starts from. */
+  lc: (i: number) => number;
+  /**
+   * Whether every step after the first is at least as far from the background
+   * in luminance as the step before it, so its Lc only grows along the path.
+   */
+  rising: boolean;
+}
 const pathSteps = 257;
+/** A step's strength, by its path and index. */
+type Measure = (steps: Steps, i: number) => number;
 /** The first step along a path that reaches the target. */
-function first(steps: Steps, measure: (step: Step) => number, target: number) {
+function first(steps: Steps, measure: Measure, target: number) {
   for (let i = 0; i < pathSteps; i++)
-    if (measure(steps(i)) >= target - 1e-9) return steps(i).color;
+    if (measure(steps, i) >= target - 1e-9) return steps.color(i);
+}
+/**
+ * `first`, for a measure that only grows from step 1 on: the same step, found
+ * by bisecting rather than sampling the path all the way there.
+ */
+function firstRising(steps: Steps, measure: Measure, target: number) {
+  if (measure(steps, 0) >= target - 1e-9) return steps.color(0);
+  let low = 1,
+    high = pathSteps;
+  while (low < high) {
+    const middle = (low + high) >> 1;
+    if (measure(steps, middle) >= target - 1e-9) high = middle;
+    else low = middle + 1;
+  }
+  return low < pathSteps ? steps.color(low) : undefined;
 }
 /** The step along any of the paths that measures highest. */
-function strongest(paths: readonly Steps[], measure: (step: Step) => number) {
-  let best = paths[0](0),
-    bestValue = measure(best);
+function strongest(paths: readonly Steps[], measure: Measure) {
+  let best = paths[0].color(0),
+    bestValue = measure(paths[0], 0);
   for (const steps of paths)
     for (let i = 0; i < pathSteps; i++) {
-      const value = measure(steps(i));
-      if (value > bestValue) [best, bestValue] = [steps(i), value];
+      const value = measure(steps, i);
+      if (value > bestValue) [best, bestValue] = [steps.color(i), value];
     }
-  return best.color;
+  return best;
 }
 /**
  * Work that depends only on a few strings, shared between themes. Dragging one
@@ -301,22 +338,68 @@ export function neutralRampOf(options: Pick<ThemeOptions, "dark" | "light" | "ne
   };
   return { custom, stops, dark, light, colorModel, ramp };
 }
+/** Solvers by everything but the background, most recent last. */
+const solvers = new Map<string, ReturnType<typeof createSolver>>();
 /** The solver behind `resolveTheme`. Internal: tests exercise it directly. */
 export function createTheme(options: ThemeOptions = {}) {
   const neutralOf = neutralRampOf(options);
+  const { custom, stops, colorModel } = neutralOf;
+  const colors = Object.freeze({ ...defaultColors, ...options.colors });
+  for (const color of Object.values(colors)) rgb(color);
+  // Only the page background and `root` depend on where the background sits.
+  // The configurator resolves one theme on many backgrounds, and a page, its
+  // images and the configurator each resolve the theme being edited, so they
+  // all share one solver and its caches.
+  const key = JSON.stringify([colorModel, custom, stops, colors, options.contrast, options.signalLightness]);
+  let solver = solvers.get(key);
+  if (solver) solvers.delete(key);
+  else {
+    solver = createSolver(options, neutralOf, colors);
+    if (solvers.size >= 32) solvers.delete(solvers.keys().next().value!);
+  }
+  solvers.set(key, solver);
+  const { tokens, steps, ...rest } = solver;
+  const background = solver.ramp(options.background ?? 1);
+  return Object.freeze({
+    background,
+    ...rest,
+    /** Role colors on `bg`, the page background by default, beside `adjacent`. */
+    tokens: (bg = background, adjacent = bg) => tokens(bg, adjacent),
+    root: steps.surfaceOf(background),
+    step: steps.step,
+    surfaceOf: steps.surfaceOf,
+    derive: steps.derive,
+  });
+}
+/** Everything about a theme that's the same on every background. */
+function createSolver(
+  options: ThemeOptions,
+  neutralOf: ReturnType<typeof neutralRampOf>,
+  colors: Readonly<Record<Hue, string>>,
+) {
   const { custom, stops, dark, light, colorModel } = neutralOf;
   // Everything about the neutral ramp follows from these
   const neutralKey = `${colorModel}:${custom}:${stops}`;
   const { ramp } = shared(`ramp:${neutralKey}`, () => neutralOf);
-  const background = ramp(options.background ?? 1);
-  const colors = Object.freeze({ ...defaultColors, ...options.colors });
-  for (const color of Object.values(colors)) rgb(color);
   const hueKeys = Object.fromEntries(
     hues.map((hue) => [hue, `${neutralKey}:${colors[hue]}`]),
   ) as Record<Hue, string>;
   const neutralLab = shared(`neutral:${neutralKey}`, () =>
     Array.from({ length: 257 }, (_, i) => toOklab(ramp(i / 256))),
   );
+  // Whether red, green and blue each only grow along the neutral ramp, as on
+  // most ramps. Then so does luminance, at any two positions, which is what
+  // lets a path along the ramp be bisected.
+  const channelsRise = custom && shared(`rising:${neutralKey}`, () => {
+    let last = 0;
+    for (let i = 0; i <= 256; i++) {
+      const bits = parseInt(ramp(i / 256).slice(1, 7), 16);
+      if ((bits >> 16) < (last >> 16) || ((bits >> 8) & 255) < ((last >> 8) & 255) || (bits & 255) < (last & 255))
+        return false;
+      last = bits;
+    }
+    return true;
+  });
   /** Ramp position of a color that lies on the neutral ramp, if any. */
   const positionOf = (color: string): number | undefined => {
     const [L, a, b] = toOklab(color);
@@ -330,13 +413,6 @@ export function createTheme(options: ThemeOptions = {}) {
     }
     return distance < 0.01 ** 2 ? best / 256 : undefined;
   };
-  /** The neutral ramp in OKLab at any position, between the precomputed samples. */
-  const rampLab = (t: number): Triple => {
-    const x = t * 256,
-      i = Math.min(255, Math.floor(x)),
-      f = x - i;
-    return neutralLab[i].map((v, k) => v + (neutralLab[i + 1][k] - v) * f) as unknown as Triple;
-  };
   // Neutral surfaces follow the ramp's path (and its hues) when they start on it.
   // Colored parents follow the same shape from the ramp position with their
   // lightness, offset by their own color. The hue and chroma of that offset
@@ -346,21 +422,37 @@ export function createTheme(options: ThemeOptions = {}) {
     const to = end === dark ? 0 : 1;
     const from = custom ? positionOf(parent) : undefined;
     if (from !== undefined)
-      return (amount: number) =>
-        amount === 0 ? parent : ramp(from + (to - from) * amount);
+      return Object.assign(
+        (amount: number) => (amount === 0 ? parent : ramp(from + (to - from) * amount)),
+        { onRamp: true },
+      );
     const x = toOklab(parent);
     let start = 0;
     neutralLab.forEach(([L], i) => {
       if (Math.abs(L - x[0]) < Math.abs(neutralLab[start][0] - x[0])) start = i;
     });
     const origin = neutralLab[start];
-    return (amount: number) => {
-      if (amount === 0) return parent;
-      if (amount === 1) return end;
-      const base = rampLab(start / 256 + (to - start / 256) * amount);
-      const fade = [1 - amount, 1 - amount ** 3, 1 - amount ** 3];
-      return fromOklab(base.map((v, i) => v + (x[i] - origin[i]) * fade[i]) as unknown as Triple);
+    /** The path's color strictly between its ends, as 24 bits. */
+    const bits = (amount: number) => {
+      // The neutral ramp in OKLab at this position, between the precomputed
+      // samples, plus the parent's offset from the ramp. No arrays: a scan
+      // samples a path a couple of hundred times.
+      const position = (start / 256 + (to - start / 256) * amount) * 256,
+        i = Math.min(255, Math.floor(position)),
+        f = position - i;
+      const [L0, a0, b0] = neutralLab[i],
+        [L1, a1, b1] = neutralLab[i + 1];
+      const keep = 1 - amount ** 3;
+      return bitsFromOklab(
+        L0 + (L1 - L0) * f + (x[0] - origin[0]) * (1 - amount),
+        a0 + (a1 - a0) * f + (x[1] - origin[1]) * keep,
+        b0 + (b1 - b0) * f + (x[2] - origin[2]) * keep,
+      );
     };
+    return Object.assign(
+      (amount: number) => (amount === 0 ? parent : amount === 1 ? end : hexOfBits(bits(amount))),
+      { bits },
+    );
   };
   const low = toOklab(dark)[0],
     high = toOklab(light)[0];
@@ -371,18 +463,19 @@ export function createTheme(options: ThemeOptions = {}) {
       return [
         hue,
         shared(`hue:${hueKeys[hue]}`, () =>
-          Array.from({ length: 257 }, (_, i) =>
-            candidate(fromOklab([low + ((high - low) * i) / 256, a, b])),
-          ),
+          Array.from({ length: 257 }, (_, i) => {
+            const bits = bitsFromOklab(low + ((high - low) * i) / 256, a, b);
+            return candidateOf(hexOfBits(bits), apcaYOfBits(bits), luminanceOfBits(bits));
+          }),
         ),
       ];
     }),
   ) as Record<Hue, Candidate[]>;
   // Polarity belongs to the background, never to an individual hue or role.
   // textEnd resolves ties toward dark so every semantic color crosses over together.
+  const sideOf = (bg: string) => ({ lighter: textEnd(bg, dark, light) === light, luminance: luminance(bg) });
   const semanticCandidates = (bg: string, hue: Hue) => {
-    const bgL = luminance(bg);
-    const lighter = textEnd(bg, dark, light) === light;
+    const { lighter, luminance: bgL } = sideOf(bg);
     const candidates = ramps[hue].filter((x) =>
       lighter ? x.luminance >= bgL : x.luminance <= bgL,
     );
@@ -402,20 +495,48 @@ export function createTheme(options: ThemeOptions = {}) {
     let steps = paths.get(key);
     if (!steps) {
       const toward = path(bg, endpoint);
-      const computed: Step[] = [];
-      steps = (i) => (computed[i] ??= step(toward(i / (pathSteps - 1))));
+      // A scan measures every step on its way, and shows one. So a step's
+      // luminance comes straight from its channels where it can, and its
+      // hex is only written when it's asked for.
+      const colors: (string | undefined)[] = [];
+      const ys = new Float64Array(pathSteps).fill(-1);
+      const bits = new Int32Array("bits" in toward ? pathSteps : 0);
+      const sample = (i: number) => {
+        const amount = i / (pathSteps - 1);
+        // The ends are the colors as given, which may not be six-digit hex.
+        if ("bits" in toward && i > 0 && i < pathSteps - 1) return (ys[i] = apcaYOfBits((bits[i] = toward.bits(amount))));
+        return (ys[i] = apcaY((colors[i] = toward(amount))));
+      };
+      const y = (i: number) => (ys[i] >= 0 ? ys[i] : sample(i));
+      const color = (i: number) => {
+        if (ys[i] < 0) sample(i);
+        return (colors[i] ??= hexOfBits(bits[i]));
+      };
+      // The roles scan a path once each, from the start, and measure every step on the way.
+      const on = apcaBackground(apcaY(bg));
+      const measured = new Float64Array(pathSteps).fill(-1);
+      // Step 0 is the background itself, which may sit a little off the ramp,
+      // on either side of step 1. From there the ramp only moves away.
+      const rising = channelsRise && "onRamp" in toward && (endpoint === dark ? y(1) <= on.y : y(1) >= on.y);
+      steps = {
+        color,
+        y,
+        lc: (i: number) => (measured[i] >= 0 ? measured[i] : (measured[i] = lcOn(on, y(i)))),
+        rising,
+      };
       if (paths.size >= 512) paths.clear();
       paths.set(key, steps);
     }
     return steps;
   };
   const cache = new Map<string, Readonly<Tokens>>();
-  const tokens = (bg = background, adjacent = bg): Readonly<Tokens> => {
+  const tokens = (bg: string, adjacent: string): Readonly<Tokens> => {
     rgb(bg);
     rgb(adjacent);
     const key = bg + adjacent;
     const cached = cache.get(key);
     if (cached) return cached;
+    let side: ReturnType<typeof sideOf> | undefined;
     const result = Object.freeze({
       ...shared(`${neutralKey}|${bg}|${adjacent}`, () => neutralRoles(bg, adjacent), roleTokens, 4096),
       ...Object.fromEntries(
@@ -423,7 +544,8 @@ export function createTheme(options: ThemeOptions = {}) {
           hue,
           shared(
             `${hueKeys[hue]}|${bg}`,
-            () => select(bg, semanticCandidates(bg, hue), roles.muted * budget),
+            // As `semanticCandidates`, without a list of them for every hue on every surface
+            () => select(bg, ramps[hue], roles.muted * budget, (side ??= sideOf(bg))),
             roleTokens,
             4096,
           ),
@@ -441,28 +563,31 @@ export function createTheme(options: ThemeOptions = {}) {
     // (by APCA), so they share the text's side. On a colored surface they keep its hue.
     const end = textEnd(bg, dark, light);
     const steps = stepsTo(bg, end);
-    const bgY = apcaY(bg),
-      adjacentY = apcaY(adjacent);
-    const onBg = (step: Step) => lc(bgY, step);
+    const onBg: Measure = (path, i) => path.lc(i);
     // Where the background can't reach Lc 90, the roles keep their proportions of
     // what it can reach, so they stay distinct and ordered on narrow ramps.
     const fg = Math.min(contrast(bg, end), roles.foreground);
     const share = (role: number) => (fg * role) / roles.foreground;
     // A border also outlines the surface against its parent. When the text's side
     // can't reach the target against both, the other side may.
-    const outline = (step: Step) => Math.min(onBg(step), lc(adjacentY, step));
-    let border = first(steps, outline, share(roles.border));
+    const beside = apcaBackground(apcaY(adjacent));
+    const outline: Measure =
+      adjacent === bg ? onBg : (path, i) => Math.min(path.lc(i), lcOn(beside, path.y(i)));
+    const reach = steps.rising ? firstRising : first;
+    // Against the parent, Lc only grows if the path moves away from it too.
+    const outlineRises = adjacent === bg || (end === dark ? beside.y >= steps.y(1) : beside.y <= steps.y(1));
+    let border = (steps.rising && outlineRises ? firstRising : first)(steps, outline, share(roles.border));
     if (border === undefined) {
       const other = stepsTo(bg, end === light ? dark : light);
       border = first(other, outline, share(roles.border)) ?? strongest([steps, other], outline);
     }
     return {
       background: bg,
-      foreground: first(steps, onBg, fg) ?? end,
-      muted: first(steps, onBg, share(roles.muted)) ?? end,
+      foreground: reach(steps, onBg, fg) ?? end,
+      muted: reach(steps, onBg, share(roles.muted)) ?? end,
       border,
-      disabled: first(steps, onBg, share(roles.disabled)) ?? end,
-      disabledBorder: first(steps, onBg, share(roles.disabledBorder)) ?? end,
+      disabled: reach(steps, onBg, share(roles.disabled)) ?? end,
+      disabledBorder: reach(steps, onBg, share(roles.disabledBorder)) ?? end,
     };
   }
   const surfaceCache = new Map<string, string>();
@@ -518,7 +643,6 @@ export function createTheme(options: ThemeOptions = {}) {
     contrast: options.contrast,
     signalLightness: options.signalLightness,
   });
-  const root = steps.surfaceOf(background);
   /**
    * Role colors on `bg` (beside `parent`), as shown. They're chosen for
    * readability at full contrast, then fade with the theme's contrast below 1
@@ -531,10 +655,7 @@ export function createTheme(options: ThemeOptions = {}) {
       Object.entries(full).map(([key, value]) => [key, key === "background" ? bg.hex : steps.shown(bg, value)]),
     )) as Readonly<Tokens>;
   };
-  return Object.freeze({
-    background, dark, light, neutral: neutralRamp, colors, ramp, tokens, tokensOn, surface,
-    root, step: steps.step, surfaceOf: steps.surfaceOf, derive: steps.derive,
-  });
+  return { dark, light, neutral: neutralRamp, colors, ramp, tokens, tokensOn, surface, steps };
 }
 export type ResolvedTheme = ReturnType<typeof createTheme>;
 /** Role tokens as `--huet-*` custom properties: `disabledBorder` is `--huet-disabled-border`. */

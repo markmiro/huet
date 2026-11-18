@@ -167,8 +167,11 @@ function ThemeList({ onCreate }: { onCreate: () => void }) {
   );
 }
 
-/** The popover's Themes and Edit Theme tabs, and the switch to theme the popover itself. */
-function Configurator({
+/**
+ * The popover's Themes and Edit Theme tabs, and the switch to theme the popover
+ * itself. Memoized: the picker renders with every edit, and the tabs don't change.
+ */
+const Configurator = React.memo(function Configurator({
   shouldThemeSelf,
   onShouldThemeSelfChange,
 }: {
@@ -191,7 +194,7 @@ function Configurator({
       </div>
     </>
   );
-}
+});
 
 /** Base UI's portal, into the configurator's own container so its styles apply. */
 function PanelPortal({ children }: { children?: React.ReactNode }) {

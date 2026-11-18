@@ -1,5 +1,5 @@
 import chroma from "chroma-js";
-import React, { useState } from "react";
+import React, { memo, useState } from "react";
 import { hues, themes as presets, type Hue, type Theme } from "huet";
 
 import { ColorEditor, SwatchRow } from "./ColorSwatches";
@@ -13,9 +13,15 @@ const label = (hue: Hue) => hue[0].toUpperCase() + hue.slice(1);
  * The theme's signal hues as a row of swatches. Clicking one opens its hue
  * and saturation sliders under the row.
  */
-export default function Hues({ theme, onChange }: { theme: Theme; onChange: (colors: Theme["colors"]) => void }) {
+export default memo(function Hues({
+  colors,
+  onChange,
+}: {
+  colors: Theme["colors"];
+  onChange: (colors: Theme["colors"]) => void;
+}) {
   const [selected, setSelected] = useState<Hue | null>(null);
-  const colorOf = (hue: Hue) => theme.colors?.[hue] ?? defaultColors[hue];
+  const colorOf = (hue: Hue) => colors?.[hue] ?? defaultColors[hue];
   const isDefault = (hue: Hue) => chroma(colorOf(hue)).hex() === chroma(defaultColors[hue]).hex();
   return (
     <SwatchRow
@@ -28,12 +34,12 @@ export default function Hues({ theme, onChange }: { theme: Theme; onChange: (col
             key={selected}
             name={label(selected)}
             color={colorOf(selected)}
-            onChange={(color) => onChange({ ...theme.colors, [selected]: color })}
-            onReset={isDefault(selected) ? undefined : () => onChange({ ...theme.colors, [selected]: defaultColors[selected] })}
+            onChange={(color) => onChange({ ...colors, [selected]: color })}
+            onReset={isDefault(selected) ? undefined : () => onChange({ ...colors, [selected]: defaultColors[selected] })}
             onClose={() => setSelected(null)}
           />
         )
       }
     />
   );
-}
+});

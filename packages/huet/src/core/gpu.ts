@@ -22,6 +22,7 @@ void main() {
 
 /** Applies 3D LUTs with WebGL2: one draw call per image, trilinear filtering for free. */
 export class GpuRecolor {
+  /** Where the shader draws: as large as the largest image so far, with the last one in its bottom-left corner. */
   readonly canvas = document.createElement("canvas");
   private gl: WebGL2RenderingContext;
   // Images and bitmaps don't change after decoding, so their uploads are reused.
@@ -33,6 +34,8 @@ export class GpuRecolor {
 
   constructor() {
     const gl = this.canvas.getContext("webgl2", {
+      // One quad covers every pixel, so multisampling would only add a resolve.
+      antialias: false,
       premultipliedAlpha: false,
       preserveDrawingBuffer: true,
     });
@@ -105,16 +108,21 @@ export class GpuRecolor {
   render(image: TexImageSource, out: HTMLCanvasElement, width: number, height: number) {
     const gl = this.gl;
     this.texture(image);
-    // Resizing a canvas reallocates it, even to the same size.
-    for (const canvas of [this.canvas, out]) {
-      if (canvas.width !== width) canvas.width = width;
-      if (canvas.height !== height) canvas.height = height;
-    }
+    // Resizing a canvas reallocates it, even to the same size, and the browser
+    // waits for the GPU each time. So this one only grows, to the largest image
+    // so far, and each image draws into its bottom-left corner. A page of
+    // images in a few sizes then redraws without a single reallocation.
+    const scratch = this.canvas;
+    if (scratch.width < width) scratch.width = width;
+    if (scratch.height < height) scratch.height = height;
+    if (out.width !== width) out.width = width;
+    if (out.height !== height) out.height = height;
     gl.viewport(0, 0, width, height);
     gl.drawArrays(gl.TRIANGLE_STRIP, 0, 4);
     const context = out.getContext("2d")!;
     context.clearRect(0, 0, width, height);
-    context.drawImage(this.canvas, 0, 0);
+    // WebGL's origin is the bottom-left; a 2D canvas's is the top-left.
+    context.drawImage(scratch, 0, scratch.height - height, width, height, 0, 0, width, height);
   }
 
   /** Wait for queued GPU work, so timings include the draw itself. */

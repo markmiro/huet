@@ -427,7 +427,8 @@ export function mountSvgs(
     return false;
   };
   const observer = new MutationObserver((records) => {
-    if (records.some(relevant)) schedule();
+    // A theme update writes to most of the page, and has already asked for the next frame.
+    if (frame === undefined && records.some(relevant)) schedule();
   });
   observer.observe(root, { subtree: true, childList: true, attributes: true });
   flush();

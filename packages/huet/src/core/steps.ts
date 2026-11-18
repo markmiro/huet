@@ -135,6 +135,21 @@ export function stepper({ neutral, colorModel, colors, contrast = 1, signalLight
     // Backgrounds sampled from the theme's own ramp sit within 0.002 of these samples
     return Math.hypot(a - nearest.oklab[1], b - nearest.oklab[2]) >= minTint;
   };
+  // A surface asks for a dozen neutral steps, and each starts from these.
+  const parents = new Map<string, { lighter: boolean; bgL: number; tinted: boolean }>();
+  const parentOf = (parent: Shade) => {
+    let known = parents.get(parent.hex);
+    if (!known) {
+      known = {
+        lighter: textEnd(parent.hex, darkEnd.hex, lightEnd.hex) === lightEnd.hex,
+        bgL: lightness(parent.hex),
+        tinted: isTinted(parent),
+      };
+      if (parents.size >= 512) parents.clear();
+      parents.set(parent.hex, known);
+    }
+    return known;
+  };
 
   /**
    * Equal L* steps along the neutral ramp toward the end text reads better
@@ -142,8 +157,7 @@ export function stepper({ neutral, colorModel, colors, contrast = 1, signalLight
    * the end of the ramp, so gray on a blue card is a deeper or paler blue.
    */
   const neutralStep = (parent: Shade, amount: number): Shade => {
-    const lighter = textEnd(parent.hex, darkEnd.hex, lightEnd.hex) === lightEnd.hex;
-    const bgL = lightness(parent.hex);
+    const { lighter, bgL, tinted } = parentOf(parent);
     // Strength spans this background's available range in equal L* steps.
     const available = Math.abs((lighter ? lightEnd : darkEnd).lightness - bgL);
     if (available <= 1e-10) return parent;
@@ -157,7 +171,7 @@ export function stepper({ neutral, colorModel, colors, contrast = 1, signalLight
       if (distance >= target && distance < chosenDistance) [chosen, chosenDistance] = [sample, distance];
     }
     const step = chosen ?? best;
-    if (!isTinted(parent)) return { hex: step.hex, L: step.L };
+    if (!tinted) return { hex: step.hex, L: step.L };
     // Keep the parent's color most of the way, then blend into the ramp's own
     // color (its end at 100), like the role colors on a colored surface.
     const keep = 1 - amount ** 3;

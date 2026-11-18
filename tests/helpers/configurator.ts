@@ -1,4 +1,4 @@
-import type { Page } from "@playwright/test";
+import { expect, type Page } from "@playwright/test";
 
 /** The configurator popover, opened from the header's theme button. */
 export const configurator = (page: Page) =>
@@ -13,6 +13,8 @@ export async function openConfigurator(
   if (!(await dialog.isVisible()))
     await page.getByRole("button", { name: /^Theme:/ }).click();
   await dialog.getByRole("tab", { name: tab, exact: true }).click();
+  // The tab being left stays for a frame, with its own Reset and Save buttons.
+  await expect(dialog.getByRole("tabpanel")).toHaveCount(1);
   return dialog;
 }
 
