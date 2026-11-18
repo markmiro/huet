@@ -178,6 +178,10 @@ export interface Tokens {
   foreground: string;
   muted: string;
   border: string;
+  /** Text on disabled controls: Lc 40, between muted and border. */
+  disabled: string;
+  /** Lines on disabled controls: half the border's Lc. */
+  disabledBorder: string;
   red: string;
   yellow: string;
   green: string;
@@ -205,8 +209,11 @@ const lc = (bgY: number, { y }: Step) => Math.abs(apcaFromY(y, bgY));
 /**
  * APCA lightness contrast (Lc) the preset roles aim for. Signal hues aim for the
  * muted level, and colored fills for the border level against their parent.
+ * Disabled text aims for Lc 40 and disabled lines for half the border's Lc,
+ * on light and dark backgrounds alike. (A fixed color-mix keeps much more Lc
+ * on light backgrounds than on dark ones.)
  */
-const roles = { foreground: 90, muted: 60, border: 30 } as const;
+const roles = { foreground: 90, muted: 60, disabled: 40, border: 30, disabledBorder: 15 } as const;
 /** The candidate nearest the target without falling short, or the strongest one. */
 function select(
   background: string,
@@ -454,6 +461,8 @@ export function createTheme(options: ThemeOptions = {}) {
       foreground: first(steps, onBg, fg) ?? end,
       muted: first(steps, onBg, share(roles.muted)) ?? end,
       border,
+      disabled: first(steps, onBg, share(roles.disabled)) ?? end,
+      disabledBorder: first(steps, onBg, share(roles.disabledBorder)) ?? end,
     };
   }
   const surfaceCache = new Map<string, string>();
@@ -528,11 +537,11 @@ export function createTheme(options: ThemeOptions = {}) {
   });
 }
 export type ResolvedTheme = ReturnType<typeof createTheme>;
-/** Role tokens as `--huet-*` custom properties. */
+/** Role tokens as `--huet-*` custom properties: `disabledBorder` is `--huet-disabled-border`. */
 export function themeVariables(
   tokens: Readonly<Tokens>,
 ): Record<string, string> {
   return Object.fromEntries(
-    Object.entries(tokens).map(([key, value]) => [`--huet-${key}`, value]),
+    Object.entries(tokens).map(([key, value]) => [`--huet-${key.replace(/[A-Z]/g, (c) => "-" + c.toLowerCase())}`, value]),
   );
 }

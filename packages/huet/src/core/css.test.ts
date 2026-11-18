@@ -16,6 +16,8 @@ describe("themeCss", () => {
     expect(css).toContain(`--huet-background: ${resolved.background};`);
     expect(css).toContain(`--huet-foreground: ${resolved.tokens().foreground};`);
     expect(css).toContain(`--huet-60: ${resolved.step(resolved.root, 60).hex};`);
+    expect(css).toContain(`--huet-disabled: ${resolved.tokens().disabled};`);
+    expect(css).toContain(`--huet-disabled-border: ${resolved.tokens().disabledBorder};`);
     expect(themeCss(base)).toMatch(/^:root \{\n {2}color-scheme: light;\n {2}--huet-background: #ffffff;/);
   });
 
