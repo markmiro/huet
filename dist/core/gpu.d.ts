@@ -11,7 +11,7 @@ export declare class GpuRecolor {
     constructor();
     setLut(lut: Float32Array, size: number): void;
     private texture;
-    /** Draw `image` through the current LUT into a 2D canvas of the given size. */
+    /** Draw `image` (or a video's current frame) through the current LUT into a 2D canvas of the given size. */
     render(image: TexImageSource, out: HTMLCanvasElement, width: number, height: number): void;
     /** Wait for queued GPU work, so timings include the draw itself. */
     finish(): void;

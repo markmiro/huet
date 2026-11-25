@@ -1,25 +1,20 @@
-import { RecolorOptions } from './recolor';
+import { ImageOptions } from './raster';
 import { Theme } from './theme';
 export { applyLut, applyTransform, buildLut, coordinatesOf, rampColor, recolorer, toCube, } from './recolor';
 export type { Coordinates, RecolorOptions, Transform } from './recolor';
 export { GpuRecolor } from './gpu';
 export { mountSvgs, type MountSvgsOptions } from './svgs';
-export interface ImageOptions extends RecolorOptions {
-    /** Lattice size of the lookup table each theme is baked into. Defaults to 17. */
-    lutSize?: number;
-    /**
-     * `"gpu"` (the default) renders with WebGL2 and falls back to the CPU when
-     * WebGL2 isn't available. `"cpu"` always renders on the CPU.
-     */
-    renderer?: "gpu" | "cpu";
-}
+export { mountVideos, type MountVideosOptions } from './videos';
+export { blendLayers, mountIframes, type BlendLayers, type MountIframesOptions } from './iframes';
+export type { ImageOptions } from './raster';
 /** True when the `"gpu"` renderer can use WebGL2 in this browser. */
 export declare const hasGpu: () => boolean;
-type Source = HTMLImageElement | HTMLCanvasElement | ImageBitmap;
+type Source = HTMLImageElement | HTMLVideoElement | HTMLCanvasElement | ImageBitmap;
 /**
- * Draw a decoded image through a theme into a canvas (a new one unless `out`
- * is given), on the GPU when WebGL2 is available unless `renderer: "cpu"`. Cross-origin images need
- * CORS headers and `crossOrigin` set, or the browser refuses to read them.
+ * Draw a decoded image, or a video's current frame, through a theme into a
+ * canvas (a new one unless `out` is given), on the GPU when WebGL2 is
+ * available unless `renderer: "cpu"`. Cross-origin sources need CORS headers
+ * and `crossOrigin` set, or the browser refuses to read them.
  */
 export declare function recolorImage(source: Source, theme: Theme, options?: ImageOptions, out?: HTMLCanvasElement): HTMLCanvasElement;
 export interface MountImagesOptions extends ImageOptions {
@@ -30,6 +25,14 @@ export interface MountImagesOptions extends ImageOptions {
     selector?: string;
     /** Show the original image while the pointer is over it. */
     hoverOriginal?: boolean;
+    /**
+     * Where Huet can read an image's pixels, given its absolute URL: the URL
+     * itself, another one, such as your own origin's proxy for a host without
+     * CORS headers, or null when there's no way to read it, which keeps the
+     * original. Another URL is fetched with `crossOrigin = "anonymous"`, and the
+     * `<img>` keeps its own `src`. Defaults to the URL itself.
+     */
+    readableUrl?: (src: string) => string | null;
 }
 /**
  * Recolor matching `<img>` elements under `root` into a theme, and keep them
