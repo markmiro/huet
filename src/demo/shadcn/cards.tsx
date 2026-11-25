@@ -424,7 +424,10 @@ export function SignUpCard() {
 export function AlertsStack() {
   return (
     <div className="flex flex-col gap-3">
-      <Alert variant="destructive">
+      <Alert
+        variant="destructive"
+        className="border-red-300 bg-red-50 text-red-900 dark:border-red-800 dark:bg-red-950 dark:text-red-100 *:data-[slot=alert-description]:text-red-800 dark:*:data-[slot=alert-description]:text-red-200"
+      >
         <CircleAlertIcon />
         <AlertTitle>Build failed</AlertTitle>
         <AlertDescription>configurator.tsx: Type error on line 6.</AlertDescription>
