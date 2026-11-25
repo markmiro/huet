@@ -2,6 +2,9 @@
 import Section from "../components/Section.astro";
 import Demo from "../layouts/Demo.astro";
 import { images } from "../recolor/data";
+import marketPoster from "../assets/video/market-poster.jpg?url";
+import marketMp4 from "../assets/video/market.mp4?url";
+import marketWebm from "../assets/video/market.webm?url";
 
 // Emoji the demo's Twemoji subset holds (src/demo/assets/fonts).
 const emojiRows = [
@@ -11,6 +14,21 @@ const emojiRows = [
   "❤️🧡💛💚💙💜🤎🖤🤍✅🚫👋",
   "👍🏻👍🏼👍🏽👍🏾👍🏿🙌🏻🙌🏽🙌🏿🧑🏻🧑🏽🧑🏿",
 ];
+
+// A stand-in for an embed from another site, in stock colors Huet can't read.
+const embed = `<!doctype html>
+<style>
+  body { margin: 0; padding: 16px; font: 14px/1.4 system-ui, sans-serif; background: #fff; color: #1f2328; }
+  h2 { margin: 0 0 4px; font-size: 16px; }
+  p { margin: 0 0 12px; color: #59636e; }
+  .row { display: flex; gap: 8px; align-items: center; }
+  button { border: 0; border-radius: 6px; padding: 6px 12px; font: inherit; color: #fff; background: #0969da; }
+  .ok { color: #1a7f37; } .error { color: #d1242f; }
+</style>
+<h2>Checkout widget</h2>
+<p>An embedded form from another site</p>
+<div class="row"><button>Pay $24.00</button><span class="ok">● Connected</span></div>
+<p class="error" style="margin: 12px 0 0">Card declined: try another card</p>`;
 
 const unsplash = (kind: string) =>
   images.filter((image) => image.group === "unsplash" && image.kind === kind);
@@ -72,6 +90,44 @@ const galleries = [
             <path d="M0 146 Q110 108 210 140 T320 136 V180 H0Z" fill="#2f5d34" />
             <path d="M58 136 l10 -26 l10 26Z" fill="#d93f3f" stroke="#1f1f1f" stroke-width="2" />
           </svg>
+        </figure>
+      </Section>
+
+      <Section title="Video">
+        <p class="huet-text-50 -mt-12 mb-6 text-sm">
+          Recolored frame by frame with <code class="huet-bg-5 rounded-xs px-1 font-mono">mountVideos</code>. Hover for the original and its controls
+        </p>
+        <figure class="huet-bg-5 huet-border-10 max-w-[28em] overflow-hidden rounded border">
+          <video
+            id="market"
+            data-huet-recolor
+            autoplay
+            muted
+            loop
+            playsinline
+            controls
+            poster={marketPoster}
+            aria-label="Shoppers at a produce market stall"
+            class="block aspect-video w-full object-cover"
+          >
+            <source src={marketWebm} type="video/webm" />
+            <source src={marketMp4} type="video/mp4" />
+          </video>
+        </figure>
+      </Section>
+
+      <Section title="Iframe">
+        <p class="huet-text-50 -mt-12 mb-6 text-sm">
+          Approximated with <code class="huet-bg-5 rounded-xs px-1 font-mono">mountIframes</code>, since its pixels can't be read: black and white are exact, colors aren't. Hover for the original
+        </p>
+        <figure class="huet-bg-5 huet-border-10 max-w-[28em] overflow-hidden rounded border">
+          <iframe
+            id="embed"
+            data-huet-recolor
+            srcdoc={embed}
+            title="Checkout widget"
+            class="block h-[10.5em] w-full"
+          ></iframe>
         </figure>
       </Section>
 

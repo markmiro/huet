@@ -13,7 +13,7 @@ pnpm add huet   # or: npm install huet
 | Entry point | Contents |
 | --- | --- |
 | `huet` | The `Theme` type, preset `themes`, `mountTheme`, `themeCss`, `checkTheme`, class validation |
-| `huet/images` | `mountImages`, `mountSvgs`, `recolorImage`, and the lower-level recoloring functions |
+| `huet/images` | `mountImages`, `mountSvgs`, `mountVideos`, `mountIframes`, `recolorImage`, and the lower-level recoloring functions |
 | `huet/styles.css` | Huet's class styles |
 | `huet/tailwind.css` | The same styles as a Tailwind v4 bridge |
 | `huet/forms.css` | Optional minimal styles for native form controls, drawn from the theme |
@@ -189,16 +189,16 @@ The example demos' [Forms page](https://markmiro.github.io/huet/forms.html) show
 
 ## Themes
 
-A theme is plain JSON, so presets, saved themes, exported files and the [`huet-react`](https://www.npmjs.com/package/huet-react) configurator all use the same shape. Everything that takes a theme (`mountTheme`, `themeCss`, `mountImages`, `mountSvgs`, `recolorImage`) takes this one.
+A theme is plain JSON, so presets, saved themes, exported files and the [`huet-react`](https://www.npmjs.com/package/huet-react) configurator all use the same shape. Everything that takes a theme (`mountTheme`, `themeCss`, `mountImages`, `mountSvgs`, `mountVideos`, `mountIframes`, `recolorImage`) takes this one.
 
 | Field | Default | |
 | --- | --- | --- |
 | `neutral` | required | The neutral ramp: two or more colors, darkest first |
 | `colorModel` | `"oklab"` | How the neutral ramp blends between its colors. See [multi-hue ramps](#multi-hue-ramps) |
 | `colors` | Huet's hues | Anchors for `red`, `yellow`, `green`, `blue` and `purple`. Missing hues use the defaults |
-| `contrast` | `1` | From 0 to 2. Below 1, every color fades toward the page background, roles (`huet-text`, `huet-muted`, …) included, for dimmed or disabled UI, and so do the images and SVGs that `mountImages` and `mountSvgs` recolor; 0 is the background alone. Above 1, explicit amounts such as `huet-text-60` reach full contrast sooner (at 2, at half the amount) |
+| `contrast` | `1` | From 0 to 2. Below 1, every color fades toward the page background, roles (`huet-text`, `huet-muted`, …) included, for dimmed or disabled UI, and so do the images and SVGs that `mountImages` and `mountSvgs` recolor (but not videos or iframes); 0 is the background alone. Above 1, explicit amounts such as `huet-text-60` reach full contrast sooner (at 2, at half the amount) |
 | `signalLightness` | `{ onLight: 0.49, onDark: 0.49 }` | Where hue classes such as `huet-text-red-100` aim at full strength, as a position on each hue's dark → hue → light ramp, on light and on dark backgrounds. Role colors such as `huet-text-red` are chosen for readability instead |
-| `images` | `{ strength: 1, tint: 1 }` | How `mountImages`, `mountSvgs` and `recolorImage` apply the theme. `strength` 0 keeps the originals; `tint` is how much a tinted neutral ramp also tints saturated colors |
+| `images` | `{ strength: 1, tint: 1 }` | How `mountImages`, `mountSvgs`, `mountVideos`, `mountIframes` and `recolorImage` apply the theme. `strength` 0 keeps the originals; `tint` is how much a tinted neutral ramp also tints saturated colors |
 
 Where the page background sits isn't part of a theme. Pass `background`, a position from 0 (the dark end of the neutral ramp) to 1 (the light end, the default), when you render one. A site's light/dark switch sets it, and every theme works on either end.
 
@@ -315,6 +315,7 @@ How strongly images take on the theme, and how much of its tint, are part of the
 | `hoverOriginal` | `false` | Show the original while the pointer is over the image |
 | `lutSize` | `17` | Size of the lookup table each theme is baked into |
 | `renderer` | `"gpu"` | `"gpu"` renders with WebGL2 and falls back to the CPU without it; `"cpu"` always uses the CPU. `hasGpu()` tells you which one `"gpu"` gets |
+| `readableUrl` | The URL itself | `(src) => string \| null`: where Huet can read an image's pixels, given its absolute URL. Return another URL, such as your own origin's proxy for a host without CORS headers, or `null` to keep the original. Another URL is fetched with `crossOrigin = "anonymous"`; the `<img>` keeps its `src` |
 
 Images whose original hasn't been recolored yet are hidden (`visibility: hidden`, so layout doesn't shift) until the recolored copy is ready to paint, so the original never flashes. Theme updates redraw the canvases in place, at most once per frame, so a dragged slider doesn't queue work. Images more than a screen away from the viewport are redrawn when they scroll near it; `await images.ready()` draws them right away. Once an image is handled, it gets `data-huet-recolored`, set to `"original"` if it couldn't be read. Server-rendered pages can paint images before the script runs; to hide them from the first paint while mounted, add:
 
@@ -322,7 +323,15 @@ Images whose original hasn't been recolored yet are hidden (`visibility: hidden`
 img[data-huet-recolor]:not([data-huet-recolored]) { visibility: hidden; }
 ```
 
-Rendering runs on the GPU (WebGL2) and falls back to the CPU. The browser must be able to read the pixels, so cross-origin images need CORS headers and a `crossorigin` attribute. Images it can't read are shown as they are, without a canvas. `<picture>` sources are not recolored.
+Rendering runs on the GPU (WebGL2) and falls back to the CPU. The browser must be able to read the pixels, so cross-origin images need CORS headers and a `crossorigin` attribute, or a `readableUrl` that routes them through your own origin. Images it can't read are shown as they are, without a canvas. `<picture>` sources are not recolored.
+
+```ts
+// Read images from a CDN without CORS headers through the site's /proxy/cdn rewrite.
+const cdn = "https://cdn.example.com";
+mountImages(document.body, sunset, {
+  readableUrl: (src) => (src.startsWith(cdn + "/") ? "/proxy/cdn" + src.slice(cdn.length) : src),
+});
+```
 
 #### CSS filters
 
@@ -347,15 +356,55 @@ When the markup can't carry the attribute, as with SVGs from a CMS or `dangerous
 
 To find CSS-driven paints, `mountSvgs` reads the page's stylesheets, matching rules in document order with `!important` ones first; it doesn't compare specificity or cascade layers, and it can't read cross-origin stylesheets, whose paints count as solid colors. A change to an ancestor's `class` rescans the SVGs, but changes to ancestors' inline styles or to stylesheets are picked up at the next update.
 
+### Videos
+
+`mountVideos` recolors videos frame by frame, with the same mapping and lookup tables as images:
+
+```ts
+import { mountVideos } from "huet/images";
+
+const videos = mountVideos(document.body, sunset, { hoverOriginal: true }); // recolors <video data-huet-recolor>
+videos.update(paper);
+```
+
+A video has to keep playing, so instead of replacing it, `mountVideos` lays a `<canvas>` over its content box, inside its border and padding, with the same rounded corners, `object-fit` and `object-position`. The canvas ignores the pointer, so clicks and native controls still reach the video, and it keeps its sound. Each new frame (`requestVideoFrameCallback`) goes through the theme's lookup table on the GPU, at the size the video is shown at, never larger than the source. For a 640×360 video in Chrome on an M1 Pro, that's about 0.6 ms of main-thread time per frame, most of it the browser handing the frame to WebGL, with no dropped frames. Only videos within half a screen of the viewport draw. With `hoverOriginal`, nothing is drawn while the pointer is over a video, which shows the original and its controls. Otherwise the canvas covers the native controls, so a video with `controls` should use `hoverOriginal`, or its own controls. Paused videos are redrawn when they seek or the theme changes. The poster is recolored too, until the video plays or seeks, and the video is hidden until its recolored poster is ready, so the original doesn't flash.
+
+The canvas is absolutely positioned, so it follows the video when the video or its positioned ancestor resizes, but not after a layout shift that resizes neither. A `transform` on the video itself isn't copied. A theme `contrast` below 1 doesn't fade videos, since the original is under the canvas.
+
+Videos need WebGL2; without it they keep their colors, as do videos that fail to load. Like images, their pixels are only readable from another origin with CORS headers and a `crossorigin` attribute. For a video it can't read, Huet keeps the original and raises an error (through `reportError`) saying how to fix it. `readableUrl` works as for images, except that the video itself switches to the readable URL, at the same time and play state, and keeps it after `destroy()`, since switching back would load the video again. If that URL fails to load, the video goes back to its original source, unrecolored, and Huet raises an error. Once a video is handled it gets `data-huet-recolored`, set to `"original"` if it isn't recolored. Options are `selector` (default `video[data-huet-recolor], [data-huet-recolor] video`), `hoverOriginal`, `readableUrl`, `invert`, `source` and `lutSize`. `await videos.ready()` waits for posters and draws every video that has a frame or poster to show; it doesn't wait for a video's first frame to load.
+
+### Iframes
+
+A page can't read another site's iframe, so iframes can't go through the lookup table. Browsers won't run an SVG `url()` filter over one either: Chromium paints a cross-origin iframe unfiltered. `mountIframes` approximates the theme with two blend layers over the iframe instead, a `multiply` layer and then a `screen` layer, which together map each channel along a straight line:
+
+```ts
+import { mountIframes } from "huet/images";
+
+const iframes = mountIframes(document.body, sunset, { hoverOriginal: true }); // <iframe data-huet-recolor>
+iframes.update(paper);
+```
+
+Black and white land exactly where the theme puts them, so an embed's background, text and borders take on the theme's neutral ramp. Midtones are off by however much the theme's mapping curves, and saturated colors shift per channel instead of moving to the theme's hues: a red button stays red. A channel that the theme makes darker at white than at black can't be drawn this way, so it stays at its black value. The layers ignore the pointer, so the iframe stays usable; `hoverOriginal` hides them while the pointer is over it. They're placed like a video's canvas (see [Videos](#videos)), and they blend with whatever shows through the iframe, so an iframe with a transparent background also shifts the page behind it. A theme `contrast` below 1 doesn't fade iframes. Options are `selector` (default `iframe[data-huet-recolor], [data-huet-recolor] iframe`), `hoverOriginal` and `source`.
+
+`blendLayers(theme)` returns the two colors, `{ multiply, screen }`, without touching the page. It's a pure function, so you can also call it at build time and paint the layers with CSS, which applies them before any script runs:
+
+```ts
+const { multiply, screen } = blendLayers(sunset);
+const css = `.embed::before { background: ${multiply}; mix-blend-mode: multiply }
+.embed::after { background: ${screen}; mix-blend-mode: screen }`;
+```
+
+### Lower-level functions
+
 For canvases, video frames, or your own pipeline, use the lower-level functions:
 
-- `recolorImage(source, theme, options?, canvas?)` draws a decoded image or canvas into a recolored canvas.
+- `recolorImage(source, theme, options?, canvas?)` draws a decoded image, a canvas, or a video's current frame into a recolored canvas.
 - `recolorer(theme, options?)` returns the per-pixel `(r, g, b) => [r, g, b]` mapping.
 - `buildLut` / `applyLut` bake that mapping into a 3D lookup table and apply it to `ImageData`.
 - `toCube` exports the table as a `.cube` file for ffmpeg, Resolve, or Photoshop.
 - `coordinatesOf` / `rampColor` read a pixel's ramp coordinates, or the color at a coordinate.
 
-The [image recolor demo](https://markmiro.github.io/huet/recolor.html) compares renderers and themes. The example demos' [Images page](https://markmiro.github.io/huet/images.html) recolors a photo and screenshot gallery into whichever theme you pick in the theme configurator.
+The [image recolor demo](https://markmiro.github.io/huet/recolor.html) compares renderers and themes. The example demos' [Images page](https://markmiro.github.io/huet/images.html) recolors a photo and screenshot gallery, a video and an iframe into whichever theme you pick in the theme configurator.
 
 ## Code blocks
 
