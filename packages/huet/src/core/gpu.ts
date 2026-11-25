@@ -20,6 +20,15 @@ void main() {
   color = vec4(texture(lut, p).rgb, c.a);
 }`;
 
+const sizeOf = (image: TexImageSource) =>
+  image instanceof HTMLImageElement
+    ? [image.naturalWidth, image.naturalHeight]
+    : image instanceof HTMLVideoElement
+      ? [image.videoWidth, image.videoHeight]
+      : "displayWidth" in image
+        ? [image.displayWidth, image.displayHeight]
+        : [image.width, image.height];
+
 /** Applies 3D LUTs with WebGL2: one draw call per image, trilinear filtering for free. */
 export class GpuRecolor {
   /** Where the shader draws: as large as the largest image so far, with the last one in its bottom-left corner. */
@@ -84,7 +93,7 @@ export class GpuRecolor {
     this.currentLut = lut;
   }
 
-  private texture(image: TexImageSource) {
+  private texture(image: TexImageSource, width: number, height: number) {
     const gl = this.gl;
     gl.activeTexture(gl.TEXTURE0);
     const reusable = image instanceof HTMLImageElement || image instanceof ImageBitmap;
@@ -96,18 +105,22 @@ export class GpuRecolor {
     texture = reusable ? gl.createTexture()! : (this.scratch ??= gl.createTexture()!);
     gl.bindTexture(gl.TEXTURE_2D, texture);
     gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, gl.RGBA, gl.UNSIGNED_BYTE, image);
-    gl.generateMipmap(gl.TEXTURE_2D);
-    gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.LINEAR_MIPMAP_LINEAR);
+    // Sources that change every frame, like videos, only pay for mipmaps when
+    // they're drawn at under half their size, where skipping them would alias.
+    const [sourceWidth, sourceHeight] = sizeOf(image);
+    const mipmaps = reusable || sourceWidth > width * 2 || sourceHeight > height * 2;
+    if (mipmaps) gl.generateMipmap(gl.TEXTURE_2D);
+    gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, mipmaps ? gl.LINEAR_MIPMAP_LINEAR : gl.LINEAR);
     gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.LINEAR);
     gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_S, gl.CLAMP_TO_EDGE);
     gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_T, gl.CLAMP_TO_EDGE);
     if (reusable) this.textures.set(image, texture);
   }
 
-  /** Draw `image` through the current LUT into a 2D canvas of the given size. */
+  /** Draw `image` (or a video's current frame) through the current LUT into a 2D canvas of the given size. */
   render(image: TexImageSource, out: HTMLCanvasElement, width: number, height: number) {
     const gl = this.gl;
-    this.texture(image);
+    this.texture(image, width, height);
     // Resizing a canvas reallocates it, even to the same size, and the browser
     // waits for the GPU each time. So this one only grows, to the largest image
     // so far, and each image draws into its bottom-left corner. A page of

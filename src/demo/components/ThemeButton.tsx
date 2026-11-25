@@ -1,6 +1,6 @@
 import { useLayoutEffect, useRef } from "react";
 import { mountTheme } from "huet";
-import { mountImages, mountSvgs } from "huet/images";
+import { mountIframes, mountImages, mountSvgs, mountVideos } from "huet/images";
 import { mountFonts } from "huet-emoji";
 import { EmbeddedThemeConfigurator } from "huet-react";
 import { setDemoTheme, themeApplied, themeName, useDemoTheme } from "./themeStore";
@@ -8,14 +8,17 @@ import twemojiPalette from "../assets/fonts/twemoji-demo.palette.json";
 
 /**
  * Themes `#page` and recolors its `img[data-huet-recolor]`,
- * `svg[data-huet-recolor]` and text set in Twemoji with the demo's theme.
- * Image strength 0 means image theming is off, so the originals show;
- * `mountSvgs` handles SVG strength 0.
+ * `svg[data-huet-recolor]`, `video[data-huet-recolor]`,
+ * `iframe[data-huet-recolor]` and text set in Twemoji with the demo's theme.
+ * Image strength 0 means image theming is off, so the original images,
+ * videos and iframes show; `mountSvgs` handles SVG strength 0.
  */
 function usePageTheme() {
   const { theme, background, themes } = useDemoTheme();
   const colors = useRef<ReturnType<typeof mountTheme>>(undefined);
   const images = useRef<ReturnType<typeof mountImages>>(undefined);
+  const videos = useRef<ReturnType<typeof mountVideos>>(undefined);
+  const iframes = useRef<ReturnType<typeof mountIframes>>(undefined);
   const svgs = useRef<ReturnType<typeof mountSvgs>>(undefined);
   const fonts = useRef<ReturnType<typeof mountFonts>>(undefined);
   useLayoutEffect(() => {
@@ -23,10 +26,19 @@ function usePageTheme() {
     if (colors.current) colors.current.update(theme, { background });
     else colors.current = mountTheme(page, theme, { background });
     if (theme.images?.strength === 0) {
-      images.current?.destroy();
-      images.current = undefined;
-    } else if (images.current) images.current.update(theme);
-    else images.current = mountImages(page, theme, { hoverOriginal: true });
+      for (const mount of [images, videos, iframes]) {
+        mount.current?.destroy();
+        mount.current = undefined;
+      }
+    } else if (images.current) {
+      images.current.update(theme);
+      videos.current!.update(theme);
+      iframes.current!.update(theme);
+    } else {
+      images.current = mountImages(page, theme, { hoverOriginal: true });
+      videos.current = mountVideos(page, theme, { hoverOriginal: true });
+      iframes.current = mountIframes(page, theme, { hoverOriginal: true });
+    }
     if (svgs.current) svgs.current.update(theme);
     else svgs.current = mountSvgs(page, theme);
     // Only the Images page has text in the emoji font. A new palette lays out
@@ -45,6 +57,8 @@ function usePageTheme() {
     () => () => {
       colors.current?.destroy();
       images.current?.destroy();
+      videos.current?.destroy();
+      iframes.current?.destroy();
       fonts.current?.destroy();
     },
     [],

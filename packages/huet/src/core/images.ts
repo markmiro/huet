@@ -1,6 +1,6 @@
 import { dropFilter, filtersOver, liftFilter, reportStuck } from "./filters";
-import { GpuRecolor } from "./gpu";
-import { applyLut, recolorer, type RecolorOptions } from "./recolor";
+import { gpuRecolor, lutFor, type ImageOptions } from "./raster";
+import { applyLut } from "./recolor";
 import type { Theme } from "./theme";
 
 export {
@@ -15,55 +15,26 @@ export {
 export type { Coordinates, RecolorOptions, Transform } from "./recolor";
 export { GpuRecolor } from "./gpu";
 export { mountSvgs, type MountSvgsOptions } from "./svgs";
-
-export interface ImageOptions extends RecolorOptions {
-  /** Lattice size of the lookup table each theme is baked into. Defaults to 17. */
-  lutSize?: number;
-  /**
-   * `"gpu"` (the default) renders with WebGL2 and falls back to the CPU when
-   * WebGL2 isn't available. `"cpu"` always renders on the CPU.
-   */
-  renderer?: "gpu" | "cpu";
-}
-
-// LUTs are small (17³ × 3 floats ≈ 59 KB), so keep recent ones for reuse.
-const luts = new Map<string, Float32Array>();
-function lutFor(target: Theme, { lutSize = 17, ...options }: ImageOptions) {
-  // Contrast fades a mounted image as a whole (see mountImages), so it isn't part of the key.
-  const key = JSON.stringify([target.neutral, target.colorModel, target.colors, target.images, options, lutSize]);
-  let lut = luts.get(key);
-  if (!lut) {
-    if (luts.size >= 16) luts.clear();
-    luts.set(key, (lut = recolorer(target, options).lut(lutSize)));
-  }
-  return lut;
-}
-
-let gpu: GpuRecolor | null | undefined;
-const gpuRecolor = () => {
-  if (gpu === undefined) {
-    try {
-      gpu = new GpuRecolor();
-    } catch {
-      gpu = null;
-    }
-  }
-  return gpu;
-};
+export { mountVideos, type MountVideosOptions } from "./videos";
+export { blendLayers, mountIframes, type BlendLayers, type MountIframesOptions } from "./iframes";
+export type { ImageOptions } from "./raster";
 
 /** True when the `"gpu"` renderer can use WebGL2 in this browser. */
 export const hasGpu = () => gpuRecolor() !== null;
 
-type Source = HTMLImageElement | HTMLCanvasElement | ImageBitmap;
+type Source = HTMLImageElement | HTMLVideoElement | HTMLCanvasElement | ImageBitmap;
 const sizeOf = (source: Source) =>
   source instanceof HTMLImageElement
     ? [source.naturalWidth, source.naturalHeight]
-    : [source.width, source.height];
+    : source instanceof HTMLVideoElement
+      ? [source.videoWidth, source.videoHeight]
+      : [source.width, source.height];
 
 /**
- * Draw a decoded image through a theme into a canvas (a new one unless `out`
- * is given), on the GPU when WebGL2 is available unless `renderer: "cpu"`. Cross-origin images need
- * CORS headers and `crossOrigin` set, or the browser refuses to read them.
+ * Draw a decoded image, or a video's current frame, through a theme into a
+ * canvas (a new one unless `out` is given), on the GPU when WebGL2 is
+ * available unless `renderer: "cpu"`. Cross-origin sources need CORS headers
+ * and `crossOrigin` set, or the browser refuses to read them.
  */
 export function recolorImage(
   source: Source,
@@ -112,6 +83,14 @@ export interface MountImagesOptions extends ImageOptions {
   selector?: string;
   /** Show the original image while the pointer is over it. */
   hoverOriginal?: boolean;
+  /**
+   * Where Huet can read an image's pixels, given its absolute URL: the URL
+   * itself, another one, such as your own origin's proxy for a host without
+   * CORS headers, or null when there's no way to read it, which keeps the
+   * original. Another URL is fetched with `crossOrigin = "anonymous"`, and the
+   * `<img>` keeps its own `src`. Defaults to the URL itself.
+   */
+  readableUrl?: (src: string) => string | null;
 }
 
 interface Entry {
@@ -161,7 +140,12 @@ export function mountImages(
   theme: Theme,
   options: MountImagesOptions = {},
 ) {
-  const { selector = "img[data-huet-recolor], [data-huet-recolor] img", hoverOriginal = false, ...recolor } = options;
+  const {
+    selector = "img[data-huet-recolor], [data-huet-recolor] img",
+    hoverOriginal = false,
+    readableUrl,
+    ...recolor
+  } = options;
   let target = theme,
     settings: ImageOptions = recolor,
     version = 0,
@@ -362,9 +346,10 @@ export function mountImages(
       if (entries.get(img) !== entry || current !== entry.generation) return;
       // Only srcset needs `currentSrc`, which can lag behind a new `src`.
       const src = (img.srcset ? img.currentSrc : "") || img.src;
-      if (!src) return giveUp(img, entry);
+      const readable = src && (readableUrl ? readableUrl(src) : src);
+      if (!readable) return giveUp(img, entry);
       try {
-        const image = await load(src, img.crossOrigin);
+        const image = await load(readable, readable === src ? img.crossOrigin : "anonymous");
         if (entries.get(img) !== entry || current !== entry.generation) return;
         entry.image = image;
         entry.drawn = -1;
